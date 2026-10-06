@@ -1,0 +1,213 @@
+{% liquid
+  assign mega_menu_trigger = block.settings.menu_item | strip | handleize
+  assign mega_menu = block.settings.menu
+  assign has_mega_menu = false
+  if mega_menu_trigger != blank and mega_menu != blank and mega_menu.links != blank
+    assign has_mega_menu = true
+  endif
+%}
+
+{% if has_mega_menu or request.design_mode %}
+  <div
+    class="header-mega-menu"
+    data-header-mega-menu
+    data-mega-menu-trigger="{{ mega_menu_trigger }}"
+    hidden
+    {{ block.shopify_attributes }}
+  >
+    {% if has_mega_menu %}
+      <div class="header-mega-menu__panel">
+        <ul class="header-mega-menu__columns" role="list">
+          {% for column_link in mega_menu.links %}
+            <li class="header-mega-menu__column">
+              <a class="header-mega-menu__heading font-heading" href="{{ column_link.url }}">{{ column_link.title | escape }}</a>
+              {% if column_link.links != blank %}
+                <ul class="header-mega-menu__links" role="list">
+                  {% for child_link in column_link.links %}
+                    <li><a class="link-underline" href="{{ child_link.url }}">{{ child_link.title | escape }}</a></li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  @keyframes header-surface-enter {
+    from {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes header-surface-exit {
+    from {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      visibility: visible;
+      transform: translateY(-0.5rem);
+    }
+  }
+
+  .header-mega-menu {
+    position: absolute;
+    z-index: var(--z-drawer, 200);
+    inset-block-start: calc(100% + var(--header-submenu-offset, 0px));
+    inset-inline-start: 0;
+    width: min(42rem, calc(100vw - (var(--page-margin-current) * 2)));
+    padding: 1.5rem;
+    border-radius: var(--drawer-radius);
+    background: var(--background-color);
+    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    color: var(--body-color);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-0.5rem);
+    transition:
+      opacity var(--motion-duration-slow) var(--motion-ease-standard),
+      transform var(--motion-duration-slow) var(--motion-ease-standard),
+      visibility 0s linear var(--motion-duration-slow),
+      background-color var(--motion-duration-slow) var(--motion-ease-standard),
+      border-color var(--motion-duration-slow) var(--motion-ease-standard),
+      box-shadow var(--motion-duration-slow) var(--motion-ease-standard),
+      color var(--motion-duration-slow) var(--motion-ease-standard);
+  }
+
+  .header-menu__details--mega[open]:not(.is-submenu-closing) > .header-mega-menu,
+  .header-menu--trigger-hover .header-menu__item:hover > .header-menu__details--mega:not(.is-submenu-closing) > .header-mega-menu,
+  .header-menu--trigger-hover .header-menu__item:focus-within > .header-menu__details--mega:not(.is-submenu-closing) > .header-mega-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  .header-menu__details--mega[open]:not(.is-submenu-closing) > .header-mega-menu,
+  .header-menu--trigger-hover .header-menu__item:hover > .header-menu__details--mega:not(.is-submenu-closing) > .header-mega-menu,
+  .header-menu--trigger-hover .header-menu__item:focus-within > .header-menu__details--mega:not(.is-submenu-closing) > .header-mega-menu {
+    animation: header-surface-enter var(--motion-duration-slow) var(--motion-ease-standard) both;
+  }
+
+  .header-menu__details--mega.is-submenu-closing > .header-mega-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: none;
+    transform: translateY(0);
+    animation: header-surface-exit var(--motion-duration-slow) var(--motion-ease-standard) both;
+  }
+
+  .header-menu__details--mega > .header-menu__submenu {
+    display: none;
+  }
+
+  .header-menu__details--mega:is([open], .is-submenu-closing)::after {
+    width: min(42rem, calc(100vw - (var(--page-margin-current) * 2)));
+  }
+
+  .header-mega-menu__columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .header-mega-menu__heading {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .header-mega-menu__links a {
+    color: inherit;
+  }
+
+  .header-mega-menu__heading {
+    display: inline-block;
+    margin-block-end: 0.65rem;
+  }
+
+  .header-mega-menu__links {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header-mega-menu {
+      transition-duration: 0.01ms;
+      transition-delay: 0s;
+      animation: none;
+    }
+  }
+
+  @media (max-width: 991.98px) {
+    .header-top--menu-open .header-mega-menu {
+      position: static;
+      width: 100%;
+      padding: 0.75rem 0 0 0.75rem;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .header-top--menu-open .header-mega-menu__columns {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+
+    .header-top--menu-open .header-menu__details--mega[open] > .header-mega-menu {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Mega menu",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Attach this mega menu to a top-level menu item that has child links."
+    },
+    {
+      "type": "text",
+      "id": "menu_item",
+      "label": "Menu item",
+      "info": "Enter the exact title of the top-level menu item.",
+      "default": "Shop"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Mega menu links"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Mega menu",
+      "category": "Header"
+    }
+  ]
+}
+{% endschema %}

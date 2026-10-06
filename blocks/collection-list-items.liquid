@@ -1,0 +1,630 @@
+{% doc %}
+  Renders selected collections with one shared Collection Card child. The
+  block owns the collection query, layout, carousel controls, pagination, and
+  autoplay contract; Collection Card owns the item presentation. When no
+  collections are selected, six placeholder cards preserve the composition in
+  both the editor and storefront preview.
+
+  @example
+  {% content_for 'block', type: 'collection-list-items', id: 'collection-list' %}
+{% enddoc %}
+
+{% liquid
+  assign collection_list_layout = block.settings.layout_type | default: block.settings.layout | default: 'carousel'
+  unless collection_list_layout == 'grid' or collection_list_layout == 'carousel'
+    assign collection_list_layout = 'carousel'
+  endunless
+
+  assign collection_list_desktop_columns = block.settings.columns_desktop | default: 4 | plus: 0
+  assign collection_list_mobile_columns = block.settings.columns_mobile | default: 1 | plus: 0
+  if collection_list_desktop_columns < 1 or collection_list_desktop_columns > 6
+    assign collection_list_desktop_columns = 4
+  endif
+  if collection_list_mobile_columns < 1 or collection_list_mobile_columns > 6
+    assign collection_list_mobile_columns = 1
+  endif
+
+  assign collection_list_gap_desktop = block.settings.gap_desktop | default: 12 | plus: 0
+  assign collection_list_gap_mobile = block.settings.gap_mobile | default: 8 | plus: 0
+  if collection_list_gap_desktop < 0 or collection_list_gap_desktop > 40
+    assign collection_list_gap_desktop = 12
+  endif
+  if collection_list_gap_mobile < 0 or collection_list_gap_mobile > 40
+    assign collection_list_gap_mobile = 8
+  endif
+
+  assign collection_list_show_next_slide_preview = false
+  if block.settings.show_next_slide_preview_on_desktop
+    assign collection_list_show_next_slide_preview = true
+  endif
+
+  assign collection_list_show_next_slide_preview_on_mobile = false
+  if collection_list_layout == 'carousel' and block.settings.show_next_slide_preview_on_mobile
+    assign collection_list_show_next_slide_preview_on_mobile = true
+  endif
+
+  assign collection_list_navigation_position = block.settings.navigation_position | default: 'inside'
+  unless collection_list_navigation_position == 'inside' or collection_list_navigation_position == 'outside' or collection_list_navigation_position == 'top'
+    assign collection_list_navigation_position = 'inside'
+  endunless
+
+  assign collection_list_navigation_style = block.settings.navigation_style | default: 'secondary'
+  if collection_list_navigation_style == 'tertiary'
+    assign collection_list_navigation_style = 'icon_only'
+  endif
+  unless collection_list_navigation_style == 'primary' or collection_list_navigation_style == 'secondary' or collection_list_navigation_style == 'outline' or collection_list_navigation_style == 'icon_only'
+    assign collection_list_navigation_style = 'secondary'
+  endunless
+
+  assign collection_list_navigation_icon = block.settings.navigation_icon | default: 'chevron'
+  unless collection_list_navigation_icon == 'chevron' or collection_list_navigation_icon == 'arrow' or collection_list_navigation_icon == 'long_arrow'
+    assign collection_list_navigation_icon = 'chevron'
+  endunless
+
+  assign collection_list_navigation_behavior = 'always'
+  if collection_list_navigation_position != 'top'
+    assign collection_list_navigation_behavior = block.settings.navigation_behavior | default: 'show_on_hover'
+    unless collection_list_navigation_behavior == 'show_on_hover' or collection_list_navigation_behavior == 'always'
+      assign collection_list_navigation_behavior = 'show_on_hover'
+    endunless
+  endif
+
+  assign collection_list_show_navigation = false
+  if collection_list_layout == 'carousel' and block.settings.show_navigation_on_desktop
+    assign collection_list_show_navigation = true
+    if block.settings.show_navigation_on_desktop == false or block.settings.show_navigation_on_desktop == 'false'
+      assign collection_list_show_navigation = false
+    endif
+  endif
+
+  assign collection_list_pagination_type = block.settings.pagination_type | default: 'progress_bar'
+  unless collection_list_pagination_type == 'progress_bar' or collection_list_pagination_type == 'bullets'
+    assign collection_list_pagination_type = 'progress_bar'
+  endunless
+
+  assign collection_list_pagination_size = 'var(--swiper-pagination-progressbar-size, 4px)'
+  if collection_list_pagination_type == 'bullets'
+    assign collection_list_pagination_size = 'var(--swiper-pagination-bullet-size, 0.5rem)'
+  endif
+
+  assign collection_list_pagination_top_padding_desktop = block.settings.pagination_top_padding_desktop | default: block.settings.pagination_top_padding | default: 50 | plus: 0
+  if collection_list_pagination_top_padding_desktop < 0 or collection_list_pagination_top_padding_desktop > 100
+    assign collection_list_pagination_top_padding_desktop = 50
+  endif
+
+  assign collection_list_pagination_top_padding_mobile = block.settings.pagination_top_padding_mobile | default: 24 | plus: 0
+  if collection_list_pagination_top_padding_mobile < 0 or collection_list_pagination_top_padding_mobile > 100
+    assign collection_list_pagination_top_padding_mobile = 24
+  endif
+
+  assign collection_list_pagination_limit_width = false
+  if collection_list_pagination_type == 'progress_bar' and block.settings.pagination_limit_width
+    assign collection_list_pagination_limit_width = true
+  endif
+
+  assign collection_list_pagination_max_width = block.settings.pagination_max_width | default: 260 | plus: 0
+  if collection_list_pagination_max_width < 100 or collection_list_pagination_max_width > 600
+    assign collection_list_pagination_max_width = 260
+  endif
+
+  assign collection_list_show_pagination = false
+  if collection_list_layout == 'carousel' and block.settings.show_pagination_on_desktop
+    assign collection_list_show_pagination = true
+  endif
+
+  assign collection_list_autoplay_enabled = false
+  if collection_list_layout == 'carousel' and block.settings.autoplay
+    assign collection_list_autoplay_enabled = true
+  endif
+
+  assign collection_list_autoplay_pause_on_hover = true
+  if block.settings.autoplay_pause_on_hover == false or block.settings.autoplay_pause_on_hover == 'false'
+    assign collection_list_autoplay_pause_on_hover = false
+  endif
+
+  assign collection_list_autoplay_speed = block.settings.autoplay_speed | default: 4 | plus: 0
+  if collection_list_autoplay_speed < 1 or collection_list_autoplay_speed > 10
+    assign collection_list_autoplay_speed = 4
+  endif
+  assign collection_list_autoplay_delay = collection_list_autoplay_speed | times: 1000
+
+  assign collection_list_carousel_id = 'CollectionListCarousel-' | append: block.id
+  assign collection_list_aria_label = 'collection_list.default_title' | t
+  assign collection_list_pagination_class = 'collection-list__pagination collection-list__pagination--' | append: collection_list_pagination_type
+  assign collection_list_previous_label = 'collection_list.previous' | t
+  assign collection_list_next_label = 'collection_list.next' | t
+  assign collection_list_source_items = block.settings.collections
+  assign collection_list_is_placeholder = false
+  if collection_list_source_items == blank
+    assign collection_list_is_placeholder = true
+    assign collection_list_source_items = '1,2,3,4,5,6' | split: ','
+  endif
+%}
+
+{% capture collection_list_pagination_style %}
+  --swiper-pagination-spacing: {{ collection_list_pagination_top_padding_desktop }}px;
+  --swiper-pagination-spacing-mobile: {{ collection_list_pagination_top_padding_mobile }}px;
+  {% if collection_list_pagination_limit_width %}--swiper-pagination-width: min(100%, {{ collection_list_pagination_max_width }}px);{% endif %}
+  {% if collection_list_autoplay_enabled %}--swiper-pagination-bullet-progress-duration: {{ collection_list_autoplay_delay }}ms;{% endif %}
+{% endcapture %}
+{% assign collection_list_pagination_style = collection_list_pagination_style | strip %}
+
+{% capture collection_list_navigation_center_style %}
+  {% if collection_list_show_pagination and collection_list_navigation_position != 'top' %}--swiper-navigation-center-offset: calc(({{ collection_list_pagination_top_padding_desktop }}px + {{ collection_list_pagination_size }}) / 2);{% endif %}
+{% endcapture %}
+{% assign collection_list_navigation_center_style = collection_list_navigation_center_style | strip %}
+
+{% capture collection_list_navigation %}
+  {% if collection_list_navigation_position == 'top' %}
+    {% render 'swiper-navigation',
+      show: collection_list_show_navigation,
+      position: 'inside',
+      style: collection_list_navigation_style,
+      icon: collection_list_navigation_icon,
+      behavior: collection_list_navigation_behavior,
+      centered: false,
+      wrapper_class: 'collection-card-list__navigation collection-card-list__navigation--top',
+      wrapper_attributes: 'data-collection-list-navigation',
+      button_class: 'collection-card-list__carousel-button',
+      previous_attribute: 'data-collection-list-previous',
+      next_attribute: 'data-collection-list-next',
+      previous_label: collection_list_previous_label,
+      next_label: collection_list_next_label
+    %}
+  {% else %}
+    {% render 'swiper-navigation',
+      show: collection_list_show_navigation,
+      position: collection_list_navigation_position,
+      style: collection_list_navigation_style,
+      icon: collection_list_navigation_icon,
+      behavior: collection_list_navigation_behavior,
+      centered: true,
+      wrapper_class: 'collection-card-list__navigation',
+      wrapper_attributes: 'data-collection-list-navigation',
+      button_class: 'collection-card-list__carousel-button',
+      previous_attribute: 'data-collection-list-previous',
+      next_attribute: 'data-collection-list-next',
+      previous_label: collection_list_previous_label,
+      next_label: collection_list_next_label,
+      center_style: collection_list_navigation_center_style
+    %}
+  {% endif %}
+{% endcapture %}
+{% assign collection_list_navigation = collection_list_navigation | strip %}
+
+{% if collection_list_layout == 'carousel' %}
+  <script data-theme-module="{{ 'product-collection-carousel.js' | asset_url }}"></script>
+{% endif %}
+
+<div
+  class="collection-card-list"
+  data-collection-card-list
+  data-layout="{{ collection_list_layout }}"
+  {{ block.shopify_attributes }}
+>
+  {% if collection_list_navigation_position == 'top' %}{{ collection_list_navigation }}{% endif %}
+  {% capture collection_list_items %}
+    {% for collection in collection_list_source_items %}
+      <div class="{% if collection_list_layout == 'carousel' %}swiper-slide {% endif %}collection-card-list__item">
+        {% content_for 'block', type: 'collection-card', id: 'collection-card', closest.collection: collection, placeholder: collection_list_is_placeholder %}
+      </div>
+    {% endfor %}
+  {% endcapture %}
+
+  {% if collection_list_layout == 'carousel' %}
+    {% capture collection_list_carousel_attributes %}
+      data-product-carousel
+      data-layout="carousel"
+      data-swiper-columns-desktop="{{ collection_list_desktop_columns }}"
+      data-swiper-columns-mobile="{{ collection_list_mobile_columns }}"
+      data-swiper-gap-desktop="{{ collection_list_gap_desktop }}"
+      data-swiper-gap-mobile="{{ collection_list_gap_mobile }}"
+      data-swiper-pagination-type="{{ collection_list_pagination_type }}"
+      data-swiper-previous-selector="[data-collection-list-previous]"
+      data-swiper-next-selector="[data-collection-list-next]"
+    {% endcapture %}
+
+    {% capture collection_list_pagination %}
+      {% render 'swiper-pagination',
+        show: collection_list_show_pagination,
+        type: collection_list_pagination_type,
+        class: collection_list_pagination_class,
+        style: collection_list_pagination_style
+      %}
+    {% endcapture %}
+
+    <div class="collection-card-list__carousel-wrap swiper-carousel__container">
+      {% render 'swiper-carousel',
+        id: collection_list_carousel_id,
+        content: collection_list_items,
+        root_class: 'collection-card-list__carousel',
+        root_attributes: collection_list_carousel_attributes,
+        aria_label: collection_list_aria_label,
+        pagination: collection_list_pagination,
+        show_next_slide_preview: collection_list_show_next_slide_preview,
+        show_next_slide_preview_on_mobile: collection_list_show_next_slide_preview_on_mobile,
+        autoplay: collection_list_autoplay_enabled,
+        pause_on_hover: collection_list_autoplay_pause_on_hover,
+        autoplay_delay: collection_list_autoplay_delay
+      %}
+
+      {% if collection_list_navigation_position != 'top' %}{{ collection_list_navigation }}{% endif %}
+    </div>
+  {% else %}
+    <div
+      class="collection-card-list__grid"
+      style="--cards: {{ collection_list_desktop_columns }}; --cards-mobile: {{ collection_list_mobile_columns }}; --gap: {{ collection_list_gap_desktop }}px; --gap-mobile: {{ collection_list_gap_mobile }}px;"
+    >
+      {{ collection_list_items }}
+    </div>
+  {% endif %}
+</div>
+
+{% stylesheet %}
+  .collection-card-list,
+  .collection-card-list__carousel-wrap,
+  .collection-card-list__carousel {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .collection-card-list__carousel-wrap {
+    position: relative;
+  }
+
+  .collection-card-list__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cards), minmax(0, 1fr));
+    gap: var(--gap);
+  }
+
+  .collection-card-list__navigation {
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 0.5rem;
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .collection-card-list__navigation.swiper-carousel__navigation--outside {
+    padding-inline: 0;
+  }
+
+  .collection-card-list__navigation.collection-card-list__navigation--top {
+    position: relative;
+    inset: auto;
+    width: max-content;
+    max-width: 100%;
+    gap: 0.5rem;
+    padding-inline: 0;
+    transform: none;
+  }
+
+  .collection-card-list__navigation--top .swiper-nav-button {
+    flex: 0 0 auto;
+  }
+
+  .collection-card-list__navigation.swiper-carousel__navigation--outside .swiper-nav-button--prev {
+    margin-inline-start: calc(-1 * var(--swiper-nav-size) / 2);
+  }
+
+  .collection-card-list__navigation.swiper-carousel__navigation--outside .swiper-nav-button--next {
+    margin-inline-end: calc(-1 * var(--swiper-nav-size) / 2);
+  }
+
+  @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+    .collection-card-list__navigation.swiper-carousel__navigation--show_on_hover {
+      opacity: 0;
+      transition: opacity var(--motion-duration-standard) var(--motion-ease-standard);
+    }
+
+    .collection-card-list__carousel-wrap:is(:hover, :focus-within) .swiper-carousel__navigation--show_on_hover {
+      opacity: 1;
+    }
+  }
+
+  .collection-card-list__carousel-button {
+    pointer-events: auto;
+  }
+
+  .collection-card-list__pagination--progress_bar {
+    --swiper-pagination-progressbar-bg-color: color-mix(in srgb, var(--body-color) 20%, transparent);
+    --swiper-pagination-color: var(--body-color);
+  }
+
+  .collection-card-list__pagination--bullets {
+    --swiper-pagination-bullet-size: 0.5rem;
+    --swiper-pagination-bullet-horizontal-gap: 0;
+    --swiper-pagination-bullet-inactive-color: color-mix(in srgb, var(--body-color) 30%, transparent);
+    --swiper-pagination-bullet-inactive-opacity: 1;
+    --swiper-pagination-color: var(--body-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 767.98px) {
+    .collection-card-list__grid {
+      grid-template-columns: repeat(var(--cards-mobile), minmax(0, 1fr));
+      gap: var(--gap-mobile);
+    }
+
+    .collection-card-list__navigation,
+    .collection-card-list__navigation.collection-card-list__navigation--top {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .swiper-carousel__navigation--show_on_hover {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.collection_list",
+  "tag": null,
+  "blocks": [
+    { "type": "collection-card" }
+  ],
+  "settings": [
+    {
+      "type": "collection_list",
+      "id": "collections",
+      "label": "t:general.collections",
+      "limit": 12
+    },
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "grid", "label": "t:options.product_list_layout.grid" },
+        { "value": "carousel", "label": "t:options.product_list_layout.carousel" }
+      ],
+      "default": "carousel"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "t:labels.desktop_columns",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" },
+        { "value": "5", "label": "5" },
+        { "value": "6", "label": "6" }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "t:labels.mobile_columns",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "1"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_next_slide_preview_on_mobile",
+      "label": "t:labels.show_next_slide_preview_on_mobile",
+      "default": false,
+      "visible_if": "{{ block.settings.layout == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_next_slide_preview_on_desktop",
+      "label": "t:labels.show_next_slide_preview_on_desktop",
+      "default": true,
+      "visible_if": "{{ block.settings.layout == 'carousel' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:options.device.desktop",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:options.device.mobile",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "t:general.navigation",
+      "visible_if": "{{ block.settings.layout == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_navigation_on_desktop",
+      "label": "t:labels.show_navigation_on_desktop",
+      "default": true,
+      "visible_if": "{{ block.settings.layout == 'carousel' }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "outside", "label": "t:options.collection_navigation_position.outside" },
+        { "value": "inside", "label": "t:options.collection_navigation_position.inside" },
+        { "value": "top", "label": "t:options.position.top" }
+      ],
+      "default": "inside",
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.show_navigation_on_desktop }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" },
+        { "value": "outline", "label": "t:options.button_variant.outline" },
+        { "value": "icon_only", "label": "t:options.button_variant.icon_only" }
+      ],
+      "default": "secondary",
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.show_navigation_on_desktop }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_icon",
+      "label": "t:labels.icon",
+      "options": [
+        { "value": "chevron", "label": "t:options.collection_navigation_icon.chevron" },
+        { "value": "arrow", "label": "t:options.collection_navigation_icon.arrow" },
+        { "value": "long_arrow", "label": "t:options.collection_navigation_icon.long_arrow" }
+      ],
+      "default": "chevron",
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.show_navigation_on_desktop }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_behavior",
+      "label": "t:labels.behavior",
+      "options": [
+        { "value": "show_on_hover", "label": "t:options.collection_navigation_behavior.show_on_hover" },
+        { "value": "always", "label": "t:options.collection_navigation_behavior.always" }
+      ],
+      "default": "show_on_hover",
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.show_navigation_on_desktop }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.pagination",
+      "visible_if": "{{ block.settings.layout == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pagination_on_desktop",
+      "label": "t:labels.show_pagination",
+      "default": true,
+      "visible_if": "{{ block.settings.layout == 'carousel' }}"
+    },
+    {
+      "type": "select",
+      "id": "pagination_type",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "progress_bar", "label": "t:options.collection_pagination.progress_bar" },
+        { "value": "bullets", "label": "t:options.collection_pagination.bullets" }
+      ],
+      "default": "progress_bar",
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.show_pagination_on_desktop }}"
+    },
+    {
+      "type": "range",
+      "id": "pagination_top_padding_desktop",
+      "label": "t:labels.pagination_desktop_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 50,
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.show_pagination_on_desktop }}"
+    },
+    {
+      "type": "range",
+      "id": "pagination_top_padding_mobile",
+      "label": "t:labels.pagination_mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.show_pagination_on_desktop }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "pagination_limit_width",
+      "label": "t:labels.limit_width",
+      "default": true,
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.show_pagination_on_desktop and block.settings.pagination_type == 'progress_bar' }}"
+    },
+    {
+      "type": "range",
+      "id": "pagination_max_width",
+      "label": "t:labels.max_width",
+      "min": 100,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "default": 260,
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.show_pagination_on_desktop and block.settings.pagination_type == 'progress_bar' and block.settings.pagination_limit_width }}"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.autoplay",
+      "visible_if": "{{ block.settings.layout == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "t:labels.auto_rotate_slides",
+      "default": false,
+      "visible_if": "{{ block.settings.layout == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay_pause_on_hover",
+      "label": "t:labels.pause_on_hover",
+      "default": true,
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.autoplay }}"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "t:labels.speed",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 4,
+      "visible_if": "{{ block.settings.layout == 'carousel' and block.settings.autoplay }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.collection_list",
+      "blocks": [
+        {
+          "type": "collection-card",
+          "id": "collection-card",
+          "static": true,
+          "blocks": [
+            { "type": "collection-card-title", "id": "title", "static": true }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

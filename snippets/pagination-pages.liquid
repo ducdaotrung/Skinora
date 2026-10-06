@@ -1,0 +1,48 @@
+{% # theme-check-disable UnusedDocParam %}
+{% doc %}
+  Shared native page links for collection and blog pagination.
+  @param {object} paginate - Native Shopify paginate drop
+  @param {object} [block] - Query-owning block for lazy collection-list setting pagination
+{% enddoc %}
+{% # theme-check-enable UnusedDocParam %}
+  {% if paginate.previous %}
+    <span class="prev">
+      <a href="{{ paginate.previous.url }}" class="link-underline" data-underline="persistent" data-underline-target="text" aria-label="{{ 'collection.previous_page' | t | escape }}">
+        {% render 'icon', icon: 'chevron-left', bare: true, class: 'theme-pagination-arrow' %}
+        <span class="btn__text">{{ 'collection.previous' | t }}</span>
+      </a>
+    </span>
+  {% endif %}
+
+  {% liquid
+    assign current_page = paginate.current_page
+    assign previous_page = current_page | minus: 1
+    assign next_page = current_page | plus: 1
+    assign last_rendered_page = 0
+  %}
+  {% for part in paginate.parts %}
+    {% assign page_number = part.title | plus: 0 %}
+    {% if page_number > 0 %}
+      {% if page_number == 1 or page_number == paginate.pages or page_number == previous_page or page_number == current_page or page_number == next_page %}
+        {% assign page_gap = page_number | minus: last_rendered_page %}
+        {% if last_rendered_page > 0 and page_gap > 1 %}
+          <span class="deco" aria-hidden="true">&hellip;</span>
+        {% endif %}
+        {% if part.is_link %}
+          <span class="page"><a href="{{ part.url }}">{{ part.title }}</a></span>
+        {% else %}
+          <span class="page current" aria-current="page">{{ part.title }}</span>
+        {% endif %}
+        {% assign last_rendered_page = page_number %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+
+  {% if paginate.next %}
+    <span class="next">
+      <a href="{{ paginate.next.url }}" class="link-underline" data-underline="persistent" data-underline-target="text" aria-label="{{ 'collection.next_page' | t | escape }}">
+        <span class="btn__text">{{ 'collection.next' | t }}</span>
+        {% render 'icon', icon: 'chevron-right', bare: true, class: 'theme-pagination-arrow' %}
+      </a>
+    </span>
+  {% endif %}

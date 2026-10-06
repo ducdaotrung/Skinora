@@ -1,0 +1,190 @@
+{% liquid
+  assign section_width = section.settings.section_width | default: 'full_width_no_padding'
+  assign container_width = 'page-width'
+  assign container_no_padding = false
+  if section_width == 'full_width'
+    assign container_width = 'full-width'
+  elsif section_width == 'full_width_no_padding'
+    assign container_width = 'full-width'
+    assign container_no_padding = true
+  endif
+
+  assign alignment = section.settings.alignment | default: 'left'
+  assign flex_align = 'start'
+  if alignment == 'center'
+    assign flex_align = 'center'
+  elsif alignment == 'right'
+    assign flex_align = 'end'
+  endif
+  assign mobile_flex_align = flex_align
+  if section.settings.customize_mobile_alignment
+    assign mobile_alignment = section.settings.alignment_mobile | default: alignment
+    if mobile_alignment == 'center'
+      assign mobile_flex_align = 'center'
+    elsif mobile_alignment == 'right'
+      assign mobile_flex_align = 'end'
+    else
+      assign mobile_flex_align = 'start'
+    endif
+  endif
+
+  assign content_gap = section.settings.content_gap | default: 0 | plus: 0
+  assign content_gap_mobile = content_gap
+  if section.settings.customize_mobile_gap
+    assign content_gap_mobile = section.settings.content_gap_mobile | default: content_gap | plus: 0
+  endif
+
+  assign color_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign color_scheme = section.settings.color_scheme.id
+  endif
+
+  assign padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_top_mobile = padding_top
+  assign padding_bottom_mobile = padding_bottom
+  if section.settings.customize_mobile_padding
+    assign padding_top_mobile = section.settings.padding_top_mobile | default: padding_top | plus: 0
+    assign padding_bottom_mobile = section.settings.padding_bottom_mobile | default: padding_bottom | plus: 0
+  endif
+  assign background_color = section.settings.background_color
+%}
+
+<div class="gallery-full-width-strip">
+  <div
+    class="section-spacing gallery-full-width-strip__spacing color-scheme section-color-scope {{ color_scheme | handleize }}"
+    style="--gallery-strip-align: {{ flex_align }}; --gallery-strip-align-mobile: {{ mobile_flex_align }}; --gallery-strip-gap: {{ content_gap }}px; --gallery-strip-gap-mobile: {{ content_gap_mobile }}px; --gallery-strip-padding-top: {{ padding_top }}px; --gallery-strip-padding-bottom: {{ padding_bottom }}px; --gallery-strip-padding-top-mobile: {{ padding_top_mobile }}px; --gallery-strip-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% if background_color != blank %} --gallery-strip-background: {{ background_color | escape }};{% endif %}"
+  >
+    {% if section.settings.background_image != blank %}
+      <div class="gallery-full-width-strip__background" aria-hidden="true">
+        {{ section.settings.background_image | image_url: width: 2400 | image_tag }}
+      </div>
+    {% endif %}
+    <div class="container {{ container_width }} gallery-full-width-strip__container{% if container_no_padding %} gallery-full-width-strip__container--no-padding{% endif %}">
+      <div class="gallery-full-width-strip__items" style="--gallery-strip-columns: {{ section.blocks.size | at_least: 1 | at_most: 5 }};">
+        {% content_for 'blocks' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .gallery-full-width-strip {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .gallery-full-width-strip__spacing {
+    position: relative;
+    overflow: hidden;
+    padding-top: var(--gallery-strip-padding-top, 0px);
+    padding-bottom: var(--gallery-strip-padding-bottom, 0px);
+    background-color: var(--gallery-strip-background, var(--background-color));
+  }
+
+  .gallery-full-width-strip__background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .gallery-full-width-strip__background img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .container.gallery-full-width-strip__container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .container.full-width.gallery-full-width-strip__container--no-padding {
+    padding-inline: 0;
+  }
+
+  .gallery-full-width-strip__items {
+    display: grid;
+    grid-template-columns: repeat(var(--gallery-strip-columns, 5), minmax(0, 1fr));
+    gap: var(--gallery-strip-gap, 0px);
+    justify-items: stretch;
+    width: 100%;
+  }
+
+  .gallery-full-width-strip__items > * {
+    min-width: 0;
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  @media (max-width: 767.98px) {
+    .gallery-full-width-strip__spacing {
+      padding-top: var(--gallery-strip-padding-top-mobile, var(--gallery-strip-padding-top, 0px));
+      padding-bottom: var(--gallery-strip-padding-bottom-mobile, var(--gallery-strip-padding-bottom, 0px));
+    }
+
+    .gallery-full-width-strip__items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--gallery-strip-gap-mobile, var(--gallery-strip-gap, 0px));
+      justify-items: stretch;
+    }
+
+    .gallery-full-width-strip__items > .gallery-strip-feature-item {
+      grid-column: 1 / -1;
+      width: 100%;
+      justify-self: stretch;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Gallery full width strip",
+  "class": "section-kernel",
+  "enabled_on": { "templates": ["*"] },
+  "blocks": [{ "type": "gallery-strip-item" }, { "type": "gallery-strip-feature-item" }],
+  "settings": [
+    { "type": "header", "content": "Layout" },
+    { "type": "select", "id": "section_width", "label": "t:labels.section_width", "options": [{ "value": "page_width", "label": "t:options.section_width.page_width" }, { "value": "full_width", "label": "t:options.section_width.full_width" }, { "value": "full_width_no_padding", "label": "Full width (no padding)" }], "default": "full_width_no_padding" },
+    { "type": "text_alignment", "id": "alignment", "label": "t:labels.alignment", "default": "left" },
+    { "type": "checkbox", "id": "customize_mobile_alignment", "label": "t:labels.customize_mobile_alignment", "default": false },
+    { "type": "text_alignment", "id": "alignment_mobile", "label": "t:labels.mobile_alignment", "default": "left", "visible_if": "{{ section.settings.customize_mobile_alignment }}" },
+    { "type": "header", "content": "Gap" },
+    { "type": "range", "id": "content_gap", "label": "Content gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "checkbox", "id": "customize_mobile_gap", "label": "t:labels.customize_mobile_layout", "default": false },
+    { "type": "range", "id": "content_gap_mobile", "label": "Mobile content gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ section.settings.customize_mobile_gap }}" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "t:labels.color_scheme", "default": "scheme-1" },
+    { "type": "color", "alpha": true, "id": "background_color", "label": "Background" },
+    { "type": "image_picker", "id": "background_image", "label": "Background image" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "checkbox", "id": "customize_mobile_padding", "label": "t:labels.customize_mobile_padding", "default": false },
+    { "type": "range", "id": "padding_top_mobile", "label": "t:labels.mobile_top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_bottom_mobile", "label": "t:labels.mobile_bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ section.settings.customize_mobile_padding }}" }
+  ],
+  "presets": [
+    {
+      "name": "Gallery full width strip",
+      "category": "Storytelling",
+      "settings": { "section_width": "full_width_no_padding", "alignment": "left", "content_gap": 0, "customize_mobile_gap": false, "color_scheme": "scheme-1", "customize_mobile_padding": false },
+      "blocks": [
+        { "type": "gallery-strip-item" },
+        { "type": "gallery-strip-item" },
+        {
+          "type": "gallery-strip-feature-item",
+          "blocks": [{ "type": "gallery-strip-overlay-group", "blocks": [
+            { "type": "heading", "settings": { "text": "<p>Follow Us On Instagram</p>", "html_tag": "h2", "heading_size": "md" } },
+            { "type": "button", "settings": { "button_label": "Button label", "button_style": "tertiary", "width": "fit", "width_mobile": "fit" } }
+          ] }]
+        },
+        { "type": "gallery-strip-item" },
+        { "type": "gallery-strip-item" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,175 @@
+{% doc %}
+  Renders a product column and matches dynamic row values by the stable column key.
+
+  @param {object} block - Theme Block supplying merchant settings and editor attributes
+
+  @param {string} comparison_table_dom_id - Section and table namespace for all accessible IDs
+  @param {block[]} [comparison_table_rows] - Ordered row blocks owned by the feature column
+  @param {boolean} [comparison_table_dynamic_rows] - Whether an empty row list must stay empty instead of rendering legacy slots
+{% enddoc %}
+
+{% liquid
+  assign comparison_table_dom_id = comparison_table_dom_id | default: '__TABLE_NAMESPACE__'
+  assign comparison_column_border_width = block.settings.border_thickness | default: 0 | plus: 0
+  if comparison_column_border_width < 0 or comparison_column_border_width > 10
+    assign comparison_column_border_width = 0
+  endif
+
+  assign comparison_column_shadow = block.settings.shadow | default: 'extra_small'
+  assign comparison_column_shadow_value = 'none'
+  case comparison_column_shadow
+    when 'extra_small'
+      assign comparison_column_shadow_value = '0 1px 5px color-mix(in srgb, var(--shadow-color) 10%, transparent)'
+    when 'small'
+      assign comparison_column_shadow_value = '0 2px 10px color-mix(in srgb, var(--shadow-color) 10%, transparent)'
+    when 'medium'
+      assign comparison_column_shadow_value = '0 4px 20px color-mix(in srgb, var(--shadow-color) 10%, transparent)'
+    when 'large'
+      assign comparison_column_shadow_value = '0 6px 30px color-mix(in srgb, var(--shadow-color) 10%, transparent)'
+  endcase
+
+  assign comparison_column_corner_radius = block.settings.corner_radius | default: 'square'
+  unless comparison_column_corner_radius == 'inherit' or comparison_column_corner_radius == 'square' or comparison_column_corner_radius == 'rounded' or comparison_column_corner_radius == 'custom'
+    assign comparison_column_corner_radius = 'square'
+  endunless
+  assign comparison_column_custom_corner_radius = block.settings.custom_corner_radius | default: 0 | plus: 0
+  if comparison_column_custom_corner_radius < 0 or comparison_column_custom_corner_radius > 40
+    assign comparison_column_custom_corner_radius = 0
+  endif
+  assign comparison_column_corner_radius_value = 'var(--media-radius, var(--radius-square))'
+  case comparison_column_corner_radius
+    when 'square'
+      assign comparison_column_corner_radius_value = 'var(--radius-square)'
+    when 'rounded'
+      assign comparison_column_corner_radius_value = 'var(--radius-rounded)'
+    when 'custom'
+      assign comparison_column_corner_radius_value = comparison_column_custom_corner_radius | append: 'px'
+  endcase
+
+  assign comparison_column_scheme_class = ''
+  if block.settings.color_type == 'scheme'
+    assign comparison_column_scheme = block.settings.color_scheme | default: 'scheme-1'
+    if block.settings.color_scheme.id != blank
+      assign comparison_column_scheme = block.settings.color_scheme.id
+    endif
+    assign comparison_column_scheme = comparison_column_scheme | default: 'scheme-1' | handleize
+    assign comparison_column_scheme_class = ' color-scheme section-color-scope ' | append: comparison_column_scheme
+  endif
+
+  assign comparison_column_heading = block.settings.heading | default: ''
+  assign comparison_column_description = block.settings.description | default: '' | strip
+  assign comparison_column_link = block.settings.link
+  assign comparison_column_new_tab = block.settings.open_in_new_tab
+  assign comparison_column_button_label = block.settings.button_label
+  assign comparison_column_button_style = block.settings.button_style | default: 'primary'
+  assign comparison_column_button_disabled = false
+  if comparison_column_link == blank
+    assign comparison_column_button_disabled = true
+  endif
+  assign comparison_column_image_width = 280
+  assign comparison_column_key = block.settings.column_key | default: block.id
+  assign comparison_column_product_id = 'comparison-product-' | append: comparison_table_dom_id | append: '-' | append: block.id
+%}
+
+{% capture comparison_column_style %}
+  {% if comparison_column_border_width != 0 %}--comparison-table-column-border-width: {{ comparison_column_border_width }}px;{% endif %}
+  {% if comparison_column_shadow != 'extra_small' %}--comparison-column-shadow: {{ comparison_column_shadow_value }};{% endif %}
+  {% if comparison_column_corner_radius != 'square' %}--comparison-column-radius: {{ comparison_column_corner_radius_value }};{% endif %}
+{% endcapture %}
+{% assign comparison_column_style = comparison_column_style | strip | replace: '\n', ' ' %}
+
+<div
+  class="comparison-table__col grid comparison-table__col--data{{ comparison_column_scheme_class }}"
+  data-comparison-column-key="{{ comparison_column_key | escape }}"
+  data-column-shadow="{{ comparison_column_shadow }}"
+  {% if comparison_column_style != blank %}style="{{ comparison_column_style }}"{% endif %}
+  role="rowgroup"
+  {{ block.shopify_attributes }}
+>
+  <div class="comparison-table__row comparison-table__row--header" role="row" aria-rowindex="1">
+    <div class="comparison-table__cell comparison-table__cell--header comparison-table__product-header" role="columnheader" id="{{ comparison_column_product_id }}">
+      {% if block.settings.image != blank %}
+        {% render 'image',
+          image: block.settings.image,
+          url: comparison_column_link,
+          class: 'comparison-table__media',
+          width: comparison_column_image_width,
+          sizes: '(min-width: 768px) 200px, 42vw',
+          open_in_new_tab: comparison_column_new_tab
+        %}
+      {% endif %}
+      {% if comparison_column_heading != blank %}
+        <h3 class="comparison-table__heading">
+          {% if comparison_column_link != blank %}
+            <a href="{{ comparison_column_link | escape }}"{% if comparison_column_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ comparison_column_heading | escape }}</a>
+          {% else %}
+            {{ comparison_column_heading | escape }}
+          {% endif %}
+        </h3>
+      {% endif %}
+      {% if comparison_column_description != blank %}
+        <p class="comparison-table__description">{{ comparison_column_description | escape | newline_to_br }}</p>
+      {% endif %}
+      {% if comparison_column_button_label != blank %}
+        {% render 'theme-button',
+          label: comparison_column_button_label,
+          url: comparison_column_link,
+          disabled: comparison_column_button_disabled,
+          variant: comparison_column_button_style,
+          open_in_new_tab: comparison_column_new_tab,
+          class: 'comparison-table__button'
+        %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- comparison-column-rows -->
+  {% if comparison_table_rows.size > 0 or comparison_table_dynamic_rows %}
+    {% for comparison_row in comparison_table_rows %}
+      {% assign feature_id = 'comparison-feature-' | append: comparison_table_dom_id | append: '-' | append: comparison_row.id %}
+      {% assign value_id = 'comparison-value-' | append: comparison_table_dom_id | append: '-' | append: block.id | append: '-' | append: comparison_row.id %}
+      <div class="comparison-table__row" role="row" aria-rowindex="{{ forloop.index | plus: 1 }}" data-comparison-table-row="{{ forloop.index }}">
+        {% assign comparison_row_has_value = false %}
+        {% for comparison_value in comparison_row.blocks %}
+          {% if comparison_value.settings.column_key == comparison_column_key %}
+            {% render 'comparison-table-row-value-content', block: comparison_value, feature_id: feature_id, product_id: comparison_column_product_id, value_id: value_id %}
+            {% assign comparison_row_has_value = true %}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {% unless comparison_row_has_value %}
+          {% render 'comparison-table-value', type: 'none', feature_id: feature_id, product_id: comparison_column_product_id, value_id: value_id %}
+        {% endunless %}
+      </div>
+    {% endfor %}
+  {% else %}
+  {% assign comparison_column_row_count = 1 %}
+  {% for feature_index in (1..16) %}
+    {% assign value_type_key = 'value_' | append: feature_index | append: '_type' %}
+    {% assign value_text_key = 'value_' | append: feature_index | append: '_text' %}
+    {% assign value_type = block.settings[value_type_key] | default: 'none' %}
+    {% assign value_text = block.settings[value_text_key] | default: '' | strip %}
+    {% assign feature_id = 'comparison-feature-' | append: comparison_table_dom_id | append: '-' | append: feature_index %}
+    {% assign value_id = 'comparison-value-' | append: comparison_table_dom_id | append: '-' | append: block.id | append: '-' | append: feature_index %}
+    {% assign comparison_column_row_count = comparison_column_row_count | plus: 1 %}
+
+    <div
+      class="comparison-table__row comparison-table__row--feature-{{ feature_index }}"
+      role="row"
+      aria-rowindex="{{ comparison_column_row_count }}"
+      data-comparison-table-row="{{ feature_index }}"
+      data-comparison-table-value-type="{{ value_type }}"
+      data-comparison-table-value-text="{{ value_text | escape }}"
+    >
+      {% render 'comparison-table-value',
+        type: value_type,
+        text: value_text,
+        feature_id: feature_id,
+        product_id: comparison_column_product_id,
+        value_id: value_id
+      %}
+    </div>
+  {% endfor %}
+  {% endif %}
+</div>
+

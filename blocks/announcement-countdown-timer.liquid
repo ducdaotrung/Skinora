@@ -1,0 +1,193 @@
+{% liquid
+  assign gap_desktop = block.settings.gap_desktop | default: 16 | plus: 0
+  assign gap_mobile = block.settings.gap_mobile | default: 12 | plus: 0
+  assign timer_type = block.settings.type | default: 'fixed_time'
+  assign timer_style = block.settings.style | default: 'inline'
+  assign timer_end = block.settings.end_time | default: '2026-12-25 12:00'
+  assign duration_hours = block.settings.duration_hours | default: 24 | plus: 0
+  assign duration_minutes = block.settings.duration_minutes | default: 0 | plus: 0
+  assign now_timestamp = 'now' | date: '%s' | plus: 0
+  assign end_timestamp = timer_end | date: '%s' | plus: 0
+  assign duration_hours_seconds = duration_hours | times: 3600
+  assign duration_minutes_seconds = duration_minutes | times: 60
+  assign duration_seconds = duration_hours_seconds | plus: duration_minutes_seconds
+  assign remaining_seconds = end_timestamp | minus: now_timestamp
+  if timer_type == 'recurring'
+    assign remaining_seconds = duration_seconds
+  endif
+  if remaining_seconds < 0
+    assign remaining_seconds = 0
+  endif
+  assign timer_should_render = true
+  if block.settings.hide_when_expired and timer_type == 'fixed_time' and end_timestamp <= now_timestamp and request.design_mode == false
+    assign timer_should_render = false
+  endif
+  if block.settings.hide_when_expired and timer_type == 'recurring' and duration_seconds <= 0 and request.design_mode == false
+    assign timer_should_render = false
+  endif
+  assign days = remaining_seconds | divided_by: 86400
+  assign hours = remaining_seconds | modulo: 86400 | divided_by: 3600
+  assign minutes = remaining_seconds | modulo: 3600 | divided_by: 60
+  assign seconds = remaining_seconds | modulo: 60
+  assign days_display = days | prepend: '0' | slice: -2, 2
+  assign hours_display = hours | prepend: '0' | slice: -2, 2
+  assign minutes_display = minutes | prepend: '0' | slice: -2, 2
+  assign seconds_display = seconds | prepend: '0' | slice: -2, 2
+  assign icon_name = blank
+  if block.settings.show_icon
+    assign icon_name = block.settings.icon | default: 'arrow'
+  endif
+  assign icon_position = block.settings.icon_position | default: 'after'
+  assign icon_size = block.settings.icon_size | default: 'inherit'
+  assign icon_width = block.settings.icon_width | default: 20 | plus: 0
+  assign button_style = block.settings.button_style | default: 'tertiary'
+  assign button_disabled = false
+  if block.settings.button_link == blank
+    assign button_disabled = true
+  endif
+%}
+
+{% if timer_should_render %}
+  <div class="text-block body-text announcement-countdown-timer-block" data-announcement-countdown-block style="--announcement-countdown-gap: {{ gap_desktop }}px; --announcement-countdown-gap-mobile: {{ gap_mobile }}px;{% if block.settings.message_color != blank %} --announcement-countdown-message-color: {{ block.settings.message_color | escape }};{% endif %}{% if block.settings.number_color != blank %} --announcement-countdown-number-color: {{ block.settings.number_color | escape }};{% endif %}" {{ block.shopify_attributes }}>
+    {% if block.settings.message != blank %}<div class="announcement-countdown-timer-block__message">{{ block.settings.message }}</div>{% endif %}
+    <countdown-timer class="announcement-countdown-timer-block__timer announcement-countdown-timer-block__timer--{{ timer_style }} announcement-countdown-timer-block__timer--radius-{{ block.settings.corner_radius | default: 'square' }}" data-countdown-timer data-countdown-type="{{ timer_type }}" data-countdown-end-time="{{ end_timestamp }}" data-countdown-duration="{{ duration_seconds }}" data-countdown-start-time="{{ now_timestamp }}" data-countdown-hide-when-expired="{{ block.settings.hide_when_expired }}" role="timer">
+      <span data-countdown-unit="days"><strong data-countdown-value="days">{{ days_display }}</strong>{% if timer_style != 'numbers_only' %}<small>d</small>{% endif %}</span>
+      <span data-countdown-unit="hours"><strong data-countdown-value="hours">{{ hours_display }}</strong>{% if timer_style != 'numbers_only' %}<small>h</small>{% endif %}</span>
+      <span data-countdown-unit="minutes"><strong data-countdown-value="minutes">{{ minutes_display }}</strong>{% if timer_style != 'numbers_only' %}<small>m</small>{% endif %}</span>
+      <span data-countdown-unit="seconds"><strong data-countdown-value="seconds">{{ seconds_display }}</strong>{% if timer_style != 'numbers_only' %}<small>s</small>{% endif %}</span>
+    </countdown-timer>
+    {% if block.settings.button_label != blank %}
+      {% if block.settings.button_link != blank or request.design_mode %}
+        {% render 'theme-button', label: block.settings.button_label, url: block.settings.button_link, disabled: button_disabled, open_in_new_tab: block.settings.button_open_in_new_tab, variant: button_style, icon: icon_name, icon_position: icon_position, icon_size: icon_size, icon_width: icon_width, class: 'announcement-countdown-timer-block__button' %}
+      {% endif %}
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .text-block.announcement-countdown-timer-block { display: flex !important; flex-wrap: nowrap; align-items: center; justify-content: center; gap: var(--announcement-countdown-gap, 16px); width: 100%; max-width: none; color: var(--announcement-countdown-message-color, inherit); }
+  .announcement-countdown-timer-block__message { display: inline-flex; flex: 0 1 auto; align-items: center; min-width: 0; white-space: nowrap; }
+  .announcement-countdown-timer-block__message > :where(p, h1, h2, h3, h4, h5, h6) { display: inline !important; margin: 0 !important; }
+  .announcement-countdown-timer-block__timer { display: inline-flex; flex: 0 0 auto; align-items: center; gap: .8rem; white-space: nowrap; font-size: inherit; font-weight: 500; }
+  .announcement-countdown-timer-block__timer > span { display: inline-flex; align-items: baseline; gap: .2rem; }
+  .announcement-countdown-timer-block__timer strong { color: var(--announcement-countdown-number-color, currentcolor); font: inherit; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .announcement-countdown-timer-block__timer small { color: color-mix(in srgb, currentcolor 72%, transparent); font: inherit; font-size: .75em; }
+  .announcement-countdown-timer-block__timer--with_labels { padding: .6rem .8rem; }
+  .announcement-countdown-timer-block__button { display: inline-flex; flex: 0 0 auto; font-size: inherit; visibility: visible; opacity: 1; }
+  @media (max-width: 767.98px) { .text-block.announcement-countdown-timer-block { gap: var(--announcement-countdown-gap-mobile, var(--announcement-countdown-gap, 12px)); } .announcement-countdown-timer-block__timer { gap: .4rem; } }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('countdown-timer')) {
+    class AnnouncementCountdownTimer extends HTMLElement {
+      connectedCallback() { this.units = ['days', 'hours', 'minutes', 'seconds']; this.values = Object.fromEntries(this.units.map((unit) => [unit, this.querySelector(`[data-countdown-value="${unit}"]`)])); this.duration = Number(this.dataset.countdownDuration) || 0; this.end = Number(this.dataset.countdownEndTime) || 0; this.start = Number(this.dataset.countdownStartTime) || Math.floor(Date.now() / 1000); this.recurring = this.dataset.countdownType === 'recurring'; this.tick(); this.timer = window.setInterval(() => this.tick(), 1000); }
+      disconnectedCallback() { window.clearInterval(this.timer); }
+      tick() { const now = Math.floor(Date.now() / 1000); const hideWhenExpired = this.dataset.countdownHideWhenExpired === 'true'; const elapsed = now - this.start; let remaining = this.recurring ? (hideWhenExpired ? this.duration - elapsed : this.duration - (elapsed % this.duration)) : this.end - now; if (!Number.isFinite(remaining) || remaining < 0) remaining = 0; const parts = { days: Math.floor(remaining / 86400), hours: Math.floor((remaining % 86400) / 3600), minutes: Math.floor((remaining % 3600) / 60), seconds: remaining % 60 }; this.units.forEach((unit) => { if (this.values[unit]) this.values[unit].textContent = String(parts[unit]).padStart(2, '0'); }); if (remaining <= 0 && hideWhenExpired) { window.clearInterval(this.timer); this.closest('[data-announcement-countdown-block]')?.setAttribute('hidden', ''); } }
+    }
+    customElements.define('countdown-timer', AnnouncementCountdownTimer);
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Countdown timer",
+  "tag": null,
+  "settings": [
+    { "type": "checkbox", "id": "hide_when_expired", "label": "Hide block when the timer ends", "default": true },
+    { "type": "header", "content": "Gap" },
+    { "type": "range", "id": "gap_desktop", "label": "PC", "min": 0, "max": 30, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "gap_mobile", "label": "Mobile", "min": 0, "max": 30, "step": 1, "unit": "px", "default": 12 },
+    { "type": "header", "content": "Message" },
+    { "type": "richtext", "id": "message", "label": "Message", "default": "<p>Hurry up! Sale ends in:</p>" },
+    { "type": "color", "alpha": true, "id": "message_color", "label": "Color" },
+    { "type": "header", "content": "Timer" },
+    { "type": "select", "id": "style", "label": "Style", "options": [{ "value": "with_labels", "label": "With labels" }, { "value": "inline", "label": "Inline" }, { "value": "inline_superscript", "label": "Inline superscript" }, { "value": "numbers_only", "label": "Numbers only" }], "default": "inline" },
+    { "type": "select", "id": "corner_radius", "label": "Corner radius", "options": [{ "value": "square", "label": "Square" }, { "value": "slightly_rounded", "label": "Slightly rounded" }, { "value": "rounded", "label": "Rounded" }, { "value": "pill", "label": "Pill" }], "default": "square" },
+    { "type": "select", "id": "type", "label": "Type", "options": [{ "value": "fixed_time", "label": "Fixed time" }, { "value": "recurring", "label": "Duration" }], "default": "fixed_time" },
+    { "type": "text", "id": "end_time", "label": "End time", "default": "2026-12-25 12:00", "visible_if": "{{ block.settings.type == 'fixed_time' }}" },
+    { "type": "number", "id": "duration_hours", "label": "Duration hours", "default": 24, "visible_if": "{{ block.settings.type == 'recurring' }}" },
+    { "type": "number", "id": "duration_minutes", "label": "Duration minutes", "default": 0, "visible_if": "{{ block.settings.type == 'recurring' }}" },
+    { "type": "select", "id": "color_type", "label": "Color type", "options": [{ "value": "inherit", "label": "Inherit" }, { "value": "custom", "label": "Custom" }], "default": "inherit" },
+    { "type": "color", "alpha": true, "id": "number_color", "label": "Number color", "visible_if": "{{ block.settings.color_type == 'custom' }}" },
+    { "type": "header", "content": "Button" },
+    { "type": "text", "id": "button_label", "label": "Label", "default": "Shop now" },
+    { "type": "url", "id": "button_link", "label": "Link" },
+    { "type": "checkbox", "id": "button_open_in_new_tab", "label": "Open in new tab", "default": false },
+    { "type": "select", "id": "button_style", "label": "Style", "options": [{ "value": "primary", "label": "Primary" }, { "value": "secondary", "label": "Secondary" }, { "value": "tertiary", "label": "Tertiary" }], "default": "tertiary" },
+    { "type": "checkbox", "id": "show_icon", "label": "Show icon", "default": false },
+    {
+      "type": "select",
+      "id": "icon",
+      "label": "t:labels.icon",
+      "options": [
+        {
+          "value": "arrow_right",
+          "label": "Arrow right"
+        },
+        {
+          "value": "long_arrow_right",
+          "label": "Long arrow right"
+        },
+        {
+          "value": "chevron_right",
+          "label": "Chevron"
+        },
+        {
+          "value": "arrow_up_right",
+          "label": "Arrow up right"
+        },
+        {
+          "value": "circle_arrow",
+          "label": "Circle arrow"
+        },
+        {
+          "value": "circle_chevron",
+          "label": "Circle chevron"
+        },
+        {
+          "value": "long_arrow_up",
+          "label": "Long arrow up"
+        },
+        {
+          "value": "double_chevron",
+          "label": "Double chevron"
+        },
+        {
+          "value": "arrow_outline",
+          "label": "Arrow outline"
+        },
+        {
+          "value": "square_chevron",
+          "label": "Square chevron"
+        },
+        {
+          "value": "plus",
+          "label": "Plus"
+        }
+      ],
+      "default": "arrow_right",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "t:labels.icon_position",
+      "options": [
+        {
+          "value": "before",
+          "label": "Left"
+        },
+        {
+          "value": "after",
+          "label": "Right"
+        }
+      ],
+      "default": "after",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    { "type": "select", "id": "icon_size", "label": "Icon size", "options": [{ "value": "inherit", "label": "Inherit" }, { "value": "custom", "label": "Custom" }], "default": "inherit", "visible_if": "{{ block.settings.show_icon }}" },
+    { "type": "range", "id": "icon_width", "label": "Icon width", "min": 12, "max": 32, "step": 1, "unit": "px", "default": 20, "visible_if": "{{ block.settings.show_icon and block.settings.icon_size == 'custom' }}" }
+  ],
+  "presets": [{ "name": "Countdown timer", "settings": { "hide_when_expired": true, "gap_desktop": 16, "gap_mobile": 12, "message": "<p>Hurry up! Sale ends in:</p>", "style": "inline", "type": "fixed_time", "end_time": "2026-12-25 12:00", "button_label": "Shop now", "button_style": "tertiary", "show_icon": false, "color_type": "inherit" } }]
+}
+{% endschema %}

@@ -1,0 +1,529 @@
+{% doc %}
+  Owns the product form and purchase actions for Product Information.
+
+  Variant selection is owned by the Variant picker. This block receives the
+  selected variant through the shared form and owns the optional quantity
+  control, gift-card recipient properties, accelerated checkout, and the
+  back-in-stock contact flow.
+{% enddoc %}
+
+{% liquid
+  assign buy_product = closest.product | default: product
+  assign current_variant = buy_product.selected_or_first_available_variant
+  assign form_id = 'ProductForm-' | append: section.id | append: '-' | append: block.id
+  assign add_to_cart_label = 'products.add_to_cart' | t
+  assign sold_out_label = 'products.sold_out' | t
+  assign unavailable_label = 'products.unavailable' | t
+  assign variant_selection_unavailable_label = 'products.variant_selection_unavailable' | t
+
+  assign show_back_in_stock_button = true
+  if block.settings.show_back_in_stock_button == false
+    assign show_back_in_stock_button = false
+  endif
+
+  assign show_gift_card_form = true
+  if block.settings.show_gift_card_form == false
+    assign show_gift_card_form = false
+  endif
+
+  assign is_gift_card = false
+  if buy_product != blank and buy_product.gift_card?
+    assign is_gift_card = true
+  endif
+  assign render_recipient_form = false
+  if is_gift_card and show_gift_card_form
+    assign render_recipient_form = true
+  endif
+
+  assign buy_gap_desktop = block.settings.gap_desktop | default: 12 | plus: 0
+  assign buy_gap_mobile = block.settings.gap_mobile | default: 12 | plus: 0
+  if buy_gap_desktop < 0 or buy_gap_desktop > 48
+    assign buy_gap_desktop = 12
+  endif
+  if buy_gap_mobile < 0 or buy_gap_mobile > 48
+    assign buy_gap_mobile = 12
+  endif
+
+  assign buy_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign buy_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign buy_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign buy_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign buy_padding_top_mobile = block.settings.padding_top_mobile | default: buy_padding_top | plus: 0
+  assign buy_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: buy_padding_bottom | plus: 0
+  assign buy_padding_left_mobile = block.settings.padding_left_mobile | default: buy_padding_left | plus: 0
+  assign buy_padding_right_mobile = block.settings.padding_right_mobile | default: buy_padding_right | plus: 0
+  if buy_padding_top < 0 or buy_padding_top > 100
+    assign buy_padding_top = 0
+  endif
+  if buy_padding_bottom < 0 or buy_padding_bottom > 100
+    assign buy_padding_bottom = 0
+  endif
+  if buy_padding_left < 0 or buy_padding_left > 100
+    assign buy_padding_left = 0
+  endif
+  if buy_padding_right < 0 or buy_padding_right > 100
+    assign buy_padding_right = 0
+  endif
+  if buy_padding_top_mobile < 0 or buy_padding_top_mobile > 100
+    assign buy_padding_top_mobile = buy_padding_top
+  endif
+  if buy_padding_bottom_mobile < 0 or buy_padding_bottom_mobile > 100
+    assign buy_padding_bottom_mobile = buy_padding_bottom
+  endif
+  if buy_padding_left_mobile < 0 or buy_padding_left_mobile > 100
+    assign buy_padding_left_mobile = buy_padding_left
+  endif
+  if buy_padding_right_mobile < 0 or buy_padding_right_mobile > 100
+    assign buy_padding_right_mobile = buy_padding_right
+  endif
+
+  assign show_price = true
+  if settings.add_to_cart_button_show_price == false
+    assign show_price = false
+  endif
+
+  assign add_to_cart_label_with_price = add_to_cart_label
+  if show_price and current_variant != blank
+    assign add_to_cart_price = current_variant.price | money
+    if settings.price_currency_code_product_pages
+      assign add_to_cart_price = current_variant.price | money_with_currency
+    endif
+    assign add_to_cart_label_with_price = add_to_cart_label | append: ' - ' | append: add_to_cart_price
+  endif
+
+  assign product_unavailable = true
+  if buy_product != blank and buy_product.available and current_variant != blank and current_variant.available
+    assign product_unavailable = false
+  endif
+
+  assign current_variant_id = current_variant.id | default: ''
+  assign quantity_min = 1
+  assign quantity_step = 1
+  assign quantity_max = blank
+  if current_variant != blank
+    if current_variant.quantity_rule.min != blank
+      assign quantity_min = current_variant.quantity_rule.min | plus: 0
+    endif
+    if current_variant.quantity_rule.increment != blank
+      assign quantity_step = current_variant.quantity_rule.increment | plus: 0
+    endif
+    if current_variant.quantity_rule.max != blank
+      assign quantity_max = current_variant.quantity_rule.max | plus: 0
+    endif
+  endif
+  if quantity_min < 1 or quantity_min > 1000
+    assign quantity_min = 1
+  endif
+  if quantity_step < 1 or quantity_step > 1000
+    assign quantity_step = 1
+  endif
+  if quantity_max != blank and quantity_max < quantity_min
+    assign quantity_max = blank
+  endif
+
+  assign back_in_stock_enabled = false
+  if buy_product != blank and settings.enable_back_in_stock_alert and show_back_in_stock_button and current_variant_id != blank
+    assign back_in_stock_enabled = true
+  endif
+  assign back_in_stock_label = 'products.notify_when_available' | t
+  assign back_in_stock_show_name = false
+  if settings.back_in_stock_show_name
+    assign back_in_stock_show_name = true
+  endif
+  assign back_in_stock_show_phone = true
+  if settings.back_in_stock_show_phone == false
+    assign back_in_stock_show_phone = false
+  endif
+  assign back_in_stock_layout_desktop = settings.back_in_stock_popup_layout_desktop | default: 'popup'
+  unless back_in_stock_layout_desktop == 'popup' or back_in_stock_layout_desktop == 'drawer'
+    assign back_in_stock_layout_desktop = 'popup'
+  endunless
+  assign back_in_stock_layout_mobile = settings.back_in_stock_popup_layout_mobile | default: 'bottom_sheet'
+  unless back_in_stock_layout_mobile == 'bottom_sheet' or back_in_stock_layout_mobile == 'drawer'
+    assign back_in_stock_layout_mobile = 'bottom_sheet'
+  endunless
+
+  assign back_in_stock_form_id = 'BackInStockForm-' | append: section.id | append: '-' | append: block.id
+  assign back_in_stock_dialog_id = 'BackInStockDialog-' | append: section.id | append: '-' | append: block.id
+  assign back_in_stock_email_id = back_in_stock_form_id | append: '-email'
+  assign back_in_stock_name_id = back_in_stock_form_id | append: '-name'
+  assign back_in_stock_phone_id = back_in_stock_form_id | append: '-phone'
+  assign back_in_stock_error_id = back_in_stock_form_id | append: '-error'
+  assign back_in_stock_success_id = back_in_stock_form_id | append: '-success'
+
+  assign back_in_stock_context = 'Product: ' | append: buy_product.title
+  if current_variant != blank and current_variant.title != blank and current_variant.title != 'Default Title'
+    assign back_in_stock_context = back_in_stock_context | append: ' | Variant: ' | append: current_variant.title
+  endif
+  assign back_in_stock_context = back_in_stock_context | append: ' | Variant ID: ' | append: current_variant_id
+  if buy_product.url != blank
+    assign back_in_stock_context = back_in_stock_context | append: ' | URL: ' | append: shop.url | append: buy_product.url
+  endif
+%}
+
+{% capture buy_style %}
+  {% if buy_gap_desktop != 12 %}--product-buy-buttons-gap: {{ buy_gap_desktop }}px;{% endif %}
+  {% if buy_gap_mobile != buy_gap_desktop %}--product-buy-buttons-gap-mobile: {{ buy_gap_mobile }}px;{% endif %}
+  {% if buy_padding_top != 0 %}--product-buy-buttons-padding-top: {{ buy_padding_top }}px;{% endif %}
+  {% if buy_padding_bottom != 0 %}--product-buy-buttons-padding-bottom: {{ buy_padding_bottom }}px;{% endif %}
+  {% if buy_padding_left != 0 %}--product-buy-buttons-padding-left: {{ buy_padding_left }}px;{% endif %}
+  {% if buy_padding_right != 0 %}--product-buy-buttons-padding-right: {{ buy_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if buy_padding_top_mobile != buy_padding_top %}--product-buy-buttons-padding-top-mobile: {{ buy_padding_top_mobile }}px;{% endif %}
+    {% if buy_padding_bottom_mobile != buy_padding_bottom %}--product-buy-buttons-padding-bottom-mobile: {{ buy_padding_bottom_mobile }}px;{% endif %}
+    {% if buy_padding_left_mobile != buy_padding_left %}--product-buy-buttons-padding-left-mobile: {{ buy_padding_left_mobile }}px;{% endif %}
+    {% if buy_padding_right_mobile != buy_padding_right %}--product-buy-buttons-padding-right-mobile: {{ buy_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign buy_style = buy_style | strip %}
+
+  <product-buy-buttons
+    id="ProductBuyButtons-{{ section.id }}-{{ block.id }}"
+    class="product-buy-buttons"
+    data-product-buy-buttons
+    data-section-id="{{ section.id }}"
+    data-current-variant-id="{{ current_variant_id }}"
+    data-current-variant-title="{% if current_variant != blank and current_variant.title != 'Default Title' %}{{ current_variant.title | escape }}{% endif %}"
+    data-variant-available="{% if product_unavailable %}false{% else %}true{% endif %}"
+    data-quantity-min="{{ quantity_min }}"
+    data-quantity-step="{{ quantity_step }}"
+    {% if quantity_max != blank %}data-quantity-max="{{ quantity_max }}"{% endif %}
+    data-back-in-stock-alert="{{ back_in_stock_enabled }}"
+    data-back-in-stock-show-name="{{ back_in_stock_show_name }}"
+    data-back-in-stock-show-phone="{{ back_in_stock_show_phone }}"
+    data-back-in-stock-layout-desktop="{{ back_in_stock_layout_desktop }}"
+    data-back-in-stock-layout-mobile="{{ back_in_stock_layout_mobile }}"
+    data-back-in-stock-product-id="{{ buy_product.id }}"
+    data-back-in-stock-variant-id="{{ current_variant_id }}"
+    data-add-to-cart-label="{{ add_to_cart_label | escape }}"
+    data-sold-out-label="{{ sold_out_label | escape }}"
+    data-unavailable-label="{{ unavailable_label | escape }}"
+    data-unavailable-selection-label="{{ variant_selection_unavailable_label | escape }}"
+    data-product-title="{{ buy_product.title | escape }}"
+    data-product-url="{{ buy_product.url | escape }}"
+    data-design-mode="{{ request.design_mode }}"
+    data-overlay-padding-desktop="{{ settings.overlay_drawer_padding_desktop }}"
+    data-overlay-padding-mobile="{{ settings.overlay_drawer_padding_mobile }}"
+    data-overlay-color-scheme="{% if settings.overlay_color_scheme.id != blank %}{{ settings.overlay_color_scheme.id }}{% else %}{{ settings.overlay_color_scheme | default: 'scheme-1' }}{% endif %}"
+    {% if buy_style != blank %}style="{{ buy_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    {% if buy_product != blank %}
+      {% form 'product', buy_product, id: form_id, class: 'product-buy-buttons__form', data-product-form: '', data-add-to-cart-label: add_to_cart_label, data-add-to-cart-show-price: show_price, data-current-variant-id: current_variant_id %}
+        <input type="hidden" name="id" value="{{ current_variant_id }}" data-variant-id data-variant-id-input>
+
+        {% if render_recipient_form %}
+          <fieldset class="product-buy-buttons__gift-card" data-gift-card-recipient-form>
+            <legend class="product-buy-buttons__gift-card-title">{{ 'gift_card.recipient_title' | t }}</legend>
+            <p class="form__helper">{{ 'gift_card.recipient_helper' | t }}</p>
+            <label class="product-buy-buttons__gift-card-toggle" for="{{ form_id }}-recipient-toggle">
+              <input
+                id="{{ form_id }}-recipient-toggle"
+                type="checkbox"
+                name="properties[__shopify_send_gift_card_to_recipient]"
+                value="true"
+                aria-controls="{{ form_id }}-recipient-fields"
+                aria-expanded="false"
+                data-gift-card-recipient-toggle
+              >
+              <span>{{ 'gift_card.recipient_toggle' | t }}</span>
+            </label>
+            <div id="{{ form_id }}-recipient-fields" class="product-buy-buttons__gift-card-fields" data-gift-card-recipient-fields hidden>
+              <div class="form__field">
+                <label class="form__label" for="{{ form_id }}-recipient-email">{{ 'gift_card.recipient_email' | t }}</label>
+                <input
+                  id="{{ form_id }}-recipient-email"
+                  class="form__control form__control--input"
+                  type="email"
+                  name="properties[Recipient email]"
+                  autocomplete="email"
+                  disabled
+                  data-gift-card-recipient-field
+                  data-gift-card-recipient-email
+                  aria-describedby="{{ form_id }}-recipient-error"
+                >
+              </div>
+              <div class="form__field">
+                <label class="form__label" for="{{ form_id }}-recipient-name">{{ 'gift_card.recipient_name' | t }}</label>
+                <input
+                  id="{{ form_id }}-recipient-name"
+                  class="form__control form__control--input"
+                  type="text"
+                  name="properties[Recipient name]"
+                  autocomplete="name"
+                  disabled
+                  data-gift-card-recipient-field
+                >
+              </div>
+              <div class="form__field">
+                <label class="form__label" for="{{ form_id }}-recipient-message">{{ 'gift_card.recipient_message' | t }}</label>
+                <textarea
+                  id="{{ form_id }}-recipient-message"
+                  class="form__control form__control--textarea"
+                  name="properties[Message]"
+                  rows="3"
+                  maxlength="200"
+                  disabled
+                  data-gift-card-recipient-field
+                ></textarea>
+              </div>
+              <div class="form__field">
+                <label class="form__label" for="{{ form_id }}-recipient-send-on">{{ 'gift_card.recipient_send_on' | t }}</label>
+                <input
+                  id="{{ form_id }}-recipient-send-on"
+                  class="form__control form__control--input"
+                  type="date"
+                  name="properties[Send on]"
+                  min="{{ 'now' | date: '%Y-%m-%d' }}"
+                  disabled
+                  data-gift-card-recipient-field
+                  data-gift-card-recipient-send-on
+                >
+              </div>
+              <input type="hidden" name="properties[__shopify_offset]" value="" disabled data-gift-card-recipient-offset>
+              <p id="{{ form_id }}-recipient-error" class="form__error" data-gift-card-recipient-error role="alert" hidden></p>
+            </div>
+          </fieldset>
+        {% endif %}
+
+        <div class="product-buy-buttons__purchase">
+          {% content_for 'block', type: 'product-buy-quantity', id: 'quantity', form_id: form_id, quantity_min: quantity_min, quantity_step: quantity_step, quantity_max: quantity_max %}
+          {% content_for 'block', type: 'product-buy-add-to-cart', id: 'add-to-cart', label: add_to_cart_label_with_price, product_unavailable: product_unavailable %}
+        </div>
+        {% content_for 'block', type: 'product-buy-accelerated-checkout', id: 'accelerated-checkout', form: form, product_unavailable: product_unavailable %}
+
+        {% if show_price %}
+          <div hidden data-add-to-cart-label-templates aria-hidden="true">
+            {% for variant in buy_product.variants %}
+              <template data-add-to-cart-label-template="{{ variant.id }}">{{ add_to_cart_label }} - {% if settings.price_currency_code_product_pages %}{{ variant.price | money_with_currency }}{% else %}{{ variant.price | money }}{% endif %}</template>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endform %}
+
+      {% if back_in_stock_enabled %}
+        <div class="product-buy-buttons__back-in-stock" data-back-in-stock>
+          {% capture back_in_stock_trigger_attributes %}
+            aria-haspopup="dialog"
+            aria-controls="{{ back_in_stock_dialog_id }}"
+            aria-expanded="false"
+            data-back-in-stock-trigger
+            {% if product_unavailable == false and request.design_mode == false %}hidden{% endif %}
+          {% endcapture %}
+          {% render 'theme-button',
+            label: back_in_stock_label,
+            type: 'button',
+            class: 'product-buy-buttons__back-in-stock-trigger',
+            variant: 'tertiary',
+            attributes: back_in_stock_trigger_attributes
+          %}
+
+          {% capture notify_content %}
+                <p class="form__helper">{{ 'products.back_in_stock_description' | t }}</p>
+                {% form 'contact', id: back_in_stock_form_id, class: 'product-buy-buttons__back-in-stock-form', data-back-in-stock-form: '' %}
+                  {% if form.posted_successfully? %}<span hidden data-back-in-stock-form-state="success"></span>{% elsif form.errors %}<span hidden data-back-in-stock-form-state="error"></span>{% endif %}
+                  <input type="hidden" name="contact[tags]" value="back-in-stock">
+                  <input type="hidden" name="contact[body]" value="{{ back_in_stock_context | escape }}" data-back-in-stock-context>
+                  <div class="form__field">
+                    <label class="form__label" for="{{ back_in_stock_email_id }}">{{ 'products.back_in_stock_email' | t }}</label>
+                    <input
+                      id="{{ back_in_stock_email_id }}"
+                      class="form__control form__control--input"
+                      type="email"
+                      name="contact[email]"
+                      value="{{ form.email | escape }}"
+                      autocomplete="email"
+                      required
+                      {% if form.errors %}aria-invalid="true" aria-describedby="{{ back_in_stock_error_id }}"{% elsif form.posted_successfully? %}aria-describedby="{{ back_in_stock_success_id }}"{% endif %}
+                    >
+                  </div>
+                  {% if back_in_stock_show_name %}
+                    <div class="form__field">
+                      <label class="form__label" for="{{ back_in_stock_name_id }}">{{ 'products.back_in_stock_name' | t }}</label>
+                      <input id="{{ back_in_stock_name_id }}" class="form__control form__control--input" type="text" name="contact[name]" value="{{ form.name | escape }}" autocomplete="name">
+                    </div>
+                  {% endif %}
+                  {% if back_in_stock_show_phone %}
+                    <div class="form__field">
+                      <label class="form__label" for="{{ back_in_stock_phone_id }}">{{ 'products.back_in_stock_phone' | t }}</label>
+                      <input id="{{ back_in_stock_phone_id }}" class="form__control form__control--input" type="tel" name="contact[phone]" value="{{ form.phone | escape }}" autocomplete="tel">
+                    </div>
+                  {% endif %}
+                  {% if form.errors %}
+                    <p id="{{ back_in_stock_error_id }}" class="form__error" role="alert">{{ form.errors | default_errors }}</p>
+                  {% endif %}
+                  {% if form.posted_successfully? %}
+                    <p id="{{ back_in_stock_success_id }}" class="form__helper" role="status" tabindex="-1">{{ 'products.back_in_stock_success' | t }}</p>
+                  {% endif %}
+                  <button class="btn btn-primary btn--primary product-buy-buttons__back-in-stock-submit" type="submit">{{ 'products.back_in_stock_submit' | t }}</button>
+                {% endform %}
+          {% endcapture %}
+          {% assign notify_title = 'products.back_in_stock_title' | t %}
+          {% render 'component-overlay', id: back_in_stock_dialog_id, label: notify_title, title: notify_title, content: notify_content, append_to_body: true, desktop_layout: back_in_stock_layout_desktop, mobile_layout: back_in_stock_layout_mobile, attributes: 'data-back-in-stock-dialog data-form-state="idle"' %}
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="product-buy-buttons__placeholder" aria-hidden="true">
+        {% render 'theme-button', label: sold_out_label, type: 'button', class: 'product-form__submit', disabled: true %}
+      </div>
+    {% endif %}
+  </product-buy-buttons>
+
+{% schema %}
+{
+  "name": "t:general.buy_buttons",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.purchase_options"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:info.product_buy_buttons_theme_settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_back_in_stock_button",
+      "label": "t:labels.show_back_in_stock_button",
+      "info": "t:info.product_back_in_stock_button",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:general.gift_card_options"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_gift_card_form",
+      "label": "t:labels.show_gift_card_recipient",
+      "info": "t:info.gift_card_recipient",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_button_gap",
+      "min": 0,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_button_gap",
+      "min": 0,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.buy_buttons",
+      "category": "t:general.product"
+    }
+  ]
+}
+{% endschema %}

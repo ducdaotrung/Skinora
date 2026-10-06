@@ -1,0 +1,68 @@
+{% doc %}
+  Renders the reusable media primitive for a Product Card.
+
+  The component owns the product image, optional secondary image and the
+  empty-image fallback. A link is rendered only when `url` is provided, so the
+  same component can be used by real cards and non-interactive placeholders.
+
+  @param {image} [image] - Primary product image
+  @param {image} [secondary_image] - Optional hover image
+  @param {boolean} [secondary_image_enabled] - Whether to render the hover image
+  @param {boolean} [placeholder] - Whether the media belongs to a placeholder card
+  @param {string} [url] - Optional image destination URL
+  @param {string} [alt] - Optional accessible image alt text
+  @param {number} [width] - Highest image resolution width
+  @param {number} [height] - Optional fixed image height
+  @param {string} [crop] - Optional image crop position
+
+  @example
+  {% render 'product-card-image', image: product.featured_image, url: product.url %}
+{% enddoc %}
+
+{% liquid
+  assign image_alt = alt
+  if image_alt == blank and image != blank
+    assign image_alt = image.alt
+  endif
+
+  assign has_secondary_image = false
+  if secondary_image_enabled != false and secondary_image != blank
+    assign has_secondary_image = true
+  endif
+
+  assign render_placeholder = false
+  if placeholder or image == blank
+    assign render_placeholder = true
+  endif
+%}
+
+{% if url != blank %}
+  <a class="product-card__image-link{% if has_secondary_image and render_placeholder == false %} product-card__image-link--has-secondary{% endif %}" href="{{ url | escape }}" aria-label="{{ image_alt | escape }}">
+{% endif %}
+  {% unless render_placeholder %}
+    {% render 'image',
+      image: image,
+      class: 'product-card__image',
+      width: width,
+      height: height,
+      crop: crop,
+      alt: image_alt
+    %}
+    {% if has_secondary_image %}
+      {% render 'image',
+        image: secondary_image,
+        class: 'product-card__secondary-image',
+        width: width,
+        height: height,
+        crop: crop,
+        alt: image_alt
+      %}
+    {% endif %}
+  {% else %}
+    <div class="product-card__placeholder placeholder-image" aria-hidden="true">
+      {{ 'product-1' | placeholder_svg_tag }}
+    </div>
+  {% endunless %}
+{% if url != blank %}
+  </a>
+{% endif %}

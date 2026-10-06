@@ -1,0 +1,266 @@
+{% doc %}
+  Renders the store logo for reusable surfaces such as the Footer.
+
+  Logo artwork comes from Theme settings. The block controls whether the
+  default or transparent artwork is used, its desktop/mobile width when
+  customized, whether the logo fills its parent, and its local padding.
+
+  @example
+  {% content_for 'block', type: 'logo', id: 'logo' %}
+{% enddoc %}
+
+{% liquid
+  assign logo_style = block.settings.style | default: 'default'
+  unless logo_style == 'default' or logo_style == 'transparent'
+    assign logo_style = 'default'
+  endunless
+
+  assign logo_width_mode = block.settings.width | default: 'fill'
+  unless logo_width_mode == 'fill' or logo_width_mode == 'custom'
+    assign logo_width_mode = 'fill'
+  endunless
+
+  assign logo_width = block.settings.width_desktop | default: 180 | plus: 0
+  if logo_width < 80 or logo_width > 800
+    assign logo_width = 180
+  endif
+
+  assign logo_width_mobile = block.settings.width_mobile | default: 140 | plus: 0
+  if logo_width_mobile < 64 or logo_width_mobile > 260
+    assign logo_width_mobile = 140
+  endif
+
+  assign logo_image = settings.logo
+  if logo_style == 'transparent' and settings.logo_transparent != blank
+    assign logo_image = settings.logo_transparent
+  endif
+
+  assign logo_block_width = '100%'
+  assign logo_block_width_mobile = '100%'
+  assign logo_sizes = '100%'
+  if logo_width_mode == 'custom'
+    assign logo_block_width = logo_width | append: 'px'
+    assign logo_block_width_mobile = logo_width_mobile | append: 'px'
+    assign logo_sizes = '(min-width: 768px) ' | append: logo_width | append: 'px, ' | append: logo_width_mobile | append: 'px'
+  endif
+
+  assign padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+
+  if padding_top < 0 or padding_top > 100
+    assign padding_top = 0
+  endif
+  if padding_bottom < 0 or padding_bottom > 100
+    assign padding_bottom = 0
+  endif
+  if padding_top_mobile < 0 or padding_top_mobile > 100
+    assign padding_top_mobile = 0
+  endif
+  if padding_bottom_mobile < 0 or padding_bottom_mobile > 100
+    assign padding_bottom_mobile = 0
+  endif
+
+  assign logo_class = 'logo-block site-logo logo-block--width-' | append: logo_width_mode
+  if logo_style == 'transparent'
+    assign logo_class = logo_class | append: ' site-logo--transparent'
+  endif
+%}
+
+{% capture logo_style_attribute %}
+  --logo-block-width: {{ logo_block_width }};
+  --logo-block-width-mobile: {{ logo_block_width_mobile }};
+  --logo-block-padding-top: {{ padding_top }}px;
+  --logo-block-padding-bottom: {{ padding_bottom }}px;
+  {% if block.settings.customize_mobile_padding %}
+    --logo-block-padding-top-mobile: {{ padding_top_mobile }}px;
+    --logo-block-padding-bottom-mobile: {{ padding_bottom_mobile }}px;
+  {% endif %}
+{% endcapture %}
+{% assign logo_style_attribute = logo_style_attribute | strip | replace: '\n', ' ' %}
+
+<a
+  class="{{ logo_class }}"
+  href="{{ routes.root_url }}"
+  aria-label="{{ shop.name | escape }}"
+  style="{{ logo_style_attribute }}"
+  {{ block.shopify_attributes }}
+>
+  {% if logo_image != blank %}
+    {{
+      logo_image
+      | image_url: width: 2400
+      | image_tag:
+        widths: '80, 120, 140, 180, 240, 320, 400, 600, 800, 1200, 1600, 2400',
+        sizes: logo_sizes,
+        class: 'site-logo__image',
+        alt: shop.name
+    }}
+  {% else %}
+    <span class="site-logo__fallback heading-text heading-display">{{ shop.name | escape }}</span>
+  {% endif %}
+</a>
+
+{% stylesheet %}
+  .logo-block.site-logo {
+    display: flex;
+    align-items: center;
+    justify-content: var(--flex-align, flex-start);
+    width: var(--logo-block-width, 100%);
+    max-width: 100%;
+    min-width: 0;
+    padding-top: var(--logo-block-padding-top, 0px);
+    padding-bottom: var(--logo-block-padding-bottom, 0px);
+    color: var(--body-color);
+    text-decoration: none;
+  }
+
+  .logo-block .site-logo__image {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .logo-block .site-logo__fallback {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 767.98px) {
+    .logo-block.site-logo {
+      width: var(--logo-block-width-mobile, var(--logo-block-width, 100%));
+      padding-top: var(--logo-block-padding-top-mobile, var(--logo-block-padding-top, 0px));
+      padding-bottom: var(--logo-block-padding-bottom-mobile, var(--logo-block-padding-bottom, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.logo",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:info.logo_block"
+    },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "default", "label": "t:options.logo_style.default" },
+        { "value": "transparent", "label": "t:options.logo_style.transparent" }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.width",
+      "options": [
+        { "value": "fill", "label": "t:options.width.fill" },
+        { "value": "custom", "label": "t:options.width.custom" }
+      ],
+      "default": "fill"
+    },
+    {
+      "type": "range",
+      "id": "width_desktop",
+      "label": "t:labels.desktop_width",
+      "min": 80,
+      "max": 800,
+      "step": 10,
+      "unit": "px",
+      "default": 180,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "width_mobile",
+      "label": "t:labels.mobile_width",
+      "min": 64,
+      "max": 260,
+      "step": 4,
+      "unit": "px",
+      "default": 140,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.logo",
+      "category": "t:general.footer",
+      "settings": {
+        "style": "default",
+        "width": "fill",
+        "width_desktop": 180,
+        "width_mobile": 140,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "customize_mobile_padding": false
+      }
+    }
+  ]
+}
+{% endschema %}

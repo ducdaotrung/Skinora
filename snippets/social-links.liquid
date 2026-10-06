@@ -1,0 +1,73 @@
+{% doc %}
+  Renders configured social media links from the global Social media settings.
+
+  Labels remain available to assistive technology in every display mode.
+
+  @param {string} [color_scheme] - Optional scheme class applied to each link.
+    Layout and link appearance inherit custom properties from the owning block.
+  @param {string} [display_mode] - icon (default) or text.
+  @param {string} [direction] - horizontal (default) or vertical on all devices.
+  @param {string} [shadow] - none, extra_small, small, medium, or large.
+  @param {string} [text_color] - Optional text-link color; blank inherits its context.
+  @param {string} [text_size] - Text-link size token: xs, sm, md, lg, xl, or xxl.
+{% enddoc %}
+
+{% liquid
+  assign social_display_mode = 'icon'
+  if display_mode == 'text'
+    assign social_display_mode = 'text'
+  endif
+
+  assign social_text_size = text_size | default: 'md'
+  unless social_text_size == 'xs' or social_text_size == 'sm' or social_text_size == 'md' or social_text_size == 'lg' or social_text_size == 'xl' or social_text_size == 'xxl'
+    assign social_text_size = 'md'
+  endunless
+
+  assign social_direction = 'horizontal'
+  if direction == 'vertical'
+    assign social_direction = 'vertical'
+  endif
+  assign social_shadow = shadow | default: 'extra_small'
+
+  assign social_names = 'facebook,instagram,tiktok,youtube,pinterest,x,linkedin' | split: ','
+  assign has_social_links = false
+  for social_name in social_names
+    assign social_key = 'social_' | append: social_name
+    if settings[social_key] != blank
+      assign has_social_links = true
+      break
+    endif
+  endfor
+%}
+
+{% if has_social_links %}
+  <nav class="social-links social-links--{{ social_direction }}" aria-label="{{ 'accessibility.social_media' | t | escape }}">
+    {% for social_name in social_names %}
+      {% liquid
+        assign social_key = 'social_' | append: social_name
+        assign social_url = settings[social_key]
+        assign social_translation_key = 'social.' | append: social_name
+        assign social_label = social_translation_key | t
+      %}
+      {% if social_url != blank %}
+        <a
+          class="social-links__link{% if social_display_mode == 'text' %} social-links__link--text{% else %} social-links__link--icon{% if color_scheme != blank %} color-scheme section-color-scope {{ color_scheme | escape }}{% endif %}{% endif %}"
+          {% if social_display_mode == 'text' and text_color != blank %}style="--social-text-color: {{ text_color | escape }};"{% endif %}
+          data-shadow="{{ social_shadow | escape }}"
+          href="{{ social_url | escape }}"
+          {% if settings.social_new_tab %}
+            target="_blank" rel="noopener noreferrer"
+          {% endif %}
+          aria-label="{{ social_label | escape }}"
+        >
+          {% if social_display_mode == 'icon' %}
+            {% render 'social-icon', icon: social_name %}
+          {% endif %}
+          {% if social_display_mode == 'text' %}
+            <span class="social-links__label body-{{ social_text_size }}">{{ social_label | escape }}</span>
+          {% endif %}
+        </a>
+      {% endif %}
+    {% endfor %}
+  </nav>
+{% endif %}

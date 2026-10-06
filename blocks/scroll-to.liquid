@@ -1,0 +1,113 @@
+{% doc %}
+  Renders a button that smoothly scrolls to a numbered section in the current
+  JSON template. The number is one-based and counts only main-content sections.
+
+  @example
+  {% content_for 'block', type: 'scroll-to', id: 'scroll-to' %}
+{% enddoc %}
+
+{% liquid
+  assign scroll_to_label = block.settings.button_label | default: ''
+  assign scroll_to_target_order = block.settings.target_section_number | default: 0 | plus: 0
+  assign scroll_to_style = block.settings.button_style | default: 'primary'
+  unless scroll_to_style == 'primary' or scroll_to_style == 'secondary' or scroll_to_style == 'tertiary'
+    assign scroll_to_style = 'primary'
+  endunless
+
+  assign scroll_to_width = block.settings.width | default: 'fit'
+  unless scroll_to_width == 'fit' or scroll_to_width == 'fill'
+    assign scroll_to_width = 'fit'
+  endunless
+%}
+
+{% capture scroll_to_attributes %}
+  data-scroll-to data-scroll-target-order="{{ scroll_to_target_order }}"
+{% endcapture %}
+
+{% if scroll_to_label != blank and scroll_to_target_order > 0 %}
+  <scroll-to-block class="scroll-to-block scroll-to-block--width-{{ scroll_to_width }}" {{ block.shopify_attributes }}>
+    {% render 'theme-button',
+      label: scroll_to_label,
+      type: 'button',
+      variant: scroll_to_style,
+      class: 'scroll-to-block__button',
+      attributes: scroll_to_attributes
+    %}
+  </scroll-to-block>
+{% elsif request.design_mode %}
+  <div class="scroll-to-block scroll-to-block--empty" {{ block.shopify_attributes }}></div>
+{% endif %}
+
+{% stylesheet %}
+  .scroll-to-block {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .scroll-to-block--width-fill,
+  .scroll-to-block--width-fill .scroll-to-block__button {
+    width: 100%;
+  }
+
+  .scroll-to-block--empty {
+    min-height: 1px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.scroll_to",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.content"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:labels.button_label",
+      "default": "Scroll to discover"
+    },
+    {
+      "type": "number",
+      "id": "target_section_number",
+      "label": "t:labels.target_section_number",
+      "info": "t:info.target_section_number",
+      "default": 2
+    },
+    {
+      "type": "header",
+      "content": "t:general.style"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" },
+        { "value": "tertiary", "label": "t:options.button_variant.tertiary" }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" }
+      ],
+      "default": "fit"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.scroll_to",
+      "category": "t:general.basic"
+    }
+  ]
+}
+{% endschema %}

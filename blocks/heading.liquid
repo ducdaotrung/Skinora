@@ -1,0 +1,387 @@
+{% doc %}
+  Renders a semantic heading kernel with independent visual scale and HTML tag.
+
+  The block owns heading content, visual role, local color override, size and
+  padding. Width is configurable while text alignment is inherited from the
+  parent composition.
+
+  @example
+  {% content_for 'block', type: 'heading', id: 'heading' %}
+{% enddoc %}
+
+{% liquid
+  assign heading_size = block.settings.heading_size | default: 'lg'
+  unless heading_size == 'display' or heading_size == 'xl' or heading_size == 'lg' or heading_size == 'md' or heading_size == 'sm' or heading_size == 'xs' or heading_size == 'custom'
+    assign heading_size = 'lg'
+  endunless
+
+  assign heading_custom_size = block.settings.custom_heading_size | default: 24 | plus: 0
+  if heading_custom_size < 10 or heading_custom_size > 100
+    assign heading_custom_size = 24
+  endif
+
+  assign heading_tag = block.settings.html_tag | default: 'h2'
+  unless heading_tag == 'div' or heading_tag == 'h1' or heading_tag == 'h2' or heading_tag == 'h3' or heading_tag == 'h4' or heading_tag == 'h5' or heading_tag == 'h6'
+    assign heading_tag = 'h2'
+  endunless
+
+  assign heading_width_mode = block.settings.width | default: 'fit'
+  unless heading_width_mode == 'fit' or heading_width_mode == 'fill' or heading_width_mode == 'custom'
+    assign heading_width_mode = 'fit'
+  endunless
+
+  assign heading_width = '100%'
+  if heading_width_mode == 'fit'
+    assign heading_width = 'fit-content'
+  endif
+  assign heading_max_width = block.settings.max_width | default: 640 | plus: 0
+
+  assign heading_width_mobile_mode = heading_width_mode
+  assign heading_width_mobile = heading_width
+  assign heading_max_width_mobile = heading_max_width
+  if block.settings.customize_mobile_size
+    assign heading_width_mobile_mode = block.settings.width_mobile | default: heading_width_mode
+    unless heading_width_mobile_mode == 'fit' or heading_width_mobile_mode == 'fill' or heading_width_mobile_mode == 'custom'
+      assign heading_width_mobile_mode = heading_width_mode
+    endunless
+    assign heading_width_mobile = '100%'
+    if heading_width_mobile_mode == 'fit'
+      assign heading_width_mobile = 'fit-content'
+    endif
+    assign heading_max_width_mobile = block.settings.max_width_mobile | default: heading_max_width
+    assign heading_max_width_mobile = heading_max_width_mobile | plus: 0
+  endif
+  assign heading_size_max_width = blank
+  if heading_width_mode == 'custom'
+    assign heading_size_max_width = heading_max_width | append: 'px'
+  endif
+  assign heading_size_width_mobile = blank
+  assign heading_size_max_width_mobile = blank
+  if block.settings.customize_mobile_size
+    assign heading_size_width_mobile = heading_width_mobile
+    if heading_width_mobile_mode == 'custom'
+      assign heading_size_max_width_mobile = heading_max_width_mobile | append: 'px'
+    elsif heading_width_mode == 'custom'
+      assign heading_size_max_width_mobile = '100%'
+    endif
+  endif
+
+  assign padding_top = block.settings.padding_top | default: 0
+  assign padding_top = padding_top | plus: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 0
+  assign padding_bottom = padding_bottom | plus: 0
+  assign padding_left = block.settings.padding_left | default: 0
+  assign padding_left = padding_left | plus: 0
+  assign padding_right = block.settings.padding_right | default: 0
+  assign padding_right = padding_right | plus: 0
+  assign padding_top_mobile = block.settings.padding_top_mobile | default: 0
+  assign padding_top_mobile = padding_top_mobile | plus: 0
+  assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0
+  assign padding_bottom_mobile = padding_bottom_mobile | plus: 0
+  assign padding_left_mobile = block.settings.padding_left_mobile | default: 0
+  assign padding_left_mobile = padding_left_mobile | plus: 0
+  assign padding_right_mobile = block.settings.padding_right_mobile | default: 0
+  assign padding_right_mobile = padding_right_mobile | plus: 0
+  assign heading_class = 'heading-block size-style heading-text heading-' | append: heading_size
+%}
+
+{% capture heading_style %}
+  {% if heading_size == 'custom' %}--heading-block-custom-size: {{ heading_custom_size }}px;{% endif %}
+  {% render 'size-style',
+    width: heading_width,
+    max_width: heading_size_max_width,
+    width_mobile: heading_size_width_mobile,
+    max_width_mobile: heading_size_max_width_mobile
+  %}
+  {% if padding_top != 0 %}--heading-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 0 %}--heading-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if padding_left != 0 %}--heading-padding-left: {{ padding_left }}px;{% endif %}
+  {% if padding_right != 0 %}--heading-padding-right: {{ padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--heading-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--heading-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+    {% if padding_left_mobile != padding_left %}--heading-padding-left-mobile: {{ padding_left_mobile }}px;{% endif %}
+    {% if padding_right_mobile != padding_right %}--heading-padding-right-mobile: {{ padding_right_mobile }}px;{% endif %}
+  {% endif %}
+  {% if block.settings.text_color != blank %}--heading-block-color: {{ block.settings.text_color | escape }};{% endif %}
+{% endcapture %}
+{% assign heading_style = heading_style | strip %}
+
+{% if block.settings.text != blank %}
+  <{{ heading_tag }}
+    class="{{ heading_class }}"
+    {% if heading_style != blank %}style="{{ heading_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >{{ block.settings.text }}</{{ heading_tag }}>
+{% else %}
+  <div
+    class="heading-block size-style heading-block--empty"
+    {% if heading_style != blank %}style="{{ heading_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  ></div>
+{% endif %}
+
+{% stylesheet %}
+  .heading-block {
+    display: block;
+    padding-top: var(--heading-padding-top, 0px);
+    padding-right: var(--heading-padding-right, 0px);
+    padding-bottom: var(--heading-padding-bottom, 0px);
+    padding-left: var(--heading-padding-left, 0px);
+    text-align: var(--text-align-default, inherit);
+    overflow-wrap: anywhere;
+  }
+
+  .heading-block.heading-text {
+    color: var(--heading-block-color, var(--heading-color));
+  }
+
+  .heading-block.heading-custom {
+    font-size: var(--heading-block-custom-size, var(--font-heading-custom));
+  }
+
+  .heading-block--empty {
+    min-height: 1px;
+  }
+
+  @media (max-width: 767.98px) {
+    .heading-block {
+      padding-top: var(--heading-padding-top-mobile, var(--heading-padding-top, 0px));
+      padding-right: var(--heading-padding-right-mobile, var(--heading-padding-right, 0px));
+      padding-bottom: var(--heading-padding-bottom-mobile, var(--heading-padding-bottom, 0px));
+      padding-left: var(--heading-padding-left-mobile, var(--heading-padding-left, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.heading",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.content"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:labels.text"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
+        { "value": "xl", "label": "t:options.heading_size.xl" },
+        { "value": "lg", "label": "t:options.heading_size.lg" },
+        { "value": "md", "label": "t:options.heading_size.md" },
+        { "value": "sm", "label": "t:options.heading_size.sm" },
+        { "value": "xs", "label": "t:options.heading_size.xs" },
+        { "value": "custom", "label": "t:options.heading_size.custom" }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "html_tag",
+      "label": "t:labels.html_tag",
+      "info": "t:info.heading_html_tag",
+      "options": [
+        { "value": "div", "label": "t:options.html_tag.paragraph" },
+        { "value": "h1", "label": "t:options.html_tag.h1" },
+        { "value": "h2", "label": "t:options.html_tag.h2" },
+        { "value": "h3", "label": "t:options.html_tag.h3" },
+        { "value": "h4", "label": "t:options.html_tag.h4" },
+        { "value": "h5", "label": "t:options.html_tag.h5" },
+        { "value": "h6", "label": "t:options.html_tag.h6" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_color",
+      "label": "t:labels.text_color",
+      "info": "t:info.heading_text_color"
+    },
+    {
+      "type": "header",
+      "content": "t:general.size"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" },
+        { "value": "custom", "label": "t:options.width.custom" }
+      ],
+      "default": "fit"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "t:labels.max_width",
+      "min": 320,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 640,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_size",
+      "label": "t:labels.customize_mobile_size",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "width_mobile",
+      "label": "t:labels.mobile_width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" },
+        { "value": "custom", "label": "t:options.width.custom" }
+      ],
+      "default": "fit",
+      "visible_if": "{{ block.settings.customize_mobile_size }}"
+    },
+    {
+      "type": "range",
+      "id": "max_width_mobile",
+      "label": "t:labels.mobile_max_width",
+      "min": 240,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 480,
+      "visible_if": "{{ block.settings.customize_mobile_size and block.settings.width_mobile == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.heading",
+      "category": "t:general.basic",
+      "settings": {
+        "text": "<p>Heading</p>",
+        "heading_size": "lg",
+        "html_tag": "h2",
+        "width": "fit",
+        "customize_mobile_size": false,
+        "max_width": 640,
+        "width_mobile": "fit",
+        "max_width_mobile": 480
+      }
+    }
+  ]
+}
+{% endschema %}

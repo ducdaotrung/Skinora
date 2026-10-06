@@ -1,0 +1,15 @@
+{% doc %}
+  Normalize saved legacy visual heading values to shared typography tokens.
+  @param {string} size - Visual size token, including legacy h1 through h6
+  @param {string} fallback - Shared default token
+{% enddoc %}
+{%- case size -%}
+  {%- when 'h1' -%}display
+  {%- when 'h2' -%}xl
+  {%- when 'h3' -%}lg
+  {%- when 'h4' -%}md
+  {%- when 'h5' -%}sm
+  {%- when 'h6' -%}xs
+  {%- when 'display', 'xl', 'lg', 'md', 'sm', 'xs', 'custom' -%}{{- size -}}
+  {%- else -%}{{- fallback -}}
+{%- endcase -%}

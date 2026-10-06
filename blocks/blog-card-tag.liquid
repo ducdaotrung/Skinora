@@ -1,0 +1,317 @@
+{% doc %}
+  Renders article tags inside Blog Card.
+
+  The parent Blog Card supplies the current article through `closest.article`.
+  The closest blog is optional and is used to link the tag to the blog's
+  tagged-article archive when that context is available.
+{% enddoc %}
+
+{% liquid
+  assign blog_card_tag_article = closest.article | default: article
+  assign blog_card_tag_blog = closest.blog | default: blog
+  assign blog_card_tag_max = block.settings.max_tag | default: 3 | plus: 0
+  if blog_card_tag_max < 1 or blog_card_tag_max > 6
+    assign blog_card_tag_max = 3
+  endif
+
+  assign blog_card_tag_font = block.settings.font | default: 'accent'
+  unless blog_card_tag_font == 'body' or blog_card_tag_font == 'heading' or blog_card_tag_font == 'accent'
+    assign blog_card_tag_font = 'accent'
+  endunless
+
+  assign blog_card_tag_size = block.settings.font_size | default: 'sm'
+  unless blog_card_tag_size == 'xs' or blog_card_tag_size == 'sm' or blog_card_tag_size == 'md' or blog_card_tag_size == 'lg' or blog_card_tag_size == 'xl' or blog_card_tag_size == 'xxl'
+    assign blog_card_tag_size = 'sm'
+  endunless
+
+  assign blog_card_tag_letter_spacing = block.settings.letter_spacing | default: 'normal'
+  unless blog_card_tag_letter_spacing == 'tight' or blog_card_tag_letter_spacing == 'normal' or blog_card_tag_letter_spacing == 'relaxed'
+    assign blog_card_tag_letter_spacing = 'normal'
+  endunless
+
+  assign blog_card_tag_text_case = block.settings.text_case | default: 'original'
+  unless blog_card_tag_text_case == 'original' or blog_card_tag_text_case == 'uppercase'
+    assign blog_card_tag_text_case = 'original'
+  endunless
+
+  assign blog_card_tag_presentation = block.settings.style | default: 'text'
+  unless blog_card_tag_presentation == 'text' or blog_card_tag_presentation == 'outline' or blog_card_tag_presentation == 'background'
+    assign blog_card_tag_presentation = 'text'
+  endunless
+
+  assign blog_card_tag_color = block.settings.text_color
+  if blog_card_tag_color == blank
+    case block.settings.color
+      when 'heading'
+        assign blog_card_tag_color = 'var(--heading-color)'
+      when 'text'
+        assign blog_card_tag_color = 'var(--body-color)'
+    endcase
+  endif
+  assign blog_card_tag_color = blog_card_tag_color | default: 'var(--body-color)'
+
+  assign blog_card_tag_padding_top = block.settings.padding_top | default: 8 | plus: 0
+  assign blog_card_tag_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign blog_card_tag_padding_top_mobile = block.settings.padding_top_mobile | default: blog_card_tag_padding_top | plus: 0
+  assign blog_card_tag_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: blog_card_tag_padding_bottom | plus: 0
+
+  if blog_card_tag_padding_top < 0 or blog_card_tag_padding_top > 100
+    assign blog_card_tag_padding_top = 8
+  endif
+  if blog_card_tag_padding_bottom < 0 or blog_card_tag_padding_bottom > 100
+    assign blog_card_tag_padding_bottom = 0
+  endif
+  if blog_card_tag_padding_top_mobile < 0 or blog_card_tag_padding_top_mobile > 100
+    assign blog_card_tag_padding_top_mobile = blog_card_tag_padding_top
+  endif
+  if blog_card_tag_padding_bottom_mobile < 0 or blog_card_tag_padding_bottom_mobile > 100
+    assign blog_card_tag_padding_bottom_mobile = blog_card_tag_padding_bottom
+  endif
+
+  assign blog_card_tag_class = 'blog-card-tag font-' | append: blog_card_tag_font
+  assign blog_card_tag_class = blog_card_tag_class | append: ' body-' | append: blog_card_tag_size
+  assign blog_card_tag_class = blog_card_tag_class | append: ' tracking-' | append: blog_card_tag_letter_spacing
+  assign blog_card_tag_class = blog_card_tag_class | append: ' text-case-' | append: blog_card_tag_text_case
+  assign blog_card_tag_class = blog_card_tag_class | append: ' blog-card-tag--style-' | append: blog_card_tag_presentation
+%}
+
+{% capture blog_card_tag_style %}
+  {% if blog_card_tag_color != blank %}--blog-card-tag-color: {{ blog_card_tag_color | escape }};{% endif %}
+  {% if blog_card_tag_padding_top != 8 %}--blog-card-tag-padding-top: {{ blog_card_tag_padding_top }}px;{% endif %}
+  {% if blog_card_tag_padding_bottom != 0 %}--blog-card-tag-padding-bottom: {{ blog_card_tag_padding_bottom }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if blog_card_tag_padding_top_mobile != blog_card_tag_padding_top %}--blog-card-tag-padding-top-mobile: {{ blog_card_tag_padding_top_mobile }}px;{% endif %}
+    {% if blog_card_tag_padding_bottom_mobile != blog_card_tag_padding_bottom %}--blog-card-tag-padding-bottom-mobile: {{ blog_card_tag_padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign blog_card_tag_style = blog_card_tag_style | strip %}
+
+{% if blog_card_tag_article.tags != blank or request.design_mode or blog_card_tag_article == blank %}
+  <div
+    class="{{ blog_card_tag_class }}"
+    {% if blog_card_tag_style != blank %}style="{{ blog_card_tag_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    {% if blog_card_tag_article.tags != blank %}
+      {% for blog_card_tag_value in blog_card_tag_article.tags limit: blog_card_tag_max %}
+        {% assign blog_card_tag_url = blank %}
+        {% if blog_card_tag_blog.url != blank %}
+          {% assign blog_card_tag_handle = blog_card_tag_value | handleize %}
+          {% assign blog_card_tag_url = blog_card_tag_blog.url | append: '/tagged/' | append: blog_card_tag_handle %}
+        {% endif %}
+        {% if blog_card_tag_url != blank %}<a class="blog-card-tag__link" href="{{ blog_card_tag_url | escape }}">{% endif %}
+          <span class="blog-card-tag__label">{{ blog_card_tag_value | escape }}</span>
+        {% if blog_card_tag_url != blank %}</a>{% endif %}
+      {% endfor %}
+    {% elsif request.design_mode or blog_card_tag_article == blank %}
+      <span class="blog-card-tag__label">Tags</span>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .blog-card-tag {
+    --blog-card-tag-color: var(--body-color);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: var(--blog-card-align-flex, flex-start);
+    gap: 8px;
+    width: 100%;
+    padding-top: var(--blog-card-tag-padding-top, 8px);
+    padding-bottom: var(--blog-card-tag-padding-bottom, 0px);
+    color: var(--blog-card-tag-color);
+    text-align: inherit;
+    overflow-wrap: anywhere;
+  }
+
+  .blog-card-tag__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .blog-card-tag__label { display: inline-block; }
+
+  .blog-card-tag--style-outline .blog-card-tag__label {
+    padding: 4px 12px;
+    border: 1px solid var(--border-color);
+  }
+
+  .blog-card-tag--style-background .blog-card-tag__label {
+    padding: 4px 12px;
+    background-color: var(--blog-card-tag-color);
+    color: var(--background-color);
+  }
+
+  .blog-card-tag__link:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .blog-card-tag--style-outline .blog-card-tag__link:hover,
+  .blog-card-tag--style-background .blog-card-tag__link:hover { text-decoration: none; }
+
+  @media (max-width: 767.98px) {
+    .blog-card-tag {
+      padding-top: var(--blog-card-tag-padding-top-mobile, var(--blog-card-tag-padding-top, 8px));
+      padding-bottom: var(--blog-card-tag-padding-bottom-mobile, var(--blog-card-tag-padding-bottom, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Tags",
+  "tag": null,
+  "settings": [
+    {
+      "type": "range",
+      "id": "max_tag",
+      "label": "Max tag",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "text", "label": "Text" },
+        { "value": "outline", "label": "Outline" },
+        { "value": "background", "label": "Background" }
+      ],
+      "default": "text"
+    },
+    {
+      "type": "select",
+      "id": "text_case",
+      "label": "t:labels.text_case",
+      "options": [
+        { "value": "original", "label": "t:options.text_case.original" },
+        { "value": "uppercase", "label": "t:options.text_case.uppercase" }
+      ],
+      "default": "original"
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:labels.font",
+      "options": [
+        { "value": "heading", "label": "t:options.product_price_font.heading" },
+        { "value": "body", "label": "t:options.product_price_font.body" },
+        { "value": "accent", "label": "t:options.product_price_font.accent" }
+      ],
+      "default": "accent"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:labels.font_size",
+      "options": [
+        { "value": "xs", "label": "t:options.product_price_size.xs" },
+        { "value": "sm", "label": "t:options.product_price_size.sm" },
+        { "value": "md", "label": "t:options.product_price_size.md" },
+        { "value": "lg", "label": "t:options.product_price_size.lg" },
+        { "value": "xl", "label": "t:options.product_price_size.xl" },
+        { "value": "xxl", "label": "t:options.product_price_size.xxl" }
+      ],
+      "default": "sm"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        { "value": "tight", "label": "t:options.letter_spacing.tight" },
+        { "value": "normal", "label": "t:options.letter_spacing.normal" },
+        { "value": "relaxed", "label": "t:options.letter_spacing.relaxed" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_color",
+      "label": "t:labels.text_color"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tags",
+      "category": "Blog",
+      "settings": {
+        "text_case": "uppercase",
+        "max_tag": 3,
+        "font": "accent",
+        "font_size": "sm",
+        "letter_spacing": "normal",
+        "style": "text",
+        "text_color": "",
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "customize_mobile_padding": false,
+        "padding_top_mobile": 0,
+        "padding_bottom_mobile": 0
+      }
+    }
+  ]
+}
+{% endschema %}

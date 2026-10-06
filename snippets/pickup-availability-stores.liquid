@@ -1,0 +1,7 @@
+{% for availability in variant.store_availabilities %}
+  <article class="product-pickup-availability__store">
+    <h3>{{ availability.location.name | escape }}</h3>
+    <p class="product-pickup-availability__store-status">{% render 'icon', icon: 'check', bare: true, class: 'product-pickup-availability__icon' %}<span>Pickup {% if availability.available %}available{% else %}unavailable{% endif %}{% if availability.pick_up_time != blank %} at {{ availability.location.name | escape }} — {{ availability.pick_up_time | escape }}{% endif %}</span></p>
+    {% if availability.location.address != blank %}<div class="product-pickup-availability__address">{{ availability.location.address | format_address }}</div>{% endif %}
+  </article>
+{% endfor %}

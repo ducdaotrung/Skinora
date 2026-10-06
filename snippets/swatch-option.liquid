@@ -1,0 +1,31 @@
+{% doc %}
+  Shared radio surface for product pickers and product cards. Callers own
+  selection/variant metadata and pass their radio markup; this component owns
+  the label, contained selection/focus frame, visual swatch and status text.
+
+  @param {string} input_markup - Radio with caller-owned name/data/form attributes
+  @param {string} value - Accessible option name
+  @param {swatch} [swatch] - Shopify option-value swatch
+  @param {image} [image] - Linked variant image
+  @param {string} [style] - color or variant_image
+  @param {string} [selected_style] - border or underline
+  @param {string} [state] - available, sold-out or unavailable
+  @param {string} [class] - Caller label hooks
+  @param {string} [visual_class] - Caller visual hooks
+  @param {boolean} [track_status] - Expose status hook for the variant picker
+{% enddoc %}
+{% liquid
+  assign selection_style = selected_style | default: 'border'
+  unless selection_style == 'underline'
+    assign selection_style = 'border'
+  endunless
+  assign visual_classes = 'swatch-control__visual ' | append: visual_class
+%}
+<label class="swatch-control swatch-control--{{ selection_style }} {{ class }}"{% if state == 'unavailable' %} aria-disabled="true"{% endif %}>
+  {{ input_markup }}
+  {% render 'swatch', value: value, swatch: swatch, image: image, style: style, class: visual_classes, decorative: true %}
+  <span class="visually-hidden">{{ value | escape }}</span>
+  <span class="swatch-control__status visually-hidden"{% if track_status %} data-variant-status{% endif %}{% if state != 'sold-out' and state != 'unavailable' %} hidden{% endif %}>
+    {% if state == 'sold-out' %}{{ 'products.sold_out' | t }}{% elsif state == 'unavailable' %}{{ 'products.unavailable' | t }}{% endif %}
+  </span>
+</label>

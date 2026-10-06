@@ -1,0 +1,296 @@
+{% liquid
+  assign contact_information_direction = section.settings.direction | default: 'horizontal'
+  unless contact_information_direction == 'horizontal' or contact_information_direction == 'vertical'
+    assign contact_information_direction = 'horizontal'
+  endunless
+  assign contact_information_items_per_row = section.settings.items_per_row | default: 4 | plus: 0
+  if contact_information_items_per_row < 1 or contact_information_items_per_row > 4
+    assign contact_information_items_per_row = 4
+  endif
+  if contact_information_direction == 'vertical'
+    assign contact_information_items_per_row = 1
+  endif
+
+  assign contact_information_width = 'page-width'
+  if section.settings.section_width == 'full_width'
+    assign contact_information_width = 'full-width'
+  endif
+  assign contact_information_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign contact_information_scheme = section.settings.color_scheme.id
+  endif
+  assign contact_information_scheme = contact_information_scheme | default: 'scheme-1' | handleize
+  assign contact_information_gap = section.settings.gap | default: 0 | plus: 0
+  assign contact_information_padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign contact_information_padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign contact_information_padding_top_mobile = section.settings.padding_top_mobile | default: 0 | plus: 0
+  assign contact_information_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: 0 | plus: 0
+%}
+
+{% capture contact_information_style %}
+  --contact-information-columns: {{ contact_information_items_per_row }};
+  {% if section.settings.background_color != blank %}--contact-information-background-color: {{ section.settings.background_color | escape }};{% endif %}
+  --contact-information-gap: {{ contact_information_gap }}px;
+  --contact-information-padding-top: {{ contact_information_padding_top }}px;
+  --contact-information-padding-bottom: {{ contact_information_padding_bottom }}px;
+  {% if section.settings.customize_mobile_padding %}
+    --contact-information-padding-top-mobile: {{ contact_information_padding_top_mobile }}px;
+    --contact-information-padding-bottom-mobile: {{ contact_information_padding_bottom_mobile }}px;
+  {% endif %}
+{% endcapture %}
+
+<div class="contact-information contact-information--{{ contact_information_width }} contact-information--{{ contact_information_direction }}">
+  <div class="section-spacing contact-information__spacing color-scheme section-color-scope {{ contact_information_scheme }}" style="{{ contact_information_style | strip }}">
+    {% if section.settings.background_image != blank %}
+      <div class="contact-information__background" aria-hidden="true">
+        {{ section.settings.background_image | image_url: width: 2000 | image_tag }}
+      </div>
+    {% endif %}
+    <div class="container {{ contact_information_width }} contact-information__container">
+      <div class="contact-information__grid">
+        {% content_for 'blocks' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .contact-information {
+    width: 100%;
+  }
+
+  .contact-information__spacing {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding-top: var(--contact-information-padding-top, 0px);
+    padding-bottom: var(--contact-information-padding-bottom, 0px);
+    background-color: var(--contact-information-background-color, var(--background-color));
+  }
+
+  .contact-information__container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .contact-information__background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .contact-information__background img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .contact-information__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--contact-information-columns, 4), minmax(0, 1fr));
+    align-items: stretch;
+    gap: var(--contact-information-gap, 0px);
+  }
+
+  .contact-information__grid > .group {
+    min-width: 0;
+    min-height: 170px;
+  }
+
+  @media (max-width: 767.98px) {
+    .contact-information__spacing {
+      padding-top: var(--contact-information-padding-top-mobile, var(--contact-information-padding-top, 0px));
+      padding-bottom: var(--contact-information-padding-bottom-mobile, var(--contact-information-padding-bottom, 0px));
+    }
+
+    .contact-information__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .contact-information__grid > .group {
+      min-height: 150px;
+    }
+
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Icon text wide cards",
+  "class": "section-kernel",
+  "blocks": [{ "type": "group" }],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "t:labels.direction",
+      "options": [
+        { "value": "horizontal", "label": "t:options.direction.horizontal" },
+        { "value": "vertical", "label": "t:options.direction.vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "range",
+      "id": "items_per_row",
+      "label": "t:labels.items_per_row",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 4,
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:labels.gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "t:labels.background"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:labels.background_image"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Icon text wide cards",
+      "category": "t:general.content",
+      "settings": {
+        "section_width": "page_width",
+        "direction": "horizontal",
+        "items_per_row": 4,
+        "color_scheme": "scheme-1",
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "group",
+          "settings": { "direction": "vertical", "alignment": "center", "width": "fill", "gap_desktop": 20, "gap_mobile": 16, "border_type": "solid", "padding_top": 56, "padding_bottom": 56, "padding_left": 48, "padding_right": 48 },
+          "blocks": [
+            { "type": "icon", "settings": { "source": "custom", "icon": "arrow", "custom_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\"><g clip-path=\"url(#clip0_46896_16861)\"><mask id=\"mask0_46896_16861\" style=\"mask-type:luminance\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"24\" height=\"24\"><path d=\"M24 0H0V24H24V0Z\" fill=\"white\"/></mask><g mask=\"url(#mask0_46896_16861)\"><path d=\"M9.51124 4.23062L18.0712 8.51062C21.9112 10.4306 21.9112 13.5706 18.0712 15.4906L9.51124 19.7706C3.75124 22.6506 1.40124 20.2906 4.28124 14.5406L5.15124 12.8106C5.37124 12.3706 5.37124 11.6406 5.15124 11.2006L4.28124 9.46062C1.40124 3.71062 3.76124 1.35062 9.51124 4.23062Z\" stroke=\"#111111\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M5.44141 12H10.8414\" stroke=\"#111111\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></g></g><defs><clipPath id=\"clip0_46896_16861\"><rect width=\"24\" height=\"24\" fill=\"white\"/></clipPath></defs></svg>", "icon_width": 20 } },
+            { "type": "heading", "settings": { "text": "<p>Customer service</p>", "heading_size": "sm", "html_tag": "h3" } },
+            { "type": "text", "settings": { "text": "<p><a href=\"mailto:nevaeh.simmons@example.com\">nevaeh.simmons@example.com</a></p>" } }
+          ]
+        },
+        {
+          "type": "group",
+          "settings": { "direction": "vertical", "alignment": "center", "width": "fill", "gap_desktop": 20, "gap_mobile": 16, "border_type": "solid", "padding_top": 56, "padding_bottom": 56, "padding_left": 48, "padding_right": 48 },
+          "blocks": [
+            { "type": "icon", "settings": { "source": "custom", "icon": "document-text", "custom_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\"><g clip-path=\"url(#clip0_46896_16872)\"><mask id=\"mask0_46896_16872\" style=\"mask-type:luminance\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"24\" height=\"24\"><path d=\"M24 0H0V24H24V0Z\" fill=\"white\"/></mask><g mask=\"url(#mask0_46896_16872)\"><path d=\"M18 18.8597H17.24C16.44 18.8597 15.68 19.1697 15.12 19.7297L13.41 21.4198C12.63 22.1898 11.36 22.1898 10.58 21.4198L8.87 19.7297C8.31 19.1697 7.54 18.8597 6.75 18.8597H6C4.34 18.8597 3 17.5298 3 15.8898V4.97974C3 3.33974 4.34 2.00977 6 2.00977H18C19.66 2.00977 21 3.33974 21 4.97974V15.8898C21 17.5198 19.66 18.8597 18 18.8597Z\" stroke=\"#111111\" stroke-width=\"1.5\" stroke-miterlimit=\"10\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M7 9.16077C7 8.23077 7.76 7.4707 8.69 7.4707C9.62 7.4707 10.38 8.23077 10.38 9.16077C10.38 11.0408 7.71 11.2408 7.12 13.0308C7 13.4008 7.31 13.7708 7.7 13.7708H10.38\" stroke=\"#111111\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M16.0417 13.7608V8.05088C16.0417 7.79088 15.8717 7.56083 15.6217 7.49083C15.3717 7.42083 15.1017 7.52083 14.9617 7.74083C14.2417 8.90083 13.4617 10.2208 12.7817 11.3808C12.6717 11.5708 12.6717 11.8208 12.7817 12.0108C12.8917 12.2008 13.1017 12.3208 13.3317 12.3208H17.0017\" stroke=\"#111111\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></g></g><defs><clipPath id=\"clip0_46896_16872\"><rect width=\"24\" height=\"24\" fill=\"white\"/></clipPath></defs></svg>", "icon_width": 20 } },
+            { "type": "heading", "settings": { "text": "<p>Support</p>", "heading_size": "sm", "html_tag": "h3" } },
+            { "type": "text", "settings": { "text": "<p><a href=\"mailto:support@forma.com\">support@forma.com</a></p>" } }
+          ]
+        },
+        {
+          "type": "group",
+          "settings": { "direction": "vertical", "alignment": "center", "width": "fill", "gap_desktop": 20, "gap_mobile": 16, "border_type": "solid", "padding_top": 56, "padding_bottom": 56, "padding_left": 48, "padding_right": 48 },
+          "blocks": [
+            { "type": "icon", "settings": { "source": "custom", "icon": "user", "custom_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\"><g clip-path=\"url(#clip0_46896_16884)\"><mask id=\"mask0_46896_16884\" style=\"mask-type:luminance\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"24\" height=\"24\"><path d=\"M24 0H0V24H24V0Z\" fill=\"white\"/></mask><g mask=\"url(#mask0_46896_16884)\"><path d=\"M21.97 18.33C21.97 18.69 21.89 19.06 21.72 19.42C21.55 19.78 21.33 20.12 21.04 20.44C20.55 20.98 20.01 21.37 19.4 21.62C18.8 21.87 18.15 22 17.45 22C16.43 22 15.34 21.76 14.19 21.27C13.04 20.78 11.89 20.12 10.75 19.29C9.6 18.45 8.51 17.52 7.47 16.49C6.44 15.45 5.51 14.36 4.68 13.22C3.86 12.08 3.2 10.94 2.72 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.6 4 2.98 3.44 3.51 2.94C4.15 2.31 4.85 2 5.59 2C5.87 2 6.15 2.06 6.4 2.18C6.66 2.3 6.89 2.48 7.07 2.74L9.39 6.01C9.57 6.26 9.7 6.49 9.79 6.71C9.88 6.92 9.93 7.13 9.93 7.32C9.93 7.56 9.86 7.8 9.72 8.03C9.59 8.26 9.4 8.5 9.16 8.74L8.4 9.53C8.29 9.64 8.24 9.77 8.24 9.93C8.24 10.01 8.25 10.08 8.27 10.16C8.3 10.24 8.33 10.3 8.35 10.36C8.53 10.69 8.84 11.12 9.28 11.64C9.73 12.16 10.21 12.69 10.73 13.22C11.27 13.75 11.79 14.24 12.32 14.69C12.84 15.13 13.27 15.43 13.61 15.61C13.66 15.63 13.72 15.66 13.79 15.69C13.87 15.72 13.95 15.73 14.04 15.73C14.21 15.73 14.34 15.67 14.45 15.56L15.21 14.81C15.46 14.56 15.7 14.37 15.93 14.25C16.16 14.11 16.39 14.04 16.64 14.04C16.83 14.04 17.03 14.08 17.25 14.17C17.47 14.26 17.7 14.39 17.95 14.56L21.26 16.91C21.52 17.09 21.7 17.3 21.81 17.55C21.91 17.8 21.97 18.05 21.97 18.33Z\" stroke=\"#111111\" stroke-width=\"1.5\" stroke-miterlimit=\"10\"/></g></g><defs><clipPath id=\"clip0_46896_16884\"><rect width=\"24\" height=\"24\" fill=\"white\"/></clipPath></defs></svg>", "icon_width": 20 } },
+            { "type": "heading", "settings": { "text": "<p>Phone</p>", "heading_size": "sm", "html_tag": "h3" } },
+            { "type": "text", "settings": { "text": "<p><a href=\"tel:+16566463822\">+1 (656) 646 38 22</a></p>" } }
+          ]
+        },
+        {
+          "type": "group",
+          "settings": { "direction": "vertical", "alignment": "center", "width": "fill", "gap_desktop": 20, "gap_mobile": 16, "border_type": "solid", "padding_top": 56, "padding_bottom": 56, "padding_left": 48, "padding_right": 48 },
+          "blocks": [
+            { "type": "icon", "settings": { "source": "custom", "icon": "circle", "custom_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\"><g clip-path=\"url(#clip0_46896_16894)\"><mask id=\"mask0_46896_16894\" style=\"mask-type:luminance\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"24\" height=\"24\"><path d=\"M24 0H0V24H24V0Z\" fill=\"white\"/></mask><g mask=\"url(#mask0_46896_16894)\"><path d=\"M12.0028 14.1695C9.87281 14.1695 8.13281 12.4395 8.13281 10.2995C8.13281 8.15945 9.87281 6.43945 12.0028 6.43945C14.1328 6.43945 15.8728 8.16945 15.8728 10.3095C15.8728 12.4495 14.1328 14.1695 12.0028 14.1695ZM12.0028 7.93945C10.7028 7.93945 9.63281 8.99945 9.63281 10.3095C9.63281 11.6195 10.6928 12.6795 12.0028 12.6795C13.3128 12.6795 14.3728 11.6195 14.3728 10.3095C14.3728 8.99945 13.3028 7.93945 12.0028 7.93945Z\" fill=\"#111111\"/><path d=\"M12.0016 22.76C10.5216 22.76 9.03164 22.2 7.87164 21.09C4.92164 18.25 1.66164 13.72 2.89164 8.33C4.00164 3.44 8.27164 1.25 12.0016 1.25C12.0016 1.25 12.0016 1.25 12.0116 1.25C15.7416 1.25 20.0116 3.44 21.1216 8.34C22.3416 13.73 19.0816 18.25 16.1316 21.09C14.9716 22.2 13.4816 22.76 12.0016 22.76ZM12.0016 2.75C9.09164 2.75 5.35164 4.3 4.36164 8.66C3.28164 13.37 6.24164 17.43 8.92164 20C10.6516 21.67 13.3616 21.67 15.0916 20C17.7616 17.43 20.7216 13.37 19.6616 8.66C18.6616 4.3 14.9116 2.75 12.0016 2.75Z\" fill=\"#111111\"/></g></g><defs><clipPath id=\"clip0_46896_16894\"><rect width=\"24\" height=\"24\" fill=\"white\"/></clipPath></defs></svg>", "icon_width": 20 } },
+            { "type": "heading", "settings": { "text": "<p>Address</p>", "heading_size": "sm", "html_tag": "h3" } },
+            { "type": "text", "settings": { "text": "<p>Duinkerkenstraat 40<br>9723 BT Groningen<br>The Netherlands</p>" } }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,1067 @@
+{% liquid
+  assign bundle_summary_desktop_scheme = block.settings.desktop_color_scheme | default: 'scheme-1'
+  if block.settings.desktop_color_scheme.id != blank
+    assign bundle_summary_desktop_scheme = block.settings.desktop_color_scheme.id
+  endif
+  assign bundle_summary_desktop_scheme = bundle_summary_desktop_scheme | default: 'scheme-1' | handleize
+
+  assign bundle_summary_mobile_scheme = block.settings.mobile_color_scheme | default: 'scheme-3'
+  if block.settings.mobile_color_scheme.id != blank
+    assign bundle_summary_mobile_scheme = block.settings.mobile_color_scheme.id
+  endif
+  assign bundle_summary_mobile_scheme = bundle_summary_mobile_scheme | default: 'scheme-3' | handleize
+
+  assign bundle_summary_corner_radius = block.settings.corner_radius | default: 'square'
+  unless bundle_summary_corner_radius == 'inherit' or bundle_summary_corner_radius == 'square' or bundle_summary_corner_radius == 'rounded' or bundle_summary_corner_radius == 'custom'
+    assign bundle_summary_corner_radius = 'square'
+  endunless
+  assign bundle_summary_custom_corner_radius = block.settings.custom_corner_radius | default: 0 | plus: 0
+  if bundle_summary_custom_corner_radius < 0 or bundle_summary_custom_corner_radius > 40
+    assign bundle_summary_custom_corner_radius = 0
+  endif
+  assign bundle_summary_corner_radius_value = 'var(--radius-square)'
+  case bundle_summary_corner_radius
+    when 'inherit'
+      assign bundle_summary_corner_radius_value = 'var(--media-radius, var(--radius-square))'
+    when 'rounded'
+      assign bundle_summary_corner_radius_value = 'var(--radius-rounded)'
+    when 'custom'
+      assign bundle_summary_corner_radius_value = 'var(--bundle-summary-custom-radius)'
+  endcase
+
+  assign bundle_summary_initial_message = block.settings.initial_message | strip_html | strip
+  assign bundle_summary_unlocked_message = block.settings.unlocked_message | strip_html | strip
+  assign bundle_summary_message_font_size = block.settings.progress_font_size | default: 'md'
+  unless bundle_summary_message_font_size == 'xs' or bundle_summary_message_font_size == 'sm' or bundle_summary_message_font_size == 'md' or bundle_summary_message_font_size == 'lg' or bundle_summary_message_font_size == 'xl' or bundle_summary_message_font_size == 'xxl'
+    assign bundle_summary_message_font_size = 'md'
+  endunless
+  assign bundle_add_bundle_label = 'bundle_builder.add_bundle' | t
+  assign bundle_summary_heading_label = block.settings.heading | strip_html | strip | default: 'Your bundle'
+  assign bundle_summary_progress_id = 'BundleSummaryProgress-' | append: section.id | append: '-' | append: block.id | handleize
+  assign bundle_summary_items_id = 'BundleSummaryItems-' | append: section.id | append: '-' | append: block.id | handleize
+  assign bundle_summary_zero_price = 0 | money
+  if settings.price_currency_code_product_cards
+    assign bundle_summary_zero_price = 0 | money_with_currency
+  endif
+  assign bundle_summary_padding_vertical_mobile = block.settings.padding_vertical | default: 30 | plus: 0
+  if block.settings.customize_mobile_padding == true
+    assign bundle_summary_padding_vertical_mobile = block.settings.padding_vertical_mobile | default: 24 | plus: 0
+  endif
+  assign bundle_tier_1_label = block.settings.discount_label
+  assign bundle_tier_1_minimum_type = block.settings.minimum_requirement | default: 'quantity'
+  assign bundle_tier_1_minimum_quantity = block.settings.minimum_quantity | default: 3 | plus: 0
+  if bundle_tier_1_minimum_quantity < 2
+    assign bundle_tier_1_minimum_quantity = 2
+  elsif bundle_tier_1_minimum_quantity > 10
+    assign bundle_tier_1_minimum_quantity = 10
+  endif
+  assign bundle_tier_1_enabled = true
+  assign bundle_tier_2_enabled = block.settings.enable_tier_2
+  assign bundle_tier_3_enabled = block.settings.enable_tier_3
+  assign bundle_tier_2_label = block.settings.tier_2_label
+  assign bundle_tier_2_minimum_quantity = block.settings.tier_2_minimum_quantity | default: 5 | plus: 0
+  if bundle_tier_2_minimum_quantity < 3
+    assign bundle_tier_2_minimum_quantity = 3
+  elsif bundle_tier_2_minimum_quantity > 10
+    assign bundle_tier_2_minimum_quantity = 10
+  endif
+  assign bundle_tier_3_label = block.settings.tier_3_label
+  assign bundle_tier_3_minimum_quantity = block.settings.tier_3_minimum_quantity | default: 7 | plus: 0
+  if bundle_tier_3_minimum_quantity < 4
+    assign bundle_tier_3_minimum_quantity = 4
+  elsif bundle_tier_3_minimum_quantity > 10
+    assign bundle_tier_3_minimum_quantity = 10
+  endif
+  assign bundle_summary_placeholder_count = 3
+  if bundle_tier_1_minimum_type == 'quantity'
+    assign bundle_summary_placeholder_count = bundle_tier_1_minimum_quantity
+    if bundle_tier_2_enabled and bundle_tier_2_minimum_quantity < bundle_summary_placeholder_count
+      assign bundle_summary_placeholder_count = bundle_tier_2_minimum_quantity
+    endif
+    if bundle_tier_3_enabled and bundle_tier_3_minimum_quantity < bundle_summary_placeholder_count
+      assign bundle_summary_placeholder_count = bundle_tier_3_minimum_quantity
+    endif
+  endif
+
+  assign bundle_mobile_background = settings.background_color | default: '#FFFFFF'
+  assign bundle_mobile_heading = settings.foreground_color | default: '#1C1B1A'
+  assign bundle_mobile_heading_highlight = '#A67C52'
+  assign bundle_mobile_body = settings.foreground_color | default: '#1C1B1A'
+  assign bundle_mobile_accent = settings.color_accent | default: bundle_mobile_body
+  assign bundle_mobile_border = settings.color_border | default: '#D7D0C8'
+  assign bundle_mobile_shadow = bundle_mobile_body
+  assign bundle_mobile_sale_price = '#9A3D32'
+  assign bundle_mobile_primary_background = bundle_mobile_accent
+  assign bundle_mobile_primary_text = bundle_mobile_background
+  assign bundle_mobile_primary_border = bundle_mobile_accent
+  assign bundle_mobile_primary_hover_background = 'transparent'
+  assign bundle_mobile_primary_hover_text = bundle_mobile_accent
+  assign bundle_mobile_primary_hover_border = bundle_mobile_accent
+  assign bundle_mobile_secondary_background = bundle_mobile_background
+  assign bundle_mobile_secondary_text = bundle_mobile_accent
+  assign bundle_mobile_secondary_border = bundle_mobile_accent
+  assign bundle_mobile_secondary_hover_background = 'transparent'
+  assign bundle_mobile_secondary_hover_text = bundle_mobile_accent
+  assign bundle_mobile_secondary_hover_border = bundle_mobile_accent
+  assign bundle_mobile_tertiary_text = bundle_mobile_accent
+  assign bundle_mobile_tertiary_hover_text = bundle_mobile_accent
+
+  for scheme in settings.color_schemes
+    if scheme.id == bundle_summary_mobile_scheme
+      assign bundle_mobile_background = scheme.settings.background | default: bundle_mobile_background
+      assign bundle_mobile_heading = scheme.settings.heading | default: bundle_mobile_heading
+      assign bundle_mobile_heading_highlight = scheme.settings.heading_highlight | default: bundle_mobile_heading_highlight
+      assign bundle_mobile_body = scheme.settings.text | default: bundle_mobile_body
+      assign bundle_mobile_accent = scheme.settings.accent | default: bundle_mobile_accent
+      assign bundle_mobile_border = scheme.settings.border | default: bundle_mobile_border
+      assign bundle_mobile_shadow = scheme.settings.shadow | default: bundle_mobile_shadow
+      assign bundle_mobile_sale_price = scheme.settings.sale_price | default: bundle_mobile_sale_price
+      assign bundle_mobile_primary_background = scheme.settings.button_primary_background | default: bundle_mobile_primary_background
+      assign bundle_mobile_primary_text = scheme.settings.button_primary_text | default: bundle_mobile_primary_text
+      assign bundle_mobile_primary_border = scheme.settings.button_primary_border | default: bundle_mobile_primary_border
+      assign bundle_mobile_primary_hover_background = scheme.settings.button_primary_hover_background | default: bundle_mobile_primary_hover_background
+      assign bundle_mobile_primary_hover_text = scheme.settings.button_primary_hover_text | default: bundle_mobile_primary_hover_text
+      assign bundle_mobile_primary_hover_border = scheme.settings.button_primary_hover_border | default: bundle_mobile_primary_hover_border
+      assign bundle_mobile_secondary_background = scheme.settings.button_secondary_background | default: bundle_mobile_secondary_background
+      assign bundle_mobile_secondary_text = scheme.settings.button_secondary_text | default: bundle_mobile_secondary_text
+      assign bundle_mobile_secondary_border = scheme.settings.button_secondary_border | default: bundle_mobile_secondary_border
+      assign bundle_mobile_secondary_hover_background = scheme.settings.button_secondary_hover_background | default: bundle_mobile_secondary_hover_background
+      assign bundle_mobile_secondary_hover_text = scheme.settings.button_secondary_hover_text | default: bundle_mobile_secondary_hover_text
+      assign bundle_mobile_secondary_hover_border = scheme.settings.button_secondary_hover_border | default: bundle_mobile_secondary_hover_border
+      assign bundle_mobile_tertiary_text = scheme.settings.button_tertiary_text | default: bundle_mobile_tertiary_text
+      assign bundle_mobile_tertiary_hover_text = scheme.settings.button_tertiary_hover_text | default: bundle_mobile_tertiary_hover_text
+    endif
+  endfor
+  assign bundle_mobile_body_rgb = bundle_mobile_body | color_to_rgb | remove: 'rgb(' | remove: ')' | replace: ',', ' ' | strip
+%}
+
+{% capture bundle_goals %}
+  [
+    {
+      "enabled": {{ bundle_tier_1_enabled | json }},
+      "label": {{ bundle_tier_1_label | json }},
+      "minimumType": {{ bundle_tier_1_minimum_type | json }},
+      "minimumQuantity": {{ bundle_tier_1_minimum_quantity | json }},
+      "minimumAmount": {{ block.settings.minimum_amount | json }},
+      "discountType": {{ block.settings.discount_type | json }},
+      "discountMethod": {{ block.settings.discount_method | json }},
+      "discountPercentage": {{ block.settings.discount_percentage | json }},
+      "discountAmount": {{ block.settings.discount_amount | json }},
+      "onlyApplyOncePerOrder": {{ block.settings.only_apply_discount_once_per_order | json }}
+    },
+    {
+      "enabled": {{ bundle_tier_2_enabled | json }},
+      "label": {{ bundle_tier_2_label | json }},
+      "minimumType": {{ block.settings.minimum_requirement | json }},
+      "minimumQuantity": {{ bundle_tier_2_minimum_quantity | json }},
+      "minimumAmount": {{ block.settings.tier_2_minimum_amount | json }},
+      "discountType": {{ block.settings.tier_2_discount_type | json }},
+      "discountMethod": {{ block.settings.discount_method | json }},
+      "discountPercentage": {{ block.settings.tier_2_discount_percentage | json }},
+      "discountAmount": {{ block.settings.tier_2_discount_amount | json }},
+      "onlyApplyOncePerOrder": {{ block.settings.only_apply_discount_once_per_order | json }}
+    },
+    {
+      "enabled": {{ bundle_tier_3_enabled | json }},
+      "label": {{ bundle_tier_3_label | json }},
+      "minimumType": {{ block.settings.minimum_requirement | json }},
+      "minimumQuantity": {{ bundle_tier_3_minimum_quantity | json }},
+      "minimumAmount": {{ block.settings.tier_3_minimum_amount | json }},
+      "discountType": {{ block.settings.tier_3_discount_type | json }},
+      "discountMethod": {{ block.settings.discount_method | json }},
+      "discountPercentage": {{ block.settings.tier_3_discount_percentage | json }},
+      "discountAmount": {{ block.settings.tier_3_discount_amount | json }},
+      "onlyApplyOncePerOrder": {{ block.settings.only_apply_discount_once_per_order | json }}
+    }
+  ]
+{% endcapture %}
+
+{% capture bundle_summary_style %}
+  --bundle-summary-gap: {{ block.settings.gap_desktop | default: 28 }}px;
+  --bundle-summary-gap-mobile: {{ block.settings.gap_mobile | default: 16 }}px;
+  --bundle-summary-border-width: {{ block.settings.border_thickness | default: 0 }}px;
+  --bundle-summary-radius: {{ bundle_summary_corner_radius_value }};
+  {% if bundle_summary_corner_radius == 'custom' %}--bundle-summary-custom-radius: {{ bundle_summary_custom_corner_radius }}px;{% endif %}
+  --bundle-summary-padding-block: {{ block.settings.padding_vertical | default: 30 }}px;
+  --bundle-summary-padding-inline: {{ block.settings.padding_horizontal | default: 30 }}px;
+  --bundle-summary-padding-vertical-mobile: {{ bundle_summary_padding_vertical_mobile }}px;
+  --bundle-summary-progress-color: {{ block.settings.progress_color | default: '#32A84C' }};
+  --bundle-summary-mobile-background: {{ bundle_mobile_background }};
+  --bundle-summary-mobile-heading: {{ bundle_mobile_heading }};
+  --bundle-summary-mobile-heading-highlight: {{ bundle_mobile_heading_highlight }};
+  --bundle-summary-mobile-body: {{ bundle_mobile_body }};
+  --bundle-summary-mobile-body-rgb: {{ bundle_mobile_body_rgb }};
+  --bundle-summary-mobile-accent: {{ bundle_mobile_accent }};
+  --bundle-summary-mobile-border: {{ bundle_mobile_border }};
+  --bundle-summary-mobile-shadow: {{ bundle_mobile_shadow }};
+  --bundle-summary-mobile-sale-price: {{ bundle_mobile_sale_price }};
+  --bundle-summary-mobile-primary-background: {{ bundle_mobile_primary_background }};
+  --bundle-summary-mobile-primary-text: {{ bundle_mobile_primary_text }};
+  --bundle-summary-mobile-primary-border: {{ bundle_mobile_primary_border }};
+  --bundle-summary-mobile-primary-hover-background: {{ bundle_mobile_primary_hover_background }};
+  --bundle-summary-mobile-primary-hover-text: {{ bundle_mobile_primary_hover_text }};
+  --bundle-summary-mobile-primary-hover-border: {{ bundle_mobile_primary_hover_border }};
+  --bundle-summary-mobile-secondary-background: {{ bundle_mobile_secondary_background }};
+  --bundle-summary-mobile-secondary-text: {{ bundle_mobile_secondary_text }};
+  --bundle-summary-mobile-secondary-border: {{ bundle_mobile_secondary_border }};
+  --bundle-summary-mobile-secondary-hover-background: {{ bundle_mobile_secondary_hover_background }};
+  --bundle-summary-mobile-secondary-hover-text: {{ bundle_mobile_secondary_hover_text }};
+  --bundle-summary-mobile-secondary-hover-border: {{ bundle_mobile_secondary_hover_border }};
+  --bundle-summary-mobile-tertiary-text: {{ bundle_mobile_tertiary_text }};
+  --bundle-summary-mobile-tertiary-hover-text: {{ bundle_mobile_tertiary_hover_text }};
+{% endcapture %}
+{% assign bundle_summary_style = bundle_summary_style | strip %}
+<div
+  class="bundle-summary"
+  style="{{ bundle_summary_style }}"
+  data-bundle-summary
+  data-mobile-expanded="false"
+  data-goals="{{ bundle_goals | strip | escape }}"
+  data-placeholder-count="{{ bundle_summary_placeholder_count }}"
+  data-initial-message="{{ bundle_summary_initial_message | escape }}"
+  data-unlocked-message="{{ bundle_summary_unlocked_message | escape }}"
+  data-show-quantity="{{ block.settings.show_quantity_selector }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="bundle-summary__surface color-scheme section-color-scope {{ bundle_summary_desktop_scheme }}{% if bundle_summary_corner_radius == 'custom' %} bundle-summary__surface--radius-custom{% endif %}{% if block.settings.shadow != 'none' %} bundle-summary__surface--shadow-{{ block.settings.shadow }}{% endif %}">
+    <div class="bundle-summary__inner">
+      <div class="bundle-summary__header">
+        <h3 class="bundle-summary__heading heading-text heading-lg">
+          <button type="button" class="bundle-summary__toggle" data-bundle-summary-toggle aria-expanded="false" aria-controls="{{ bundle_summary_progress_id }} {{ bundle_summary_items_id }}" disabled>
+            <span>{% if block.settings.heading != blank %}{{ block.settings.heading }}{% else %}{{ bundle_summary_heading_label | escape }}{% endif %}</span>
+            <span class="bundle-summary__indicator" aria-hidden="true">{% render 'icon', icon: 'chevron', bare: true %}</span>
+          </button>
+        </h3>
+
+        <div class="bundle-summary__progress" id="{{ bundle_summary_progress_id }}" data-bundle-progress hidden>
+          <p class="bundle-summary__progress-message body-text body-{{ bundle_summary_message_font_size }}" data-bundle-progress-message aria-live="polite"></p>
+          <div class="bundle-summary__progress-visual">
+            <div
+              class="bundle-summary__progress-track"
+              role="progressbar"
+              aria-label="{{ 'bundle_builder.progress' | t }}"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+              data-bundle-progress-bar
+            >
+              <span class="bundle-summary__progress-fill-zone">
+                <span class="bundle-summary__progress-fill" data-bundle-progress-fill></span>
+              </span>
+              <span class="bundle-summary__progress-milestones" data-bundle-progress-milestones hidden aria-hidden="true"></span>
+            </div>
+            <div class="bundle-summary__progress-milestone-labels" data-bundle-progress-milestone-labels hidden aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <template data-bundle-progress-milestone-template>
+        <span class="bundle-summary__progress-milestone">
+          <span class="bundle-summary__progress-milestone-dot">
+            <svg viewBox="0 0 16 16" focusable="false" aria-hidden="true">
+              <path d="m3 8 3.2 3.2L13 4.5"></path>
+            </svg>
+          </span>
+        </span>
+      </template>
+      <template data-bundle-progress-milestone-label-template>
+        <span class="bundle-summary__progress-milestone-label body-text body-xs"></span>
+      </template>
+
+      <div class="bundle-summary__items scrollbar scrollbar--vertical scrollbar--hidden-mobile" id="{{ bundle_summary_items_id }}" data-bundle-items>
+        {% for placeholder_index in (1..bundle_summary_placeholder_count) %}
+          <div class="bundle-summary__placeholder-item" data-bundle-placeholder aria-hidden="true">
+            <span class="bundle-summary__placeholder-media"></span>
+            <span class="bundle-summary__placeholder-details">
+              <span class="bundle-summary__placeholder-line"></span>
+              <span class="bundle-summary__placeholder-line bundle-summary__placeholder-line--short"></span>
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="bundle-summary__footer">
+        <div class="bundle-summary__prices">
+          <div class="bundle-summary__total" data-bundle-total>
+            <span class="body-text body-md">{{ 'bundle_builder.subtotal_before_discount' | t }}</span>
+            <span class="bundle-summary__total-price price price--product-card product-card__price" data-bundle-total-price>
+              <span class="price__current price__current--sale price__value price__value--sale" data-bundle-discounted-total hidden>
+                <span class="visually-hidden">{{ 'products.sale_price' | t }}: </span>
+                <span data-bundle-discounted-total-value>{{ bundle_summary_zero_price }}</span>
+              </span>
+              <span class="price__current price__current--regular price__value price__value--regular" data-bundle-subtotal>{{ bundle_summary_zero_price }}</span>
+              <s class="price__compare price__compare-at price__value price__value--compare-at" data-bundle-original-total hidden>
+                <span class="visually-hidden">{{ 'products.compare_at_price' | t }}: </span>
+                <span data-bundle-original-total-value>{{ bundle_summary_zero_price }}</span>
+              </s>
+            </span>
+          </div>
+
+          <div class="bundle-summary__saving body-text body-sm" data-bundle-saving hidden aria-live="polite">
+            <span>{{ 'bundle_builder.saving' | t }}</span>
+            <span class="price__current price__current--sale price__value price__value--sale" data-bundle-saving-amount></span>
+          </div>
+        </div>
+
+        {% render 'theme-button',
+          label: bundle_add_bundle_label,
+          aria_label: bundle_add_bundle_label,
+          variant: 'primary',
+          class: 'bundle-summary__submit',
+          disabled: true,
+          loading_dots: true,
+          attributes: 'data-bundle-submit'
+        %}
+      </div>
+    </div>
+  </div>
+
+  <template data-bundle-item-template>
+    <article class="bundle-summary__item" data-bundle-item>
+      <div class="bundle-summary__item-media">
+        <img class="bundle-summary__item-image" data-bundle-item-image alt="" width="100" height="100" loading="lazy">
+      </div>
+      <div class="bundle-summary__item-details">
+        <h4 class="bundle-summary__item-title body-text body-sm" data-bundle-item-title></h4>
+        <p class="bundle-summary__item-line-total body-text body-sm" data-bundle-item-total aria-label="{{ 'bundle_builder.line_total' | t }}"></p>
+      </div>
+      <button type="button" class="bundle-summary__remove" data-bundle-remove>
+        {% render 'icon', icon: 'trash', bare: true %}
+        <span class="visually-hidden">{{ 'bundle_builder.remove_item' | t }}</span>
+      </button>
+      <div class="bundle-summary__item-footer">
+        <p class="bundle-summary__item-variant body-text body-xs" data-bundle-item-variant hidden></p>
+        <div class="bundle-summary__quantity quantity-selector" data-bundle-quantity-controls>
+          <button type="button" class="quantity-selector__button" data-bundle-quantity-decrease aria-label="{{ 'bundle_builder.decrease_quantity' | t }}">{% render 'icon', icon: 'minus', bare: true %}</button>
+          <input type="number" min="1" step="1" value="1" inputmode="numeric" data-bundle-quantity aria-label="{{ 'bundle_builder.item_quantity' | t }}">
+          <button type="button" class="quantity-selector__button" data-bundle-quantity-increase aria-label="{{ 'bundle_builder.increase_quantity' | t }}">{% render 'icon', icon: 'plus', bare: true %}</button>
+        </div>
+        <span class="bundle-summary__item-quantity body-text body-sm" data-bundle-static-quantity aria-label="{{ 'bundle_builder.item_quantity' | t }}" hidden></span>
+      </div>
+    </article>
+  </template>
+
+  <template data-bundle-placeholder-template>
+    <div class="bundle-summary__placeholder-item" data-bundle-placeholder aria-hidden="true">
+      <span class="bundle-summary__placeholder-media"></span>
+      <span class="bundle-summary__placeholder-details">
+        <span class="bundle-summary__placeholder-line"></span>
+        <span class="bundle-summary__placeholder-line bundle-summary__placeholder-line--short"></span>
+      </span>
+    </div>
+  </template>
+</div>
+
+{% stylesheet %}
+  .bundle-summary {
+    min-width: 0;
+    color: var(--body-color);
+  }
+
+  .bundle-summary__surface {
+    display: flex;
+    flex-direction: column;
+    border: var(--bundle-summary-border-width, 0px) solid var(--border-color);
+    border-radius: var(--bundle-summary-radius, var(--radius-square));
+    background: var(--background-color);
+    color: var(--body-color);
+    padding-block: var(--bundle-summary-padding-block, 30px 30px);
+    padding-inline: var(--bundle-summary-padding-inline, 30px 30px);
+  }
+
+  .bundle-summary__surface--shadow-small {
+    box-shadow: 0 4px 18px color-mix(in srgb, var(--shadow-color) 12%, transparent);
+  }
+
+  .bundle-summary__surface--shadow-medium {
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--shadow-color) 18%, transparent);
+  }
+
+  .bundle-summary__inner {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--bundle-summary-gap, 28px);
+    min-height: 0;
+  }
+
+  .bundle-summary__header,
+  .bundle-summary__footer {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: var(--bundle-summary-gap, 28px);
+  }
+
+  .bundle-summary__header {
+    gap: 14px;
+  }
+
+  .bundle-summary__heading {
+    margin: 0;
+  }
+
+  .bundle-summary__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+  }
+
+  .bundle-summary__toggle:disabled {
+    opacity: 1;
+  }
+
+  .bundle-summary__indicator {
+    display: none;
+  }
+
+  .bundle-summary__progress {
+    display: grid;
+    gap: 40px;
+  }
+
+  .bundle-summary__progress[hidden],
+  .bundle-summary__total[hidden],
+  .bundle-summary__item-variant[hidden],
+  .bundle-summary__item-quantity[hidden] {
+    display: none;
+  }
+
+  .bundle-summary__progress-message {
+    margin: 0;
+  }
+
+  .bundle-summary__progress-track {
+    position: relative;
+    width: 100%;
+    height: 0.5rem;
+    overflow: visible;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--body-color) 12%, transparent);
+  }
+
+  .bundle-summary__progress-visual {
+    --bundle-progress-label-width: 80px;
+    --bundle-progress-edge-inset: 0px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .bundle-summary__progress[data-tiered='true'] .bundle-summary__progress-visual {
+    --bundle-progress-edge-inset: 40px;
+  }
+
+  .bundle-summary__progress-fill-zone {
+    position: absolute;
+    inset: 0 var(--bundle-progress-edge-inset) 0 0;
+    border-radius: inherit;
+  }
+
+  .bundle-summary__progress[data-complete='true'] .bundle-summary__progress-fill-zone {
+    right: 0;
+  }
+
+  .bundle-summary__progress-fill {
+    display: block;
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--bundle-summary-progress-color, #32A84C);
+    transition: width 180ms ease;
+  }
+
+  .bundle-summary__progress-milestones {
+    position: absolute;
+    inset: 0 var(--bundle-progress-edge-inset) 0 0;
+    z-index: 1;
+  }
+
+  .bundle-summary__progress-milestones[hidden],
+  .bundle-summary__progress-milestone-labels[hidden] {
+    display: none;
+  }
+
+  .bundle-summary__progress-milestone {
+    position: absolute;
+    top: 50%;
+    left: var(--bundle-progress-position, 0%);
+    display: grid;
+    width: 16px;
+    height: 16px;
+    place-items: center;
+    border: 2px solid color-mix(in srgb, var(--body-color) 32%, var(--background-color));
+    border-radius: 50%;
+    background: var(--background-color);
+    transform: translate(-50%, -50%);
+  }
+
+  .bundle-summary__progress-milestone[data-complete='true'] {
+    border-color: var(--bundle-summary-progress-color, #32A84C);
+    background: var(--bundle-summary-progress-color, #32A84C);
+  }
+
+  .bundle-summary__progress-milestone-dot {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+  }
+
+  .bundle-summary__progress-milestone-dot svg {
+    display: none;
+    width: 10px;
+    height: 10px;
+    fill: none;
+    stroke: var(--background-color);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2px;
+  }
+
+  .bundle-summary__progress-milestone[data-complete='true'] .bundle-summary__progress-milestone-dot svg {
+    display: block;
+  }
+
+  .bundle-summary__progress-milestone-labels {
+    position: relative;
+    width: calc(100% - var(--bundle-progress-edge-inset));
+    min-height: 1.5em;
+  }
+
+  .bundle-summary__progress-milestone-label {
+    position: absolute;
+    left: var(--bundle-progress-position, 0%);
+    width: min(var(--bundle-progress-label-width), 100%);
+    overflow: hidden;
+    color: var(--body-color);
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+
+  .bundle-summary__items {
+    --bundle-summary-item-media-width: clamp(72px, 30%, 100px);
+    display: grid;
+    flex: 1 1 auto;
+    gap: 20px;
+    min-height: 0;
+    min-width: 0;
+    overscroll-behavior: auto;
+    padding-block-end: 6.4px;
+    margin-inline-end: -16px;
+    padding-inline-end: 16px;
+  }
+
+  .bundle-summary__placeholder-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bundle-summary__placeholder-media {
+    display: block;
+    flex: 0 0 var(--bundle-summary-item-media-width);
+    width: var(--bundle-summary-item-media-width);
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--media-radius, var(--radius-square));
+    background: color-mix(in srgb, var(--body-color) 6%, transparent);
+  }
+
+  .bundle-summary__placeholder-details {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .bundle-summary__placeholder-line {
+    display: block;
+    width: min(100%, 183px);
+    height: 13px;
+    border-radius: var(--media-radius, var(--radius-square));
+    background: color-mix(in srgb, var(--body-color) 6%, transparent);
+  }
+
+  .bundle-summary__placeholder-line--short {
+    width: 68px;
+  }
+
+  .bundle-summary__item {
+    display: grid;
+    grid-template-columns: var(--bundle-summary-item-media-width) minmax(0, 1fr) 40px;
+    grid-template-areas:
+      'media details remove'
+      'media footer footer';
+    align-items: start;
+    column-gap: 12px;
+    row-gap: 8px;
+    min-width: 0;
+  }
+
+  .bundle-summary__item-media {
+    grid-area: media;
+    width: 100%;
+    aspect-ratio: var(--product-card-image-ratio, 1);
+    overflow: hidden;
+    border-radius: var(--media-radius, var(--radius-square));
+    background: color-mix(in srgb, var(--body-color) 6%, var(--background-color));
+  }
+
+  .bundle-summary__item-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .bundle-summary__item-image[hidden] {
+    display: none;
+  }
+
+  .bundle-summary__item-details {
+    grid-area: details;
+    display: grid;
+    align-content: start;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .bundle-summary__item-title,
+  .bundle-summary__item-variant,
+  .bundle-summary__item-line-total {
+    margin: 0;
+  }
+
+  .bundle-summary__item-title {
+    overflow-wrap: anywhere;
+  }
+
+  .bundle-summary__item-line-total {
+    color: var(--body-color);
+  }
+
+  .bundle-summary__remove {
+    grid-area: remove;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--body-color);
+    font: inherit;
+    line-height: inherit;
+    cursor: pointer;
+  }
+
+  .bundle-summary__remove svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+
+  .bundle-summary__remove:hover {
+    color: var(--heading-color);
+  }
+
+  .bundle-summary__item-footer {
+    grid-area: footer;
+    display: flex;
+    align-items: flex-end;
+    align-self: end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .bundle-summary__item-variant {
+    min-width: 0;
+    color: var(--body-color);
+    overflow-wrap: anywhere;
+  }
+
+  .bundle-summary__quantity {
+    margin-inline-start: auto;
+  }
+
+  .bundle-summary__item-quantity {
+    margin-inline-start: auto;
+    color: var(--body-color);
+  }
+
+  .bundle-summary__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: clamp(12px, 1.6vw, 16px);
+    padding-top: clamp(16px, 2vw, 20px);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .bundle-summary__total-price.price--product-card {
+    flex: 0 0 auto;
+    width: auto;
+    justify-content: flex-end;
+    text-align: end;
+  }
+
+  .bundle-summary__total-price [hidden] {
+    display: none;
+  }
+
+  .bundle-summary__prices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bundle-summary__saving {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: clamp(12px, 1.6vw, 16px);
+    color: var(--body-color);
+    font-weight: var(--font-body-weight, 400);
+  }
+
+  .bundle-summary__saving[hidden] {
+    display: none;
+  }
+
+  .bundle-summary__submit {
+    width: 100%;
+  }
+
+  @media (max-width: 767.98px) {
+    .bundle-summary__progress[data-tiered='true'] .bundle-summary__progress-visual {
+      --bundle-progress-label-width: 64px;
+      --bundle-progress-edge-inset: 32px;
+    }
+
+    .bundle-builder__container > .bundle-summary[data-mobile-sticky='true'] {
+      width: calc(100% + (var(--page-margin-current, 16px) * 2));
+      position: sticky;
+      bottom: 0;
+      z-index: 19;
+      align-self: end;
+      margin-inline: calc(var(--page-margin-current, 16px) * -1);
+      padding-block-start: 60lvh;
+      background: transparent;
+      overflow-anchor: none;
+      pointer-events: none;
+    }
+
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__surface {
+      min-height: var(--bundle-summary-collapsed-height, auto);
+      height: auto;
+      overflow: hidden;
+      padding: var(--bundle-summary-padding-vertical-mobile, 24px) var(--page-margin-current, var(--page-margin-mobile, 16px)) calc(var(--bundle-summary-padding-vertical-mobile, 24px) + env(safe-area-inset-bottom, 0px)) var(--page-margin-current, var(--page-margin-mobile, 16px));
+      border-width: var(--bundle-summary-border-width, 0px) var(--bundle-summary-border-width, 0px) 0;
+      border-radius: 0;
+      box-shadow: 0 -4px 20px color-mix(in srgb, var(--shadow-color) 12%, transparent);
+      pointer-events: auto;
+      transition: height var(--motion-duration-slow, 420ms) var(--motion-ease-emphasized, cubic-bezier(0.2, 0.7, 0, 1));
+    }
+
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__inner {
+      gap: var(--bundle-summary-gap-mobile, 16px);
+    }
+
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__header {
+      gap: 0;
+      transition: gap var(--motion-duration-slow, 420ms) var(--motion-ease-emphasized, cubic-bezier(0.2, 0.7, 0, 1));
+    }
+
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__progress {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        max-height var(--motion-duration-slow, 420ms) var(--motion-ease-emphasized, cubic-bezier(0.2, 0.7, 0, 1)),
+        opacity var(--motion-duration-fast, 160ms) ease,
+        visibility 0s linear var(--motion-duration-slow, 420ms);
+    }
+
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__items {
+      flex: 0 1 0;
+      margin-block-start: calc(var(--bundle-summary-gap-mobile, 16px) * -1);
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        margin-block-start var(--motion-duration-slow, 420ms) var(--motion-ease-emphasized, cubic-bezier(0.2, 0.7, 0, 1)),
+        opacity var(--motion-duration-fast, 160ms) ease,
+        visibility 0s linear var(--motion-duration-slow, 420ms);
+    }
+
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__footer {
+      background: var(--background-color);
+    }
+
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__toggle {
+      color: var(--heading-color);
+      cursor: pointer;
+    }
+
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__indicator {
+      display: flex;
+      flex: none;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+    }
+
+    .bundle-summary__indicator svg {
+      display: block;
+      width: 20px;
+      height: 20px;
+      transform: rotate(180deg);
+      transition: transform 0.3s;
+    }
+
+    .bundle-summary[data-mobile-sticky='true'][data-mobile-expanded='true'] .bundle-summary__surface {
+      height: min(var(--bundle-summary-expanded-height, 100dvh), calc(100dvh - max(var(--header-sticky-height, 0px), 56px)));
+    }
+
+    .bundle-summary[data-mobile-sticky='true'][data-mobile-expanded='true'] .bundle-summary__inner {
+      flex: 0 1 auto;
+    }
+
+    .bundle-summary[data-mobile-sticky='true'][data-mobile-expanded='true'] .bundle-summary__header {
+      gap: 14px;
+    }
+
+    .bundle-summary[data-mobile-sticky='true'][data-mobile-expanded='true'] .bundle-summary__progress {
+      max-height: 50lvh;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition:
+        max-height var(--motion-duration-slow, 420ms) var(--motion-ease-emphasized, cubic-bezier(0.2, 0.7, 0, 1)),
+        opacity var(--motion-duration-fast, 160ms) ease 80ms,
+        visibility 0s;
+    }
+
+    .bundle-summary__toggle[aria-expanded='true'] .bundle-summary__indicator svg {
+      transform: rotate(0deg);
+    }
+
+    .bundle-summary[data-mobile-sticky='true'][data-mobile-expanded='true'] .bundle-summary__items {
+      flex: 0 1 auto;
+      margin-block-start: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition:
+        margin-block-start var(--motion-duration-slow, 420ms) var(--motion-ease-emphasized, cubic-bezier(0.2, 0.7, 0, 1)),
+        opacity var(--motion-duration-fast, 160ms) ease 80ms,
+        visibility 0s;
+    }
+
+    .bundle-summary[data-mobile-sticky='true'][data-mobile-expanded='true'] .bundle-summary__footer {
+      margin-block-start: 0;
+    }
+
+    .bundle-builder .bundle-summary__surface {
+      --background-color: var(--bundle-summary-mobile-background);
+      --heading-color: var(--bundle-summary-mobile-heading);
+      --heading-highlight-color: var(--bundle-summary-mobile-heading-highlight);
+      --body-color: var(--bundle-summary-mobile-body);
+      --color-foreground-rgb: var(--bundle-summary-mobile-body-rgb);
+      --accent-color: var(--bundle-summary-mobile-accent);
+      --border-color: var(--bundle-summary-mobile-border);
+      --shadow-color: var(--bundle-summary-mobile-shadow);
+      --sale-price-color: var(--bundle-summary-mobile-sale-price);
+      --color-background: var(--background-color);
+      --color-foreground: var(--body-color);
+      --color-accent: var(--accent-color);
+      --color-border: var(--border-color);
+      --color-surface: color-mix(in srgb, var(--background-color) 94%, var(--body-color));
+      --placeholder-background-color: color-mix(in srgb, var(--background-color) 92%, var(--body-color));
+      --placeholder-fill-color: color-mix(in srgb, var(--body-color) 30%, transparent);
+      --input-background-color: color-mix(in srgb, var(--background-color) 85%, var(--body-color));
+      --input-background: var(--input-background-color);
+      --input-border-color: color-mix(in srgb, var(--body-color) 52%, var(--background-color));
+      --input-border: var(--input-border-color);
+      --input-focus-color: var(--accent-color);
+      --input-focus: var(--input-focus-color);
+      --input-text-color: var(--body-color);
+      --price-compare-color: var(--body-color);
+      --price-unit-color: var(--body-color);
+      --button-primary-background: var(--bundle-summary-mobile-primary-background);
+      --button-primary-text: var(--bundle-summary-mobile-primary-text);
+      --button-primary-border: var(--bundle-summary-mobile-primary-border);
+      --button-primary-hover-background: var(--bundle-summary-mobile-primary-hover-background);
+      --button-primary-hover-text: var(--bundle-summary-mobile-primary-hover-text);
+      --button-primary-hover-border: var(--bundle-summary-mobile-primary-hover-border);
+      --button-secondary-background: var(--bundle-summary-mobile-secondary-background);
+      --button-secondary-text: var(--bundle-summary-mobile-secondary-text);
+      --button-secondary-border: var(--bundle-summary-mobile-secondary-border);
+      --button-secondary-hover-background: var(--bundle-summary-mobile-secondary-hover-background);
+      --button-secondary-hover-text: var(--bundle-summary-mobile-secondary-hover-text);
+      --button-secondary-hover-border: var(--bundle-summary-mobile-secondary-hover-border);
+      --button-tertiary-text: var(--bundle-summary-mobile-tertiary-text);
+      --button-tertiary-hover-text: var(--bundle-summary-mobile-tertiary-hover-text);
+    }
+
+    .bundle-summary__surface {
+      padding-block: var(--bundle-summary-padding-vertical-mobile, 24px);
+      padding-inline: var(--page-margin-current, var(--page-margin-mobile, 16px));
+    }
+
+    .bundle-summary__surface--radius-custom,
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__surface--radius-custom {
+      border-radius: var(--bundle-summary-radius) var(--bundle-summary-radius) 0 0;
+    }
+
+    .bundle-summary__inner {
+      gap: var(--bundle-summary-gap-mobile, 16px);
+    }
+
+    .bundle-summary__items {
+      gap: 16px;
+      --bundle-summary-item-media-width: clamp(64px, 30%, 90px);
+    }
+
+    .bundle-summary__header {
+      gap: 14px;
+    }
+
+    .bundle-summary__footer {
+      gap: var(--bundle-summary-gap-mobile, 16px);
+    }
+
+    .bundle-summary__item-footer {
+      align-items: center;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .bundle-summary__surface {
+      max-height: calc(100vh - var(--header-sticky-height, 0px) - var(--sticky-offset-spacing, 16px) - var(--sticky-offset-spacing, 16px));
+    }
+
+    @supports (height: 100svh) {
+      .bundle-summary__surface {
+        max-height: calc(100svh - var(--header-sticky-height, 0px) - var(--sticky-offset-spacing, 16px) - var(--sticky-offset-spacing, 16px));
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bundle-summary__progress-fill,
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__surface,
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__header,
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__progress,
+    .bundle-summary[data-mobile-sticky='true'] .bundle-summary__items,
+    .bundle-summary__indicator svg {
+      transition: none !important;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Bundle summary",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "Heading" },
+    { "type": "inline_richtext", "id": "heading", "label": "Heading", "default": "Your bundle" },
+    { "type": "header", "content": "Message" },
+    { "type": "inline_richtext", "id": "initial_message", "label": "Initial message", "default": "Add [x] more items to unlock [label]!", "info": "Use [x] for the remaining amount or quantity needed to reach the next goal, and [label] for the upcoming goal label." },
+    { "type": "inline_richtext", "id": "unlocked_message", "label": "Reward unlocked message", "default": "🎉 Your offer is unlocked!" },
+    { "type": "select", "id": "progress_font_size", "label": "t:labels.font_size", "options": [{ "value": "xs", "label": "t:options.text_size.xs" }, { "value": "sm", "label": "t:options.text_size.sm" }, { "value": "md", "label": "t:options.text_size.md" }, { "value": "lg", "label": "t:options.text_size.lg" }, { "value": "xl", "label": "t:options.text_size.xl" }, { "value": "xxl", "label": "t:options.text_size.xxl" }], "default": "md" },
+    { "type": "color", "id": "progress_color", "label": "Progress bar color", "default": "#32A84C" },
+    { "type": "header", "content": "Discount settings" },
+    { "type": "paragraph", "content": "Enter the exact value you configured in Discounts in the Shopify admin. [Learn more](https://help.shopify.com/en/manual/products/bundles/shopify-bundles#product-bundles-and-discounts)." },
+    { "type": "text", "id": "discount_label", "label": "Label", "default": "10% off" },
+    { "type": "select", "id": "discount_type", "label": "Discount type", "options": [{ "value": "amount_off_order", "label": "Amount off order" }, { "value": "amount_off_products", "label": "Amount off products" }], "default": "amount_off_order" },
+    { "type": "select", "id": "discount_method", "label": "Discount method", "options": [{ "value": "percentage", "label": "Percentage" }, { "value": "amount", "label": "Fixed amount" }], "default": "percentage" },
+    { "type": "range", "id": "discount_percentage", "label": "Discount percentage", "min": 1, "max": 100, "step": 1, "unit": "%", "default": 10, "visible_if": "{{ block.settings.discount_method == 'percentage' }}" },
+    { "type": "number", "id": "discount_amount", "label": "Discount amount", "default": 10, "visible_if": "{{ block.settings.discount_method == 'amount' }}" },
+    { "type": "checkbox", "id": "only_apply_discount_once_per_order", "label": "Only apply discount once per order", "default": false, "visible_if": "{{ block.settings.discount_type == 'amount_off_products' or block.settings.tier_2_discount_type == 'amount_off_products' or block.settings.tier_3_discount_type == 'amount_off_products' }}" },
+    { "type": "select", "id": "minimum_requirement", "label": "Minimum requirement", "options": [{ "value": "quantity", "label": "Quantity of items" }, { "value": "amount", "label": "Purchase amount" }], "default": "quantity" },
+    { "type": "range", "id": "minimum_quantity", "label": "Minimum quantity of items", "min": 2, "max": 10, "step": 1, "default": 3, "visible_if": "{{ block.settings.minimum_requirement == 'quantity' }}" },
+    { "type": "number", "id": "minimum_amount", "label": "Minimum purchase amount", "default": 50, "visible_if": "{{ block.settings.minimum_requirement == 'amount' }}" },
+    { "type": "header", "content": "Tier 2" },
+    { "type": "checkbox", "id": "enable_tier_2", "label": "Enable tier 2", "default": false },
+    { "type": "text", "id": "tier_2_label", "label": "Label", "default": "15% off", "visible_if": "{{ block.settings.enable_tier_2 }}" },
+    { "type": "select", "id": "tier_2_discount_type", "label": "Discount type", "options": [{ "value": "amount_off_order", "label": "Amount off order" }, { "value": "amount_off_products", "label": "Amount off products" }], "default": "amount_off_order", "visible_if": "{{ block.settings.enable_tier_2 }}" },
+    { "type": "range", "id": "tier_2_discount_percentage", "label": "Discount percentage", "min": 1, "max": 100, "step": 1, "unit": "%", "default": 15, "visible_if": "{{ block.settings.enable_tier_2 and block.settings.discount_method == 'percentage' }}" },
+    { "type": "number", "id": "tier_2_discount_amount", "label": "Discount amount", "default": 15, "visible_if": "{{ block.settings.enable_tier_2 and block.settings.discount_method == 'amount' }}" },
+    { "type": "range", "id": "tier_2_minimum_quantity", "label": "Minimum quantity of items", "min": 3, "max": 10, "step": 1, "default": 5, "visible_if": "{{ block.settings.enable_tier_2 and block.settings.minimum_requirement == 'quantity' }}" },
+    { "type": "number", "id": "tier_2_minimum_amount", "label": "Minimum purchase amount", "default": 75, "visible_if": "{{ block.settings.enable_tier_2 and block.settings.minimum_requirement == 'amount' }}" },
+    { "type": "header", "content": "Tier 3" },
+    { "type": "checkbox", "id": "enable_tier_3", "label": "Enable tier 3", "default": false },
+    { "type": "text", "id": "tier_3_label", "label": "Label", "default": "20% off", "visible_if": "{{ block.settings.enable_tier_3 }}" },
+    { "type": "select", "id": "tier_3_discount_type", "label": "Discount type", "options": [{ "value": "amount_off_order", "label": "Amount off order" }, { "value": "amount_off_products", "label": "Amount off products" }], "default": "amount_off_order", "visible_if": "{{ block.settings.enable_tier_3 }}" },
+    { "type": "range", "id": "tier_3_discount_percentage", "label": "Discount percentage", "min": 1, "max": 100, "step": 1, "unit": "%", "default": 20, "visible_if": "{{ block.settings.enable_tier_3 and block.settings.discount_method == 'percentage' }}" },
+    { "type": "number", "id": "tier_3_discount_amount", "label": "Discount amount", "default": 20, "visible_if": "{{ block.settings.enable_tier_3 and block.settings.discount_method == 'amount' }}" },
+    { "type": "range", "id": "tier_3_minimum_quantity", "label": "Minimum quantity of items", "min": 4, "max": 10, "step": 1, "default": 7, "visible_if": "{{ block.settings.enable_tier_3 and block.settings.minimum_requirement == 'quantity' }}" },
+    { "type": "number", "id": "tier_3_minimum_amount", "label": "Minimum purchase amount", "default": 100, "visible_if": "{{ block.settings.enable_tier_3 and block.settings.minimum_requirement == 'amount' }}" },
+    { "type": "header", "content": "Bundle items" },
+    { "type": "checkbox", "id": "show_quantity_selector", "label": "Show quantity selector", "default": true },
+    { "type": "header", "content": "Gap" },
+    { "type": "range", "id": "gap_desktop", "label": "Desktop", "min": 10, "max": 48, "step": 1, "unit": "px", "default": 28 },
+    { "type": "range", "id": "gap_mobile", "label": "Mobile", "min": 10, "max": 48, "step": 1, "unit": "px", "default": 16 },
+    { "type": "header", "content": "t:general.border" },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "t:labels.corner_radius",
+      "options": [
+        { "value": "inherit", "label": "t:options.radius_preset.inherit" },
+        { "value": "square", "label": "t:options.radius_preset.square" },
+        { "value": "rounded", "label": "t:options.radius_preset.rounded" },
+        { "value": "custom", "label": "t:options.radius_preset.custom" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "range",
+      "id": "custom_corner_radius",
+      "label": "t:labels.custom_corner_radius",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.corner_radius == 'custom' }}"
+    },
+    { "type": "range", "id": "border_thickness", "label": "t:labels.border_thickness", "min": 0, "max": 10, "step": 1, "unit": "px", "default": 0 },
+    { "type": "select", "id": "shadow", "label": "t:labels.shadow", "options": [{ "value": "none", "label": "None" }, { "value": "small", "label": "Small" }, { "value": "medium", "label": "Medium" }], "default": "small" },
+    { "type": "header", "content": "t:general.appearance" },
+    { "type": "color_scheme", "id": "desktop_color_scheme", "label": "Desktop color scheme", "default": "scheme-1" },
+    { "type": "color_scheme", "id": "mobile_color_scheme", "label": "Mobile color scheme", "default": "scheme-3" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding_vertical", "label": "Top and bottom", "min": 0, "max": 50, "step": 1, "unit": "px", "default": 30 },
+    { "type": "range", "id": "padding_horizontal", "label": "Left and right", "min": 0, "max": 50, "step": 1, "unit": "px", "default": 30 },
+    { "type": "checkbox", "id": "customize_mobile_padding", "label": "Custom for mobile", "default": true },
+    { "type": "range", "id": "padding_vertical_mobile", "label": "Top and bottom (mobile)", "min": 0, "max": 50, "step": 1, "unit": "px", "default": 24, "visible_if": "{{ block.settings.customize_mobile_padding }}" }
+  ],
+  "presets": [{ "name": "Bundle summary", "category": "t:labels.products" }]
+}
+{% endschema %}

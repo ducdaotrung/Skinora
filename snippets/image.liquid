@@ -1,0 +1,148 @@
+{% doc %}
+  Renders a responsive image that might be wrapped in a link.
+
+  When `width`, `height` and `crop` are provided, the image will be rendered
+  with a fixed aspect ratio.
+
+  Serves as an example of how to use the `image_url` filter and `image_tag` filter
+  as well as how you can use LiquidDoc to document your code.
+
+  @param {image} image - The image to be rendered
+  @param {string} [url] - An optional destination URL for the image
+  @param {image} [mobile_image] - An optional mobile-specific image source
+  @param {string} [class] - Optional class to be added to the image wrapper
+  @param {string} [alt] - Optional alternative text; falls back to the image alt
+  @param {boolean} [open_in_new_tab] - Whether a link should open in a new tab
+  @param {number} [width] - The highest resolution width of the image to be rendered
+  @param {number} [height] - The highest resolution height of the image to be rendered
+  @param {string} [crop] - The crop position of the image
+  @param {string} [widths] - Optional responsive image widths
+  @param {string} [sizes] - Optional responsive image sizes
+  @param {string} [placeholder] - Optional Shopify placeholder name when no image is selected
+
+  @example
+  {% render 'image', image: product.featured_image %}
+  {% render 'image', image: product.featured_image, url: product.url %}
+  {% render 'image',
+    class: 'product__image',
+    image: product.featured_image,
+    url: product.url,
+    width: 1200,
+    height: 800,
+    crop: 'center',
+  %}
+{% enddoc %}
+
+{% liquid
+  if image != blank
+    assign image_height_value = height | plus: 0
+    assign has_image_height = false
+    if image_height_value >= 1 and image_height_value <= 5760
+      assign has_image_height = true
+    else
+      assign image_height_value = blank
+    endif
+
+    unless has_image_height
+      assign width = width | default: image.width
+    endunless
+
+    assign image_alt = alt
+    if image_alt == blank
+      assign image_alt = image.alt
+    endif
+
+    assign image_widths = widths | default: blank
+    assign image_sizes = sizes | default: blank
+  endif
+
+  if url != blank
+    assign wrapper = 'a'
+  else
+    assign wrapper = 'div'
+  endif
+
+  assign image_placeholder = placeholder | default: 'image'
+%}
+
+<{{ wrapper }}
+  class="image{% if image == blank %} placeholder-image{% endif %} {{ class }}"
+  {% if url != blank %}
+    href="{{ url | escape }}"
+    {% if open_in_new_tab %}
+      target="_blank"
+      rel="noopener noreferrer"
+    {% endif %}
+  {% endif %}
+>
+  {% if image != blank %}
+    {% if mobile_image != blank %}
+      {% capture mobile_srcset %}
+        {% assign responsive_widths = image_widths | default: '400, 600, 800, 1200, 1600, 2400' | split: ', ' %}
+        {% for responsive_width in responsive_widths %}
+          {{ mobile_image | image_url: width: responsive_width }}{% unless forloop.last %}, {% endunless %}
+        {% endfor %}
+      {% endcapture %}
+      <picture>
+        <source media="(max-width: 767.98px)" srcset="{{ mobile_srcset | strip }}">
+        {% if image_widths != blank or image_sizes != blank %}
+          {% if has_image_height %}
+            {{ image | image_url: width: width, height: image_height_value, crop: crop | image_tag: widths: image_widths, sizes: image_sizes, alt: image_alt }}
+          {% else %}
+            {{ image | image_url: width: width | image_tag: widths: image_widths, sizes: image_sizes, alt: image_alt }}
+          {% endif %}
+        {% else %}
+          {% if has_image_height %}
+            {{ image | image_url: width: width, height: image_height_value, crop: crop | image_tag: alt: image_alt }}
+          {% else %}
+            {{ image | image_url: width: width | image_tag: alt: image_alt }}
+          {% endif %}
+        {% endif %}
+      </picture>
+    {% elsif image_widths != blank or image_sizes != blank %}
+      {% if has_image_height %}
+        {{ image | image_url: width: width, height: image_height_value, crop: crop | image_tag: widths: image_widths, sizes: image_sizes, alt: image_alt }}
+      {% else %}
+        {{ image | image_url: width: width | image_tag: widths: image_widths, sizes: image_sizes, alt: image_alt }}
+      {% endif %}
+    {% else %}
+      {% if has_image_height %}
+        {{ image | image_url: width: width, height: image_height_value, crop: crop | image_tag: alt: image_alt }}
+      {% else %}
+        {{ image | image_url: width: width | image_tag: alt: image_alt }}
+      {% endif %}
+    {% endif %}
+  {% else %}
+    {{ image_placeholder | placeholder_svg_tag: 'image__placeholder' }}
+  {% endif %}
+</{{ wrapper }}>
+
+{% stylesheet %}
+  .image {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: auto;
+  }
+
+  .image > picture {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .image > img,
+  .image > picture > img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .image__placeholder {
+    display: block;
+    width: 100%;
+    height: auto;
+    background-color: var(--placeholder-background-color, var(--surface-color, var(--background-color)));
+  }
+{% endstylesheet %}

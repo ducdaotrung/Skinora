@@ -1,0 +1,248 @@
+{% doc %}
+  Renders the selected variant's inventory status as an independent Product
+  Information block. Status copy is resolved in Liquid for the first render;
+  the companion custom element swaps the matching variant template after a
+  variant picker change.
+{% enddoc %}
+
+{% liquid
+  assign inventory_product = closest.product | default: product
+  assign inventory_variant = inventory_product.selected_or_first_available_variant
+
+  assign inventory_display_mode = block.settings.display_mode | default: 'status'
+  unless inventory_display_mode == 'status' or inventory_display_mode == 'status_and_count'
+    assign inventory_display_mode = 'status'
+  endunless
+
+  assign inventory_low_stock_threshold = block.settings.low_stock_threshold | plus: 0
+  if block.settings.low_stock_threshold == blank or inventory_low_stock_threshold < 0 or inventory_low_stock_threshold > 20
+    assign inventory_low_stock_threshold = 5
+  endif
+
+  assign inventory_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign inventory_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign inventory_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign inventory_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign inventory_padding_top_mobile = block.settings.padding_top_mobile | default: inventory_padding_top | plus: 0
+  assign inventory_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: inventory_padding_bottom | plus: 0
+  assign inventory_padding_left_mobile = block.settings.padding_left_mobile | default: inventory_padding_left | plus: 0
+  assign inventory_padding_right_mobile = block.settings.padding_right_mobile | default: inventory_padding_right | plus: 0
+
+  if inventory_padding_top < 0 or inventory_padding_top > 100
+    assign inventory_padding_top = 0
+  endif
+  if inventory_padding_bottom < 0 or inventory_padding_bottom > 100
+    assign inventory_padding_bottom = 0
+  endif
+  if inventory_padding_left < 0 or inventory_padding_left > 100
+    assign inventory_padding_left = 0
+  endif
+  if inventory_padding_right < 0 or inventory_padding_right > 100
+    assign inventory_padding_right = 0
+  endif
+  if inventory_padding_top_mobile < 0 or inventory_padding_top_mobile > 100
+    assign inventory_padding_top_mobile = inventory_padding_top
+  endif
+  if inventory_padding_bottom_mobile < 0 or inventory_padding_bottom_mobile > 100
+    assign inventory_padding_bottom_mobile = inventory_padding_bottom
+  endif
+  if inventory_padding_left_mobile < 0 or inventory_padding_left_mobile > 100
+    assign inventory_padding_left_mobile = inventory_padding_left
+  endif
+  if inventory_padding_right_mobile < 0 or inventory_padding_right_mobile > 100
+    assign inventory_padding_right_mobile = inventory_padding_right
+  endif
+
+  assign inventory_variant_id = inventory_variant.id | default: ''
+%}
+
+{% capture inventory_style %}
+  {% if inventory_padding_top != 0 %}--product-inventory-padding-top: {{ inventory_padding_top }}px;{% endif %}
+  {% if inventory_padding_bottom != 0 %}--product-inventory-padding-bottom: {{ inventory_padding_bottom }}px;{% endif %}
+  {% if inventory_padding_left != 0 %}--product-inventory-padding-left: {{ inventory_padding_left }}px;{% endif %}
+  {% if inventory_padding_right != 0 %}--product-inventory-padding-right: {{ inventory_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if inventory_padding_top_mobile != inventory_padding_top %}--product-inventory-padding-top-mobile: {{ inventory_padding_top_mobile }}px;{% endif %}
+    {% if inventory_padding_bottom_mobile != inventory_padding_bottom %}--product-inventory-padding-bottom-mobile: {{ inventory_padding_bottom_mobile }}px;{% endif %}
+    {% if inventory_padding_left_mobile != inventory_padding_left %}--product-inventory-padding-left-mobile: {{ inventory_padding_left_mobile }}px;{% endif %}
+    {% if inventory_padding_right_mobile != inventory_padding_right %}--product-inventory-padding-right-mobile: {{ inventory_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign inventory_style = inventory_style | strip %}
+
+{% if inventory_product != blank and inventory_variant != blank %}
+  <product-inventory
+    class="product-inventory"
+    data-product-inventory
+    data-current-variant-id="{{ inventory_variant_id }}"
+    {% if inventory_style != blank %}style="{{ inventory_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    <div data-inventory-message role="status" aria-live="polite" aria-atomic="true">
+      {% render 'product-inventory-status',
+        variant: inventory_variant,
+        low_stock_threshold: inventory_low_stock_threshold,
+        display_mode: inventory_display_mode
+      %}
+    </div>
+
+    <div hidden data-inventory-templates aria-hidden="true">
+      {% if inventory_product != blank %}
+        {% for variant in inventory_product.variants %}
+          <template data-inventory-template="{{ variant.id }}">
+            {% render 'product-inventory-status',
+              variant: variant,
+              low_stock_threshold: inventory_low_stock_threshold,
+              display_mode: inventory_display_mode
+            %}
+          </template>
+        {% endfor %}
+      {% endif %}
+      <template data-inventory-fallback-template>
+        {% render 'product-inventory-status',
+          variant: blank,
+          low_stock_threshold: inventory_low_stock_threshold,
+          display_mode: inventory_display_mode
+        %}
+      </template>
+    </div>
+  </product-inventory>
+{% endif %}
+
+{% schema %}
+{
+  "name": "t:general.product_inventory",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.inventory_options"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:info.product_inventory"
+    },
+    {
+      "type": "select",
+      "id": "display_mode",
+      "label": "t:labels.inventory_display",
+      "options": [
+        { "value": "status", "label": "t:options.product_inventory_display.status" },
+        { "value": "status_and_count", "label": "t:options.product_inventory_display.status_and_count" }
+      ],
+      "default": "status"
+    },
+    {
+      "type": "range",
+      "id": "low_stock_threshold",
+      "label": "t:labels.low_stock_threshold",
+      "info": "t:info.low_stock_threshold",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "pcs",
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.product_inventory",
+      "category": "t:general.product"
+    }
+  ]
+}
+{% endschema %}

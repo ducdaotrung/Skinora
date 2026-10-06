@@ -1,0 +1,60 @@
+{% doc %}
+  Renders a value owned by a dynamic row in its matching product column.
+
+  @param {string} [feature_id] - ID of the feature row header
+  @param {string} [product_id] - ID of the product column header
+  @param {string} [value_id] - Unique ID for the text describing this cell value
+{% enddoc %}
+
+{% render 'comparison-table-row-value-content', block: block, feature_id: feature_id, product_id: product_id, value_id: value_id %}
+
+{% schema %}
+{
+  "name": "Row value",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "column_key",
+      "label": "Column key",
+      "info": "Match the key shown in the product column settings.",
+      "default": "product-1"
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "Value type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "yes"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Text",
+      "visible_if": "{{ block.settings.type == 'text' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Row value"
+    }
+  ]
+}
+{% endschema %}

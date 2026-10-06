@@ -1,0 +1,851 @@
+{% doc %}
+  Renders the product list and carousel for a Shop the look composition.
+
+  Product blocks own their product resource and hotspot coordinates. This
+  parent owns the shared list layout and reuses the theme Product list
+  carousel runtime.
+
+  @example
+  {% content_for 'block', type: 'shop-the-look-products', id: 'product-list' %}
+{% enddoc %}
+
+{% liquid
+  assign shop_the_look_products_layout = block.settings.layout_type | default: 'carousel'
+  unless shop_the_look_products_layout == 'grid' or shop_the_look_products_layout == 'carousel'
+    assign shop_the_look_products_layout = 'carousel'
+  endunless
+
+  assign shop_the_look_products_columns_desktop = block.settings.columns_desktop | default: 1 | plus: 0
+  assign shop_the_look_products_columns_mobile = block.settings.columns_mobile | default: 1 | plus: 0
+  if shop_the_look_products_columns_desktop < 1 or shop_the_look_products_columns_desktop > 3
+    assign shop_the_look_products_columns_desktop = 1
+  endif
+  if shop_the_look_products_columns_mobile < 1 or shop_the_look_products_columns_mobile > 6
+    assign shop_the_look_products_columns_mobile = 1
+  endif
+
+  assign shop_the_look_products_gap_desktop = block.settings.product_gap_desktop | default: block.settings.gap_desktop | default: block.settings.gap_horizontal | default: 4 | plus: 0
+  assign shop_the_look_products_gap_mobile = block.settings.product_gap_mobile | default: block.settings.gap_mobile | default: block.settings.gap_horizontal_mobile | default: 4 | plus: 0
+  if shop_the_look_products_gap_desktop < 0 or shop_the_look_products_gap_desktop > 40
+    assign shop_the_look_products_gap_desktop = 4
+  endif
+  if shop_the_look_products_gap_mobile < 0 or shop_the_look_products_gap_mobile > 40
+    assign shop_the_look_products_gap_mobile = 4
+  endif
+
+  assign shop_the_look_products_single_column = false
+  if shop_the_look_products_columns_desktop == 1
+    assign shop_the_look_products_single_column = true
+  endif
+
+  assign shop_the_look_products_carousel_id = 'ShopTheLookCarousel-' | append: block.id
+  assign shop_the_look_products_aria_label = 'accessibility.shop_the_look_products' | t
+
+  assign shop_the_look_products_show_navigation = true
+  if block.settings.show_navigation_on_desktop == false or block.settings.show_navigation_on_desktop == 'false'
+    assign shop_the_look_products_show_navigation = false
+  endif
+
+  assign shop_the_look_products_navigation_position = block.settings.navigation_position | default: 'outside'
+  unless shop_the_look_products_navigation_position == 'inside' or shop_the_look_products_navigation_position == 'outside'
+    assign shop_the_look_products_navigation_position = 'outside'
+  endunless
+
+  assign shop_the_look_products_navigation_style = block.settings.navigation_style | default: 'icon_only'
+  if shop_the_look_products_navigation_style == 'tertiary'
+    assign shop_the_look_products_navigation_style = 'icon_only'
+  endif
+  unless shop_the_look_products_navigation_style == 'primary' or shop_the_look_products_navigation_style == 'secondary' or shop_the_look_products_navigation_style == 'outline' or shop_the_look_products_navigation_style == 'icon_only'
+    assign shop_the_look_products_navigation_style = 'icon_only'
+  endunless
+
+  assign shop_the_look_products_navigation_button_variant = shop_the_look_products_navigation_style
+  assign shop_the_look_products_navigation_button_modifier = blank
+  if shop_the_look_products_navigation_style == 'icon_only'
+    assign shop_the_look_products_navigation_button_variant = 'tertiary'
+    assign shop_the_look_products_navigation_button_modifier = 'swiper-nav-button--icon-only'
+  elsif shop_the_look_products_navigation_style == 'outline'
+    assign shop_the_look_products_navigation_button_variant = 'secondary'
+    assign shop_the_look_products_navigation_button_modifier = 'swiper-nav-button--outline'
+  endif
+
+  assign shop_the_look_products_navigation_icon = block.settings.navigation_icon | default: 'chevron'
+  unless shop_the_look_products_navigation_icon == 'chevron' or shop_the_look_products_navigation_icon == 'arrow' or shop_the_look_products_navigation_icon == 'long_arrow'
+    assign shop_the_look_products_navigation_icon = 'chevron'
+  endunless
+
+  assign shop_the_look_products_navigation_behavior = block.settings.navigation_behavior | default: 'always'
+  unless shop_the_look_products_navigation_behavior == 'show_on_hover' or shop_the_look_products_navigation_behavior == 'always'
+    assign shop_the_look_products_navigation_behavior = 'always'
+  endunless
+
+  assign shop_the_look_products_pagination_type = block.settings.pagination_type | default: 'progress_bar'
+  unless shop_the_look_products_pagination_type == 'progress_bar' or shop_the_look_products_pagination_type == 'bullets'
+    assign shop_the_look_products_pagination_type = 'progress_bar'
+  endunless
+
+  assign shop_the_look_products_pagination_size = 'var(--swiper-pagination-progressbar-size, 4px)'
+  if shop_the_look_products_pagination_type == 'bullets'
+    assign shop_the_look_products_pagination_size = 'var(--swiper-pagination-bullet-size, 0.5rem)'
+  endif
+
+  assign shop_the_look_products_show_pagination = false
+  if shop_the_look_products_layout == 'carousel'
+    assign shop_the_look_products_show_pagination = true
+    if block.settings.show_pagination_on_desktop == false or block.settings.show_pagination_on_desktop == 'false'
+      assign shop_the_look_products_show_pagination = false
+    endif
+  endif
+
+  assign shop_the_look_products_pagination_top_padding_desktop = block.settings.pagination_top_padding_desktop | default: block.settings.pagination_top_padding | default: 50 | plus: 0
+  if shop_the_look_products_pagination_top_padding_desktop < 0 or shop_the_look_products_pagination_top_padding_desktop > 100
+    assign shop_the_look_products_pagination_top_padding_desktop = 50
+  endif
+
+  assign shop_the_look_products_pagination_top_padding_mobile = block.settings.pagination_top_padding_mobile | default: 24 | plus: 0
+  if shop_the_look_products_pagination_top_padding_mobile < 0 or shop_the_look_products_pagination_top_padding_mobile > 100
+    assign shop_the_look_products_pagination_top_padding_mobile = 24
+  endif
+
+  assign shop_the_look_products_pagination_limit_width = false
+  if shop_the_look_products_pagination_type == 'progress_bar' and block.settings.pagination_limit_width
+    assign shop_the_look_products_pagination_limit_width = true
+  endif
+
+  assign shop_the_look_products_pagination_max_width = block.settings.pagination_max_width | default: 260 | plus: 0
+  if shop_the_look_products_pagination_max_width < 100 or shop_the_look_products_pagination_max_width > 600
+    assign shop_the_look_products_pagination_max_width = 260
+  endif
+
+  assign shop_the_look_products_autoplay_enabled = false
+  if block.settings.autoplay
+    assign shop_the_look_products_autoplay_enabled = true
+  endif
+
+  assign shop_the_look_products_autoplay_pause_on_hover = true
+  if block.settings.autoplay_pause_on_hover == false or block.settings.autoplay_pause_on_hover == 'false'
+    assign shop_the_look_products_autoplay_pause_on_hover = false
+  endif
+
+  assign shop_the_look_products_autoplay_speed = block.settings.autoplay_speed | default: 4 | plus: 0
+  if shop_the_look_products_autoplay_speed < 1 or shop_the_look_products_autoplay_speed > 10
+    assign shop_the_look_products_autoplay_speed = 4
+  endif
+  assign shop_the_look_products_autoplay_delay = shop_the_look_products_autoplay_speed | times: 1000
+%}
+
+{% capture shop_the_look_products_style %}
+  {% if shop_the_look_products_layout == 'grid' %}
+    --shop-the-look-columns-desktop: {{ shop_the_look_products_columns_desktop }};
+    --shop-the-look-columns-mobile: {{ shop_the_look_products_columns_mobile }};
+    --shop-the-look-gap-desktop: {{ shop_the_look_products_gap_desktop }}px;
+    --shop-the-look-gap-mobile: {{ shop_the_look_products_gap_mobile }}px;
+  {% endif %}
+{% endcapture %}
+{% assign shop_the_look_products_style = shop_the_look_products_style | strip %}
+
+{% capture shop_the_look_products_pagination_style %}
+  {% if shop_the_look_products_show_pagination %}
+    --swiper-pagination-spacing: {{ shop_the_look_products_pagination_top_padding_desktop }}px;
+    --swiper-pagination-spacing-mobile: {{ shop_the_look_products_pagination_top_padding_mobile }}px;
+    {% if shop_the_look_products_autoplay_enabled %}--swiper-pagination-bullet-progress-duration: {{ shop_the_look_products_autoplay_delay }}ms;{% endif %}
+    {% if shop_the_look_products_pagination_limit_width %}--swiper-pagination-width: min(100%, {{ shop_the_look_products_pagination_max_width }}px);{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign shop_the_look_products_pagination_style = shop_the_look_products_pagination_style | strip %}
+
+{% capture shop_the_look_products_navigation_center_style %}
+  {% if shop_the_look_products_layout == 'carousel' and shop_the_look_products_show_pagination %}--swiper-navigation-center-offset: calc(({{ shop_the_look_products_pagination_top_padding_desktop }}px + {{ shop_the_look_products_pagination_size }}) / 2);{% endif %}
+{% endcapture %}
+{% assign shop_the_look_products_navigation_center_style = shop_the_look_products_navigation_center_style | strip %}
+
+{% capture shop_the_look_products_pagination %}
+  {% if shop_the_look_products_show_pagination and shop_the_look_products_layout == 'carousel' %}
+    <div
+      class="swiper-pagination swiper-pagination--below shop-the-look-products__pagination shop-the-look-products__pagination--{{ shop_the_look_products_pagination_type }}"
+      data-product-collection-pagination
+      data-pagination-type="{{ shop_the_look_products_pagination_type }}"
+      style="{{ shop_the_look_products_pagination_style }}"
+    ></div>
+  {% endif %}
+{% endcapture %}
+{% assign shop_the_look_products_pagination = shop_the_look_products_pagination | strip %}
+
+{% if shop_the_look_products_layout == 'carousel' %}
+  <script data-theme-module="{{ 'product-collection-carousel.js' | asset_url }}"></script>
+{% endif %}
+
+{% capture shop_the_look_products_content %}{% content_for 'blocks' %}{% endcapture %}
+
+<div
+  class="shop-the-look-products shop-the-look-products--{{ shop_the_look_products_layout }}{% if shop_the_look_products_single_column %} shop-the-look-products--single-column{% endif %}"
+  data-shop-the-look-products
+  data-layout="{{ shop_the_look_products_layout }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="shop-the-look-products__carousel swiper-carousel__container">
+    {% if shop_the_look_products_layout == 'carousel' %}
+      {% capture shop_the_look_products_carousel_attributes %}
+        data-product-collection-grid
+        data-layout="carousel"
+        data-product-carousel
+        data-swiper-columns-desktop="{{ shop_the_look_products_columns_desktop }}"
+        data-swiper-columns-mobile="{{ shop_the_look_products_columns_mobile }}"
+        data-swiper-gap-desktop="{{ shop_the_look_products_gap_desktop }}"
+        data-swiper-gap-mobile="{{ shop_the_look_products_gap_mobile }}"
+        data-swiper-pagination-type="{{ shop_the_look_products_pagination_type }}"
+        data-swiper-previous-selector="[data-shop-the-look-previous]"
+        data-swiper-next-selector="[data-shop-the-look-next]"
+        {% if shop_the_look_products_style != blank %}style="{{ shop_the_look_products_style }}"{% endif %}
+      {% endcapture %}
+
+      {% render 'swiper-carousel',
+        id: shop_the_look_products_carousel_id,
+        content: shop_the_look_products_content,
+        root_class: 'shop-the-look-products__items',
+        root_attributes: shop_the_look_products_carousel_attributes,
+        aria_label: shop_the_look_products_aria_label,
+        pagination: shop_the_look_products_pagination,
+        autoplay: shop_the_look_products_autoplay_enabled,
+        pause_on_hover: shop_the_look_products_autoplay_pause_on_hover,
+        autoplay_delay: shop_the_look_products_autoplay_delay
+      %}
+    {% else %}
+      <div
+        class="shop-the-look-products__items"
+        data-product-collection-grid
+        data-layout="grid"
+        {% if shop_the_look_products_style != blank %}style="{{ shop_the_look_products_style }}"{% endif %}
+      >
+        {{ shop_the_look_products_content }}
+      </div>
+    {% endif %}
+
+    {% if shop_the_look_products_layout == 'carousel' and shop_the_look_products_show_navigation %}
+      <div
+        class="swiper-carousel__navigation--centered swiper-carousel__navigation--{{ shop_the_look_products_navigation_behavior }} shop-the-look-products__navigation shop-the-look-products__navigation--{{ shop_the_look_products_navigation_position }} shop-the-look-products__navigation--{{ shop_the_look_products_navigation_behavior }}"
+        data-shop-the-look-navigation
+        {% if shop_the_look_products_navigation_center_style != blank %}style="{{ shop_the_look_products_navigation_center_style }}"{% endif %}
+      >
+        <button
+          class="btn btn-{{ shop_the_look_products_navigation_button_variant }} btn--{{ shop_the_look_products_navigation_button_variant }} btn--icon{% if shop_the_look_products_navigation_button_modifier != blank %} {{ shop_the_look_products_navigation_button_modifier }}{% endif %} swiper-nav-button swiper-nav-button--prev shop-the-look-products__navigation-button"
+          type="button"
+          data-shop-the-look-previous
+          aria-label="{{ 'collection_tabs.previous' | t | escape }}"
+        >
+          {% render 'carousel-navigation-icon', icon: shop_the_look_products_navigation_icon, direction: 'previous' %}
+        </button>
+        <button
+          class="btn btn-{{ shop_the_look_products_navigation_button_variant }} btn--{{ shop_the_look_products_navigation_button_variant }} btn--icon{% if shop_the_look_products_navigation_button_modifier != blank %} {{ shop_the_look_products_navigation_button_modifier }}{% endif %} swiper-nav-button swiper-nav-button--next shop-the-look-products__navigation-button"
+          type="button"
+          data-shop-the-look-next
+          aria-label="{{ 'collection_tabs.next' | t | escape }}"
+        >
+          {% render 'carousel-navigation-icon', icon: shop_the_look_products_navigation_icon, direction: 'next' %}
+        </button>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% stylesheet %}
+  .shop-the-look-products {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .shop-the-look-products__carousel {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .shop-the-look-products__items {
+    width: 100%;
+    margin-inline: auto;
+    min-width: 0;
+  }
+
+  .shop-the-look-products--grid .shop-the-look-products__items {
+    display: grid;
+    grid-template-columns: repeat(var(--shop-the-look-columns-desktop, 1), minmax(0, 1fr));
+    gap: var(--shop-the-look-gap-desktop, 4px);
+  }
+
+  .shop-the-look-products--grid .shop-the-look-product {
+    width: auto;
+    height: auto;
+    flex-shrink: initial;
+  }
+
+  .shop-the-look-products--carousel .shop-the-look-product {
+    height: auto;
+  }
+
+  .shop-the-look-products__navigation {
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 0.5rem;
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .shop-the-look-products__navigation--outside {
+    padding-inline: 0;
+  }
+
+  .shop-the-look-products__navigation--outside .swiper-nav-button--prev {
+    margin-inline-start: calc(-1 * var(--swiper-nav-size) / 2);
+  }
+
+  .shop-the-look-products__navigation--outside .swiper-nav-button--next {
+    margin-inline-end: calc(-1 * var(--swiper-nav-size) / 2);
+  }
+
+  .shop-the-look-products__navigation-button {
+    pointer-events: auto;
+  }
+
+  @media (min-width: 768px) {
+    .shop-the-look-products--single-column .shop-the-look-products__items {
+      max-width: 38.4rem;
+    }
+
+    .shop-the-look-products--single-column .shop-the-look-products__navigation--inside {
+      width: min(100%, 38.4rem);
+      margin-inline: auto;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .shop-the-look-products--grid .shop-the-look-products__items {
+      grid-template-columns: repeat(var(--shop-the-look-columns-mobile, 1), minmax(0, 1fr));
+      gap: var(--shop-the-look-gap-mobile, 4px);
+    }
+
+    .shop-the-look-products__navigation {
+      display: none;
+    }
+  }
+
+{% endstylesheet %}
+
+{% javascript %}
+(() => {
+  const instances = new WeakMap();
+  const swiperEvents = ['activeIndexChange', 'slideChange'];
+
+  const getItems = (products) => Array.from(products.querySelectorAll('[data-shop-the-look-product]'));
+
+  const getCarousel = (state) => state.products.querySelector('[data-product-carousel]');
+
+  const getSwiper = (state) => {
+    const swiper = state.swiper || getCarousel(state)?.swiper;
+    return swiper && !swiper.destroyed ? swiper : null;
+  };
+
+  const getHotspots = (section) => {
+    const target = section.querySelector('[data-shop-the-look-hotspots]');
+    return target ? Array.from(target.querySelectorAll('[data-product-hotspot]')) : [];
+  };
+
+  const mountHotspots = (state) => {
+    const target = state.section.querySelector('[data-shop-the-look-hotspots]');
+    if (!target) return;
+
+    const productIds = new Set(
+      getItems(state.products)
+        .map((item) => item.dataset.shopTheLookProduct?.trim())
+        .filter(Boolean),
+    );
+    const blockIds = new Set(
+      getItems(state.products)
+        .map((item) => item.dataset.shopTheLookBlockId?.trim())
+        .filter(Boolean),
+    );
+    const sourceHotspots = Array.from(
+      state.products.querySelectorAll('[data-shop-the-look-hotspot-source] [data-product-hotspot]'),
+    ).filter((hotspot) => {
+      const productId = hotspot.dataset.productId?.trim();
+      const blockId = hotspot.dataset.shopTheLookBlockId?.trim();
+      return (productId && productIds.has(productId)) || (blockId && blockIds.has(blockId));
+    });
+    target.replaceChildren(...sourceHotspots.map((hotspot) => hotspot.cloneNode(true)));
+  };
+
+  const syncCarousel = (state, selectedIndex) => {
+    const swiper = getSwiper(state);
+    if (!swiper || swiper.destroyed || selectedIndex < 0) return;
+    if (swiper.activeIndex !== selectedIndex) swiper.slideTo(selectedIndex);
+  };
+
+  const getSwiperItem = (state) => {
+    const swiper = getSwiper(state);
+    if (!swiper) return null;
+
+    const slide = Array.from(swiper.slides || [])[swiper.activeIndex];
+    if (slide?.matches?.('[data-shop-the-look-product]')) return slide;
+
+    return getItems(state.products)[swiper.activeIndex] || null;
+  };
+
+  const setActive = (state, activeKey, selectedItemOverride = null, options = {}) => {
+    const items = getItems(state.products);
+    if (!items.length) return;
+
+    const requestedItem = activeKey
+      ? items.find((item) => item.dataset.shopTheLookProduct === activeKey || item.dataset.shopTheLookBlockId === activeKey)
+      : null;
+    const firstConfiguredItem = items.find((item) => item.dataset.shopTheLookProduct);
+    const selectedItem = selectedItemOverride || requestedItem || firstConfiguredItem || items[0];
+    const selectedId = selectedItem.dataset.shopTheLookProduct || '';
+    const selectedBlockId = selectedItem.dataset.shopTheLookBlockId || '';
+    const selectedIndex = items.indexOf(selectedItem);
+
+    items.forEach((item) => {
+      const isActive = item === selectedItem;
+      item.dataset.shopTheLookActive = String(isActive);
+      item.classList.toggle('shop-the-look-product--active', isActive);
+      item.removeAttribute('aria-hidden');
+      if ('inert' in item) item.inert = false;
+    });
+
+    if (options.syncCarousel !== false) syncCarousel(state, selectedIndex);
+
+    getHotspots(state.section).forEach((hotspot) => {
+      const isActive =
+        (selectedId !== '' && hotspot.dataset.productId === selectedId) ||
+        (selectedBlockId !== '' && hotspot.dataset.shopTheLookBlockId === selectedBlockId);
+      hotspot.dataset.productHotspotActive = String(isActive);
+      hotspot.classList.toggle('product-hotspot--active', isActive);
+      if (isActive) {
+        hotspot.setAttribute('aria-current', 'true');
+      } else {
+        hotspot.removeAttribute('aria-current');
+      }
+    });
+
+    state.products.dataset.shopTheLookActive = selectedId || selectedBlockId;
+  };
+
+  const unbindCarousel = (state) => {
+    if (!state.swiper || !state.swiperEvents) return;
+
+    state.swiperEvents.forEach(({ eventName, handler }) => {
+      state.swiper.off(eventName, handler);
+    });
+    state.swiperEvents = [];
+    state.swiper = null;
+  };
+
+  const bindCarousel = (state) => {
+    const swiper = getCarousel(state)?.swiper;
+    if (!swiper || swiper.destroyed) return;
+    if (state.swiper === swiper) return;
+
+    unbindCarousel(state);
+    state.swiper = swiper;
+
+    const handleSlideChange = () => {
+      const selectedItem = getSwiperItem(state);
+      if (selectedItem) setActive(state, '', selectedItem, { syncCarousel: false });
+    };
+
+    state.swiperEvents = swiperEvents.map((eventName) => {
+      swiper.on(eventName, handleSlideChange);
+      return { eventName, handler: handleSlideChange };
+    });
+
+    const activeKey = state.products.dataset.shopTheLookActive || '';
+    const activeItem = activeKey
+      ? getItems(state.products).find(
+          (item) => item.dataset.shopTheLookProduct === activeKey || item.dataset.shopTheLookBlockId === activeKey,
+        )
+      : null;
+    if (activeItem) syncCarousel(state, getItems(state.products).indexOf(activeItem));
+    handleSlideChange();
+  };
+
+  const refresh = (state) => {
+    mountHotspots(state);
+    setActive(state, state.products.dataset.shopTheLookActive || '');
+    bindCarousel(state);
+  };
+
+  const initialize = (products) => {
+    if (!products) return;
+    const existingState = instances.get(products);
+    if (existingState) {
+      refresh(existingState);
+      return;
+    }
+    const section = products.closest('[data-shop-the-look-section]') || products.closest('.shopify-section') || products.parentElement;
+    if (!section) return;
+
+    const controller = new AbortController();
+    const state = { products, section, controller, observer: null, swiper: null, swiperEvents: [] };
+    instances.set(products, state);
+
+    refresh(state);
+
+    section.addEventListener('click', (event) => {
+      const hotspot = event.target instanceof Element ? event.target.closest('[data-product-hotspot]') : null;
+      if (!hotspot || !section.contains(hotspot)) return;
+
+      const productId = hotspot.dataset.productId?.trim() || '';
+      const blockId = hotspot.dataset.shopTheLookBlockId?.trim() || '';
+      const activeKey = productId || blockId;
+      const selectedItem = activeKey
+        ? getItems(products).find((item) => item.dataset.shopTheLookProduct === activeKey || item.dataset.shopTheLookBlockId === activeKey)
+        : null;
+      if (!selectedItem) return;
+      if (productId && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return;
+
+      event.preventDefault();
+      setActive(state, activeKey, selectedItem);
+    }, { signal: controller.signal });
+
+    section.addEventListener('click', (event) => {
+      const product = event.target instanceof Element ? event.target.closest('[data-shop-the-look-product]') : null;
+      if (!product || !products.contains(product)) return;
+      setActive(
+        state,
+        product.dataset.shopTheLookProduct?.trim() || product.dataset.shopTheLookBlockId?.trim() || '',
+        product,
+      );
+    }, { signal: controller.signal });
+
+    section.addEventListener('focusin', (event) => {
+      const product = event.target instanceof Element ? event.target.closest('[data-shop-the-look-product]') : null;
+      if (!product || !products.contains(product)) return;
+      setActive(
+        state,
+        product.dataset.shopTheLookProduct?.trim() || product.dataset.shopTheLookBlockId?.trim() || '',
+        product,
+      );
+    }, { signal: controller.signal });
+
+    if (typeof MutationObserver !== 'undefined') {
+      state.observer = new MutationObserver(() => refresh(state));
+      state.observer.observe(products, {
+        attributes: true,
+        attributeFilter: ['data-shop-the-look-product', 'data-swiper-ready'],
+        childList: true,
+        subtree: true
+      });
+    }
+  };
+
+  const initializeRoot = (root = document) => {
+    if (root.matches?.('[data-shop-the-look-products]')) initialize(root);
+    root.querySelectorAll?.('[data-shop-the-look-products]').forEach(initialize);
+  };
+
+  const destroyRoot = (root) => {
+    const products = [];
+    if (root.matches?.('[data-shop-the-look-products]')) products.push(root);
+    root.querySelectorAll?.('[data-shop-the-look-products]').forEach((item) => products.push(item));
+
+    products.forEach((item) => {
+      const state = instances.get(item);
+      if (!state) return;
+      state.controller.abort();
+      state.observer?.disconnect();
+      unbindCarousel(state);
+      instances.delete(item);
+    });
+  };
+
+  document.addEventListener('shopify:section:load', (event) => initializeRoot(event.target));
+  document.addEventListener('shopify:section:select', (event) => initializeRoot(event.target));
+  document.addEventListener('shopify:section:unload', (event) => destroyRoot(event.target));
+  document.addEventListener('shopify:block:select', (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const product = target?.closest('[data-shop-the-look-product]');
+    const products = product?.closest('[data-shop-the-look-products]');
+    if (!product || !products) return;
+
+    initialize(products);
+    const state = instances.get(products);
+    if (!state) return;
+
+    const activeKey = product.dataset.shopTheLookProduct?.trim() || product.dataset.shopTheLookBlockId?.trim() || '';
+    if (activeKey) {
+      setActive(state, activeKey, product);
+    } else {
+      setActive(state, state.products.dataset.shopTheLookActive || '');
+    }
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => initializeRoot(), { once: true });
+  } else {
+    initializeRoot();
+  }
+})();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "t:general.product_list",
+  "tag": null,
+  "blocks": [{ "type": "shop-the-look-product" }],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "layout_type",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "grid", "label": "t:options.product_list_layout.grid" },
+        { "value": "carousel", "label": "t:options.product_list_layout.carousel" }
+      ],
+      "default": "carousel"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "t:labels.desktop_columns",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" }
+      ],
+      "default": "1"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "t:labels.mobile_columns",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "1"
+    },
+    {
+      "type": "header",
+      "content": "t:general.products_gap"
+    },
+    {
+      "type": "range",
+      "id": "product_gap_desktop",
+      "label": "t:options.device.desktop",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "product_gap_mobile",
+      "label": "t:options.device.mobile",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "t:general.navigation",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_navigation_on_desktop",
+      "label": "t:labels.show_navigation_on_desktop",
+      "default": true,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "outside", "label": "t:options.collection_navigation_position.outside" },
+        { "value": "inside", "label": "t:options.collection_navigation_position.inside" }
+      ],
+      "default": "outside",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.show_navigation_on_desktop }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" },
+        { "value": "outline", "label": "t:options.button_variant.outline" },
+        { "value": "icon_only", "label": "t:options.button_variant.icon_only" }
+      ],
+      "default": "icon_only",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.show_navigation_on_desktop }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_icon",
+      "label": "t:labels.icon",
+      "options": [
+        { "value": "chevron", "label": "t:options.collection_navigation_icon.chevron" },
+        { "value": "arrow", "label": "t:options.collection_navigation_icon.arrow" },
+        { "value": "long_arrow", "label": "t:options.collection_navigation_icon.long_arrow" }
+      ],
+      "default": "chevron",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.show_navigation_on_desktop }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_behavior",
+      "label": "t:labels.behavior",
+      "options": [
+        { "value": "show_on_hover", "label": "t:options.collection_navigation_behavior.show_on_hover" },
+        { "value": "always", "label": "t:options.collection_navigation_behavior.always" }
+      ],
+      "default": "always",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.show_navigation_on_desktop }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.pagination",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pagination_on_desktop",
+      "label": "t:labels.show_pagination",
+      "default": true,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "select",
+      "id": "pagination_type",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "progress_bar", "label": "t:options.collection_pagination.progress_bar" },
+        { "value": "bullets", "label": "t:options.collection_pagination.bullets" }
+      ],
+      "default": "progress_bar",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.show_pagination_on_desktop }}"
+    },
+    {
+      "type": "range",
+      "id": "pagination_top_padding_desktop",
+      "label": "t:labels.pagination_desktop_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 50,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.show_pagination_on_desktop }}"
+    },
+    {
+      "type": "range",
+      "id": "pagination_top_padding_mobile",
+      "label": "t:labels.pagination_mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.show_pagination_on_desktop }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "pagination_limit_width",
+      "label": "t:labels.limit_width",
+      "default": true,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.show_pagination_on_desktop and block.settings.pagination_type == 'progress_bar' }}"
+    },
+    {
+      "type": "range",
+      "id": "pagination_max_width",
+      "label": "t:labels.max_width",
+      "min": 100,
+      "max": 600,
+      "step": 10,
+      "unit": "px",
+      "default": 260,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.show_pagination_on_desktop and block.settings.pagination_type == 'progress_bar' and block.settings.pagination_limit_width }}"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.autoplay",
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "t:labels.auto_rotate_slides",
+      "default": false,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay_pause_on_hover",
+      "label": "t:labels.pause_on_hover",
+      "default": true,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.autoplay }}"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "t:labels.speed",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 4,
+      "visible_if": "{{ block.settings.layout_type == 'carousel' and block.settings.autoplay }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.product_list",
+      "category": "t:general.product",
+      "settings": {
+        "layout_type": "carousel",
+        "navigation_icon": "chevron",
+        "columns_desktop": "1",
+        "columns_mobile": "1",
+        "product_gap_desktop": 4,
+        "product_gap_mobile": 4,
+        "show_navigation_on_desktop": true,
+        "navigation_position": "outside",
+        "navigation_style": "icon_only",
+        "navigation_behavior": "always",
+        "show_pagination_on_desktop": true,
+        "pagination_type": "progress_bar",
+        "pagination_top_padding_desktop": 50,
+        "pagination_top_padding_mobile": 24,
+        "pagination_limit_width": true,
+        "pagination_max_width": 260,
+        "autoplay": false,
+        "autoplay_pause_on_hover": true,
+        "autoplay_speed": 4
+      },
+      "blocks": [
+        {
+          "type": "shop-the-look-product",
+          "settings": {
+            "show_hotspot": true,
+            "hotspot_horizontal": 50,
+            "hotspot_vertical": 50,
+            "customize_mobile_position": false
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

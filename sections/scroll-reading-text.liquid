@@ -1,0 +1,424 @@
+{% liquid
+  assign section_container_width = 'page-width'
+  if section.settings.section_width == 'full_width'
+    assign section_container_width = 'full-width'
+  elsif section.settings.section_width == 'full_width_no_padding'
+    assign section_container_width = 'full-width full-width--no-padding'
+  endif
+
+  assign value_proposition_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign value_proposition_scheme = section.settings.color_scheme.id
+  endif
+  assign value_proposition_scheme = value_proposition_scheme | default: 'scheme-1' | handleize
+  assign padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign padding_right = section.settings.padding_right | default: 0 | plus: 0
+  assign padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_left = section.settings.padding_left | default: 0 | plus: 0
+  assign padding_top_mobile = section.settings.padding_top_mobile | default: padding_top | plus: 0
+  assign padding_right_mobile = section.settings.padding_right_mobile | default: padding_right | plus: 0
+  assign padding_bottom_mobile = section.settings.padding_bottom_mobile | default: padding_bottom | plus: 0
+  assign padding_left_mobile = section.settings.padding_left_mobile | default: padding_left | plus: 0
+%}
+
+{% capture value_proposition_style %}
+  {% if padding_top != 0 %}--value-proposition-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_right != 0 %}--value-proposition-padding-right: {{ padding_right }}px;{% endif %}
+  {% if padding_bottom != 0 %}--value-proposition-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if padding_left != 0 %}--value-proposition-padding-left: {{ padding_left }}px;{% endif %}
+  {% if section.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--value-proposition-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_right_mobile != padding_right %}--value-proposition-padding-right-mobile: {{ padding_right_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--value-proposition-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+    {% if padding_left_mobile != padding_left %}--value-proposition-padding-left-mobile: {{ padding_left_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign value_proposition_style = value_proposition_style | strip %}
+
+<div
+  class="value-proposition-01 color-scheme section-color-scope {{ value_proposition_scheme }}"
+  {% if value_proposition_style != blank or section.settings.background_color != blank %}style="{{ value_proposition_style }}{% if section.settings.background_color != blank %}--value-proposition-background: {{ section.settings.background_color | escape }};{% endif %}"{% endif %}
+>
+  {% if section.settings.background_image != blank %}
+    <div class="value-proposition-01__background" aria-hidden="true">
+      {{ section.settings.background_image | image_url: width: 2000 | image_tag }}
+    </div>
+  {% endif %}
+
+  <div class="container {{ section_container_width }} value-proposition-01__container">
+    <div class="value-proposition-01__content align-content">
+      {% content_for 'block', type: 'text', id: 'text' %}
+      {% content_for 'block', type: 'editorial-text', id: 'editorial-text' %}
+      {% content_for 'block', type: 'button', id: 'button' %}
+      {% content_for 'blocks' %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .value-proposition-01 {
+    position: relative;
+    overflow: clip;
+    padding-top: var(--value-proposition-padding-top, 0px);
+    padding-right: var(--value-proposition-padding-right, 0px);
+    padding-bottom: var(--value-proposition-padding-bottom, 0px);
+    padding-left: var(--value-proposition-padding-left, 0px);
+    background-color: var(--value-proposition-background, var(--background-color));
+  }
+
+  @media (max-width: 767.98px) {
+    .value-proposition-01 {
+      padding-top: var(--value-proposition-padding-top-mobile, var(--value-proposition-padding-top, 0px));
+      padding-right: var(--value-proposition-padding-right-mobile, var(--value-proposition-padding-right, 0px));
+      padding-bottom: var(--value-proposition-padding-bottom-mobile, var(--value-proposition-padding-bottom, 0px));
+      padding-left: var(--value-proposition-padding-left-mobile, var(--value-proposition-padding-left, 0px));
+    }
+  }
+
+  .value-proposition-01__background {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .value-proposition-01__background img {
+    display: block;
+    min-inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  .value-proposition-01__container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .value-proposition-01__container.full-width--no-padding {
+    padding-inline: 0;
+  }
+
+  .value-proposition-01__content {
+    align-items: center;
+    gap: var(--layout-grid-gap, 1rem);
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .value-proposition-01__word {
+    opacity: 0.4;
+    transition: opacity var(--motion-duration-standard) var(--motion-ease-standard);
+  }
+
+  .value-proposition-01__word.is-visible {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .value-proposition-01__word {
+      opacity: 1;
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    const selector = '.value-proposition-01';
+    const textSelector = '.value-proposition-01 > .container .heading-block';
+    const instances = new WeakMap();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const update = (state) => {
+      const rect = state.section.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const containerHeight = Math.max(rect.height, 1);
+      const viewportCenter = viewportHeight / 2;
+      const progress = Math.max(0, Math.min(1, (viewportCenter - rect.top) / (containerHeight / 2)));
+      const visibleCount = Math.ceil(progress * state.words.length);
+      if (visibleCount === state.visibleCount) return;
+      state.visibleCount = visibleCount;
+      state.words.forEach((word, index) => word.classList.toggle('is-visible', index < visibleCount));
+    };
+
+    const splitText = (textBlock) => {
+      if (textBlock.dataset.valuePropositionSplit === 'true') return;
+      const walker = document.createTreeWalker(textBlock, NodeFilter.SHOW_TEXT, {
+        acceptNode: (node) => node.parentElement?.closest('script, style, [data-value-proposition-word]')
+          ? NodeFilter.FILTER_REJECT
+          : NodeFilter.FILTER_ACCEPT
+      });
+      const textNodes = [];
+      while (walker.nextNode()) textNodes.push(walker.currentNode);
+      textNodes.forEach((node) => {
+        const fragment = document.createDocumentFragment();
+        node.textContent.split(/(\s+)/).forEach((part) => {
+          if (/\s+/.test(part) || part === '') {
+            fragment.append(part);
+          } else {
+            const word = document.createElement('span');
+            word.className = 'value-proposition-01__word';
+            word.dataset.valuePropositionWord = '';
+            word.textContent = part;
+            fragment.append(word);
+          }
+        });
+        node.replaceWith(fragment);
+      });
+      textBlock.dataset.valuePropositionSplit = 'true';
+    };
+
+    const initialize = (section) => {
+      if (!section || instances.has(section)) return;
+      const textBlocks = [...section.querySelectorAll(textSelector)];
+      textBlocks.forEach(splitText);
+      const words = [...section.querySelectorAll('[data-value-proposition-word]')];
+      if (!words.length) return;
+
+      const state = { section, words, visibleCount: -1, frame: 0, visible: false };
+      const schedule = () => {
+        if (!state.frame) {
+          state.frame = requestAnimationFrame(() => {
+            state.frame = 0;
+            if (state.visible) update(state);
+          });
+        }
+      };
+      const observer = new IntersectionObserver(([entry]) => {
+        state.visible = entry.isIntersecting;
+        if (state.visible) schedule();
+      }, { rootMargin: '20% 0px' });
+
+      if (reducedMotion.matches) {
+        words.forEach((word) => word.classList.add('is-visible'));
+      } else {
+        observer.observe(section);
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', schedule, { passive: true });
+      }
+      instances.set(section, { state, observer, schedule });
+    };
+
+    const destroy = (section) => {
+      const instance = instances.get(section);
+      if (!instance) return;
+      instance.observer.disconnect();
+      window.removeEventListener('scroll', instance.schedule);
+      window.removeEventListener('resize', instance.schedule);
+      if (instance.state.frame) cancelAnimationFrame(instance.state.frame);
+      instances.delete(section);
+    };
+
+    const initializeRoot = (root = document) => {
+      if (root.matches?.(selector)) initialize(root);
+      root.querySelectorAll?.(selector).forEach(initialize);
+    };
+
+    const destroyRoot = (root) => {
+      if (root.matches?.(selector)) destroy(root);
+      root.querySelectorAll?.(selector).forEach(destroy);
+    };
+
+    document.addEventListener('shopify:section:load', (event) => initializeRoot(event.target));
+    document.addEventListener('shopify:section:unload', (event) => destroyRoot(event.target));
+    initializeRoot();
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Scroll reading text",
+  "class": "section-value-proposition-01",
+  "enabled_on": { "templates": ["*"] },
+  "blocks": [
+    { "type": "header" },
+    { "type": "heading" },
+    { "type": "editorial-text" },
+    { "type": "eyebrow" },
+    { "type": "text" },
+    { "type": "image" },
+    { "type": "image-card" },
+    { "type": "video" },
+    { "type": "button" },
+    { "type": "buttons" },
+    { "type": "icon" },
+    { "type": "divider" },
+    { "type": "spacer" },
+    { "type": "group" },
+    { "type": "marquee" },
+    { "type": "row" },
+    { "type": "grid" },
+    { "type": "email-signup" },
+    { "type": "contact-form" },
+    { "type": "product-list" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" },
+        { "value": "full_width_no_padding", "label": "t:options.section_width.full_width_no_padding" }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "t:labels.background"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:labels.background_image"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Scroll reading text",
+      "category": "Storytelling",
+      "settings": { "color_scheme": "scheme-1" },
+      "blocks": [
+        {
+          "type": "text",
+          "id": "text",
+          "static": true,
+          "settings": {
+            "text": "<p>The pavilion standard</p>"
+          }
+        },
+        {
+          "type": "editorial-text",
+          "id": "editorial-text",
+          "static": true,
+          "settings": {
+            "text": "<p>Every piece that leaves our studio passes through no fewer than forty pairs of hands. We believe jewelry should outlive trends and outlive us.</p>",
+            "size": "lg",
+            "width": "custom",
+            "max_width": 900
+          }
+        },
+        {
+          "type": "button",
+          "id": "button",
+          "static": true,
+          "settings": {
+            "button_label": "Our story",
+            "button_style": "secondary"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

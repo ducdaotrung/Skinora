@@ -1,0 +1,113 @@
+{% doc %}
+  Renders one product or custom-content hotspot inside a Product callout block.
+
+  The parent block owns the icon style and a Hotspot color scheme that is
+  independent of the callout Content scheme. This child owns its content source
+  and desktop/mobile position. When rendered by a Product callout section, it
+  also reads the section-level Product card settings.
+
+  @example
+  {% content_for 'block', type: 'hotspot', id: 'hotspot-1' %}
+{% enddoc %}
+
+{% render 'product-callout-hotspot', block: block %}
+
+{% schema %}
+{
+  "name": "t:general.hotspot",
+  "tag": null,
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "t:labels.product"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_content",
+      "label": "t:labels.use_content_for_hotspot",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "content_heading",
+      "label": "t:labels.heading",
+      "default": "Medium Heading",
+      "visible_if": "{{ block.settings.use_content }}"
+    },
+    {
+      "type": "richtext",
+      "id": "content_text",
+      "label": "t:labels.text",
+      "default": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique.</p>",
+      "visible_if": "{{ block.settings.use_content }}"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.position"
+    },
+    {
+      "type": "range",
+      "id": "vertical_position",
+      "label": "t:labels.vertical_position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "horizontal_position",
+      "label": "t:labels.horizontal_position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_position",
+      "label": "t:labels.customize_mobile_position",
+      "info": "t:info.customize_mobile_hotspot_position",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "mobile_vertical_position",
+      "label": "t:labels.mobile_vertical_position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.customize_mobile_position }}"
+    },
+    {
+      "type": "range",
+      "id": "mobile_horizontal_position",
+      "label": "t:labels.mobile_horizontal_position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.customize_mobile_position }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.hotspot",
+      "settings": {
+        "use_content": false,
+        "vertical_position": 50,
+        "horizontal_position": 50,
+        "customize_mobile_position": false,
+        "mobile_vertical_position": 50,
+        "mobile_horizontal_position": 50
+      }
+    }
+  ]
+}
+{% endschema %}

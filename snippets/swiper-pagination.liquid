@@ -1,0 +1,39 @@
+{% doc %}
+  Renders the shared Swiper pagination element. Swiper's Pagination module
+  owns the generated bullets or progress-bar fill; this component only keeps
+  the markup, data contract, and spacing hook consistent across carousels.
+
+  @param {boolean} [show] - Whether to render pagination
+  @param {string} [type] - progress_bar or bullets
+  @param {string} [class] - Additional pagination classes
+  @param {string} [style] - Inline custom properties for spacing/width
+  @param {string} [attributes] - Additional attributes for the pagination root
+{% enddoc %}
+
+{% liquid
+  assign swiper_pagination_show = true
+  if show == false or show == 'false'
+    assign swiper_pagination_show = false
+  endif
+
+  assign swiper_pagination_type = type | default: 'progress_bar'
+  unless swiper_pagination_type == 'progress_bar' or swiper_pagination_type == 'bullets'
+    assign swiper_pagination_type = 'progress_bar'
+  endunless
+
+  assign swiper_pagination_class = class | default: blank
+  unless swiper_pagination_class contains 'swiper-pagination--below'
+    assign swiper_pagination_class = 'swiper-pagination--below' | append: ' ' | append: swiper_pagination_class
+  endunless
+%}
+
+{% if swiper_pagination_show %}
+  <div
+    class="swiper-pagination {{ swiper_pagination_class | strip }}"
+    data-swiper-pagination
+    data-product-collection-pagination
+    data-pagination-type="{{ swiper_pagination_type }}"
+    {% if attributes != blank %}{{ attributes }}{% endif %}
+    {% if style != blank %}style="{{ style }}"{% endif %}
+  ></div>
+{% endif %}

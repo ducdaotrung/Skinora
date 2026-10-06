@@ -1,0 +1,49 @@
+{% doc %}Fixed cart summary column with a fixed order summary and optional order tools.{% enddoc %}
+<aside class="cart-page__summary cart-stack" style="--cart-gap: {{ block.settings.gap_desktop }}px; --cart-gap-mobile: {{ block.settings.gap_mobile }}px; --cart-pad-top: {{ block.settings.padding_top | default: 0 }}px; --cart-pad-bottom: {{ block.settings.padding_bottom | default: 0 }}px;{% if block.settings.customize_mobile_padding %} --cart-pad-top-mobile: {{ block.settings.padding_top_mobile }}px; --cart-pad-bottom-mobile: {{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+{% content_for 'block', type: '_cart-order-summary', id: 'order-summary' %}
+{% content_for 'blocks' %}
+</aside>
+
+{% schema %}
+{
+  "name": "Summary",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "Desktop gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Mobile gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    }
+  ],
+  "blocks": [
+    {
+      "type": "_cart-order-summary"
+    },
+    {
+      "type": "cart-order-note"
+    },
+    {
+      "type": "cart-shipping-estimator"
+    }
+  ]
+}
+{% endschema %}

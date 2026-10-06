@@ -1,0 +1,33 @@
+{% doc %}
+  Fixed accelerated checkout action inside the Product Buy buttons form.
+  Shopify determines which payment methods are available. The parent runtime
+  hides this action when a gift-card recipient is selected.
+  The style setting applies only to Shopify's unbranded Buy it now fallback.
+
+  @param {form} form - Active Shopify product form Drop
+  @param {boolean} product_unavailable - Whether the selected variant is unavailable
+{% enddoc %}
+
+{% liquid
+  assign fallback_style = block.settings.style | default: 'primary'
+  unless fallback_style == 'primary' or fallback_style == 'secondary'
+    assign fallback_style = 'primary'
+  endunless
+%}
+
+<div class="product-buy-buttons__accelerated-checkout" data-accelerated-checkout-wrapper data-fallback-style="{{ fallback_style }}"{% if product_unavailable and request.design_mode == false %} hidden{% endif %} {{ block.shopify_attributes }}>
+  {{ form | payment_button }}
+</div>
+
+{% schema %}
+{
+  "name": "t:general.accelerated_checkout",
+  "tag": null,
+  "settings": [
+    { "type": "select", "id": "style", "label": "t:labels.style", "info": "t:info.accelerated_checkout_fallback_style", "options": [
+      { "value": "primary", "label": "t:options.button_variant.primary" },
+      { "value": "secondary", "label": "t:options.button_variant.secondary" }
+    ], "default": "primary" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,724 @@
+{% doc %}
+  Renders a reusable before-and-after image comparison block.
+
+  The block owns the merchant settings, responsive sizing and block editor
+  attributes. The shared image-comparison snippet owns the comparison DOM,
+  media rendering, labels, handle and scoped interaction runtime.
+
+  @example
+  {% content_for 'block', type: 'image-comparison', id: 'image-comparison' %}
+{% enddoc %}
+
+{% liquid
+  assign comparison_style = block.settings.comparison_style | default: 'slider'
+  unless comparison_style == 'slider' or comparison_style == 'side_by_side'
+    assign comparison_style = 'slider'
+  endunless
+
+  assign comparison_position = block.settings.initial_position | default: 50 | plus: 0
+  if comparison_position < 0 or comparison_position > 100
+    assign comparison_position = 50
+  endif
+
+  assign comparison_handle_icon = block.settings.handle_icon | default: 'compare'
+  unless comparison_handle_icon == 'bars' or comparison_handle_icon == 'compare'
+    assign comparison_handle_icon = 'compare'
+  endunless
+
+  assign comparison_direction = block.settings.direction | default: 'horizontal'
+  unless comparison_direction == 'horizontal' or comparison_direction == 'vertical'
+    assign comparison_direction = 'horizontal'
+  endunless
+
+  assign before_image = block.settings.before_image
+  assign after_image = block.settings.after_image
+  assign before_mobile_image = block.settings.before_mobile_image
+  assign after_mobile_image = block.settings.after_mobile_image
+
+  assign before_alt = before_image.alt
+  if before_alt == blank
+    assign before_alt = block.settings.before_label | strip_html | strip
+  endif
+  assign after_alt = after_image.alt
+  if after_alt == blank
+    assign after_alt = block.settings.after_label | strip_html | strip
+  endif
+
+  assign comparison_ratio_desktop_setting = block.settings.image_ratio_desktop | default: 'original'
+  assign comparison_ratio_desktop = 1.7778
+  case comparison_ratio_desktop_setting
+    when 'square'
+      assign comparison_ratio_desktop = 1
+    when 'portrait'
+      assign comparison_ratio_desktop = 0.8
+    when 'landscape'
+      assign comparison_ratio_desktop = 1.3333
+    when 'wide'
+      assign comparison_ratio_desktop = 1.7778
+    when 'custom'
+      assign comparison_ratio_custom_width_desktop = block.settings.image_ratio_custom_width_desktop | default: 16 | plus: 0
+      assign comparison_ratio_custom_height_desktop = block.settings.image_ratio_custom_height_desktop | default: 9 | plus: 0
+      if comparison_ratio_custom_width_desktop < 1 or comparison_ratio_custom_width_desktop > 100
+        assign comparison_ratio_custom_width_desktop = 16
+      endif
+      if comparison_ratio_custom_height_desktop < 1 or comparison_ratio_custom_height_desktop > 100
+        assign comparison_ratio_custom_height_desktop = 9
+      endif
+      assign comparison_ratio_desktop = comparison_ratio_custom_width_desktop | times: 1.0 | divided_by: comparison_ratio_custom_height_desktop
+      if comparison_ratio_desktop < 0.25 or comparison_ratio_desktop > 3
+        assign comparison_ratio_desktop = 1.7778
+      endif
+    when 'original'
+      assign comparison_original_image = before_image
+      if comparison_original_image == blank
+        assign comparison_original_image = after_image
+      endif
+      if comparison_original_image != blank and comparison_original_image.aspect_ratio > 0
+        assign comparison_ratio_desktop = comparison_original_image.aspect_ratio | default: 1.7778 | plus: 0
+      endif
+      if comparison_ratio_desktop <= 0
+        assign comparison_ratio_desktop = 1.7778
+      endif
+  endcase
+
+  assign comparison_ratio_mobile_setting = block.settings.image_ratio_mobile | default: 'original'
+  assign comparison_ratio_mobile = comparison_ratio_desktop
+  case comparison_ratio_mobile_setting
+    when 'square'
+      assign comparison_ratio_mobile = 1
+    when 'portrait'
+      assign comparison_ratio_mobile = 0.8
+    when 'landscape'
+      assign comparison_ratio_mobile = 1.3333
+    when 'wide'
+      assign comparison_ratio_mobile = 1.7778
+    when 'custom'
+      assign comparison_ratio_custom_width_mobile = block.settings.image_ratio_custom_width_mobile | default: 16 | plus: 0
+      assign comparison_ratio_custom_height_mobile = block.settings.image_ratio_custom_height_mobile | default: 9 | plus: 0
+      if comparison_ratio_custom_width_mobile < 1 or comparison_ratio_custom_width_mobile > 100
+        assign comparison_ratio_custom_width_mobile = 16
+      endif
+      if comparison_ratio_custom_height_mobile < 1 or comparison_ratio_custom_height_mobile > 100
+        assign comparison_ratio_custom_height_mobile = 9
+      endif
+      assign comparison_ratio_mobile = comparison_ratio_custom_width_mobile | times: 1.0 | divided_by: comparison_ratio_custom_height_mobile
+      if comparison_ratio_mobile < 0.25 or comparison_ratio_mobile > 3
+        assign comparison_ratio_mobile = comparison_ratio_desktop
+      endif
+    when 'original'
+      assign comparison_original_mobile_image = before_mobile_image
+      if comparison_original_mobile_image == blank
+        assign comparison_original_mobile_image = after_mobile_image
+      endif
+      if comparison_original_mobile_image == blank
+        assign comparison_original_mobile_image = before_image
+      endif
+      if comparison_original_mobile_image == blank
+        assign comparison_original_mobile_image = after_image
+      endif
+      if comparison_original_mobile_image != blank and comparison_original_mobile_image.aspect_ratio > 0
+        assign comparison_ratio_mobile = comparison_original_mobile_image.aspect_ratio | default: comparison_ratio_desktop | plus: 0
+      endif
+      if comparison_ratio_mobile <= 0
+        assign comparison_ratio_mobile = comparison_ratio_desktop
+      endif
+  endcase
+
+  assign comparison_width_desktop = '100%'
+  assign comparison_width_desktop_setting = block.settings.width_desktop | default: 'fill'
+  unless comparison_width_desktop_setting == 'fill' or comparison_width_desktop_setting == 'custom'
+    assign comparison_width_desktop_setting = 'fill'
+  endunless
+  if comparison_width_desktop_setting == 'custom'
+    assign comparison_width_custom_desktop = block.settings.width_custom_desktop | default: 100 | plus: 0
+    if comparison_width_custom_desktop < 1 or comparison_width_custom_desktop > 100
+      assign comparison_width_custom_desktop = 100
+    endif
+    assign comparison_width_desktop = comparison_width_custom_desktop | append: '%'
+  endif
+
+  assign comparison_max_width_desktop = '100%'
+  if block.settings.limit_width
+    assign comparison_max_width_value = block.settings.max_width_desktop | default: 1600 | plus: 0
+    if comparison_max_width_value < 0 or comparison_max_width_value > 1600
+      assign comparison_max_width_value = 1600
+    endif
+    if comparison_max_width_value > 0
+      assign comparison_max_width_desktop = comparison_max_width_value | append: 'px'
+    endif
+  endif
+
+  assign comparison_font = block.settings.font | default: 'body'
+  unless comparison_font == 'body' or comparison_font == 'heading' or comparison_font == 'accent'
+    assign comparison_font = 'body'
+  endunless
+  assign comparison_font_family = 'var(--font-body-family)'
+  assign comparison_font_style = 'var(--font-body-style)'
+  assign comparison_font_weight = 'var(--font-body-weight)'
+  assign comparison_font_transform = 'var(--font-body-text-transform)'
+  if comparison_font == 'heading'
+    assign comparison_font_family = 'var(--font-heading-family)'
+    assign comparison_font_style = 'var(--font-heading-style)'
+    assign comparison_font_weight = 'var(--font-heading-weight)'
+    assign comparison_font_transform = 'var(--font-heading-md-text-transform)'
+  elsif comparison_font == 'accent'
+    assign comparison_font_family = 'var(--font-accent-family)'
+    assign comparison_font_style = 'var(--font-accent-style)'
+    assign comparison_font_weight = 'var(--font-accent-weight)'
+    assign comparison_font_transform = 'var(--font-accent-text-transform)'
+  endif
+
+  assign comparison_font_size = block.settings.font_size | default: 'md'
+  unless comparison_font_size == 'xs' or comparison_font_size == 'sm' or comparison_font_size == 'md' or comparison_font_size == 'lg' or comparison_font_size == 'xl' or comparison_font_size == 'xxl'
+    assign comparison_font_size = 'md'
+  endunless
+  assign comparison_font_size_token = 'var(--font-body-md)'
+  case comparison_font_size
+    when 'xs'
+      assign comparison_font_size_token = 'var(--font-body-xs)'
+    when 'sm'
+      assign comparison_font_size_token = 'var(--font-body-sm)'
+    when 'lg'
+      assign comparison_font_size_token = 'var(--font-body-lg)'
+    when 'xl'
+      assign comparison_font_size_token = 'var(--font-body-xl)'
+    when 'xxl'
+      assign comparison_font_size_token = 'var(--font-body-xxl)'
+  endcase
+
+  assign comparison_letter_spacing = block.settings.letter_spacing | default: 'normal'
+  unless comparison_letter_spacing == 'tight' or comparison_letter_spacing == 'normal' or comparison_letter_spacing == 'relaxed' or comparison_letter_spacing == 'loose' or comparison_letter_spacing == 'extra_loose'
+    assign comparison_letter_spacing = 'normal'
+  endunless
+  assign comparison_letter_spacing_token = '0em'
+  case comparison_letter_spacing
+    when 'tight'
+      assign comparison_letter_spacing_token = '-0.02em'
+    when 'relaxed'
+      assign comparison_letter_spacing_token = '0.02em'
+    when 'loose'
+      assign comparison_letter_spacing_token = '0.08em'
+    when 'extra_loose'
+      assign comparison_letter_spacing_token = '0.2em'
+  endcase
+
+  assign comparison_radius = 'var(--media-radius, var(--radius-square))'
+  assign comparison_corner_radius = block.settings.corner_radius | default: 'inherit'
+  assign comparison_custom_radius = block.settings.custom_corner_radius | default: 0 | plus: 0
+  if comparison_custom_radius < 0 or comparison_custom_radius > 40
+    assign comparison_custom_radius = 0
+  endif
+  case comparison_corner_radius
+    when 'square'
+      assign comparison_radius = 'var(--radius-square)'
+    when 'rounded'
+      assign comparison_radius = 'var(--radius-rounded)'
+    when 'custom'
+      assign comparison_radius = comparison_custom_radius | append: 'px'
+  endcase
+
+  assign comparison_handle_icon_color = block.settings.handle_icon_color | default: '#262626'
+  assign comparison_handle_background = block.settings.handle_background | default: '#FFFFFF'
+  assign comparison_text_color = block.settings.text_color | default: '#FFFFFF'
+  assign comparison_text_background = block.settings.text_background | default: '#000000'
+
+  assign comparison_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign comparison_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign comparison_padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign comparison_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  if comparison_padding_top < 0 or comparison_padding_top > 100
+    assign comparison_padding_top = 0
+  endif
+  if comparison_padding_bottom < 0 or comparison_padding_bottom > 100
+    assign comparison_padding_bottom = 0
+  endif
+  if comparison_padding_top_mobile < 0 or comparison_padding_top_mobile > 100
+    assign comparison_padding_top_mobile = 0
+  endif
+  if comparison_padding_bottom_mobile < 0 or comparison_padding_bottom_mobile > 100
+    assign comparison_padding_bottom_mobile = 0
+  endif
+
+  assign image_comparison_class = 'image-compare-block size-style size-style--contain image-compare-block--width-' | append: comparison_width_desktop_setting
+  if comparison_style == 'side_by_side'
+    assign image_comparison_class = image_comparison_class | append: ' image-compare-block--side-by-side'
+  endif
+  if block.settings.show_image_first_mobile
+    assign image_comparison_class = image_comparison_class | append: ' image-compare-block--first-mobile'
+  endif
+
+  assign comparison_separate_images = false
+  if comparison_style == 'side_by_side' and block.settings.separate_images
+    assign comparison_separate_images = true
+  endif
+%}
+
+{% capture image_comparison_style %}
+  {% render 'size-style',
+    width: comparison_width_desktop,
+    max_width: comparison_max_width_desktop
+  %}
+  --image-compare-ratio: {{ comparison_ratio_desktop }};
+  {% if comparison_ratio_mobile != comparison_ratio_desktop %}--image-compare-ratio-mobile: {{ comparison_ratio_mobile }};{% endif %}
+  {% if comparison_position != 50 %}--image-compare-position: {{ comparison_position }}%;{% endif %}
+  {% if comparison_font != 'body' %}--image-compare-label-font-family: {{ comparison_font_family }};--image-compare-label-font-style: {{ comparison_font_style }};--image-compare-label-font-weight: {{ comparison_font_weight }};--image-compare-label-text-transform: {{ comparison_font_transform }};{% endif %}
+  {% if comparison_font_size != 'md' %}--image-compare-label-font-size: {{ comparison_font_size_token }};{% endif %}
+  {% if comparison_letter_spacing != 'normal' %}--image-compare-label-letter-spacing: {{ comparison_letter_spacing_token }};{% endif %}
+  {% if comparison_corner_radius != 'inherit' %}--image-compare-radius: {{ comparison_radius }};{% endif %}
+  {% if comparison_handle_icon_color != '#262626' %}--image-compare-handle-color: {{ comparison_handle_icon_color | escape }};{% endif %}
+  {% if comparison_handle_background != '#FFFFFF' %}--image-compare-handle-background: {{ comparison_handle_background | escape }};{% endif %}
+  {% if comparison_text_color != '#FFFFFF' %}--image-compare-label-color: {{ comparison_text_color | escape }};{% endif %}
+  {% if comparison_text_background != '#000000' %}--image-compare-label-background: {{ comparison_text_background | escape }};{% endif %}
+  {% if comparison_padding_top != 0 %}--image-compare-padding-top: {{ comparison_padding_top }}px;{% endif %}
+  {% if comparison_padding_bottom != 0 %}--image-compare-padding-bottom: {{ comparison_padding_bottom }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if comparison_padding_top_mobile != comparison_padding_top %}--image-compare-padding-top-mobile: {{ comparison_padding_top_mobile }}px;{% endif %}
+    {% if comparison_padding_bottom_mobile != comparison_padding_bottom %}--image-compare-padding-bottom-mobile: {{ comparison_padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign image_comparison_style = image_comparison_style | strip | replace: '\n', ' ' %}
+
+<div
+  class="{{ image_comparison_class }}"
+  {% if image_comparison_style != blank %}style="{{ image_comparison_style }}"{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {% render 'image-comparison',
+    before_image: before_image,
+    before_mobile_image: before_mobile_image,
+    before_alt: before_alt,
+    before_label: block.settings.before_label,
+    after_image: after_image,
+    after_mobile_image: after_mobile_image,
+    after_alt: after_alt,
+    after_label: block.settings.after_label,
+    variant: comparison_style,
+    direction: comparison_direction,
+    initial_position: comparison_position,
+    handle_icon: comparison_handle_icon,
+    show_label_background: block.settings.show_text_background,
+    show_image_first_mobile: block.settings.show_image_first_mobile,
+    separate_images: comparison_separate_images
+  %}
+</div>
+
+{% stylesheet %}
+  .image-compare-block {
+    display: block;
+    min-width: 0;
+    padding-top: var(--image-compare-padding-top, 0px);
+    padding-bottom: var(--image-compare-padding-bottom, 0px);
+  }
+
+  @media (max-width: 767.98px) {
+    .image-compare-block--first-mobile {
+      order: -1;
+    }
+
+    .image-compare-block {
+      width: 100%;
+      max-width: 100%;
+      padding-top: var(--image-compare-padding-top-mobile, var(--image-compare-padding-top, 0px));
+      padding-bottom: var(--image-compare-padding-bottom-mobile, var(--image-compare-padding-bottom, 0px));
+    }
+
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.image_comparison",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "comparison_style",
+      "label": "t:labels.comparison_style",
+      "options": [
+        { "value": "slider", "label": "t:options.comparison_style.slider" },
+        { "value": "side_by_side", "label": "t:options.comparison_style.side_by_side" }
+      ],
+      "default": "slider"
+    },
+    {
+      "type": "range",
+      "id": "initial_position",
+      "label": "t:labels.initial_position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.comparison_style == 'slider' }}"
+    },
+    {
+      "type": "select",
+      "id": "handle_icon",
+      "label": "t:labels.handle_icon",
+      "options": [
+        { "value": "bars", "label": "t:options.handle_icon.bars" },
+        { "value": "compare", "label": "t:options.handle_icon.compare" }
+      ],
+      "default": "compare",
+      "visible_if": "{{ block.settings.comparison_style == 'slider' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "t:labels.direction",
+      "options": [
+        { "value": "horizontal", "label": "t:options.direction.horizontal" },
+        { "value": "vertical", "label": "t:options.direction.vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio_desktop",
+      "label": "t:labels.image_ratio",
+      "options": [
+        { "value": "original", "label": "t:options.image_ratio.original" },
+        { "value": "square", "label": "t:options.image_ratio.square" },
+        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
+        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
+        { "value": "wide", "label": "t:options.image_ratio.wide" },
+        { "value": "custom", "label": "t:options.image_ratio.custom" }
+      ],
+      "default": "original"
+    },
+    {
+      "type": "number",
+      "id": "image_ratio_custom_width_desktop",
+      "label": "W",
+      "default": 16,
+      "visible_if": "{{ block.settings.image_ratio_desktop == 'custom' }}"
+    },
+    {
+      "type": "number",
+      "id": "image_ratio_custom_height_desktop",
+      "label": "H",
+      "default": 9,
+      "visible_if": "{{ block.settings.image_ratio_desktop == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio_mobile",
+      "label": "t:labels.mobile_image_ratio",
+      "options": [
+        { "value": "original", "label": "t:options.image_ratio.original" },
+        { "value": "square", "label": "t:options.image_ratio.square" },
+        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
+        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
+        { "value": "wide", "label": "t:options.image_ratio.wide" },
+        { "value": "custom", "label": "t:options.image_ratio.custom" }
+      ],
+      "default": "original"
+    },
+    {
+      "type": "number",
+      "id": "image_ratio_custom_width_mobile",
+      "label": "W",
+      "default": 16,
+      "visible_if": "{{ block.settings.image_ratio_mobile == 'custom' }}"
+    },
+    {
+      "type": "number",
+      "id": "image_ratio_custom_height_mobile",
+      "label": "H",
+      "default": 9,
+      "visible_if": "{{ block.settings.image_ratio_mobile == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image_first_mobile",
+      "label": "t:labels.show_image_first_mobile",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "separate_images",
+      "label": "t:labels.separate_images",
+      "default": false,
+      "visible_if": "{{ block.settings.comparison_style == 'side_by_side' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.size"
+    },
+    {
+      "type": "select",
+      "id": "width_desktop",
+      "label": "t:labels.desktop_width",
+      "options": [
+        { "value": "fill", "label": "t:options.width.fill" },
+        { "value": "custom", "label": "t:options.width.custom" }
+      ],
+      "default": "fill"
+    },
+    {
+      "type": "range",
+      "id": "width_custom_desktop",
+      "label": "t:labels.desktop_custom_width",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 100,
+      "visible_if": "{{ block.settings.width_desktop == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "limit_width",
+      "label": "t:labels.limit_width",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "max_width_desktop",
+      "label": "t:labels.desktop_max_width",
+      "min": 0,
+      "max": 1600,
+      "step": 16,
+      "unit": "px",
+      "default": 1600,
+      "visible_if": "{{ block.settings.limit_width }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.before_image"
+    },
+    {
+      "type": "image_picker",
+      "id": "before_image",
+      "label": "t:labels.image"
+    },
+    {
+      "type": "image_picker",
+      "id": "before_mobile_image",
+      "label": "t:labels.mobile_image_optional"
+    },
+    {
+      "type": "richtext",
+      "id": "before_label",
+      "label": "t:labels.label",
+      "default": "<p>Before</p>"
+    },
+    {
+      "type": "header",
+      "content": "t:general.after_image"
+    },
+    {
+      "type": "image_picker",
+      "id": "after_image",
+      "label": "t:labels.image"
+    },
+    {
+      "type": "image_picker",
+      "id": "after_mobile_image",
+      "label": "t:labels.mobile_image_optional"
+    },
+    {
+      "type": "richtext",
+      "id": "after_label",
+      "label": "t:labels.label",
+      "default": "<p>After</p>"
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:labels.font",
+      "options": [
+        { "value": "body", "label": "t:options.menu_font.body" },
+        { "value": "heading", "label": "t:options.menu_font.heading" },
+        { "value": "accent", "label": "t:options.menu_font.accent" }
+      ],
+      "default": "body"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:labels.font_size",
+      "options": [
+        { "value": "xs", "label": "t:options.text_size.xs" },
+        { "value": "sm", "label": "t:options.text_size.sm" },
+        { "value": "md", "label": "t:options.text_size.md" },
+        { "value": "lg", "label": "t:options.text_size.lg" },
+        { "value": "xl", "label": "t:options.text_size.xl" },
+        { "value": "xxl", "label": "t:options.text_size.xxl" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        { "value": "tight", "label": "t:options.letter_spacing.tight" },
+        { "value": "normal", "label": "t:options.letter_spacing.normal" },
+        { "value": "relaxed", "label": "t:options.letter_spacing.relaxed" },
+        { "value": "loose", "label": "t:options.letter_spacing.loose" },
+        { "value": "extra_loose", "label": "t:options.letter_spacing.extra_loose" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_text_background",
+      "label": "t:labels.show_text_background",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:general.border"
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "t:labels.corner_radius",
+      "options": [
+        { "value": "inherit", "label": "t:options.radius_preset.inherit" },
+        { "value": "square", "label": "t:options.radius_preset.square" },
+        { "value": "rounded", "label": "t:options.radius_preset.rounded" },
+        { "value": "custom", "label": "t:options.radius_preset.custom" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "range",
+      "id": "custom_corner_radius",
+      "label": "t:labels.custom_corner_radius",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.corner_radius == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.color"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "handle_icon_color",
+      "label": "t:labels.handle_icon_color",
+      "default": "#262626"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "handle_background",
+      "label": "t:labels.handle_background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_color",
+      "label": "t:labels.text_color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_background",
+      "label": "t:labels.text_background",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.image_comparison",
+      "category": "t:general.media",
+      "settings": {
+        "comparison_style": "slider",
+        "initial_position": 50,
+        "handle_icon": "compare",
+        "direction": "horizontal",
+        "image_ratio_desktop": "original",
+        "image_ratio_mobile": "original",
+        "show_image_first_mobile": false,
+        "separate_images": false,
+        "width_desktop": "fill",
+        "limit_width": false,
+        "before_label": "<p>Before</p>",
+        "after_label": "<p>After</p>",
+        "font": "body",
+        "font_size": "md",
+        "letter_spacing": "normal",
+        "show_text_background": true,
+        "corner_radius": "inherit",
+        "custom_corner_radius": 0,
+        "handle_icon_color": "#262626",
+        "handle_background": "#FFFFFF",
+        "text_color": "#FFFFFF",
+        "text_background": "#000000",
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "customize_mobile_padding": false
+      }
+    }
+  ]
+}
+{% endschema %}

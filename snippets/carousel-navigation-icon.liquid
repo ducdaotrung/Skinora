@@ -1,0 +1,48 @@
+{% doc %}
+  Renders a directional icon for carousel controls.
+
+  @param {string} [icon] - Icon style: chevron, arrow, or long_arrow
+  @param {string} [direction] - Direction: previous or next
+{% enddoc %}
+
+{% liquid
+  assign carousel_navigation_icon = icon | default: 'chevron'
+  unless carousel_navigation_icon == 'chevron' or carousel_navigation_icon == 'arrow' or carousel_navigation_icon == 'long_arrow'
+    assign carousel_navigation_icon = 'chevron'
+  endunless
+
+  assign carousel_navigation_direction = direction | default: 'next'
+  unless carousel_navigation_direction == 'previous' or carousel_navigation_direction == 'next'
+    assign carousel_navigation_direction = 'next'
+  endunless
+%}
+
+<svg
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  focusable="false"
+  aria-hidden="true"
+>
+  {% if carousel_navigation_direction == 'previous' %}
+    {% case carousel_navigation_icon %}
+      {% when 'arrow' %}
+        <path d="M19 12H5M5 12L12 5M5 12L12 19" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round"></path>
+      {% when 'long_arrow' %}
+        <path d="M6 8L2 12M2 12L6 16M2 12H22" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round"></path>
+      {% else %}
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round"></path>
+    {% endcase %}
+  {% else %}
+    {% case carousel_navigation_icon %}
+      {% when 'arrow' %}
+        <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round"></path>
+      {% when 'long_arrow' %}
+        <path d="M18 8L22 12M22 12L18 16M22 12H2" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round"></path>
+      {% else %}
+        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round"></path>
+    {% endcase %}
+  {% endif %}
+</svg>

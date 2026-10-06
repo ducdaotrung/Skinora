@@ -1,0 +1,66 @@
+{% doc %}
+  Renders a reusable disclosure/accordion primitive.
+
+  The caller owns the summary and content markup. The shared asset owns native
+  details semantics, open/close animation, reduced-motion handling and lifecycle
+  events. Set mobile_only to make the disclosure interactive only on mobile;
+  desktop will remain expanded while the mobile state is preserved separately.
+
+  @param {string} summary - Markup rendered inside the summary element
+  @param {string} content - Markup rendered inside the content element
+  @param {string} [id] - Optional id for the details element
+  @param {string} [content_id] - Optional id referenced by aria-controls
+  @param {string} [class] - Optional classes for the details element
+  @param {string} [summary_class] - Optional classes for the summary element
+  @param {string} [content_class] - Optional classes for the content element
+  @param {string} [content_inner_class] - Optional classes for the inner content wrapper
+  @param {boolean} [initially_open] - Whether the component starts open
+  @param {boolean} [mobile_only] - Keep the disclosure interactive on mobile and always open it on desktop
+  @param {string} [attributes] - Additional trusted attributes for the details element
+
+  @example
+  {% render 'accordion-details',
+    summary: '<span>Question</span>',
+    content: '<p>Answer</p>',
+    initially_open: false
+  %}
+{% enddoc %}
+
+{% liquid
+  assign accordion_details_class = class | default: ''
+  assign accordion_summary_class = summary_class | default: ''
+  assign accordion_content_class = content_class | default: ''
+  assign accordion_content_inner_class = content_inner_class | default: 'accordion-details__content-inner'
+  assign accordion_initially_open = false
+  assign accordion_mobile_only = false
+  if initially_open
+    assign accordion_initially_open = true
+  endif
+  if mobile_only
+    assign accordion_mobile_only = true
+  endif
+%}
+
+<details
+  class="accordion-details{% if accordion_details_class != blank %} {{ accordion_details_class }}{% endif %}"
+  data-accordion-details
+  data-accordion-state="{% if accordion_initially_open %}open{% else %}closed{% endif %}"
+  {% if accordion_mobile_only %}data-accordion-mobile-state="{% if accordion_initially_open %}open{% else %}closed{% endif %}"{% endif %}
+  {% if accordion_mobile_only %}data-accordion-mobile-only="true"{% endif %}
+  {% if id != blank %}id="{{ id | escape }}"{% endif %}
+  {% if accordion_initially_open %}open{% endif %}
+  {{ attributes }}
+>
+  <summary
+    class="accordion-details__summary{% if accordion_summary_class != blank %} {{ accordion_summary_class }}{% endif %}"
+    {% if content_id != blank %}aria-controls="{{ content_id | escape }}"{% endif %}
+  >
+    {{ summary }}
+  </summary>
+  <div
+    class="accordion-details__content{% if accordion_content_class != blank %} {{ accordion_content_class }}{% endif %}"
+    {% if content_id != blank %}id="{{ content_id | escape }}"{% endif %}
+  >
+    <div class="{{ accordion_content_inner_class }}">{{ content }}</div>
+  </div>
+</details>

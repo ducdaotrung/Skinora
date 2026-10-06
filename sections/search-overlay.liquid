@@ -1,0 +1,613 @@
+{% liquid
+  assign search_overlay_appearance = section.settings.appearance_type | default: 'inherit'
+  unless search_overlay_appearance == 'inherit' or search_overlay_appearance == 'scheme'
+    assign search_overlay_appearance = 'inherit'
+  endunless
+  assign search_overlay_class = 'search-overlay color-scheme section-color-scope'
+  if search_overlay_appearance == 'scheme'
+    assign search_overlay_scheme = section.settings.color_scheme | default: 'scheme-1'
+    if section.settings.color_scheme.id != blank
+      assign search_overlay_scheme = section.settings.color_scheme.id
+    endif
+    assign search_overlay_scheme = search_overlay_scheme | default: 'scheme-1' | handleize
+    assign search_overlay_class = search_overlay_class | append: ' search-overlay--scheme ' | append: search_overlay_scheme
+  else
+    assign search_overlay_class = search_overlay_class | append: ' search-overlay--inherit'
+  endif
+  assign search_overlay_placeholder = section.settings.placeholder
+  if search_overlay_placeholder == blank
+    assign search_overlay_placeholder = 'search.overlay_placeholder' | t
+  endif
+  assign search_show_products = section.settings.show_products
+  assign search_show_collections = section.settings.show_collections
+  assign search_show_blog_posts = section.settings.show_blog_posts
+  assign search_show_pages = section.settings.show_pages
+  if search_show_products == nil
+    assign search_show_products = true
+  endif
+  if search_show_collections == nil
+    assign search_show_collections = true
+  endif
+  if search_show_blog_posts == nil
+    assign search_show_blog_posts = true
+  endif
+  if search_show_pages == nil
+    assign search_show_pages = true
+  endif
+%}
+
+<div
+  id="SearchOverlay"
+  class="component-overlay {{ search_overlay_class }}"
+  data-component-overlay
+  data-append-to-body
+  data-desktop-layout="popup"
+  data-mobile-layout="drawer"
+  data-state="closed"
+  scroll-lock
+  role="dialog"
+  aria-modal="true"
+  aria-label="{{ 'search.title' | t }}"
+  aria-hidden="true"
+  hidden
+  data-search-overlay
+  data-placeholder="{{ search_overlay_placeholder | escape }}"
+  data-placeholder-suggestions="{{ section.settings.placeholder_suggestions | escape }}"
+  data-show-products="{{ search_show_products }}"
+  data-show-collections="{{ search_show_collections }}"
+  data-show-blog-posts="{{ search_show_blog_posts }}"
+  data-show-pages="{{ search_show_pages }}"
+  data-view-all-style="{{ section.settings.view_all_style | default: 'primary' | escape }}"
+  data-search-url="{{ routes.search_url }}"
+  data-predictive-search-url="{{ routes.predictive_search_url }}"
+  data-products-label="{{ 'search.products' | t | escape }}"
+  data-collections-label="{{ 'search.collections' | t | escape }}"
+  data-blog-posts-label="{{ 'search.blog_posts' | t | escape }}"
+  data-pages-label="{{ 'search.pages' | t | escape }}"
+  data-suggestions-label="{{ 'search.suggestions' | t | escape }}"
+  data-view-all-label="{{ 'search.view_all_results' | t | escape }}"
+  data-no-results-label="{{ 'search.no_results' | t | escape }}"
+>
+  <button class="component-overlay__backdrop backdrop-blur search-overlay__backdrop" type="button" tabindex="-1" aria-label="{{ 'search.close' | t }}" data-component-overlay-backdrop data-search-overlay-backdrop></button>
+  <div class="component-overlay__panel search-overlay__panel scrollbar scrollbar--vertical">
+    <div class="container page-width search-overlay__container">
+      <form class="search-overlay__form body-text body-xl body-mobile-lg" action="{{ routes.search_url }}" method="get" role="search" data-search-overlay-form>
+        <span class="search-overlay__icon" aria-hidden="true">
+          {% render 'icon', icon: 'magnifying-glass', bare: true %}
+        </span>
+        <label class="visually-hidden" for="SearchOverlayInput">{{ 'search.title' | t }}</label>
+        <input id="SearchOverlayInput" class="search-overlay__input form__control form__control--input" name="q" type="search" autocomplete="off" placeholder="{{ search_overlay_placeholder | escape }}" role="combobox" aria-autocomplete="list" aria-controls="SearchOverlayResults" aria-expanded="false" data-search-overlay-input>
+        <button class="overlay-close search-overlay__close" type="button" aria-label="{{ 'search.close' | t }}" data-overlay-close data-search-overlay-close>{% render 'icon', icon: 'x-mark', bare: true, class: 'overlay-close__icon' %}</button>
+      </form>
+
+      <div id="SearchOverlayResults" class="search-overlay__results" data-search-overlay-results aria-live="polite" hidden></div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .search-overlay {
+    --overlay-rest-transform: translateY(-0.5rem);
+    --overlay-motion-duration: var(--motion-duration-standard);
+    --overlay-motion-ease: var(--motion-ease-standard);
+    --overlay-exit-duration: var(--overlay-motion-duration);
+    --overlay-backdrop-duration: var(--motion-duration-standard);
+    --overlay-backdrop-ease: var(--motion-ease-standard);
+    color: var(--overlay-text-color);
+  }
+
+  .search-overlay__panel {
+    position: absolute;
+    inset: var(--search-overlay-top, 0px) 0 auto;
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - var(--search-overlay-top, 0px));
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    transform: translateY(-0.5rem);
+  }
+
+  .search-overlay__results[hidden] { display: none; }
+  body:has(.section-header .header__container.full-width) .search-overlay__container { max-width: none; }
+  .search-overlay--scheme { color: var(--body-color); }
+  .search-overlay__backdrop {
+    background-color: transparent;
+  }
+  .search-overlay__container { padding-block: 1rem; }
+  .search-overlay__panel { background: var(--overlay-background-color); }
+  .search-overlay--has-results .search-overlay__panel {
+    background: var(--overlay-background-color);
+    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 55%, transparent);
+    box-shadow: none;
+  }
+  .search-overlay--scheme.search-overlay--has-results .search-overlay__panel { background: var(--background-color); }
+  .search-overlay--scheme .search-overlay__panel { background: var(--background-color); }
+
+  /* Search sits below the header stack so the announcement bar and header stay
+   * visible and unblurred. Keep this elevation scoped to Search; other overlays
+   * retain the normal modal stacking contract. */
+  body:has(.search-overlay:is([data-state='opening'], [data-state='open'], [data-state='closing'])) .shopify-section.section-header,
+  body:has(.search-overlay:is([data-state='opening'], [data-state='open'], [data-state='closing'])) .shopify-section.section-announcement-bar {
+    z-index: calc(var(--z-modal, 1000) + 1);
+  }
+
+  body:has(.search-overlay:is([data-state='opening'], [data-state='open'], [data-state='closing'])) .shopify-section.section-announcement-bar {
+    position: relative;
+  }
+
+  .search-overlay__form { position: relative; display: flex; align-items: center; width: calc(100% - 3.5rem); padding-inline: 0; border: 0; border-radius: var(--input-radius); background: var(--overlay-background-color); color: var(--overlay-text-color); }
+  .search-overlay__icon { position: absolute; z-index: 2; top: 50%; inset-inline-start: 0.875rem; display: inline-flex; width: var(--icon-size-small); height: var(--icon-size-small); color: var(--input-text-color); pointer-events: none; transform: translateY(-50%); }
+  .search-overlay__icon svg { width: 100%; height: 100%; }
+  .search-overlay__form .form__control.form__control--input.search-overlay__input { width: auto; min-width: 0; flex: 1 1 auto; padding-inline-start: calc(0.875rem + var(--icon-size-small) + 0.75rem); padding-inline-end: 0.875rem; font: inherit; }
+  .search-overlay__form input.search-overlay__input::-webkit-search-cancel-button,
+  .search-overlay__form input.search-overlay__input::-webkit-search-decoration,
+  .search-overlay__form input.search-overlay__input::-webkit-search-results-button,
+  .search-overlay__form input.search-overlay__input::-webkit-search-results-decoration { display: none; appearance: none; -webkit-appearance: none; }
+  .search-overlay__form input.search-overlay__input::-ms-clear { display: none; width: 0; height: 0; }
+  .search-overlay__form input.search-overlay__input::placeholder { color: currentColor; opacity: 0.58; font-size: var(--font-body-md); letter-spacing: var(--font-eyebrow-letter-spacing); text-transform: var(--font-eyebrow-text-transform); }
+  .search-overlay__form .search-overlay__input:focus { outline: 2px solid var(--input-focus-color); outline-offset: -2px; }
+  .search-overlay__close { position: absolute; top: 50%; left: calc(100% + 1rem); color: var(--overlay-text-color); transform: translateY(-50%); }
+  .search-overlay--scheme .search-overlay__close { color: var(--body-color); }
+  .search-overlay__results { display: grid; grid-template-columns: minmax(12rem, 0.7fr) minmax(0, 4.3fr); gap: 2.5rem; padding: 1.75rem 0 3rem; }
+  .search-overlay__results:not(.search-overlay__results--has-suggestions) { grid-template-columns: minmax(0, 1fr); }
+  .search-overlay__suggestions { min-width: 0; }
+  .search-overlay__eyebrow, .search-overlay__tab { margin: 0; }
+  .search-overlay__eyebrow { padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+  .search-overlay__suggestion-list, .search-overlay__page-list { display: grid; gap: 0.85rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
+  .search-overlay__suggestion-list a, .search-overlay__page-list a { color: inherit; }
+  .search-overlay__page-list a { display: inline-block; }
+  .search-overlay__suggestion-list button { display: inline-block; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+  .search-overlay__content { min-width: 0; }
+  .search-overlay__tabs { display: flex; gap: 2.5rem; border-bottom: 1px solid var(--border-color); }
+  .search-overlay__tab { position: relative; padding: 0 0 1rem; border: 0; background: transparent; color: color-mix(in srgb, currentColor 55%, transparent); cursor: pointer; }
+  .search-overlay__tab[aria-selected='true'] { color: inherit; }
+  .search-overlay__tab[aria-selected='true']::after { position: absolute; inset-inline: 0; bottom: -1px; height: 1px; background: currentColor; content: ''; }
+  .search-overlay__result-panel { padding-top: 2rem; }
+  .search-overlay__product-grid, .search-overlay__collection-grid, .search-overlay__article-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; }
+  .search-overlay__result-card { display: grid; gap: 0.85rem; color: inherit; text-decoration: none; }
+  .search-overlay__image { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: color-mix(in srgb, var(--background-color) 94%, var(--body-color)); }
+  .search-overlay__result-title { line-height: 1.35; }
+  .search-overlay__price { color: color-mix(in srgb, currentColor 65%, transparent); }
+  .search-overlay__view-all { display: flex; justify-content: center; margin-top: 2.5rem; }
+  .search-overlay__empty { margin: 0; }
+
+  @media (max-width: 767.98px) {
+    .search-overlay__panel {
+      padding-block-start: var(--search-overlay-padding-block-start, 0.75rem);
+      padding-block-end: var(--search-overlay-padding-block-end, 0.75rem);
+    }
+    .search-overlay[data-mobile-layout='drawer'] .search-overlay__panel {
+      --overlay-rest-transform: translateY(-0.5rem);
+      inset: var(--search-overlay-top, 0px) 0 auto;
+      width: 100%;
+      height: fit-content;
+      max-height: calc(100dvh - var(--search-overlay-top, 0px));
+      margin: 0;
+      border-radius: 0;
+    }
+    .search-overlay__form { gap: 0.75rem; }
+    .search-overlay__results { grid-template-columns: 1fr; gap: 1.5rem; padding-block: 1.25rem 2rem; }
+    .search-overlay__suggestions { display: none; }
+    .search-overlay__tabs { gap: 1.25rem; }
+    .search-overlay__product-grid, .search-overlay__collection-grid, .search-overlay__article-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+(() => {
+  const controllerKey = '__searchOverlayController';
+  if (window[controllerKey]) {
+    window[controllerKey].initialize(document);
+    return;
+  }
+
+  const state = {
+    overlay: null,
+    presentation: null,
+    input: null,
+    form: null,
+    results: null,
+    sectionRoot: null,
+    editorSelected: false,
+    timer: null,
+    controller: null,
+    placeholderTimer: null,
+    opener: null,
+  };
+
+  const getOverlay = (root = document) => {
+    if (!root) return null;
+    if (root.matches?.('[data-search-overlay]')) return root;
+    return root.querySelector?.('[data-search-overlay]') || null;
+  };
+
+  const getPlaceholderSuggestions = (overlay) => (overlay?.dataset.placeholderSuggestions || '')
+    .split(';')
+    .map((suggestion) => suggestion.trim())
+    .filter(Boolean);
+
+  const stopPlaceholderRotation = () => {
+    window.clearTimeout(state.placeholderTimer);
+    state.placeholderTimer = null;
+  };
+
+  const startPlaceholderRotation = () => {
+    stopPlaceholderRotation();
+    const { overlay, input } = state;
+    const suggestions = getPlaceholderSuggestions(overlay);
+    if (!overlay || !input || !suggestions.length) return;
+    const defaultPlaceholder = input.dataset.searchOverlayDefaultPlaceholder || '';
+    const placeholders = [...suggestions, defaultPlaceholder].filter(Boolean);
+
+    let placeholderIndex = 0;
+    let characterIndex = 0;
+    let deleting = false;
+    const step = () => {
+      if (state.overlay !== overlay || state.input !== input || input.value.trim()) return;
+      const placeholder = placeholders[placeholderIndex];
+
+      if (!deleting) {
+        characterIndex += 1;
+        input.setAttribute('placeholder', placeholder.slice(0, characterIndex));
+        if (characterIndex >= placeholder.length) {
+          deleting = true;
+          state.placeholderTimer = window.setTimeout(step, 1400);
+        } else {
+          state.placeholderTimer = window.setTimeout(step, 80);
+        }
+        return;
+      }
+
+      characterIndex -= 1;
+      input.setAttribute('placeholder', placeholder.slice(0, characterIndex));
+      if (characterIndex <= 0) {
+        deleting = false;
+        placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+        state.placeholderTimer = window.setTimeout(step, 500);
+      } else {
+        state.placeholderTimer = window.setTimeout(step, 45);
+      }
+    };
+
+    state.placeholderTimer = window.setTimeout(step, 1200);
+  };
+
+  const resetPlaceholder = (input) => {
+    if (!input) return;
+    input.setAttribute('placeholder', input.dataset.searchOverlayDefaultPlaceholder || '');
+  };
+
+  const synchronizePanelPadding = (header, overlay) => {
+    const headerTop = header?.querySelector('[data-header-root]');
+    if (!headerTop || !overlay) return;
+    const headerStyles = window.getComputedStyle(headerTop);
+    overlay.style.setProperty('--search-overlay-padding-block-start', headerStyles.paddingTop);
+    overlay.style.setProperty('--search-overlay-padding-block-end', headerStyles.paddingBottom);
+  };
+
+  const resetSearchState = () => {
+    stopPlaceholderRotation();
+    if (state.input) state.input.value = '';
+    resetPlaceholder(state.input);
+    if (state.results) {
+      state.results.innerHTML = '';
+      state.results.hidden = true;
+      state.results.classList.remove('search-overlay__results--has-suggestions');
+    }
+    state.overlay?.classList.remove('search-overlay--has-results');
+    state.input?.setAttribute('aria-expanded', 'false');
+    window.clearTimeout(state.timer);
+    state.controller?.abort();
+    state.timer = null;
+    state.controller = null;
+    document.dispatchEvent(new CustomEvent('search-overlay:close'));
+    state.opener = null;
+  };
+
+  const close = ({ force = false } = {}) => {
+    const presentation = state.presentation || (state.overlay && window.ThemeOverlay?.get(state.overlay));
+    state.presentation = presentation;
+    if (!state.overlay || !presentation?.isOpen()) return;
+    // Selecting the Search section in the Theme Editor may open the overlay for
+    // inspection, but an explicit close must always take precedence.
+    if (!force) state.editorSelected = false;
+    presentation.close({ restoreFocus: !force, immediate: force });
+  };
+
+  const open = ({ focus = true } = {}) => {
+    const { overlay, input } = state;
+    if (!overlay || !input) return;
+    const presentation = state.presentation || (window.ThemeOverlay ? window.ThemeOverlay.get(overlay) : null);
+    state.presentation = presentation;
+    const header = document.querySelector('.shopify-section.header');
+    overlay.style.setProperty('--search-overlay-top', `${Math.max(0, header?.getBoundingClientRect().bottom || 0)}px`);
+    synchronizePanelPadding(header, overlay);
+    presentation?.open({ opener: state.editorSelected ? null : state.opener || document.activeElement, focus, restoreFocus: !state.editorSelected });
+    startPlaceholderRotation();
+    document.dispatchEvent(new CustomEvent('search-overlay:open', { detail: { header } }));
+  };
+
+  const escapeHtml = (value = '') => String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+  const money = (amount) => new Intl.NumberFormat(document.documentElement.lang || 'en', { style: 'currency', currency: window.Shopify?.currency?.active || 'USD' }).format(Number(amount || 0));
+  const imageUrl = (item) => item?.featured_image?.url || item?.featured_image || item?.image?.url || item?.image || item?.featured_media?.preview_image?.url || '';
+  const card = (item, showPrice = false) => {
+    const image = imageUrl(item);
+    return `<a class="search-overlay__result-card" href="${escapeHtml(item.url)}">${image ? `<img class="search-overlay__image" src="${escapeHtml(image)}" alt="${escapeHtml(item.title)}" loading="lazy">` : '<span class="search-overlay__image"></span>'}<span class="search-overlay__result-title accent-text body-sm">${escapeHtml(item.title)}</span>${showPrice ? `<span class="search-overlay__price card-price-text body-xs">${escapeHtml(money(item.price))}</span>` : ''}</a>`;
+  };
+
+  const getResourceTypes = (overlay) => {
+    const types = ['query'];
+    if (overlay.dataset.showProducts !== 'false') types.push('product');
+    if (overlay.dataset.showCollections !== 'false') types.push('collection');
+    if (overlay.dataset.showBlogPosts !== 'false') types.push('article');
+    if (overlay.dataset.showPages !== 'false') types.push('page');
+    return types.join(',');
+  };
+
+  const previewLimit = (resourceType) => resourceType === 'pages' ? 10 : 4;
+  const hasMoreResults = (resourceType, count) => resourceType === 'pages' ? count >= previewLimit(resourceType) : count > previewLimit(resourceType);
+  const viewAllStyle = (overlay) => ['primary', 'secondary', 'tertiary'].includes(overlay.dataset.viewAllStyle) ? overlay.dataset.viewAllStyle : 'primary';
+  const viewAllMarkup = (overlay, query, label, shouldShow) => {
+    if (!shouldShow) return '';
+    const style = viewAllStyle(overlay);
+    return `<div class="search-overlay__view-all"><a class="btn btn--${style}${style === 'tertiary' ? ' link-underline' : ''}"${style === 'tertiary' ? ' data-underline="persistent" data-underline-target="text"' : ''} href="${escapeHtml(overlay.dataset.searchUrl)}?q=${encodeURIComponent(query)}"><span class="btn__text">${escapeHtml(label)}</span></a></div>`;
+  };
+
+  const render = (resourceResults, query, targetOverlay = state.overlay, targetResults = state.results, targetInput = state.input) => {
+    if (!targetOverlay || !targetResults) return;
+    const products = resourceResults.products || [];
+    const collections = resourceResults.collections || [];
+    const articles = resourceResults.articles || [];
+    const pages = resourceResults.pages || [];
+    const queries = resourceResults.queries || [];
+    const labels = targetOverlay.dataset;
+    const panels = [];
+    if (products.length) panels.push(['products', labels.productsLabel, `<div class="search-overlay__product-grid">${products.slice(0, previewLimit('products')).map((item) => card(item, true)).join('')}</div>`]);
+    if (collections.length) panels.push(['collections', labels.collectionsLabel, `<div class="search-overlay__collection-grid">${collections.slice(0, previewLimit('collections')).map((item) => card(item)).join('')}</div>`]);
+    if (articles.length) panels.push(['articles', labels.blogPostsLabel, `<div class="search-overlay__article-grid">${articles.slice(0, previewLimit('articles')).map((item) => card(item)).join('')}</div>`]);
+    if (pages.length) panels.push(['pages', labels.pagesLabel, `<ul class="search-overlay__page-list body-text body-sm">${pages.slice(0, previewLimit('pages')).map((item) => `<li><a class="link-underline" href="${escapeHtml(item.url)}">${escapeHtml(item.title)}</a></li>`).join('')}</ul>`]);
+    if (!panels.length) {
+      targetResults.innerHTML = `<p class="search-overlay__empty body-text body-sm">${escapeHtml(labels.noResultsLabel)}</p>`;
+      targetResults.hidden = false;
+      targetResults.classList.remove('search-overlay__results--has-suggestions');
+      targetOverlay.classList.add('search-overlay--has-results');
+      return;
+    }
+    const hasOverflow = hasMoreResults('products', products.length)
+      || hasMoreResults('collections', collections.length)
+      || hasMoreResults('articles', articles.length)
+      || hasMoreResults('pages', pages.length);
+    const viewAll = viewAllMarkup(targetOverlay, query, labels.viewAllLabel, hasOverflow);
+    const productPanelIndex = panels.findIndex(([key]) => key === 'products');
+    const viewAllPanelIndex = productPanelIndex >= 0 ? productPanelIndex : 0;
+    if (viewAll) panels[viewAllPanelIndex][2] += viewAll;
+    const hasSuggestions = queries.length > 0;
+    const suggestions = hasSuggestions ? `<aside class="search-overlay__suggestions"><p class="search-overlay__eyebrow eyebrow-text">${escapeHtml(labels.suggestionsLabel)}</p><ul class="search-overlay__suggestion-list body-text body-sm">${queries.map((item) => `<li><button class="link-underline" type="button" data-search-suggestion="${escapeHtml(item.text || item.styled_text || '')}">${escapeHtml(item.text || item.styled_text || '')}</button></li>`).join('')}</ul></aside>` : '';
+    targetResults.classList.toggle('search-overlay__results--has-suggestions', hasSuggestions);
+    targetResults.innerHTML = `${suggestions}<div class="search-overlay__content"><div class="search-overlay__tabs scrollbar scrollbar--horizontal-mobile" role="tablist">${panels.map(([key, label], index) => `<button class="search-overlay__tab eyebrow-text" type="button" role="tab" aria-selected="${index === 0}" data-search-tab="${key}">${escapeHtml(label)}</button>`).join('')}</div>${panels.map(([key, , content], index) => `<div class="search-overlay__result-panel" role="tabpanel" data-search-panel="${key}"${index ? ' hidden' : ''}>${content}</div>`).join('')}</div>`;
+    targetResults.hidden = false;
+    targetOverlay.classList.add('search-overlay--has-results');
+    targetResults.querySelectorAll('[data-search-tab]').forEach((tab) => tab.addEventListener('click', () => {
+      targetResults.querySelectorAll('[data-search-tab]').forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
+      targetResults.querySelectorAll('[data-search-panel]').forEach((panel) => { panel.hidden = panel.dataset.searchPanel !== tab.dataset.searchTab; });
+    }));
+    targetResults.querySelectorAll('[data-search-suggestion]').forEach((button) => button.addEventListener('click', () => { targetInput.value = button.dataset.searchSuggestion; targetInput.dispatchEvent(new Event('input')); }));
+  };
+
+  const initializeOverlay = (nextOverlay) => {
+    if (!nextOverlay || nextOverlay.dataset.searchOverlayReady === 'true') return;
+    const nextInput = nextOverlay.querySelector('[data-search-overlay-input]');
+    const nextForm = nextOverlay.querySelector('[data-search-overlay-form]');
+    const nextResults = nextOverlay.querySelector('[data-search-overlay-results]');
+    const nextClose = nextOverlay.querySelector('[data-search-overlay-close]');
+    const nextBackdrop = nextOverlay.querySelector('[data-search-overlay-backdrop]');
+    if (!nextInput || !nextForm || !nextResults || !nextClose || !nextBackdrop) return;
+
+    const wasEditorSelected = state.editorSelected;
+    if (state.overlay && state.overlay !== nextOverlay) close({ force: true });
+    state.overlay = nextOverlay;
+    state.presentation = window.ThemeOverlay?.get(nextOverlay) || null;
+    state.input = nextInput;
+    state.form = nextForm;
+    state.results = nextResults;
+    state.sectionRoot = nextOverlay.closest('.shopify-section') || nextOverlay;
+    state.editorSelected = wasEditorSelected;
+    nextInput.dataset.searchOverlayDefaultPlaceholder = nextOverlay.dataset.placeholder || nextInput.getAttribute('placeholder') || '';
+    resetPlaceholder(nextInput);
+    nextOverlay.dataset.searchOverlayReady = 'true';
+
+    nextOverlay.addEventListener('close', resetSearchState);
+
+    nextInput.addEventListener('input', () => {
+      const query = nextInput.value.trim();
+      window.clearTimeout(state.timer);
+      if (!query) {
+        nextResults.hidden = true;
+        nextResults.innerHTML = '';
+        nextResults.classList.remove('search-overlay__results--has-suggestions');
+        nextOverlay.classList.remove('search-overlay--has-results');
+        nextInput.setAttribute('aria-expanded', 'false');
+        resetPlaceholder(nextInput);
+        startPlaceholderRotation();
+        return;
+      }
+      stopPlaceholderRotation();
+      state.timer = window.setTimeout(async () => {
+        state.controller?.abort();
+        state.controller = new AbortController();
+        const requestController = state.controller;
+        const params = new URLSearchParams({ q: query, 'resources[type]': getResourceTypes(nextOverlay), 'resources[limit]': '10', 'resources[limit_scope]': 'each' });
+        try {
+          const response = await fetch(`${nextOverlay.dataset.predictiveSearchUrl}?${params}`, {
+            headers: { Accept: 'application/json' },
+            signal: requestController.signal,
+          });
+          if (!response.ok) throw new Error('Predictive search failed');
+          const data = await response.json();
+          if (state.overlay !== nextOverlay || state.input !== nextInput || query !== nextInput.value.trim()) return;
+          render(data.resources?.results || {}, query, nextOverlay, nextResults, nextInput);
+          nextInput.setAttribute('aria-expanded', 'true');
+        } catch (error) {
+          if (error.name !== 'AbortError' && state.overlay === nextOverlay) {
+            nextResults.innerHTML = `<p class="search-overlay__empty body-text body-sm">${escapeHtml(nextOverlay.dataset.noResultsLabel)}</p>`;
+            nextResults.hidden = false;
+            nextResults.classList.remove('search-overlay__results--has-suggestions');
+            nextOverlay.classList.add('search-overlay--has-results');
+          }
+        }
+      }, 160);
+    });
+
+    nextForm.addEventListener('submit', (event) => { if (!nextInput.value.trim()) event.preventDefault(); });
+    if (state.editorSelected) open({ focus: false });
+  };
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest?.('[data-search-overlay-open]')) return;
+    event.preventDefault();
+    initializeOverlay(getOverlay());
+    state.opener = event.target.closest('[data-search-overlay-open]');
+    open({ focus: true });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && state.presentation?.isOpen()) close();
+  });
+
+  document.addEventListener('shopify:section:load', (event) => {
+    const nextOverlay = getOverlay(event.target);
+    if (nextOverlay) initializeOverlay(nextOverlay);
+  });
+
+  document.addEventListener('shopify:section:unload', (event) => {
+    if (!state.overlay) return;
+    const target = event.target;
+    if (target === state.sectionRoot || target?.contains?.(state.overlay)) {
+      close({ force: true });
+      state.presentation?.destroy();
+      state.overlay = null;
+      state.presentation = null;
+      state.input = null;
+      state.form = null;
+      state.results = null;
+      state.sectionRoot = null;
+      state.opener = null;
+      state.editorSelected = false;
+    }
+  });
+
+  const isSearchSectionEvent = (event) => {
+    const target = event.target;
+    return state.overlay && (target === state.sectionRoot || target === state.overlay || target?.contains?.(state.overlay) || state.overlay.contains(target));
+  };
+
+  document.addEventListener('shopify:section:select', (event) => {
+    const nextOverlay = getOverlay(event.target);
+    if (nextOverlay) initializeOverlay(nextOverlay);
+    if (!isSearchSectionEvent(event)) return;
+    state.editorSelected = true;
+    open({ focus: false });
+  });
+
+  document.addEventListener('shopify:section:deselect', (event) => {
+    if (!isSearchSectionEvent(event)) return;
+    state.editorSelected = false;
+    close({ force: true });
+  });
+
+  window.addEventListener('resize', () => {
+    if (!state.overlay || state.overlay.hasAttribute('hidden')) return;
+    const header = document.querySelector('.shopify-section.header');
+    state.overlay.style.setProperty('--search-overlay-top', `${Math.max(0, header?.getBoundingClientRect().bottom || 0)}px`);
+    synchronizePanelPadding(header, state.overlay);
+  });
+
+  window[controllerKey] = { initialize: (root) => initializeOverlay(getOverlay(root)) };
+  initializeOverlay(getOverlay());
+})();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Search",
+  "class": "section-search-overlay",
+  "enabled_on": { "groups": ["custom.overlay"] },
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "select",
+      "id": "appearance_type",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "inherit", "label": "t:options.appearance_type.inherit" },
+        { "value": "scheme", "label": "t:options.appearance_type.scheme" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ section.settings.appearance_type == 'scheme' }}"
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "t:labels.placeholder",
+      "default": "Search for..."
+    },
+    {
+      "type": "textarea",
+      "id": "placeholder_suggestions",
+      "label": "t:labels.placeholder_suggestions",
+      "info": "t:info.placeholder_suggestions"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.search_types"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_products",
+      "label": "t:labels.products",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collections",
+      "label": "t:labels.collections",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_blog_posts",
+      "label": "t:labels.blog_posts",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pages",
+      "label": "t:labels.pages",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "view_all_style",
+      "label": "t:labels.view_all_style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" },
+        { "value": "tertiary", "label": "t:options.button_variant.tertiary" }
+      ],
+      "default": "primary"
+    }
+  ],
+  "presets": [{ "name": "Search" }]
+}
+{% endschema %}

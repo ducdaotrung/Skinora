@@ -1,0 +1,145 @@
+{{ 'section-collection.css' | asset_url | stylesheet_tag }}
+{% liquid
+  assign collection_padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign collection_padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign collection_padding_top_mobile = section.settings.padding_top_mobile | default: 0 | plus: 0
+  assign collection_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: 0 | plus: 0
+%}
+{% style %}#shopify-section-{{ section.id }}{background:{{ section.settings.background_color | default: section.settings.color_scheme.settings.background }}}{% endstyle %}
+<div class="main-collection main-collection--blocks section-spacing color-scheme section-color-scope {{ section.settings.color_scheme }}" style="--section-padding-top:{{ collection_padding_top }}px;--section-padding-bottom:{{ collection_padding_bottom }}px;{% if section.settings.customize_mobile_padding %}{% if collection_padding_top_mobile != collection_padding_top %}--section-padding-top-mobile:{{ collection_padding_top_mobile }}px;{% endif %}{% if collection_padding_bottom_mobile != collection_padding_bottom %}--section-padding-bottom-mobile:{{ collection_padding_bottom_mobile }}px;{% endif %}{% endif %}--collection-gap:{{ section.settings.item_gap }}px;--collection-gap-mobile:{{ section.settings.item_gap_mobile }}px">
+<collection-facets class="main-collection__facets container {% if section.settings.section_width == 'page' %}page-width{% else %}full-width{% endif %}" data-section-id="{{ section.id }}">
+{% content_for 'block', type: '_collection-toolbar', id: 'toolbar' %}
+{% content_for 'block', type: '_collection-products', id: 'products' %}
+</collection-facets></div>
+<script src="{{ 'section-collection.js' | asset_url }}" defer></script>
+{% schema %}
+{
+  "name": "Collection page",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "templates": [
+      "collection"
+    ]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 2,
+      "max": 40,
+      "step": 2,
+      "default": 10
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "page",
+          "label": "Page width"
+        },
+        {
+          "value": "full",
+          "label": "Full width"
+        }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "item_gap",
+      "label": "Desktop gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 50,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "item_gap_mobile",
+      "label": "Mobile gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 16,
+      "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "Background color"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "default": 100,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "default": 120,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "default": 30,
+      "unit": "px",
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "default": 50,
+      "unit": "px",
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ]
+}
+{% endschema %}

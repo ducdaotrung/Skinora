@@ -1,0 +1,166 @@
+{% doc %}
+  Renders a theme button or link using the global Button settings.
+
+  The snippet controls visual treatment only. The caller remains responsible for
+  choosing the correct semantic element and for supplying an accessible label.
+
+  @param {string} label - Visible button label
+  @param {string} [url] - Link destination. Omit for a button element
+  @param {string} [type] - Button type when url is omitted
+  @param {string} [class] - Additional classes
+  @param {boolean} [disabled] - Whether the button is disabled
+  @param {boolean} [loading] - Whether the button is busy while preserving its width
+  @param {boolean} [loading_dots] - Render a hidden three-dot loader for runtime-controlled loading states
+  @param {string} [variant] - Optional visual variant: primary, secondary, or tertiary
+  @param {string} [icon] - Optional inline Heroicons key or legacy alias: arrow-right/arrow, eye, or shopping-bag/cart
+  @param {string} [icon_expanded] - Optional icon shown when the caller sets aria-expanded="true"
+  @param {string} [icon_position] - Icon position: before or after
+  @param {string} [icon_size] - Icon size: inherit or custom
+  @param {number} [icon_width] - Custom icon width in pixels
+  @param {boolean} [icon_only] - Hide the visible label when the icon is the control
+  @param {boolean} [open_in_new_tab] - Whether links should open in a new tab
+  @param {boolean} [force_link] - Render a link while its destination is assigned dynamically
+  @param {string} [aria_label] - Optional accessible name when it differs from the visible label
+  @param {string} [attributes] - Optional HTML attributes owned by the caller
+  @param {string} [motion_speed] - Motion token: fast, standard, or slow
+
+  @example
+  {% render 'theme-button', label: 'Shop now', url: routes.all_products_collection_url %}
+  {% render 'theme-button', label: 'Add to cart', type: 'submit' %}
+{% enddoc %}
+
+{% liquid
+  assign button_variant = variant | default: 'primary'
+  case button_variant
+    when 'solid'
+      assign button_variant = 'primary'
+    when 'outline'
+      assign button_variant = 'secondary'
+    when 'text'
+      assign button_variant = 'tertiary'
+  endcase
+  unless button_variant == 'primary' or button_variant == 'secondary' or button_variant == 'tertiary'
+    assign button_variant = 'primary'
+  endunless
+
+  assign button_icon_position = icon_position | default: 'after'
+  unless button_icon_position == 'before' or button_icon_position == 'after'
+    assign button_icon_position = 'after'
+  endunless
+
+  assign button_icon_size = icon_size | default: 'inherit'
+  unless button_icon_size == 'inherit' or button_icon_size == 'custom'
+    assign button_icon_size = 'inherit'
+  endunless
+
+  assign button_icon_width = icon_width | default: 20 | plus: 0
+  if button_icon_width < 12 or button_icon_width > 32
+    assign button_icon_width = 20
+  endif
+
+  assign button_icon_name = icon
+  unless button_icon_name == blank or button_icon_name == 'arrow' or button_icon_name == 'arrow-left' or button_icon_name == 'arrow-right' or button_icon_name == 'bars-3' or button_icon_name == 'menu' or button_icon_name == 'chevron' or button_icon_name == 'chevron-down' or button_icon_name == 'chevron-left' or button_icon_name == 'chevron-right' or button_icon_name == 'x-mark' or button_icon_name == 'close' or button_icon_name == 'eye' or button_icon_name == 'magnifying-glass' or button_icon_name == 'search' or button_icon_name == 'shopping-bag' or button_icon_name == 'bag' or button_icon_name == 'cart' or button_icon_name == 'shopping-cart' or button_icon_name == 'user' or button_icon_name == 'account' or button_icon_name == 'truck' or button_icon_name == 'shipping' or button_icon_name == 'tag' or button_icon_name == 'discount' or button_icon_name == 'trash' or button_icon_name == 'remove' or button_icon_name == 'document-text' or button_icon_name == 'note' or button_icon_name == 'receipt-percent' or button_icon_name == 'coupon' or button_icon_name == 'share' or button_icon_name == 'play' or button_icon_name == 'pause' or button_icon_name == 'plus' or button_icon_name == 'minus' or button_icon_name == 'check' or button_icon_name == 'circle' or button_icon_name == 'square' or button_icon_name == 'triangle' or button_icon_name == 'diamond' or button_icon_name == 'star' or button_icon_name == 'four-stars' or button_icon_name == 'five-stars' or button_icon_name == 'funnel' or button_icon_name == 'sliders' or button_icon_name == 'arrow_right' or button_icon_name == 'long_arrow_right' or button_icon_name == 'chevron_right' or button_icon_name == 'arrow_up_right' or button_icon_name == 'circle_arrow' or button_icon_name == 'circle_chevron' or button_icon_name == 'long_arrow_up' or button_icon_name == 'double_chevron' or button_icon_name == 'arrow_outline' or button_icon_name == 'square_chevron'
+    assign button_icon_name = blank
+  endunless
+
+  assign button_motion_speed = motion_speed | default: 'standard'
+  case button_motion_speed
+    when 'fast', 'slow'
+    when 'standard'
+    else
+      assign button_motion_speed = 'standard'
+  endcase
+  assign button_motion_duration = 'var(--motion-duration-standard)'
+  if button_motion_speed == 'fast'
+    assign button_motion_duration = 'var(--motion-duration-fast)'
+  elsif button_motion_speed == 'slow'
+    assign button_motion_duration = 'var(--motion-duration-slow)'
+  endif
+  assign button_motion_style = '--button-motion-duration: ' | append: button_motion_duration | append: ';'
+
+  assign button_class = 'btn btn-' | append: button_variant | append: ' btn--' | append: button_variant
+  assign button_underline_attribute = blank
+  if button_variant == 'tertiary'
+    assign button_class = button_class | append: ' link-underline'
+    assign button_underline_attribute = 'data-underline="persistent" data-underline-target="text"'
+  endif
+  if loading
+    assign button_class = button_class | append: ' btn--loading'
+  endif
+  if class != blank
+    assign button_class = button_class | append: ' ' | append: class
+  endif
+
+%}
+
+{% capture button_icon_markup %}
+  {% if button_icon_name != blank %}
+    <span
+      class="btn__icon{% if icon_expanded != blank %} btn__icon--collapsed{% endif %}{% if button_icon_size == 'custom' %} btn__icon--custom{% endif %}"
+      {% if button_icon_size == 'custom' %}style="--button-icon-width: {{ button_icon_width }}px;"{% endif %}
+      aria-hidden="true"
+    >
+      {% render 'icon', icon: button_icon_name, bare: true %}
+    </span>
+    {% if icon_expanded != blank %}
+      <span class="btn__icon btn__icon--expanded{% if button_icon_size == 'custom' %} btn__icon--custom{% endif %}"{% if button_icon_size == 'custom' %} style="--button-icon-width: {{ button_icon_width }}px;"{% endif %} aria-hidden="true">
+        {% render 'icon', icon: icon_expanded, bare: true %}
+      </span>
+    {% endif %}
+  {% endif %}
+{% endcapture %}
+
+{% capture button_content %}
+  <span class="btn__label{% if button_icon_name != blank %} btn__label--icon{% endif %}">
+    {% if button_icon_name != blank and button_icon_position == 'before' %}{{ button_icon_markup }}{% endif %}
+    <span class="btn__text{% if icon_only %} visually-hidden{% endif %}">{{ label | escape }}</span>
+    {% if button_icon_name != blank and button_icon_position == 'after' %}{{ button_icon_markup }}{% endif %}
+  </span>
+{% endcapture %}
+
+{% capture button_loading_dots %}
+  {% if loading_dots %}
+    <span class="bouncing-dots hidden" data-loading-dots aria-hidden="true" hidden>
+      <span></span><span></span><span></span>
+    </span>
+  {% endif %}
+{% endcapture %}
+
+{% if url != blank or force_link %}
+  <a
+    class="{{ button_class | strip }}"
+    {% if url != blank and disabled != true %}href="{{ url | escape }}"{% endif %}
+    style="{{ button_motion_style }}"
+    {{ button_underline_attribute }}
+    {% if aria_label != blank %}aria-label="{{ aria_label | escape }}"{% endif %}
+    {% if attributes != blank %}{{ attributes }}{% endif %}
+    {% if loading %}aria-busy="true"{% endif %}
+    {% if open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+    {% if disabled %}aria-disabled="true" tabindex="-1"{% endif %}
+  >
+    {{ button_content }}
+    {{ button_loading_dots }}
+    {% if loading %}
+      <span class="btn__spinner" aria-hidden="true"></span>
+      <span class="visually-hidden">{{ 'accessibility.loading' | t }}</span>
+    {% endif %}
+  </a>
+{% else %}
+  <button
+    class="{{ button_class | strip }}"
+    type="{{ type | default: 'button' }}"
+    style="{{ button_motion_style }}"
+    {{ button_underline_attribute }}
+    {% if aria_label != blank %}aria-label="{{ aria_label | escape }}"{% endif %}
+    {% if attributes != blank %}{{ attributes }}{% endif %}
+    {% if disabled or loading %}disabled{% endif %}
+    {% if loading %}aria-busy="true"{% endif %}
+  >
+    {{ button_content }}
+    {{ button_loading_dots }}
+    {% if loading %}
+      <span class="btn__spinner" aria-hidden="true"></span>
+      <span class="visually-hidden">{{ 'accessibility.loading' | t }}</span>
+    {% endif %}
+  </button>
+{% endif %}

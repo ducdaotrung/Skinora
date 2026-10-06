@@ -1,0 +1,722 @@
+{% doc %}
+  Renders a product column and matches dynamic row values by the stable column key.
+
+  @param {string} [comparison_table_dom_id] - Section and table namespace for all accessible IDs
+  @param {block[]} [comparison_table_rows] - Ordered row blocks owned by the feature column
+  @param {boolean} [comparison_table_dynamic_rows] - Whether an empty row list must stay empty instead of rendering legacy slots
+{% enddoc %}
+
+{% render 'comparison-table-column-content', block: block, comparison_table_dom_id: comparison_table_dom_id, comparison_table_rows: comparison_table_rows, comparison_table_dynamic_rows: comparison_table_dynamic_rows %}
+
+{% schema %}
+{
+  "name": "t:general.column",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "column_key", "label": "Column key", "info": "Use the same key in row values to connect them to this column. Keep it unchanged when renaming or reordering the column." },
+    {
+      "type": "header",
+      "content": "Header"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Heading"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "View details"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Button style",
+      "options": [
+        {
+          "value": "primary",
+          "label": "t:options.button_variant.primary"
+        },
+        {
+          "value": "secondary",
+          "label": "t:options.button_variant.secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "t:options.button_variant.tertiary"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "Open link in new tab",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:general.border"
+    },
+    {
+      "type": "range",
+      "id": "border_thickness",
+      "label": "Border thickness",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "t:labels.corner_radius",
+      "options": [
+        { "value": "inherit", "label": "t:options.radius_preset.inherit" },
+        { "value": "square", "label": "t:options.radius_preset.square" },
+        { "value": "rounded", "label": "t:options.radius_preset.rounded" },
+        { "value": "custom", "label": "t:options.radius_preset.custom" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "range",
+      "id": "custom_corner_radius",
+      "label": "t:labels.custom_corner_radius",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.corner_radius == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "Shadow",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "extra_small", "label": "Extra small" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "extra_small"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_type",
+      "label": "Type",
+      "options": [
+        { "value": "inherit", "label": "Inherit" },
+        { "value": "scheme", "label": "Color scheme" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.color_type == 'scheme' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 1"
+    },
+    {
+      "type": "select",
+      "id": "value_1_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_1_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_1_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 2"
+    },
+    {
+      "type": "select",
+      "id": "value_2_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_2_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_2_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 3"
+    },
+    {
+      "type": "select",
+      "id": "value_3_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_3_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_3_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 4"
+    },
+    {
+      "type": "select",
+      "id": "value_4_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_4_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_4_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 5"
+    },
+    {
+      "type": "select",
+      "id": "value_5_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_5_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_5_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 6"
+    },
+    {
+      "type": "select",
+      "id": "value_6_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_6_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_6_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 7"
+    },
+    {
+      "type": "select",
+      "id": "value_7_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_7_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_7_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 8"
+    },
+    {
+      "type": "select",
+      "id": "value_8_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_8_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_8_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 9"
+    },
+    {
+      "type": "select",
+      "id": "value_9_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_9_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_9_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 10"
+    },
+    {
+      "type": "select",
+      "id": "value_10_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_10_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_10_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 11"
+    },
+    {
+      "type": "select",
+      "id": "value_11_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_11_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_11_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 12"
+    },
+    {
+      "type": "select",
+      "id": "value_12_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_12_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_12_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 13"
+    },
+    {
+      "type": "select",
+      "id": "value_13_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_13_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_13_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 14"
+    },
+    {
+      "type": "select",
+      "id": "value_14_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_14_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_14_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 15"
+    },
+    {
+      "type": "select",
+      "id": "value_15_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_15_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_15_type == 'text' }}"
+    },
+    {
+      "type": "header",
+      "content": "Value 16"
+    },
+    {
+      "type": "select",
+      "id": "value_16_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "yes",
+          "label": "Yes"
+        },
+        {
+          "value": "no",
+          "label": "No"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "text",
+      "id": "value_16_text",
+      "label": "Custom text",
+      "default": "Text value",
+      "visible_if": "{{ block.settings.value_16_type == 'text' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.column",
+      "category": "t:general.comparison_table",
+      "settings": {
+        "heading": "Product Name",
+        "description": "Lorem ipsum dolor sit amet",
+        "button_label": "View details",
+        "button_style": "primary",
+        "border_thickness": 0,
+        "corner_radius": "square",
+        "shadow": "none"
+      }
+    }
+  ]
+}
+{% endschema %}

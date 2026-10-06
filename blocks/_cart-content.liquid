@@ -1,0 +1,139 @@
+{% doc %}Fixed cart content column; title and count precede merchant-managed cart components.{% enddoc %}
+<div class="cart-page__content cart-stack" style="--cart-gap: {{ block.settings.gap_desktop }}px; --cart-gap-mobile: {{ block.settings.gap_mobile }}px; --cart-pad-top: {{ block.settings.padding_top | default: 0 }}px; --cart-pad-bottom: {{ block.settings.padding_bottom | default: 0 }}px;{% if block.settings.customize_mobile_padding %} --cart-pad-top-mobile: {{ block.settings.padding_top_mobile }}px; --cart-pad-bottom-mobile: {{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+  <{{ block.settings.html_tag }} class="heading-text heading-{{ block.settings.heading_size }} cart-page__title"{% if block.settings.heading_size == 'custom' %} style="font-size: {{ block.settings.custom_heading_size }}px"{% endif %}>{{ 'cart.title' | t }}{% if block.settings.show_cart_count %} <span class="body-text body-sm">({{ cart.item_count }})</span>{% endif %}</{{ block.settings.html_tag }}>
+  {% content_for 'blocks' %}
+</div>
+
+{% schema %}
+{
+  "name": "Content",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "Desktop gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Mobile gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "header",
+      "content": "Title"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart_count",
+      "label": "Show cart count",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Size",
+      "options": [
+        {
+          "value": "display",
+          "label": "DISPLAY"
+        },
+        {
+          "value": "xl",
+          "label": "XL"
+        },
+        {
+          "value": "lg",
+          "label": "LG"
+        },
+        {
+          "value": "md",
+          "label": "MD"
+        },
+        {
+          "value": "sm",
+          "label": "SM"
+        },
+        {
+          "value": "xs",
+          "label": "XS"
+        },
+        {
+          "value": "custom",
+          "label": "CUSTOM"
+        }
+      ],
+      "default": "xl"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}",
+      "default": 48
+    },
+    {
+      "type": "select",
+      "id": "html_tag",
+      "label": "HTML Tag",
+      "options": [
+        {
+          "value": "div",
+          "label": "DIV"
+        },
+        {
+          "value": "h1",
+          "label": "H1"
+        },
+        {
+          "value": "h2",
+          "label": "H2"
+        },
+        {
+          "value": "h3",
+          "label": "H3"
+        },
+        {
+          "value": "h4",
+          "label": "H4"
+        },
+        {
+          "value": "h5",
+          "label": "H5"
+        },
+        {
+          "value": "h6",
+          "label": "H6"
+        }
+      ],
+      "default": "h1"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "cart-free-shipping"
+    },
+    {
+      "type": "cart-items"
+    }
+  ]
+}
+{% endschema %}

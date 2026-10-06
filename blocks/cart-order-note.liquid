@@ -1,0 +1,214 @@
+{% doc %}Optional cart order tool using the shared accessible accordion.{% enddoc %}
+{% capture summary %}<span class="body-{{ block.settings.text_size }}" style="font-family: var(--font-{{ block.settings.font_family }}-family); letter-spacing: {% case block.settings.letter_spacing %}{% when 'tight' %}-0.02em{% when 'wide' %}0.08em{% else %}normal{% endcase %}; text-transform: {% if block.settings.text_case == 'original' %}none{% else %}{{ block.settings.text_case }}{% endif %};">{{ block.settings.title | escape }}</span><span class="cart-page__tool-icon cart-page__tool-icon--{{ block.settings.icon }}" aria-hidden="true">{% render 'icon', icon: block.settings.icon, bare: true %}</span>{% endcapture %}
+{% capture content %}<form data-cart-page-note><label class="visually-hidden" for="CartNote-{{ section.id }}">{{ 'cart_drawer.order_note' | t }}</label><textarea id="CartNote-{{ section.id }}" name="note" placeholder="{{ 'cart_drawer.note_placeholder' | t }}">{{ cart.note | escape }}</textarea>{% assign save_label = 'cart_drawer.save_note' | t %}{% render 'theme-button', label: save_label, type: 'submit', variant: 'primary' %}</form>{% endcapture %}
+{% capture attributes %}{{ block.shopify_attributes }} style="{% render 'cart-surface-style', settings: block.settings %}"{% endcapture %}
+{% capture tool_class %}cart-page__box cart-page__tool{% unless block.settings.inherit_color_scheme %} color-scheme section-color-scope {{ block.settings.color_scheme }}{% endunless %}{% endcapture %}
+{% render 'accordion-details', summary: summary, content: content, class: tool_class, attributes: attributes %}
+
+
+{% schema %}
+{
+  "name": "Order note",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Order note"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "font_family",
+      "label": "Font",
+      "default": "accent",
+      "options": [
+        {
+          "value": "body",
+          "label": "Body"
+        },
+        {
+          "value": "accent",
+          "label": "Accent"
+        },
+        {
+          "value": "heading",
+          "label": "Heading"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Size",
+      "default": "lg",
+      "options": [
+        {
+          "value": "xs",
+          "label": "Xs"
+        },
+        {
+          "value": "sm",
+          "label": "Sm"
+        },
+        {
+          "value": "md",
+          "label": "Md"
+        },
+        {
+          "value": "lg",
+          "label": "Lg"
+        },
+        {
+          "value": "xl",
+          "label": "Xl"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "Letter spacing",
+      "default": "normal",
+      "options": [
+        {
+          "value": "tight",
+          "label": "Tight"
+        },
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "wide",
+          "label": "Wide"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "text_case",
+      "label": "Text case",
+      "default": "original",
+      "options": [
+        {
+          "value": "original",
+          "label": "Original"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        },
+        {
+          "value": "capitalize",
+          "label": "Capitalize"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "icon",
+      "label": "Icon",
+      "default": "chevron-down",
+      "options": [
+        {
+          "value": "chevron-down",
+          "label": "Chevron-down"
+        },
+        {
+          "value": "plus",
+          "label": "Plus"
+        },
+        {
+          "value": "minus",
+          "label": "Minus"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "select",
+      "id": "padding",
+      "label": "Padding",
+      "default": "medium",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "label": "Border width",
+      "default": 0,
+      "min": 0,
+      "max": 6,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "Shadow",
+      "default": "xs",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "xs",
+          "label": "Xs"
+        },
+        {
+          "value": "sm",
+          "label": "Sm"
+        },
+        {
+          "value": "md",
+          "label": "Md"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "inherit_color_scheme",
+      "label": "Inherit color scheme",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.inherit_color_scheme == false }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Order note"
+    }
+  ]
+}
+{% endschema %}

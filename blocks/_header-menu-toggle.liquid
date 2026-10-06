@@ -1,0 +1,78 @@
+<button
+  class="header-menu-toggle btn btn--unstyled"
+  type="button"
+  aria-expanded="false"
+  aria-controls="HeaderMobileDrawer-{{ section.id }}"
+  aria-label="Open menu"
+  data-header-menu-toggle
+  {{ block.shopify_attributes }}
+>
+  <span class="icon header-menu-toggle__open-icon" aria-hidden="true">
+    {% render 'icon', icon: 'bars-3', bare: true %}
+  </span>
+  <span class="icon header-menu-toggle__close-icon" aria-hidden="true">
+    {% render 'icon', icon: 'x-mark', bare: true %}
+  </span>
+  <span class="visually-hidden">Menu</span>
+</button>
+
+{% stylesheet %}
+  .header-menu-toggle.btn {
+    display: none;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--button-height);
+    min-width: var(--button-height);
+    min-height: var(--button-height);
+    color: var(--body-color);
+  }
+
+  .header-menu-toggle .icon {
+    display: inline-flex;
+    width: var(--header-icon-size, var(--icon-size-medium));
+    height: var(--header-icon-size, var(--icon-size-medium));
+  }
+
+  .header-menu-toggle .icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .header-menu-toggle__close-icon {
+    display: none !important;
+  }
+
+  .header-top--menu-open .header-menu-toggle__open-icon {
+    display: none !important;
+  }
+
+  .header-top--menu-open .header-menu-toggle__close-icon {
+    display: inline-flex !important;
+  }
+
+  @media (max-width: 991.98px) {
+    .header-menu-toggle.btn {
+      display: inline-flex;
+      width: 24px;
+      min-width: 24px;
+      height: 24px;
+      min-height: 24px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header_menu_toggle",
+  "tag": null,
+  "settings": [],
+  "presets": [
+    {
+      "name": "t:general.header_menu_toggle",
+      "category": "t:general.header"
+    }
+  ]
+}
+{% endschema %}

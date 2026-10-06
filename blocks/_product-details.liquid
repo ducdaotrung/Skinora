@@ -1,0 +1,398 @@
+{% doc %}
+  Renders the Product Details compound block. Product-specific Theme Blocks
+  own each content role and are rendered in the merchant-configured order.
+{% enddoc %}
+
+{% liquid
+  assign details_sticky_content = true
+  if section.settings.sticky_content == false
+    assign details_sticky_content = false
+  endif
+
+  assign details_motion_enabled = true
+  if settings.motion_block_animations == false
+    assign details_motion_enabled = false
+  endif
+
+  assign details_alignment = block.settings.alignment | default: 'left'
+  unless details_alignment == 'left' or details_alignment == 'center' or details_alignment == 'right'
+    assign details_alignment = 'left'
+  endunless
+
+  assign details_limit_width = true
+  if block.settings.limit_width == false
+    assign details_limit_width = false
+  endif
+
+  assign details_max_width = block.settings.max_width | default: 500 | plus: 0
+  if details_max_width < 320 or details_max_width > 1200
+    assign details_max_width = 500
+  endif
+
+  assign details_container_position = block.settings.container_position | default: 'center'
+  unless details_container_position == 'left' or details_container_position == 'center' or details_container_position == 'right'
+    assign details_container_position = 'center'
+  endunless
+
+  assign details_gap_desktop = block.settings.gap_desktop | default: 24 | plus: 0
+  if details_gap_desktop < 0 or details_gap_desktop > 100
+    assign details_gap_desktop = 24
+  endif
+  assign details_gap_mobile = block.settings.gap_mobile | default: 24 | plus: 0
+  if details_gap_mobile < 0 or details_gap_mobile > 100
+    assign details_gap_mobile = 24
+  endif
+
+  assign details_border_thickness = block.settings.border_thickness | default: 0 | plus: 0
+  if details_border_thickness < 0 or details_border_thickness > 8
+    assign details_border_thickness = 0
+  endif
+
+  assign details_radius = block.settings.corner_radius | default: 'square'
+  unless details_radius == 'square' or details_radius == 'slightly_rounded' or details_radius == 'rounded' or details_radius == 'pill'
+    assign details_radius = 'square'
+  endunless
+
+  assign details_shadow = block.settings.shadow | default: 'none'
+  unless details_shadow == 'none' or details_shadow == 'extra_small' or details_shadow == 'small' or details_shadow == 'medium' or details_shadow == 'large'
+    assign details_shadow = 'none'
+  endunless
+
+  assign details_appearance_type = block.settings.appearance_type | default: 'inherit'
+  unless details_appearance_type == 'inherit' or details_appearance_type == 'scheme'
+    assign details_appearance_type = 'inherit'
+  endunless
+  assign details_scheme = blank
+  if details_appearance_type == 'scheme'
+    assign details_scheme = block.settings.color_scheme | default: 'scheme-1'
+    if block.settings.color_scheme.id != blank
+      assign details_scheme = block.settings.color_scheme.id
+    endif
+    assign details_scheme = details_scheme | default: 'scheme-1' | handleize
+  endif
+
+  assign details_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign details_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign details_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign details_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign details_padding_top_mobile = block.settings.padding_top_mobile | default: details_padding_top | plus: 0
+  assign details_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: details_padding_bottom | plus: 0
+  assign details_padding_left_mobile = block.settings.padding_left_mobile | default: details_padding_left | plus: 0
+  assign details_padding_right_mobile = block.settings.padding_right_mobile | default: details_padding_right | plus: 0
+
+  if details_padding_top < 0 or details_padding_top > 100
+    assign details_padding_top = 0
+  endif
+  if details_padding_bottom < 0 or details_padding_bottom > 100
+    assign details_padding_bottom = 0
+  endif
+  if details_padding_left < 0 or details_padding_left > 100
+    assign details_padding_left = 0
+  endif
+  if details_padding_right < 0 or details_padding_right > 100
+    assign details_padding_right = 0
+  endif
+  if details_padding_top_mobile < 0 or details_padding_top_mobile > 100
+    assign details_padding_top_mobile = details_padding_top
+  endif
+  if details_padding_bottom_mobile < 0 or details_padding_bottom_mobile > 100
+    assign details_padding_bottom_mobile = details_padding_bottom
+  endif
+  if details_padding_left_mobile < 0 or details_padding_left_mobile > 100
+    assign details_padding_left_mobile = details_padding_left
+  endif
+  if details_padding_right_mobile < 0 or details_padding_right_mobile > 100
+    assign details_padding_right_mobile = details_padding_right
+  endif
+
+  assign details_class = 'product-details motion-block body-text body-md'
+  assign details_class = details_class | append: ' product-details--align-' | append: details_alignment
+  assign details_class = details_class | append: ' product-details--position-' | append: details_container_position
+  assign details_class = details_class | append: ' product-details--radius-' | append: details_radius
+  assign details_class = details_class | append: ' product-details--shadow-' | append: details_shadow
+  assign details_class = details_class | append: ' product-details--appearance-' | append: details_appearance_type
+  if details_limit_width
+    assign details_class = details_class | append: ' product-details--limit-width'
+  endif
+  if details_appearance_type == 'scheme'
+    assign details_class = details_class | append: ' section-color-scope color-scheme ' | append: details_scheme
+  endif
+  unless details_sticky_content
+    assign details_class = details_class | append: ' product-details--not-sticky'
+  endunless
+  unless details_motion_enabled
+    assign details_class = details_class | append: ' product-details--motion-disabled'
+  endunless
+%}
+
+{% capture details_style %}
+  {% if details_limit_width and details_max_width != 500 %}--product-details-max-width: {{ details_max_width }}px;{% endif %}
+  {% if details_gap_desktop != 24 %}--product-details-gap: {{ details_gap_desktop }}px;{% endif %}
+  {% if details_gap_mobile != 24 %}--product-details-gap-mobile: {{ details_gap_mobile }}px;{% endif %}
+  {% if details_border_thickness != 0 %}--product-details-border-thickness: {{ details_border_thickness }}px;{% endif %}
+  {% if details_padding_top != 0 %}--product-details-padding-top: {{ details_padding_top }}px;{% endif %}
+  {% if details_padding_bottom != 0 %}--product-details-padding-bottom: {{ details_padding_bottom }}px;{% endif %}
+  {% if details_padding_left != 0 %}--product-details-padding-left: {{ details_padding_left }}px;{% endif %}
+  {% if details_padding_right != 0 %}--product-details-padding-right: {{ details_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if details_padding_top_mobile != details_padding_top %}--product-details-padding-top-mobile: {{ details_padding_top_mobile }}px;{% endif %}
+    {% if details_padding_bottom_mobile != details_padding_bottom %}--product-details-padding-bottom-mobile: {{ details_padding_bottom_mobile }}px;{% endif %}
+    {% if details_padding_left_mobile != details_padding_left %}--product-details-padding-left-mobile: {{ details_padding_left_mobile }}px;{% endif %}
+    {% if details_padding_right_mobile != details_padding_right %}--product-details-padding-right-mobile: {{ details_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign details_style = details_style | strip %}
+
+<div
+  class="{{ details_class }}"
+  data-product-details
+  {% if details_style != blank %}style="{{ details_style }}"{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% schema %}
+{
+  "name": "t:general.details",
+  "tag": null,
+  "blocks": [
+    { "type": "@theme" },
+    { "type": "product-badges" },
+    { "type": "product-title" },
+    { "type": "product-price" },
+    { "type": "product-description" },
+    { "type": "product-variant-picker" },
+    { "type": "product-inventory" },
+    { "type": "product-buy-buttons" },
+    { "type": "product-pickup-availability" },
+    { "type": "product-accordion" },
+    { "type": "product-recommendations" },
+    { "type": "product-sticky-add-to-cart" },
+    { "type": "group" },
+    { "type": "text" },
+    { "type": "button-view-details" },
+    { "type": "@app" }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.text_alignment",
+      "options": [
+        { "value": "left", "label": "t:options.product_details_alignment.left" },
+        { "value": "center", "label": "t:options.product_details_alignment.center" },
+        { "value": "right", "label": "t:options.product_details_alignment.right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "limit_width",
+      "label": "t:labels.limit_width",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "t:labels.max_width",
+      "min": 320,
+      "max": 1200,
+      "step": 10,
+      "unit": "px",
+      "default": 500,
+      "visible_if": "{{ block.settings.limit_width }}"
+    },
+    {
+      "type": "select",
+      "id": "container_position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "left", "label": "t:options.product_details_alignment.left" },
+        { "value": "center", "label": "t:options.product_details_alignment.center" },
+        { "value": "right", "label": "t:options.product_details_alignment.right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "range",
+      "id": "border_thickness",
+      "label": "t:labels.outline_width",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "t:labels.radius",
+      "options": [
+        { "value": "square", "label": "t:options.radius_preset.square" },
+        { "value": "slightly_rounded", "label": "t:options.radius_preset.slightly_rounded" },
+        { "value": "rounded", "label": "t:options.radius_preset.rounded" },
+        { "value": "pill", "label": "t:options.radius_preset.pill" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "t:labels.elevation",
+      "info": "t:info.details_elevation",
+      "options": [
+        { "value": "none", "label": "t:options.product_details_shadow.none" },
+        { "value": "extra_small", "label": "t:options.product_details_shadow.extra_small" },
+        { "value": "small", "label": "t:options.product_details_shadow.small" },
+        { "value": "medium", "label": "t:options.product_details_shadow.medium" },
+        { "value": "large", "label": "t:options.product_details_shadow.large" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "select",
+      "id": "appearance_type",
+      "label": "t:labels.color_scheme",
+      "options": [
+        { "value": "inherit", "label": "t:options.product_details_color_type.inherit" },
+        { "value": "scheme", "label": "t:options.product_details_color_type.scheme" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.appearance_type == 'scheme' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ]
+}
+{% endschema %}

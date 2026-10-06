@@ -1,0 +1,309 @@
+{% doc %}
+  Renders collection description copy or the collection product count.
+
+  The data source is selected in the block settings and is read from the
+  collection supplied by the parent Collection Card through `closest.collection`.
+  Description copy is reduced to plain text for a predictable card height.
+  When a card has no selected collection, the description source uses the
+  localized collection-description placeholder so the fallback remains
+  visible on the storefront as well as in the editor.
+
+  @example
+  {% content_for 'block', type: 'collection-card-description', id: 'description' %}
+{% enddoc %}
+
+{% liquid
+  assign collection_card_description_collection = closest.collection
+  assign collection_card_description_source = block.settings.source | default: 'description'
+  unless collection_card_description_source == 'description' or collection_card_description_source == 'product_count'
+    assign collection_card_description_source = 'description'
+  endunless
+
+  assign collection_card_description_size = block.settings.text_size | default: 'md'
+  unless collection_card_description_size == 'xs' or collection_card_description_size == 'sm' or collection_card_description_size == 'md' or collection_card_description_size == 'lg' or collection_card_description_size == 'xl' or collection_card_description_size == 'xxl'
+    assign collection_card_description_size = 'md'
+  endunless
+
+  assign collection_card_description_limit = block.settings.text_limit | default: 'one'
+  unless collection_card_description_limit == 'no_limit' or collection_card_description_limit == 'one' or collection_card_description_limit == 'two' or collection_card_description_limit == 'three'
+    assign collection_card_description_limit = 'one'
+  endunless
+
+  assign collection_card_description_text = collection_card_description_collection.description | strip_html | strip
+  assign collection_card_description_placeholder = 'collection_list.default_description' | t
+  if collection_card_description_text == blank and collection_card_description_collection == blank
+    assign collection_card_description_text = collection_card_description_placeholder
+  endif
+  assign collection_card_description_product_count = collection_card_description_collection.products_count
+  if collection_card_description_product_count == blank
+    assign collection_card_description_product_count = collection_card_description_collection.all_products_count
+  endif
+
+  assign collection_card_description_has_content = false
+  if collection_card_description_source == 'description' and collection_card_description_text != blank
+    assign collection_card_description_has_content = true
+  elsif collection_card_description_source == 'product_count' and collection_card_description_collection != blank
+    assign collection_card_description_has_content = true
+  elsif collection_card_description_collection == blank
+    assign collection_card_description_has_content = true
+    assign collection_card_description_product_count = collection_card_description_product_count | default: 0
+  endif
+
+  assign collection_card_description_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign collection_card_description_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign collection_card_description_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign collection_card_description_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign collection_card_description_padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign collection_card_description_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign collection_card_description_padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign collection_card_description_padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+
+  if collection_card_description_padding_top < 0 or collection_card_description_padding_top > 100
+    assign collection_card_description_padding_top = 0
+  endif
+  if collection_card_description_padding_bottom < 0 or collection_card_description_padding_bottom > 100
+    assign collection_card_description_padding_bottom = 0
+  endif
+  if collection_card_description_padding_left < 0 or collection_card_description_padding_left > 100
+    assign collection_card_description_padding_left = 0
+  endif
+  if collection_card_description_padding_right < 0 or collection_card_description_padding_right > 100
+    assign collection_card_description_padding_right = 0
+  endif
+  if collection_card_description_padding_top_mobile < 0 or collection_card_description_padding_top_mobile > 100
+    assign collection_card_description_padding_top_mobile = 0
+  endif
+  if collection_card_description_padding_bottom_mobile < 0 or collection_card_description_padding_bottom_mobile > 100
+    assign collection_card_description_padding_bottom_mobile = 0
+  endif
+  if collection_card_description_padding_left_mobile < 0 or collection_card_description_padding_left_mobile > 100
+    assign collection_card_description_padding_left_mobile = 0
+  endif
+  if collection_card_description_padding_right_mobile < 0 or collection_card_description_padding_right_mobile > 100
+    assign collection_card_description_padding_right_mobile = 0
+  endif
+%}
+
+{% capture collection_card_description_style %}
+  {% if collection_card_description_padding_top != 0 %}--collection-card-description-padding-top: {{ collection_card_description_padding_top }}px;{% endif %}
+  {% if collection_card_description_padding_right != 0 %}--collection-card-description-padding-right: {{ collection_card_description_padding_right }}px;{% endif %}
+  {% if collection_card_description_padding_bottom != 0 %}--collection-card-description-padding-bottom: {{ collection_card_description_padding_bottom }}px;{% endif %}
+  {% if collection_card_description_padding_left != 0 %}--collection-card-description-padding-left: {{ collection_card_description_padding_left }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if collection_card_description_padding_top_mobile != collection_card_description_padding_top %}--collection-card-description-padding-top-mobile: {{ collection_card_description_padding_top_mobile }}px;{% endif %}
+    {% if collection_card_description_padding_right_mobile != collection_card_description_padding_right %}--collection-card-description-padding-right-mobile: {{ collection_card_description_padding_right_mobile }}px;{% endif %}
+    {% if collection_card_description_padding_bottom_mobile != collection_card_description_padding_bottom %}--collection-card-description-padding-bottom-mobile: {{ collection_card_description_padding_bottom_mobile }}px;{% endif %}
+    {% if collection_card_description_padding_left_mobile != collection_card_description_padding_left %}--collection-card-description-padding-left-mobile: {{ collection_card_description_padding_left_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign collection_card_description_style = collection_card_description_style | strip %}
+
+{% if collection_card_description_has_content %}
+  <div
+    class="collection-card-description collection-card-description--{{ collection_card_description_source }} collection-card-description--limit-{{ collection_card_description_limit }} body-{{ collection_card_description_size }}"
+    {% if collection_card_description_style != blank %}style="{{ collection_card_description_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    {% if collection_card_description_source == 'description' %}
+      {% if collection_card_description_text != blank %}
+        {{ collection_card_description_text | escape }}
+      {% endif %}
+    {% else %}
+      {{ 'collection_list.products_count' | t: count: collection_card_description_product_count }}
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .collection-card-description {
+    display: block;
+    padding-top: var(--collection-card-description-padding-top, 0px);
+    padding-right: var(--collection-card-description-padding-right, 0px);
+    padding-bottom: var(--collection-card-description-padding-bottom, 0px);
+    padding-left: var(--collection-card-description-padding-left, 0px);
+    color: color-mix(in srgb, currentColor 72%, transparent);
+    overflow-wrap: anywhere;
+  }
+
+  .collection-card-description--limit-one,
+  .collection-card-description--limit-two,
+  .collection-card-description--limit-three {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+  }
+
+  .collection-card-description--limit-one { -webkit-line-clamp: 1; }
+  .collection-card-description--limit-two { -webkit-line-clamp: 2; }
+  .collection-card-description--limit-three { -webkit-line-clamp: 3; }
+
+  @media (max-width: 767.98px) {
+    .collection-card-description {
+      padding-top: var(--collection-card-description-padding-top-mobile, var(--collection-card-description-padding-top, 0px));
+      padding-right: var(--collection-card-description-padding-right-mobile, var(--collection-card-description-padding-right, 0px));
+      padding-bottom: var(--collection-card-description-padding-bottom-mobile, var(--collection-card-description-padding-bottom, 0px));
+      padding-left: var(--collection-card-description-padding-left-mobile, var(--collection-card-description-padding-left, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Description",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "source",
+      "label": "Source",
+      "options": [
+        { "value": "description", "label": "Description" },
+        { "value": "product_count", "label": "Product count" }
+      ],
+      "default": "description"
+    },
+    {
+      "type": "select",
+      "id": "text_limit",
+      "label": "Text limit",
+      "options": [
+        { "value": "no_limit", "label": "No limit" },
+        { "value": "one", "label": "1 line" },
+        { "value": "two", "label": "2 lines" },
+        { "value": "three", "label": "3 lines" }
+      ],
+      "default": "one",
+      "info": "Edit description in [collections](/admin/collections)",
+      "visible_if": "{{ block.settings.source == 'description' }}"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Size",
+      "options": [
+        { "value": "xs", "label": "Extra small" },
+        { "value": "sm", "label": "Small" },
+        { "value": "md", "label": "Medium" },
+        { "value": "lg", "label": "Large" },
+        { "value": "xl", "label": "Extra large" },
+        { "value": "xxl", "label": "2X large" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Description",
+      "category": "t:general.basic",
+      "settings": {
+        "source": "description",
+        "text_limit": "one",
+        "text_size": "md",
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "padding_left": 0,
+        "padding_right": 0,
+        "padding_top_mobile": 0,
+        "padding_bottom_mobile": 0,
+        "padding_left_mobile": 0,
+        "padding_right_mobile": 0,
+        "customize_mobile_padding": false
+      }
+    }
+  ]
+}
+{% endschema %}

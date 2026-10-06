@@ -1,0 +1,301 @@
+{% doc %}
+  Renders a reusable product card for collection, search and recommendation
+  surfaces using the global Product cards settings.
+
+  @param {product} product - Product to render
+  @param {string} [class] - Additional classes
+  @param {string} [color_type] - Inherit or override the card color scheme
+  @param {object} [color_scheme] - Optional block-level color scheme override
+  @param {boolean} [placeholder] - Whether to render the styled placeholder card
+  @param {string} [attributes] - Theme Editor attributes for the card root
+  @param {boolean} [show_media_actions] - Optional section override for quick actions
+  @param {boolean} [enable_quick_view] - Optional section override for quick view
+  @param {string} [heading_tag] - Optional heading tag for the product title
+  @param {boolean} [hide_swatches] - Hide swatches for card-specific layouts
+  @param {string} [middle_content] - Optional HTML after product details
+  @param {string} [footer_content] - Optional HTML at the bottom of card content
+
+  @example
+  {% render 'product-card', product: product %}
+{% enddoc %}
+
+{% liquid
+  assign card_style = settings.product_card_style | default: 'standard'
+  unless card_style == 'card'
+    assign card_style = 'standard'
+  endunless
+
+  assign card_ratio = settings.product_card_ratio | default: 'natural'
+  unless card_ratio == 'natural' or card_ratio == 'square' or card_ratio == 'portrait' or card_ratio == 'landscape'
+    assign card_ratio = 'natural'
+  endunless
+
+  assign card_alignment = settings.product_card_alignment | default: 'left'
+  unless card_alignment == 'left' or card_alignment == 'center' or card_alignment == 'right'
+    assign card_alignment = 'left'
+  endunless
+
+  assign title_line_limit = settings.product_card_title_line_limit | default: 'none'
+  unless title_line_limit == 'none' or title_line_limit == '1' or title_line_limit == '2' or title_line_limit == '3'
+    assign title_line_limit = 'none'
+  endunless
+
+  assign card_color_type = color_type | default: 'inherit'
+  unless card_color_type == 'inherit' or card_color_type == 'color_scheme'
+    assign card_color_type = 'inherit'
+  endunless
+
+  assign card_color_scheme = blank
+  if card_style == 'card'
+    assign card_color_scheme = settings.product_card_color_scheme
+    if settings.product_card_color_scheme.id != blank
+      assign card_color_scheme = settings.product_card_color_scheme.id
+    endif
+    assign card_color_scheme = card_color_scheme | default: 'scheme-1'
+  endif
+  if card_color_type == 'color_scheme' and color_scheme != blank
+    assign card_color_scheme = color_scheme.id | default: color_scheme
+  endif
+
+  assign quick_add_color_scheme = settings.product_card_quick_add_color_scheme
+  if settings.product_card_quick_add_color_scheme.id != blank
+    assign quick_add_color_scheme = settings.product_card_quick_add_color_scheme.id
+  endif
+  assign quick_add_color_scheme = quick_add_color_scheme | default: 'scheme-1'
+
+  assign quick_add_enabled = true
+  if settings.product_card_quick_add_enabled == false
+    assign quick_add_enabled = false
+  endif
+  assign quick_add_mobile = true
+  if settings.product_card_quick_add_mobile == false
+    assign quick_add_mobile = false
+  endif
+  assign quick_add_style = settings.product_card_quick_add_style | default: 'text'
+  unless quick_add_style == 'icon'
+    assign quick_add_style = 'text'
+  endunless
+  assign quick_add_full_width = true
+  if settings.product_card_quick_add_full_width == false
+    assign quick_add_full_width = false
+  endif
+
+  assign quick_view_enabled = true
+  if settings.product_card_quick_view_enabled == false
+    assign quick_view_enabled = false
+  endif
+  if show_media_actions == false
+    assign quick_add_enabled = false
+    assign quick_view_enabled = false
+  elsif enable_quick_view == false
+    assign quick_view_enabled = false
+  endif
+  assign quick_view_mobile = false
+  if settings.product_card_quick_view_mobile
+    assign quick_view_mobile = true
+  endif
+
+  assign secondary_image_enabled = true
+  if settings.product_card_secondary == false
+    assign secondary_image_enabled = false
+  endif
+  assign show_sale_badge = true
+  if settings.product_card_show_sale_badge == false
+    assign show_sale_badge = false
+  endif
+  assign show_sold_out_badge = true
+  if settings.product_card_show_sold_out_badge == false
+    assign show_sold_out_badge = false
+  endif
+  assign show_vendor_enabled = false
+  if settings.product_card_vendor
+    assign show_vendor_enabled = true
+  endif
+  assign show_type = false
+  if settings.product_card_type
+    assign show_type = true
+  endif
+  assign swatches_enabled = true
+  if settings.product_card_swatches_enabled == false or hide_swatches
+    assign swatches_enabled = false
+  endif
+  assign swatch_position = settings.product_card_swatch_position | default: 'top'
+  unless swatch_position == 'top'
+    assign swatch_position = 'bottom'
+  endunless
+  assign swatch_selected_style = settings.product_card_swatch_selected_style | default: 'border'
+  unless swatch_selected_style == 'underline'
+    assign swatch_selected_style = 'border'
+  endunless
+
+  assign image_width = 800
+  assign image_height = blank
+  case card_ratio
+    when 'square'
+      assign image_height = 800
+    when 'portrait'
+      assign image_height = 1000
+    when 'landscape'
+      assign image_height = 600
+  endcase
+
+  assign card_class = 'product-card product-card--' | append: card_style
+  assign card_class = card_class | append: ' product-card--ratio-' | append: card_ratio
+  assign card_class = card_class | append: ' product-card--align-' | append: card_alignment
+  assign card_class = card_class | append: ' product-card--swatches-' | append: swatch_position
+  assign card_class = card_class | append: ' product-card--swatches-selected-' | append: swatch_selected_style
+  if title_line_limit != 'none'
+    assign card_class = card_class | append: ' product-card--title-limit-' | append: title_line_limit
+  endif
+  if quick_add_mobile
+    assign card_class = card_class | append: ' product-card--quick-add-mobile'
+  endif
+  if quick_view_mobile
+    assign card_class = card_class | append: ' product-card--quick-view-mobile'
+  endif
+  if card_color_scheme != blank
+    assign card_class = card_class | append: ' color-scheme section-color-scope ' | append: card_color_scheme
+  endif
+  if class != blank
+    assign card_class = card_class | append: ' ' | append: class
+  endif
+  assign secondary_image = blank
+  assign current_variant = blank
+  assign product_card_image_placeholder = true
+  if product != blank
+    assign current_variant = product.selected_or_first_available_variant
+    assign card_image = current_variant.featured_image | default: product.featured_image
+    if card_image != blank
+      for product_image in product.images
+        if product_image.id != card_image.id and product_image.variants != blank
+          for image_variant in product_image.variants
+            if image_variant.id == current_variant.id
+              assign secondary_image = product_image
+              break
+            endif
+          endfor
+          if secondary_image != blank
+            break
+          endif
+        endif
+      endfor
+
+      if secondary_image == blank
+        for product_image in product.images
+          if product_image.id != card_image.id and product_image.variants == blank
+            assign secondary_image = product_image
+            break
+          endif
+        endfor
+      endif
+    endif
+    if card_image
+      assign product_card_image_placeholder = false
+    endif
+  endif
+  assign quick_add_label = 'products.quick_add' | t
+  assign quick_add_options_label = 'products.choose_options' | t
+  assign quick_view_label = 'products.quick_view' | t
+  assign product_card_motion_speed = 'standard'
+%}
+
+{% if placeholder or product == blank %}
+  {% render 'product-card-placeholder',
+    card_class: card_class,
+    attributes: attributes,
+    placeholder_price: 19,
+    middle_content: middle_content,
+    footer_content: footer_content
+  %}
+{% else %}
+<article
+  class="{{ card_class | strip }}"
+  data-product-card
+  {% if attributes != blank %}{{ attributes }}{% endif %}
+>
+  <div class="product-card__media">
+    {% render 'product-card-image',
+      image: card_image,
+      secondary_image: secondary_image,
+      secondary_image_enabled: secondary_image_enabled,
+      placeholder: product_card_image_placeholder,
+      url: product.url,
+      alt: product.title,
+      width: image_width,
+      height: image_height,
+      crop: 'center'
+    %}
+
+    <div class="product-card__media-overlay">
+      {% render 'product-badges',
+        product: product,
+        show_sale_badge: show_sale_badge,
+        show_sold_out_badge: show_sold_out_badge
+      %}
+    </div>
+
+    {% if quick_add_enabled and product.available and current_variant != blank %}
+      {% if product.has_only_default_variant == false %}
+        {% render 'product-card-quick-add-overlay',
+          url: product.url,
+          label: quick_add_options_label,
+          product_title: product.title,
+          style: quick_add_style,
+          full_width: quick_add_full_width,
+          color_scheme: quick_add_color_scheme,
+          motion_speed: product_card_motion_speed
+        %}
+      {% else %}
+        {% render 'product-card-quick-add',
+          variant_id: current_variant.id,
+          label: quick_add_label,
+          product_title: product.title,
+          style: quick_add_style,
+          full_width: quick_add_full_width,
+          color_scheme: quick_add_color_scheme,
+          motion_speed: product_card_motion_speed
+        %}
+      {% endif %}
+    {% endif %}
+
+    {% if quick_view_enabled %}
+      {% render 'product-card-quick-view',
+        url: product.url,
+        label: quick_view_label,
+        product_title: product.title,
+        motion_speed: product_card_motion_speed
+      %}
+    {% endif %}
+
+    </div>
+
+  <div class="product-card__content">
+    {% if swatches_enabled and swatch_position == 'top' %}
+      {% render 'product-card-swatches', product: product, secondary_image_enabled: secondary_image_enabled, image_width: image_width, image_height: image_height %}
+    {% endif %}
+
+    <div class="product-card__details">
+      {% if show_vendor_enabled and product.vendor != blank %}
+        <p class="product-card__vendor body-sm">{{ product.vendor | escape }}</p>
+      {% endif %}
+      {% if show_type and product.type != blank %}
+        <p class="product-card__type body-sm">{{ product.type | escape }}</p>
+      {% endif %}
+      {% render 'product-card-title', product: product, heading_tag: heading_tag %}
+      {% render 'product-card-price', item: product %}
+    </div>
+
+    {% if middle_content != blank %}
+      {{ middle_content }}
+    {% endif %}
+
+    {% if swatches_enabled and swatch_position == 'bottom' %}
+      {% render 'product-card-swatches', product: product, secondary_image_enabled: secondary_image_enabled, image_width: image_width, image_height: image_height %}
+    {% endif %}
+
+    {% if footer_content != blank %}
+      {{ footer_content }}
+    {% endif %}
+  </div>
+</article>
+{% endif %}

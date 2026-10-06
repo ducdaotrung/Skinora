@@ -1,0 +1,39 @@
+{% doc %}
+  Renders one Shopify product media item. Gallery layout and navigation belong
+  to the parent Product media block.
+
+  @param {media} media - Shopify product media object
+  @param {product} product - Product that owns the media
+  @param {boolean} [autoplay] - Autoplay video media
+  @param {boolean} [loop] - Loop video media
+  @param {string} [zoom] - Image zoom mode
+  @param {string} [loading] - Image loading strategy
+  @param {string} [fetchpriority] - Image fetch priority
+{% enddoc %}
+
+{% liquid
+  assign media_alt = media.alt | default: product.title
+  assign media_loading = loading | default: 'lazy'
+  assign media_fetchpriority = fetchpriority | default: 'auto'
+  assign zoom_mode = zoom | default: 'open_lightbox'
+%}
+
+<figure
+  class="product-media product-media--{{ media.media_type }}{% if media.media_type == 'image' and zoom_mode != 'none' %} product-media--interactive{% endif %}"
+  data-product-media-content
+  data-media-id="{{ media.id }}"
+  {% if media.media_type == 'image' and zoom_mode != 'none' %}
+    tabindex="0"
+    role="button"
+    aria-label="{{ 'products.view_media' | t: index: media.position | escape }}"
+  {% endif %}
+>
+  {% case media.media_type %}
+    {% when 'image' %}
+      {{ media | image_url: width: 2400 | image_tag: widths: '480, 720, 960, 1200, 1600, 2000, 2400', sizes: '(min-width: 768px) 55vw, 100vw', loading: media_loading, fetchpriority: media_fetchpriority, alt: media_alt }}
+    {% when 'video', 'external_video' %}
+      {{ media | media_tag: image_size: '1600x', autoplay: autoplay, loop: loop, muted: autoplay, controls: true, preload: 'metadata' }}
+    {% when 'model' %}
+      {{ media | model_viewer_tag: image_size: '1600x', reveal: 'interaction', toggleable: true }}
+  {% endcase %}
+</figure>

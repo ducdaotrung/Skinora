@@ -1,0 +1,71 @@
+{
+  "sections": {
+    "main": {
+      "type": "collections",
+      "settings": {
+        "section_width": "page_width",
+        "content_alignment": "left",
+        "show_top_divider": false,
+        "show_bottom_divider": false,
+        "divider_full_width": false,
+        "gap_desktop": 40,
+        "gap_mobile": 30,
+        "color_scheme": "scheme-1",
+        "padding_top": 70,
+        "padding_bottom": 90,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 40,
+        "padding_bottom_mobile": 50
+      },
+      "blocks": {
+        "heading-0": {
+          "type": "heading",
+          "settings": {
+            "text": "<p>Collections list</p>",
+            "heading_size": "xl",
+            "html_tag": "h1"
+          }
+        },
+        "collection-list": {
+          "type": "_collections-list",
+          "static": true,
+          "blocks": {
+            "collection-card": {
+              "type": "_collections-page-card",
+              "static": true,
+              "settings": {
+                "ratio": "landscape_3_2",
+                "color_type": "inherit"
+              },
+              "blocks": {
+                "collection-card-title-0": {
+                  "type": "collection-card-title",
+                  "settings": {
+                    "heading_size": "md",
+                    "html_tag": "h2"
+                  }
+                }
+              },
+              "block_order": [
+                "collection-card-title-0"
+              ]
+            },
+            "pagination": {
+              "type": "pagination",
+              "static": true,
+              "settings": {
+                "padding_top": 10
+              }
+            }
+          }
+        }
+      },
+      "block_order": [
+        "heading-0"
+      ]
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

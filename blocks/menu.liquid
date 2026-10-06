@@ -1,0 +1,339 @@
+{% doc %}
+  Renders the first level of a navigation menu with an optional heading and a
+  mobile disclosure. Nested menu links are intentionally not rendered.
+
+  The parent layout owns the block width and alignment. This block owns the
+  selected menu, heading presentation, link list and mobile disclosure state.
+  Empty menus show the same non-interactive placeholder in the editor and storefront.
+
+  @example
+  {% content_for 'block', type: 'menu', id: 'menu' %}
+{% enddoc %}
+
+{% liquid
+  assign selected_menu = block.settings.menu
+  assign selected_menu_handle = block.settings.menu
+  if block.settings.menu.handle != blank
+    assign selected_menu_handle = block.settings.menu.handle
+  endif
+  if selected_menu_handle == blank
+    assign selected_menu_handle = 'main-menu'
+  endif
+  if selected_menu.links == blank and selected_menu_handle != blank
+    assign selected_menu = linklists[selected_menu_handle]
+  endif
+
+  assign has_menu = false
+  if selected_menu != blank and selected_menu.links != blank
+    assign has_menu = true
+  endif
+
+  assign menu_icon = block.settings.icon | default: 'chevron'
+  unless menu_icon == 'chevron' or menu_icon == 'plus'
+    assign menu_icon = 'chevron'
+  endunless
+
+  assign collapse_menu_on_mobile = block.settings.collapse_menu_on_mobile | default: true, allow_false: true
+
+  assign heading_size = block.settings.heading_size | default: 'lg'
+  unless heading_size == 'display' or heading_size == 'xl' or heading_size == 'lg' or heading_size == 'md' or heading_size == 'sm' or heading_size == 'xs' or heading_size == 'custom'
+    assign heading_size = 'lg'
+  endunless
+  assign heading_custom_size = block.settings.custom_heading_size | default: 24 | plus: 0
+  if heading_custom_size < 10 or heading_custom_size > 100
+    assign heading_custom_size = 24
+  endif
+
+  assign heading_tag = block.settings.html_tag | default: 'h2'
+  unless heading_tag == 'div' or heading_tag == 'h1' or heading_tag == 'h2' or heading_tag == 'h3' or heading_tag == 'h4' or heading_tag == 'h5' or heading_tag == 'h6'
+    assign heading_tag = 'h2'
+  endunless
+
+  assign heading_color = block.settings.heading_color
+  if heading_color == 'heading'
+    assign heading_color = 'var(--heading-color)'
+  elsif heading_color == 'body'
+    assign heading_color = 'var(--body-color)'
+  endif
+
+  assign menu_size = block.settings.menu_size | default: 'md'
+  unless menu_size == 'xs' or menu_size == 'sm' or menu_size == 'md' or menu_size == 'lg' or menu_size == 'xl' or menu_size == 'xxl'
+    assign menu_size = 'md'
+  endunless
+
+  assign menu_color = block.settings.menu_color
+  if menu_color == 'heading'
+    assign menu_color = 'var(--heading-color)'
+  elsif menu_color == 'body'
+    assign menu_color = 'var(--body-color)'
+  endif
+
+  assign heading_gap = block.settings.heading_gap | default: 16 | plus: 0
+  if heading_gap < 0 or heading_gap > 100
+    assign heading_gap = 16
+  endif
+
+  assign menu_gap = block.settings.menu_gap | default: 8 | plus: 0
+  if menu_gap < 0 or menu_gap > 100
+    assign menu_gap = 8
+  endif
+
+  assign heading_content = block.settings.heading | default: ''
+  assign heading_label = heading_content | strip_html | strip
+  if heading_label == blank
+    assign heading_label = selected_menu.title | default: '' | strip
+    if heading_label == blank
+      assign heading_label = 'accessibility.footer_menu' | t
+    endif
+    assign heading_content = heading_label | escape
+  endif
+
+  assign menu_class = 'menu-block menu-block--icon-' | append: menu_icon
+  assign heading_class = 'menu-block__heading heading-text heading-' | append: heading_size
+  assign menu_list_class = 'menu-block__list body-text body-' | append: menu_size
+%}
+
+{% capture menu_style %}
+  {% if heading_size == 'custom' %}--menu-block-heading-custom-size: {{ heading_custom_size }}px;{% endif %}
+  {% if heading_gap != 16 %}--menu-block-heading-gap: {{ heading_gap }}px;{% endif %}
+  {% if menu_gap != 8 %}--menu-block-menu-gap: {{ menu_gap }}px;{% endif %}
+  {% if heading_color != blank %}--menu-block-heading-color: {{ heading_color | escape }};{% endif %}
+  {% if menu_color != blank %}--menu-block-menu-color: {{ menu_color | escape }};{% endif %}
+{% endcapture %}
+{% assign menu_style = menu_style | strip %}
+
+{% capture heading_markup %}
+  <{{ heading_tag }}
+    class="{{ heading_class }}"
+  >{{ heading_content }}</{{ heading_tag }}>
+{% endcapture %}
+{% assign heading_markup = heading_markup | strip %}
+
+{% capture menu_markup %}
+  {% if has_menu %}
+    <ul class="{{ menu_list_class }}" role="list">
+      {% for menu_link in selected_menu.links %}
+        <li class="menu-block__item{% if menu_link.active or menu_link.child_active %} menu-block__item--active{% endif %}">
+          {% if menu_link.url != blank %}
+            <a
+              class="menu-block__link link-underline{% if menu_link.active or menu_link.child_active or menu_link.current %} link-underline--active{% endif %}"
+              href="{{ menu_link.url | escape }}"
+              {% if menu_link.current %}aria-current="page"{% endif %}
+            >{{ menu_link.title | escape }}</a>
+          {% else %}
+            <span class="menu-block__link menu-block__link--placeholder">{{ menu_link.title | escape }}</span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="menu-block__empty">{{ 'accessibility.footer_menu' | t }}</p>
+  {% endif %}
+{% endcapture %}
+{% assign menu_markup = menu_markup | strip %}
+
+{% capture menu_summary %}
+  {{ heading_markup }}
+  <span class="menu-block__toggle-icon menu-block__toggle-icon--{{ menu_icon }}" aria-hidden="true">
+    {% if menu_icon == 'plus' %}
+      <svg viewBox="0 0 24 24" fill="none" focusable="false">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round" stroke-width="var(--icon-thickness)" />
+      </svg>
+    {% else %}
+      <svg viewBox="0 0 24 24" fill="none" focusable="false">
+        <path d="m5 9 7 7 7-7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-thickness)" />
+      </svg>
+    {% endif %}
+  </span>
+{% endcapture %}
+{% assign menu_summary = menu_summary | strip %}
+
+{% assign menu_content_id = 'MenuContent-' | append: section.id | append: '-' | append: block.id %}
+
+<nav
+  class="{{ menu_class }}"
+  aria-label="{{ heading_label | escape }}"
+  data-collapse-mobile="{{ collapse_menu_on_mobile }}"
+  {% if menu_style != blank %}style="{{ menu_style }}"{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {% if collapse_menu_on_mobile %}
+    {% render 'accordion-details',
+      class: 'menu-block__details',
+      summary: menu_summary,
+      content: menu_markup,
+      content_id: menu_content_id,
+      summary_class: 'menu-block__summary',
+      content_class: 'menu-block__content',
+      content_inner_class: 'menu-block__content-inner',
+      mobile_only: true
+    %}
+  {% else %}
+    {{ heading_markup }}
+    <div class="menu-block__content">
+      <div class="menu-block__content-inner">{{ menu_markup }}</div>
+    </div>
+  {% endif %}
+</nav>
+
+{% stylesheet %}
+  .menu-block__heading.heading-custom { font-size: var(--menu-block-heading-custom-size, var(--font-heading-custom)); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.menu",
+  "tag": null,
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "t:labels.menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:general.heading"
+    },
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "collapse_menu_on_mobile",
+      "label": "t:labels.collapse_menu_on_mobile",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "icon",
+      "label": "t:labels.icon",
+      "options": [
+        { "value": "chevron", "label": "t:options.menu_icon.chevron" },
+        { "value": "plus", "label": "t:options.menu_icon.plus" }
+      ],
+      "default": "chevron",
+      "visible_if": "{{ block.settings.collapse_menu_on_mobile }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "heading_gap",
+      "label": "t:labels.heading_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "menu_gap",
+      "label": "t:labels.menu_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "t:general.heading_typography"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
+        { "value": "xl", "label": "t:options.heading_size.xl" },
+        { "value": "lg", "label": "t:options.heading_size.lg" },
+        { "value": "md", "label": "t:options.heading_size.md" },
+        { "value": "sm", "label": "t:options.heading_size.sm" },
+        { "value": "xs", "label": "t:options.heading_size.xs" },
+        { "value": "custom", "label": "t:options.heading_size.custom" }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "html_tag",
+      "label": "t:labels.html_tag",
+      "info": "t:info.heading_html_tag",
+      "options": [
+        { "value": "div", "label": "t:options.html_tag.paragraph" },
+        { "value": "h1", "label": "t:options.html_tag.h1" },
+        { "value": "h2", "label": "t:options.html_tag.h2" },
+        { "value": "h3", "label": "t:options.html_tag.h3" },
+        { "value": "h4", "label": "t:options.html_tag.h4" },
+        { "value": "h5", "label": "t:options.html_tag.h5" },
+        { "value": "h6", "label": "t:options.html_tag.h6" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "heading_color",
+      "label": "t:labels.text_color",
+      "info": "t:info.heading_text_color"
+    },
+    {
+      "type": "header",
+      "content": "t:general.menu_typography"
+    },
+    {
+      "type": "select",
+      "id": "menu_size",
+      "label": "t:labels.text_size",
+      "options": [
+        { "value": "xs", "label": "t:options.text_size.xs" },
+        { "value": "sm", "label": "t:options.text_size.sm" },
+        { "value": "md", "label": "t:options.text_size.md" },
+        { "value": "lg", "label": "t:options.text_size.lg" },
+        { "value": "xl", "label": "t:options.text_size.xl" },
+        { "value": "xxl", "label": "t:options.text_size.xxl" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "menu_color",
+      "label": "t:labels.text_color"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.menu",
+      "category": "t:general.navigation",
+      "settings": {
+        "menu": "main-menu",
+        "collapse_menu_on_mobile": true,
+        "icon": "chevron",
+        "heading_gap": 16,
+        "menu_gap": 8,
+        "html_tag": "h2",
+        "heading_size": "lg",
+        "menu_size": "md"
+      }
+    }
+  ]
+}
+{% endschema %}

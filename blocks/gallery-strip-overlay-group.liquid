@@ -1,0 +1,93 @@
+{% liquid
+  assign text_alignment = block.settings.text_alignment | default: 'center'
+  assign group_align = 'center'
+  if text_alignment == 'left'
+    assign group_align = 'start'
+  elsif text_alignment == 'right'
+    assign group_align = 'end'
+  endif
+  assign content_color = block.settings.content_color | default: '#FFFFFF'
+  assign padding_top = block.settings.padding_top | default: 20 | plus: 0
+  assign padding_right = block.settings.padding_right | default: 20 | plus: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 20 | plus: 0
+  assign padding_left = block.settings.padding_left | default: 20 | plus: 0
+%}
+
+<div class="group layout-flow layout-flow--responsive gallery-strip-overlay-group" style="--gallery-strip-overlay-align: {{ group_align }}; --gallery-strip-overlay-text-align: {{ text_alignment }}; --gallery-strip-overlay-content-color: {{ content_color | escape }}; --gallery-strip-overlay-padding-top: {{ padding_top }}px; --gallery-strip-overlay-padding-right: {{ padding_right }}px; --gallery-strip-overlay-padding-bottom: {{ padding_bottom }}px; --gallery-strip-overlay-padding-left: {{ padding_left }}px; --text-align-default: {{ text_alignment }};" {{ block.shopify_attributes }}>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .group.gallery-strip-overlay-group {
+    --layout-flow-direction: column;
+    --layout-flow-align-items: var(--gallery-strip-overlay-align, center);
+    --layout-flow-justify-content: center;
+    --layout-flow-gap: 0.75rem;
+    --group-background-color: transparent;
+    --group-overlay-color: transparent;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding-top: var(--gallery-strip-overlay-padding-top, 20px);
+    padding-right: var(--gallery-strip-overlay-padding-right, 20px);
+    padding-bottom: var(--gallery-strip-overlay-padding-bottom, 20px);
+    padding-left: var(--gallery-strip-overlay-padding-left, 20px);
+    background-color: transparent;
+    background-image: none;
+    color: var(--gallery-strip-overlay-content-color, inherit);
+    text-align: var(--gallery-strip-overlay-text-align, center);
+  }
+
+  .gallery-strip-overlay-group .heading-block,
+  .gallery-strip-overlay-group .button-block {
+    color: var(--gallery-strip-overlay-content-color, inherit);
+    text-align: var(--gallery-strip-overlay-text-align, center);
+  }
+
+  .gallery-strip-overlay-group .heading-block {
+    --heading-block-color: var(--gallery-strip-overlay-content-color, inherit);
+  }
+
+  .gallery-strip-overlay-group .button-block {
+    --button-foreground: var(--gallery-strip-overlay-content-color, inherit);
+    --button-hover-foreground: var(--gallery-strip-overlay-content-color, inherit);
+  }
+
+  .gallery-strip-overlay-group .btn,
+  .gallery-strip-overlay-group .btn:hover,
+  .gallery-strip-overlay-group .btn__label,
+  .gallery-strip-overlay-group .btn__text,
+  .gallery-strip-overlay-group .btn__icon {
+    color: var(--gallery-strip-overlay-content-color, inherit);
+  }
+
+  @media (max-width: 767.98px) {
+    .group.gallery-strip-overlay-group {
+      --layout-flow-gap: 0.5rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Strip overlay group",
+  "tag": null,
+  "blocks": [
+    { "type": "heading" },
+    { "type": "button" }
+  ],
+  "settings": [
+    { "type": "color", "alpha": true, "id": "content_color", "label": "Color", "default": "#FFFFFF" },
+    { "type": "text_alignment", "id": "text_alignment", "label": "t:labels.alignment", "default": "center" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 20 },
+    { "type": "range", "id": "padding_right", "label": "t:labels.right_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 20 },
+    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 20 },
+    { "type": "range", "id": "padding_left", "label": "t:labels.left_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 20 }
+  ],
+  "presets": [{ "name": "Strip overlay group", "category": "Gallery", "blocks": [
+    { "type": "heading", "settings": { "text": "<p>Follow Us On Instagram</p>", "html_tag": "h2", "heading_size": "md" } },
+    { "type": "button", "settings": { "button_label": "Button label", "button_style": "tertiary", "width": "fit", "width_mobile": "fit" } }
+  ] }]
+}
+{% endschema %}

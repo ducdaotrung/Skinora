@@ -1,0 +1,1075 @@
+{% comment %}
+  Theme Block types/settings are not reliably exposed to the parent section,
+  and editor-generated IDs do not identify the block type. Render each block
+  once, then use the callout's own marker to separate slides from the header.
+{% endcomment %}
+{% liquid
+  assign hotspot_carousel_header = ''
+  assign hotspot_carousel_slides = ''
+  assign hotspot_carousel_product_callout_count = 0
+%}
+{% for hotspot_carousel_block in section.blocks %}
+  {% capture hotspot_carousel_block_markup %}
+    {% render hotspot_carousel_block %}
+  {% endcapture %}
+  {% liquid
+    assign hotspot_carousel_block_markup = hotspot_carousel_block_markup | strip
+    if hotspot_carousel_block_markup contains 'data-product-callout-carousel="true"'
+      assign hotspot_carousel_slides = hotspot_carousel_slides | append: hotspot_carousel_block_markup
+      assign hotspot_carousel_product_callout_count = hotspot_carousel_product_callout_count | plus: 1
+    else
+      assign hotspot_carousel_header = hotspot_carousel_header | append: hotspot_carousel_block_markup
+    endif
+  %}
+{% endfor %}
+
+{% liquid
+  assign hotspot_carousel_width = section.settings.width | default: 'full'
+  unless hotspot_carousel_width == 'page' or hotspot_carousel_width == 'full' or hotspot_carousel_width == 'full_bleed'
+    assign hotspot_carousel_width = 'full'
+  endunless
+
+  assign hotspot_carousel_show_next_slide_preview = false
+  if hotspot_carousel_width == 'page' and section.settings.show_next_slide_preview_on_desktop
+    assign hotspot_carousel_show_next_slide_preview = true
+  endif
+
+  assign hotspot_carousel_transition = section.settings.transition_style | default: 'slide'
+  unless hotspot_carousel_transition == 'slide' or hotspot_carousel_transition == 'fade'
+    assign hotspot_carousel_transition = 'slide'
+  endunless
+
+  assign hotspot_carousel_desktop_height = section.settings.desktop_height | default: 'medium'
+  assign hotspot_carousel_desktop_height_number = hotspot_carousel_desktop_height | plus: 0
+  if hotspot_carousel_desktop_height_number > 0
+    if hotspot_carousel_desktop_height_number <= 480
+      assign hotspot_carousel_desktop_height = 'extra_small'
+    elsif hotspot_carousel_desktop_height_number <= 600
+      assign hotspot_carousel_desktop_height = 'small'
+    elsif hotspot_carousel_desktop_height_number <= 800
+      assign hotspot_carousel_desktop_height = 'medium'
+    elsif hotspot_carousel_desktop_height_number <= 960
+      assign hotspot_carousel_desktop_height = 'large'
+    else
+      assign hotspot_carousel_desktop_height = 'extra_large'
+    endif
+  endif
+  unless hotspot_carousel_desktop_height == 'adapt' or hotspot_carousel_desktop_height == 'extra_small' or hotspot_carousel_desktop_height == 'small' or hotspot_carousel_desktop_height == 'medium' or hotspot_carousel_desktop_height == 'large' or hotspot_carousel_desktop_height == 'extra_large' or hotspot_carousel_desktop_height == 'full_screen'
+    assign hotspot_carousel_desktop_height = 'medium'
+  endunless
+
+  assign hotspot_carousel_mobile_height = section.settings.mobile_height | default: 'small'
+  assign hotspot_carousel_mobile_height_number = hotspot_carousel_mobile_height | plus: 0
+  if hotspot_carousel_mobile_height_number > 0
+    if hotspot_carousel_mobile_height_number <= 360
+      assign hotspot_carousel_mobile_height = 'extra_small'
+    elsif hotspot_carousel_mobile_height_number <= 480
+      assign hotspot_carousel_mobile_height = 'small'
+    elsif hotspot_carousel_mobile_height_number <= 600
+      assign hotspot_carousel_mobile_height = 'medium'
+    elsif hotspot_carousel_mobile_height_number <= 760
+      assign hotspot_carousel_mobile_height = 'large'
+    else
+      assign hotspot_carousel_mobile_height = 'extra_large'
+    endif
+  endif
+  unless hotspot_carousel_mobile_height == 'adapt' or hotspot_carousel_mobile_height == 'extra_small' or hotspot_carousel_mobile_height == 'small' or hotspot_carousel_mobile_height == 'medium' or hotspot_carousel_mobile_height == 'large' or hotspot_carousel_mobile_height == 'extra_large' or hotspot_carousel_mobile_height == 'full_screen'
+    assign hotspot_carousel_mobile_height = 'small'
+  endunless
+
+  assign hotspot_carousel_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign hotspot_carousel_scheme = section.settings.color_scheme.id
+  endif
+  assign hotspot_carousel_scheme = hotspot_carousel_scheme | default: 'scheme-1' | handleize
+
+  assign hotspot_carousel_content_scheme = 'scheme-3'
+  for hotspot_carousel_scheme_block in section.blocks
+    if hotspot_carousel_scheme_block.type == 'product-callout' or hotspot_carousel_scheme_block.id contains 'product-callout'
+      assign hotspot_carousel_content_scheme = hotspot_carousel_scheme_block.settings.content_color_scheme | default: 'scheme-3'
+      if hotspot_carousel_scheme_block.settings.content_color_scheme.id != blank
+        assign hotspot_carousel_content_scheme = hotspot_carousel_scheme_block.settings.content_color_scheme.id
+      endif
+      assign hotspot_carousel_content_scheme = hotspot_carousel_content_scheme | default: 'scheme-3' | handleize
+      break
+    endif
+  endfor
+
+  assign hotspot_carousel_padding_top = section.settings.padding_top | default: 40 | plus: 0
+  assign hotspot_carousel_padding_bottom = section.settings.padding_bottom | default: 40 | plus: 0
+  assign hotspot_carousel_padding_top_mobile = section.settings.padding_top_mobile | default: hotspot_carousel_padding_top | plus: 0
+  assign hotspot_carousel_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: hotspot_carousel_padding_bottom | plus: 0
+  if hotspot_carousel_width == 'full_bleed'
+    assign hotspot_carousel_padding_top = 0
+    assign hotspot_carousel_padding_bottom = 0
+    assign hotspot_carousel_padding_top_mobile = 0
+    assign hotspot_carousel_padding_bottom_mobile = 0
+  endif
+
+  assign hotspot_carousel_render = false
+  if hotspot_carousel_product_callout_count > 0 or request.design_mode and section.blocks.size > 0
+    assign hotspot_carousel_render = true
+  endif
+
+  assign hotspot_carousel_slide_count = hotspot_carousel_product_callout_count
+
+  assign hotspot_carousel_has_multiple_slides = false
+  if hotspot_carousel_slide_count > 1
+    assign hotspot_carousel_has_multiple_slides = true
+  endif
+
+  assign hotspot_carousel_manual_loop = false
+  if hotspot_carousel_has_multiple_slides and hotspot_carousel_show_next_slide_preview
+    assign hotspot_carousel_manual_loop = true
+  endif
+
+  assign hotspot_carousel_show_arrows = true
+  if section.settings.show_arrows == false
+    assign hotspot_carousel_show_arrows = false
+  endif
+
+  assign hotspot_carousel_show_pagination = true
+  if section.settings.show_pagination == false
+    assign hotspot_carousel_show_pagination = false
+  endif
+
+  assign hotspot_carousel_pagination_type = section.settings.pagination_type | default: 'bullets'
+  unless hotspot_carousel_pagination_type == 'bullets' or hotspot_carousel_pagination_type == 'progress_bar' or hotspot_carousel_pagination_type == 'numbers'
+    assign hotspot_carousel_pagination_type = 'bullets'
+  endunless
+  assign hotspot_carousel_use_fraction = false
+  if hotspot_carousel_show_pagination and hotspot_carousel_pagination_type == 'numbers'
+    assign hotspot_carousel_use_fraction = true
+  endif
+
+  assign hotspot_carousel_pagination_position_desktop = section.settings.pagination_position_desktop | default: 'left'
+  unless hotspot_carousel_pagination_position_desktop == 'left' or hotspot_carousel_pagination_position_desktop == 'center' or hotspot_carousel_pagination_position_desktop == 'right'
+    assign hotspot_carousel_pagination_position_desktop = 'left'
+  endunless
+
+  assign hotspot_carousel_pagination_position_mobile = section.settings.pagination_position_mobile | default: 'center'
+  unless hotspot_carousel_pagination_position_mobile == 'left' or hotspot_carousel_pagination_position_mobile == 'center' or hotspot_carousel_pagination_position_mobile == 'right'
+    assign hotspot_carousel_pagination_position_mobile = 'center'
+  endunless
+
+  assign hotspot_carousel_navigation_style = section.settings.navigation_style | default: 'primary'
+  unless hotspot_carousel_navigation_style == 'primary' or hotspot_carousel_navigation_style == 'secondary'
+    assign hotspot_carousel_navigation_style = 'primary'
+  endunless
+
+  assign hotspot_carousel_navigation_icon = section.settings.navigation_icon | default: 'arrow'
+  unless hotspot_carousel_navigation_icon == 'chevron' or hotspot_carousel_navigation_icon == 'arrow' or hotspot_carousel_navigation_icon == 'long_arrow'
+    assign hotspot_carousel_navigation_icon = 'arrow'
+  endunless
+
+  assign hotspot_carousel_navigation_behavior = section.settings.navigation_behavior | default: 'show_on_hover'
+  unless hotspot_carousel_navigation_behavior == 'show_on_hover' or hotspot_carousel_navigation_behavior == 'always'
+    assign hotspot_carousel_navigation_behavior = 'show_on_hover'
+  endunless
+
+  assign hotspot_carousel_id = 'HotspotCarousel-' | append: section.id
+  assign hotspot_carousel_previous_label = 'collection_tabs.previous' | t
+  assign hotspot_carousel_next_label = 'collection_tabs.next' | t
+  assign hotspot_carousel_aria_label = 'accessibility.hotspot_carousel' | t
+  if section.settings.aria_label != blank
+    assign hotspot_carousel_aria_label = section.settings.aria_label
+  endif
+
+  assign hotspot_carousel_controls_scheme_class = 'color-scheme ' | append: hotspot_carousel_content_scheme
+  assign hotspot_carousel_navigation_class = 'hotspot-full-width-carousel__navigation ' | append: hotspot_carousel_controls_scheme_class
+  assign hotspot_carousel_pagination_class = 'hotspot-full-width-carousel__pagination swiper-pagination--overlay swiper-pagination--desktop-' | append: hotspot_carousel_pagination_position_desktop | append: ' swiper-pagination--mobile-' | append: hotspot_carousel_pagination_position_mobile | append: ' ' | append: hotspot_carousel_controls_scheme_class
+%}
+
+{% if hotspot_carousel_render %}
+  {% if hotspot_carousel_transition == 'fade' and hotspot_carousel_show_next_slide_preview == false %}
+    <link rel="stylesheet" href="{{ 'swiper-12.2.0-effect-fade.min.css' | asset_url }}" media="print" onload="this.media='all'">
+    <noscript>{{ 'swiper-12.2.0-effect-fade.min.css' | asset_url | stylesheet_tag }}</noscript>
+  {% endif %}
+  <script data-theme-module="{{ 'carousel-block.js' | asset_url }}"></script>
+
+  <div
+    class="hotspot-full-width-carousel hotspot-full-width-carousel--width-{{ hotspot_carousel_width }} hotspot-full-width-carousel--desktop-{{ hotspot_carousel_desktop_height }} hotspot-full-width-carousel--mobile-{{ hotspot_carousel_mobile_height }} section-color-scope color-scheme {{ hotspot_carousel_scheme }}"
+    style="
+      --hotspot-carousel-padding-top: {{ hotspot_carousel_padding_top }}px;
+      --hotspot-carousel-padding-bottom: {{ hotspot_carousel_padding_bottom }}px;
+      {% if section.settings.customize_mobile_padding %}--hotspot-carousel-padding-top-mobile: {{ hotspot_carousel_padding_top_mobile }}px;--hotspot-carousel-padding-bottom-mobile: {{ hotspot_carousel_padding_bottom_mobile }}px;{% endif %}
+      {% if section.settings.background_color != blank %}
+        --hotspot-carousel-background: {{ section.settings.background_color | escape }};
+      {% endif %}
+    "
+    data-hotspot-full-width-carousel
+    data-carousel-block
+    data-transition="{{ hotspot_carousel_transition }}"
+    data-show-next-slide-preview-on-desktop="{{ hotspot_carousel_show_next_slide_preview }}"
+    data-swiper-columns-desktop="1"
+    data-swiper-columns-mobile="1"
+    data-swiper-gap-desktop="0"
+    data-swiper-gap-mobile="0"
+    data-swiper-pagination-type="{{ hotspot_carousel_pagination_type }}"
+    data-swiper-pagination-desktop="{{ hotspot_carousel_show_pagination }}"
+    data-swiper-pagination-mobile="{{ hotspot_carousel_show_pagination }}"
+    {% if hotspot_carousel_use_fraction %}data-carousel-controls-style="fraction"{% endif %}
+    data-carousel-loop="{{ hotspot_carousel_has_multiple_slides }}"
+    data-carousel-manual-loop="{{ hotspot_carousel_manual_loop }}"
+    data-swiper-autoplay="false"
+    data-swiper-autoplay-pause-on-hover="true"
+    data-swiper-autoplay-delay="4000"
+  >
+    {% if section.settings.background_media != 'none' %}
+      {% render 'media-background',
+        media_type: section.settings.background_media,
+        image: section.settings.background_image,
+        video: section.settings.background_video,
+        alt: '',
+        placeholder: 'image',
+        sizes: '100vw',
+        aria_hidden: true,
+        class: 'hotspot-full-width-carousel__background'
+      %}
+    {% endif %}
+
+    {% if section.blocks.size > 0 %}
+      {% capture hotspot_carousel_pagination %}
+        {% if hotspot_carousel_has_multiple_slides and hotspot_carousel_show_pagination and hotspot_carousel_use_fraction == false %}
+          {% render 'swiper-pagination',
+            show: true,
+            type: hotspot_carousel_pagination_type,
+            class: hotspot_carousel_pagination_class
+          %}
+        {% endif %}
+      {% endcapture %}
+
+      <div class="hotspot-full-width-carousel__container swiper-carousel__container">
+        {% if hotspot_carousel_header != blank %}
+          <div class="hotspot-full-width-carousel__header">
+            {{ hotspot_carousel_header }}
+          </div>
+        {% endif %}
+
+        {% if hotspot_carousel_product_callout_count > 0 %}
+          {% render 'swiper-carousel',
+            id: hotspot_carousel_id,
+            content: hotspot_carousel_slides,
+            root_class: 'hotspot-full-width-carousel__viewport',
+            aria_label: hotspot_carousel_aria_label,
+            pagination: hotspot_carousel_pagination,
+            show_next_slide_preview: hotspot_carousel_show_next_slide_preview
+          %}
+
+          {% if hotspot_carousel_has_multiple_slides and hotspot_carousel_show_arrows and hotspot_carousel_use_fraction == false %}
+            {% render 'swiper-navigation',
+              show: true,
+              style: hotspot_carousel_navigation_style,
+              icon: hotspot_carousel_navigation_icon,
+              behavior: hotspot_carousel_navigation_behavior,
+              wrapper_class: hotspot_carousel_navigation_class,
+              wrapper_attributes: 'aria-label="Hotspot carousel controls"',
+              previous_attribute: 'data-carousel-previous',
+              next_attribute: 'data-carousel-next',
+              previous_label: hotspot_carousel_previous_label,
+              next_label: hotspot_carousel_next_label,
+              centered: true
+            %}
+          {% endif %}
+
+          {% if hotspot_carousel_has_multiple_slides and hotspot_carousel_show_pagination and hotspot_carousel_use_fraction %}
+            <div class="hotspot-full-width-carousel__fraction-controls hotspot-full-width-carousel__fraction-controls--desktop-{{ hotspot_carousel_pagination_position_desktop }} hotspot-full-width-carousel__fraction-controls--mobile-{{ hotspot_carousel_pagination_position_mobile }} {{ hotspot_carousel_controls_scheme_class }}">
+              {% if hotspot_carousel_show_arrows %}
+                <button class="btn btn--unstyled btn--icon swiper-nav-button hotspot-full-width-carousel__fraction-button" type="button" data-carousel-fraction-previous aria-label="{{ hotspot_carousel_previous_label | escape }}">
+                  {% render 'carousel-navigation-icon', icon: hotspot_carousel_navigation_icon, direction: 'previous' %}
+                </button>
+              {% endif %}
+              <span class="hotspot-full-width-carousel__fraction" aria-live="polite">
+                <span data-carousel-fraction-current>1</span>/<span data-carousel-fraction-total>{{ hotspot_carousel_slide_count }}</span>
+              </span>
+              {% if hotspot_carousel_show_arrows %}
+                <button class="btn btn--unstyled btn--icon swiper-nav-button hotspot-full-width-carousel__fraction-button" type="button" data-carousel-fraction-next aria-label="{{ hotspot_carousel_next_label | escape }}">
+                  {% render 'carousel-navigation-icon', icon: hotspot_carousel_navigation_icon, direction: 'next' %}
+                </button>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% elsif request.design_mode %}
+          <div class="hotspot-full-width-carousel__empty-state">
+          </div>
+        {% endif %}
+      </div>
+    {% elsif request.design_mode %}
+      <div class="hotspot-full-width-carousel__empty-state">
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .hotspot-full-width-carousel {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    min-width: 0;
+    overflow: clip;
+    padding-block: var(--hotspot-carousel-padding-top, 0px) var(--hotspot-carousel-padding-bottom, 0px);
+    background: var(--hotspot-carousel-background, var(--background-color));
+    --page-margin-current: var(--page-margin-desktop);
+  }
+
+  .hotspot-full-width-carousel__background {
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .hotspot-full-width-carousel__container {
+    position: relative;
+    min-width: 0;
+  }
+
+  .hotspot-full-width-carousel__header {
+    min-width: 0;
+  }
+
+  .hotspot-full-width-carousel__header > .block-header {
+    width: 100%;
+  }
+
+  .hotspot-full-width-carousel--width-page .hotspot-full-width-carousel__container {
+    max-width: var(--page-width);
+    padding-inline: var(--page-margin-current);
+    margin-inline: auto;
+  }
+
+  .hotspot-full-width-carousel--width-full .hotspot-full-width-carousel__container {
+    width: calc(100% - (var(--page-margin-desktop) * 2));
+    margin-inline: auto;
+  }
+
+  .hotspot-full-width-carousel__viewport {
+    position: relative;
+    width: 100%;
+    height: var(--hotspot-carousel-height, auto);
+    overflow: hidden;
+  }
+
+  .hotspot-full-width-carousel--desktop-adapt {
+    --hotspot-carousel-height: auto;
+  }
+
+  .hotspot-full-width-carousel--desktop-extra_small {
+    --hotspot-carousel-height: 42rem;
+  }
+
+  .hotspot-full-width-carousel--desktop-small {
+    --hotspot-carousel-height: 56rem;
+  }
+
+  .hotspot-full-width-carousel--desktop-medium {
+    --hotspot-carousel-height: 64rem;
+  }
+
+  .hotspot-full-width-carousel--desktop-large {
+    --hotspot-carousel-height: 90rem;
+  }
+
+  .hotspot-full-width-carousel--desktop-extra_large {
+    --hotspot-carousel-height: 108rem;
+  }
+
+  .hotspot-full-width-carousel--desktop-full_screen {
+    --hotspot-carousel-height: 100svh;
+  }
+
+  .hotspot-full-width-carousel__viewport > .swiper-wrapper {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: stretch;
+  }
+
+  .hotspot-full-width-carousel__viewport > .swiper-wrapper > .swiper-slide {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .hotspot-full-width-carousel--desktop-adapt .hotspot-full-width-carousel__viewport > .swiper-wrapper,
+  .hotspot-full-width-carousel--desktop-adapt .hotspot-full-width-carousel__viewport > .swiper-wrapper > .swiper-slide {
+    height: auto;
+  }
+
+  .hotspot-full-width-carousel__navigation {
+    position: absolute;
+    z-index: 5;
+    inset-inline: 0;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 1.6rem;
+    pointer-events: none;
+    color: var(--heading-color);
+    transform: translateY(-50%);
+  }
+
+  .hotspot-full-width-carousel__navigation .swiper-nav-button {
+    pointer-events: auto;
+  }
+
+  .hotspot-full-width-carousel__navigation.swiper-carousel__navigation--show_on_hover {
+    transition: opacity var(--motion-duration-standard) var(--motion-ease-standard);
+  }
+
+  /* Page-width content has an outer padding box; keep overlay controls inside the viewport. */
+  .hotspot-full-width-carousel--width-page .hotspot-full-width-carousel__navigation,
+  .hotspot-full-width-carousel--width-page .hotspot-full-width-carousel__fraction-controls {
+    inset-inline: var(--page-margin-current, var(--page-margin-desktop));
+  }
+
+  .hotspot-full-width-carousel__fraction-controls {
+    position: absolute;
+    z-index: 4;
+    inset-block-end: 0;
+    inset-inline: 0;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2.4rem var(--page-margin-current);
+    color: var(--heading-color);
+  }
+
+  .hotspot-full-width-carousel__fraction-controls--desktop-left {
+    justify-content: flex-start;
+  }
+
+  .hotspot-full-width-carousel__fraction-controls--desktop-center {
+    justify-content: center;
+  }
+
+  .hotspot-full-width-carousel__fraction-controls--desktop-right {
+    justify-content: flex-end;
+  }
+
+  .hotspot-full-width-carousel__fraction-button {
+    --swiper-nav-size: 2.4rem;
+    width: 2.4rem;
+    min-width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+  }
+
+  .hotspot-full-width-carousel__fraction-button svg {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  .hotspot-full-width-carousel__fraction {
+    min-width: 2.5rem;
+    font-size: 1.6rem;
+    line-height: 2.4rem;
+    text-align: center;
+  }
+
+  .hotspot-full-width-carousel__pagination {
+    --swiper-pagination-inline-padding: var(--page-margin-current);
+  }
+
+  .hotspot-full-width-carousel.carousel-block--locked .hotspot-full-width-carousel__navigation,
+  .hotspot-full-width-carousel.carousel-block--locked .hotspot-full-width-carousel__viewport > .hotspot-full-width-carousel__pagination,
+  .hotspot-full-width-carousel.carousel-block--locked .hotspot-full-width-carousel__fraction-controls {
+    display: none;
+  }
+
+  .hotspot-full-width-carousel__empty-state {
+    display: grid;
+    min-height: min(28rem, 60vw);
+    place-items: center;
+    padding: 3rem;
+    border: 1px dashed currentColor;
+    color: var(--body-color);
+    text-align: center;
+  }
+
+  .hotspot-full-width-carousel__empty-state p {
+    margin: 0;
+  }
+
+  @media (min-width: 768px) and (max-width: 1149.98px) {
+    .hotspot-full-width-carousel {
+      --page-margin-current: var(--page-margin-tablet);
+      padding-block: calc(var(--hotspot-carousel-padding-top, 0px) * 0.75) calc(var(--hotspot-carousel-padding-bottom, 0px) * 0.75);
+    }
+
+    .hotspot-full-width-carousel--width-full .hotspot-full-width-carousel__container {
+      width: calc(100% - (var(--page-margin-tablet) * 2));
+    }
+
+  }
+
+  @media (max-width: 767.98px) {
+    .hotspot-full-width-carousel {
+      --page-margin-current: var(--page-margin-mobile);
+      padding-block: var(--hotspot-carousel-padding-top-mobile, calc(var(--hotspot-carousel-padding-top, 0px) * 0.5)) var(--hotspot-carousel-padding-bottom-mobile, calc(var(--hotspot-carousel-padding-bottom, 0px) * 0.5));
+    }
+
+    .hotspot-full-width-carousel--width-full .hotspot-full-width-carousel__container {
+      width: calc(100% - (var(--page-margin-mobile) * 2));
+    }
+
+    .hotspot-full-width-carousel--mobile-adapt {
+      --hotspot-carousel-height: auto;
+    }
+
+    .hotspot-full-width-carousel--mobile-extra_small {
+      --hotspot-carousel-height: 32rem;
+    }
+
+    .hotspot-full-width-carousel--mobile-small {
+      --hotspot-carousel-height: 44rem;
+    }
+
+    .hotspot-full-width-carousel--mobile-medium {
+      --hotspot-carousel-height: 56rem;
+    }
+
+    .hotspot-full-width-carousel--mobile-large {
+      --hotspot-carousel-height: 68rem;
+    }
+
+    .hotspot-full-width-carousel--mobile-extra_large {
+      --hotspot-carousel-height: 82rem;
+    }
+
+    .hotspot-full-width-carousel--mobile-full_screen {
+      --hotspot-carousel-height: 100svh;
+    }
+
+    /* Product callout slides use the same mobile flow as the static hotspot:
+       the media keeps the selected height and the content follows it. */
+    .hotspot-full-width-carousel__viewport {
+      height: auto;
+    }
+
+    .hotspot-full-width-carousel__viewport > .swiper-wrapper,
+    .hotspot-full-width-carousel__viewport > .swiper-wrapper > .swiper-slide {
+      height: auto;
+    }
+
+    .hotspot-full-width-carousel__navigation {
+      display: none;
+    }
+
+
+    .hotspot-full-width-carousel__fraction-controls {
+      padding-block: 1.6rem;
+    }
+
+    .hotspot-full-width-carousel__fraction-controls--mobile-left {
+      justify-content: flex-start;
+    }
+
+    .hotspot-full-width-carousel__fraction-controls--mobile-center {
+      justify-content: center;
+    }
+
+    .hotspot-full-width-carousel__fraction-controls--mobile-right {
+      justify-content: flex-end;
+    }
+
+
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.hotspot_carousel",
+  "class": "section-hotspot-full-width-carousel",
+  "enabled_on": { "templates": ["index"] },
+  "max_blocks": 9,
+  "blocks": [
+    { "type": "header" },
+    { "type": "product-callout" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Section width",
+      "options": [
+        { "value": "page", "label": "Page" },
+        { "value": "full", "label": "Full" },
+        { "value": "full_bleed", "label": "Full (no padding)" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_next_slide_preview_on_desktop",
+      "label": "t:labels.show_next_slide_preview_on_desktop",
+      "default": false,
+      "visible_if": "{{ section.settings.width == 'page' }}"
+    },
+    {
+      "type": "select",
+      "id": "transition_style",
+      "label": "Transition style",
+      "options": [
+        { "value": "slide", "label": "Slide" },
+        { "value": "fade", "label": "Fade" }
+      ],
+      "default": "slide",
+      "visible_if": "{{ section.settings.width != 'page' or section.settings.show_next_slide_preview_on_desktop == false }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.height"
+    },
+    {
+      "type": "select",
+      "id": "desktop_height",
+      "label": "t:labels.desktop_height",
+      "options": [
+        { "value": "adapt", "label": "t:options.hero_height.adapt" },
+        { "value": "extra_small", "label": "t:options.hero_height.extra_small" },
+        { "value": "small", "label": "t:options.hero_height.small" },
+        { "value": "medium", "label": "t:options.hero_height.medium" },
+        { "value": "large", "label": "t:options.hero_height.large" },
+        { "value": "extra_large", "label": "t:options.hero_height.extra_large" },
+        { "value": "full_screen", "label": "t:options.hero_height.full_screen" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "mobile_height",
+      "label": "t:labels.mobile_height",
+      "options": [
+        { "value": "adapt", "label": "t:options.hero_height.adapt" },
+        { "value": "extra_small", "label": "t:options.hero_height.extra_small" },
+        { "value": "small", "label": "t:options.hero_height.small" },
+        { "value": "medium", "label": "t:options.hero_height.medium" },
+        { "value": "large", "label": "t:options.hero_height.large" },
+        { "value": "extra_large", "label": "t:options.hero_height.extra_large" },
+        { "value": "full_screen", "label": "t:options.hero_height.full_screen" }
+      ],
+      "default": "small"
+    },
+    {
+      "type": "header",
+      "content": "t:general.navigation"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show navigation",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "navigation_style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" }
+      ],
+      "default": "primary",
+      "visible_if": "{{ section.settings.show_arrows }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_icon",
+      "label": "t:labels.icon",
+      "options": [
+        { "value": "chevron", "label": "t:options.collection_navigation_icon.chevron" },
+        { "value": "arrow", "label": "t:options.collection_navigation_icon.arrow" },
+        { "value": "long_arrow", "label": "t:options.collection_navigation_icon.long_arrow" }
+      ],
+      "default": "arrow",
+      "visible_if": "{{ section.settings.show_arrows }}"
+    },
+    {
+      "type": "select",
+      "id": "navigation_behavior",
+      "label": "t:labels.behavior",
+      "options": [
+        { "value": "show_on_hover", "label": "t:options.collection_navigation_behavior.show_on_hover" },
+        { "value": "always", "label": "t:options.collection_navigation_behavior.always" }
+      ],
+      "default": "show_on_hover",
+      "visible_if": "{{ section.settings.show_arrows }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.pagination"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pagination",
+      "label": "t:labels.show_pagination",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "pagination_type",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "progress_bar", "label": "t:options.collection_pagination.progress_bar" },
+        { "value": "bullets", "label": "t:options.collection_pagination.bullets" },
+        { "value": "numbers", "label": "Numbers" }
+      ],
+      "default": "bullets",
+      "visible_if": "{{ section.settings.show_pagination }}"
+    },
+    {
+      "type": "select",
+      "id": "pagination_position_desktop",
+      "label": "Desktop position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ section.settings.show_pagination }}"
+    },
+    {
+      "type": "select",
+      "id": "pagination_position_mobile",
+      "label": "Mobile position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center",
+      "visible_if": "{{ section.settings.show_pagination }}"
+    },
+    {
+      "type": "text",
+      "id": "aria_label",
+      "label": "Accessible label",
+      "default": "Hotspot carousel"
+    },
+    {
+      "type": "header",
+      "content": "t:general.product_card"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_type",
+      "label": "t:labels.show_product_type",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_image",
+      "label": "t:labels.show_product_image",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price",
+      "label": "t:labels.show_price",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "product_link_label",
+      "label": "t:labels.product_link_label",
+      "default": "View product"
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance",
+      "visible_if": "{{ section.settings.width != 'full_bleed' }}"
+    },
+    {
+      "type": "select",
+      "id": "background_media",
+      "label": "t:general.media",
+      "options": [
+        { "value": "none", "label": "t:options.background_media.none" },
+        { "value": "image", "label": "t:general.image" },
+        { "value": "video", "label": "t:general.video" }
+      ],
+      "default": "none",
+      "visible_if": "{{ section.settings.width != 'full_bleed' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:labels.background_image",
+      "visible_if": "{{ section.settings.width != 'full_bleed' and section.settings.background_media == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "t:labels.background_video",
+      "visible_if": "{{ section.settings.width != 'full_bleed' and section.settings.background_media == 'video' }}"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ section.settings.width != 'full_bleed' }}"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "t:labels.background_color",
+      "visible_if": "{{ section.settings.width != 'full_bleed' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding",
+      "visible_if": "{{ section.settings.width != 'full_bleed' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ section.settings.width != 'full_bleed' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ section.settings.width != 'full_bleed' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false,
+      "visible_if": "{{ section.settings.width != 'full_bleed' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ section.settings.width != 'full_bleed' and section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ section.settings.width != 'full_bleed' and section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.hotspot_carousel",
+      "category": "t:general.banners",
+      "settings": {
+        "width": "full",
+        "show_next_slide_preview_on_desktop": false,
+        "transition_style": "slide",
+        "desktop_height": "medium",
+        "mobile_height": "small",
+        "show_arrows": true,
+        "navigation_style": "primary",
+        "navigation_icon": "arrow",
+        "navigation_behavior": "show_on_hover",
+        "show_pagination": true,
+        "pagination_type": "bullets",
+        "pagination_position_desktop": "left",
+        "pagination_position_mobile": "center",
+        "aria_label": "Hotspot carousel",
+        "show_product_type": true,
+        "show_product_image": true,
+        "show_price": true,
+        "product_link_label": "View product",
+        "color_scheme": "scheme-1",
+        "padding_top": 40,
+        "padding_bottom": 40,
+        "customize_mobile_padding": false,
+        "padding_top_mobile": 40,
+        "padding_bottom_mobile": 40
+      },
+      "blocks": [
+        {
+          "type": "header",
+          "settings": {
+            "width": "fit",
+            "alignment": "center",
+            "gap_desktop": 8,
+            "gap_mobile": 8,
+            "padding_bottom": 40,
+            "padding_bottom_mobile": 40
+          },
+          "blocks": [
+            {
+              "type": "eyebrow",
+              "settings": {
+                "text": "<p>SUBHEADING</p>"
+              }
+            },
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Hotspot carousel</p>",
+                "heading_size": "lg",
+                "html_tag": "h2"
+              }
+            }
+          ]
+        },
+        {
+          "type": "product-callout",
+          "settings": {
+            "editor_title": "Product callout 1",
+            "content_color_scheme": "scheme-3",
+            "desktop_image_position": "center center",
+            "mobile_image_position": "center center",
+            "hotspot_icon_style": "dot",
+            "hotspot_behavior": "click"
+          },
+          "blocks": [
+            {
+              "type": "hotspot",
+              "settings": {
+                "vertical_position": 50,
+                "horizontal_position": 22,
+                "customize_mobile_position": false,
+                "mobile_vertical_position": 50,
+                "mobile_horizontal_position": 22
+              }
+            },
+            {
+              "type": "hotspot",
+              "settings": {
+                "vertical_position": 56,
+                "horizontal_position": 57,
+                "customize_mobile_position": false,
+                "mobile_vertical_position": 56,
+                "mobile_horizontal_position": 57
+              }
+            },
+            {
+              "type": "hotspot",
+              "settings": {
+                "vertical_position": 73,
+                "horizontal_position": 77,
+                "customize_mobile_position": false,
+                "mobile_vertical_position": 73,
+                "mobile_horizontal_position": 77
+              }
+            }
+          ]
+        },
+        {
+          "type": "product-callout",
+          "settings": {
+            "editor_title": "Product callout 2",
+            "content_color_scheme": "scheme-3",
+            "desktop_image_position": "center center",
+            "mobile_image_position": "center center",
+            "hotspot_icon_style": "dot",
+            "hotspot_behavior": "click"
+          },
+          "blocks": [
+            {
+              "type": "hotspot",
+              "settings": {
+                "vertical_position": 50,
+                "horizontal_position": 22,
+                "customize_mobile_position": false,
+                "mobile_vertical_position": 50,
+                "mobile_horizontal_position": 22
+              }
+            },
+            {
+              "type": "hotspot",
+              "settings": {
+                "vertical_position": 56,
+                "horizontal_position": 57,
+                "customize_mobile_position": false,
+                "mobile_vertical_position": 56,
+                "mobile_horizontal_position": 57
+              }
+            },
+            {
+              "type": "hotspot",
+              "settings": {
+                "vertical_position": 73,
+                "horizontal_position": 77,
+                "customize_mobile_position": false,
+                "mobile_vertical_position": 73,
+                "mobile_horizontal_position": 77
+              }
+            }
+          ]
+        },
+        {
+          "type": "product-callout",
+          "settings": {
+            "editor_title": "Product callout 3",
+            "content_color_scheme": "scheme-3",
+            "desktop_image_position": "center center",
+            "mobile_image_position": "center center",
+            "hotspot_icon_style": "dot",
+            "hotspot_behavior": "click"
+          },
+          "blocks": [
+            {
+              "type": "hotspot",
+              "settings": {
+                "vertical_position": 50,
+                "horizontal_position": 22,
+                "customize_mobile_position": false,
+                "mobile_vertical_position": 50,
+                "mobile_horizontal_position": 22
+              }
+            },
+            {
+              "type": "hotspot",
+              "settings": {
+                "vertical_position": 56,
+                "horizontal_position": 57,
+                "customize_mobile_position": false,
+                "mobile_vertical_position": 56,
+                "mobile_horizontal_position": 57
+              }
+            },
+            {
+              "type": "hotspot",
+              "settings": {
+                "vertical_position": 73,
+                "horizontal_position": 77,
+                "customize_mobile_position": false,
+                "mobile_vertical_position": 73,
+                "mobile_horizontal_position": 77
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

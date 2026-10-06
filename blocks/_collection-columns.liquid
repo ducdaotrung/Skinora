@@ -1,0 +1,72 @@
+{% doc %}
+  Responsive column switcher. Choice is preserved when facets refresh.
+{% enddoc %}
+{% liquid
+  assign desktop_style = block.settings.desktop_style | default: 'primary'
+  assign mobile_style = block.settings.mobile_style | default: 'secondary'
+  if desktop_style == 'subtle'
+    assign desktop_style = 'outline'
+  endif
+  if mobile_style == 'subtle'
+    assign mobile_style = 'outline'
+  endif
+%}
+<fieldset class="collection-columns" data-desktop-type="{{ block.settings.desktop_type }}" data-desktop-style="{{ desktop_style }}" data-mobile-type="{{ block.settings.mobile_type }}" data-mobile-style="{{ mobile_style }}" {{ block.shopify_attributes }}>
+  <legend class="visually-hidden">{{ 'collection.grid_view' | t }}</legend>
+  <span class="collection-columns__label body-text body-sm" aria-hidden="true">{{ 'collection.view' | t }}</span>
+  {% for number in (1..2) %}
+    <label class="collection-columns__option collection-columns__mobile">
+      <input class="collection-columns__option-input" type="radio" name="columns-{{ section.id }}-mobile" value="{{ number }}" aria-label="{{ number }} {{ 'collection.columns' | t }}" data-collection-columns data-device="mobile">
+      <span class="collection-columns__option-content">
+        <span class="collection-columns__option-text" aria-hidden="true">{{ number }}</span>
+        <span class="collection-columns__option-icon" aria-hidden="true">{% render 'collection-column-icon', columns: number %}</span>
+      </span>
+    </label>
+  {% endfor %}
+  {% for number in (2..3) %}
+    <label class="collection-columns__option collection-columns__tablet">
+      <input class="collection-columns__option-input" type="radio" name="columns-{{ section.id }}-tablet" value="{{ number }}" aria-label="{{ number }} {{ 'collection.columns' | t }}" data-collection-columns data-device="tablet">
+      <span class="collection-columns__option-content">
+        <span class="collection-columns__option-text" aria-hidden="true">{{ number }}</span>
+        <span class="collection-columns__option-icon" aria-hidden="true">{% render 'collection-column-icon', columns: number %}</span>
+      </span>
+    </label>
+  {% endfor %}
+  {% for number in (3..5) %}
+    <label class="collection-columns__option collection-columns__desktop">
+      <input class="collection-columns__option-input" type="radio" name="columns-{{ section.id }}-desktop" value="{{ number }}" aria-label="{{ number }} {{ 'collection.columns' | t }}" data-collection-columns data-device="desktop">
+      <span class="collection-columns__option-content">
+        <span class="collection-columns__option-text" aria-hidden="true">{{ number }}</span>
+        <span class="collection-columns__option-icon" aria-hidden="true">{% render 'collection-column-icon', columns: number %}</span>
+      </span>
+    </label>
+  {% endfor %}
+</fieldset>
+{% schema %}
+{
+  "name": "Column switcher",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "Desktop" },
+    { "type": "select", "id": "desktop_type", "label": "Type", "options": [
+      { "value": "icon", "label": "Icon" }, { "value": "text", "label": "Text" }
+    ], "default": "text" },
+    { "type": "select", "id": "desktop_style", "label": "Style", "options": [
+      { "value": "primary", "label": "t:options.button_variant.primary" },
+      { "value": "secondary", "label": "t:options.button_variant.secondary" },
+      { "value": "tertiary", "label": "t:options.button_variant.tertiary" },
+      { "value": "outline", "label": "t:options.button_variant.outline" }
+    ], "default": "primary" },
+    { "type": "header", "content": "Mobile" },
+    { "type": "select", "id": "mobile_type", "label": "Type", "options": [
+      { "value": "icon", "label": "Icon" }, { "value": "text", "label": "Text" }
+    ], "default": "icon" },
+    { "type": "select", "id": "mobile_style", "label": "Style", "options": [
+      { "value": "primary", "label": "t:options.button_variant.primary" },
+      { "value": "secondary", "label": "t:options.button_variant.secondary" },
+      { "value": "tertiary", "label": "t:options.button_variant.tertiary" },
+      { "value": "outline", "label": "t:options.button_variant.outline" }
+    ], "default": "secondary" }
+  ]
+}
+{% endschema %}

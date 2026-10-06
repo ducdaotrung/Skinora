@@ -1,0 +1,183 @@
+{% liquid
+  assign account_type = block.settings.type | default: 'icon_with_text'
+  unless account_type == 'icon' or account_type == 'text' or account_type == 'icon_with_text'
+    assign account_type = 'icon_with_text'
+  endunless
+
+  assign account_label = block.settings.label | default: 'Account'
+  assign account_font = block.settings.font | default: 'accent'
+  unless account_font == 'body' or account_font == 'heading' or account_font == 'accent'
+    assign account_font = 'accent'
+  endunless
+
+  assign account_font_size = block.settings.font_size | default: 'md'
+  unless account_font_size == 'sm' or account_font_size == 'md' or account_font_size == 'lg' or account_font_size == 'xl' or account_font_size == 'xxl'
+    assign account_font_size = 'md'
+  endunless
+
+  assign account_letter_spacing = block.settings.letter_spacing | default: 'normal'
+  unless account_letter_spacing == 'tight' or account_letter_spacing == 'normal' or account_letter_spacing == 'relaxed'
+    assign account_letter_spacing = 'normal'
+  endunless
+
+  assign account_typography_class = 'body-text body-' | append: account_font_size | append: ' font-' | append: account_font | append: ' tracking-' | append: account_letter_spacing | append: ' text-case-original'
+  assign account_class = 'header-account header-account--type-' | append: account_type | append: ' ' | append: account_typography_class
+  if account_type == 'icon'
+    assign account_class = account_class | append: ' header-action--type-icon'
+  endif
+%}
+
+{% if shop.customer_accounts_enabled %}
+  <shopify-account class="{{ account_class }}" menu="customer-account-main-menu" {{ block.shopify_attributes }}>
+    <span slot="signed-out-avatar" class="header-account__avatar" aria-label="{{ account_label | escape }}">
+      {% unless account_type == 'text' %}<span class="icon" aria-hidden="true">
+        {% render 'icon', icon: 'user', bare: true %}
+      </span>{% endunless %}
+      {% unless account_type == 'icon' %}<span class="header-action__label {{ account_typography_class }}">{{ account_label | escape }}</span>{% endunless %}
+      <span class="header-account__mobile-label">{{ 'customers.login.submit' | t }}</span>
+    </span>
+  </shopify-account>
+{% else %}
+  <a class="{{ account_class }}" href="{{ routes.account_login_url }}" aria-label="{{ account_label | escape }}" {{ block.shopify_attributes }}>
+    {% unless account_type == 'text' %}<span class="icon" aria-hidden="true">
+      {% render 'icon', icon: 'user', bare: true %}
+    </span>{% endunless %}
+    {% unless account_type == 'icon' %}<span class="header-action__label {{ account_typography_class }}">{{ account_label | escape }}</span>{% endunless %}
+    <span class="header-account__mobile-label">{{ 'customers.login.submit' | t }}</span>
+  </a>
+{% endif %}
+
+{% stylesheet %}
+  shopify-account.header-account {
+    --shopify-account-radius-base: var(--drawer-radius);
+    --shopify-account-radius-dialog: var(--drawer-radius);
+    --shopify-account-radius-button: var(--button-radius);
+    --shopify-account-radius-button-small: var(--overlay-close-radius);
+    --shopify-account-radius-input: var(--input-radius);
+  }
+
+  .header-account {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 0;
+    min-height: var(--button-height);
+    color: var(--body-color);
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .header-account__avatar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: var(--button-height);
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .header-account .header-action__label {
+    -webkit-font-smoothing: auto;
+    text-rendering: auto;
+  }
+
+  .header-account__mobile-label {
+    display: none;
+  }
+
+  .header-account .icon {
+    display: inline-flex;
+    width: var(--header-icon-size, var(--icon-size-medium));
+    height: var(--header-icon-size, var(--icon-size-medium));
+    flex: 0 0 auto;
+  }
+
+  .header-account .icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 991.98px) {
+    .header-account {
+      min-height: var(--button-height-mobile);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header_account",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "Type",
+      "options": [
+        { "value": "icon", "label": "Icon" },
+        { "value": "text", "label": "Text" },
+        { "value": "icon_with_text", "label": "Icon with text" }
+      ],
+      "default": "icon_with_text"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Label",
+      "default": "Account"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "Font",
+      "options": [
+        { "value": "body", "label": "Body" },
+        { "value": "heading", "label": "Heading" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "accent"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "Font size",
+      "options": [
+        { "value": "sm", "label": "Small" },
+        { "value": "md", "label": "Medium" },
+        { "value": "lg", "label": "Large" },
+        { "value": "xl", "label": "Extra large" },
+        { "value": "xxl", "label": "Double extra large" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        { "value": "tight", "label": "t:options.letter_spacing.tight" },
+        { "value": "normal", "label": "t:options.letter_spacing.normal" },
+        { "value": "relaxed", "label": "t:options.letter_spacing.relaxed" }
+      ],
+      "default": "normal"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.header_account",
+      "category": "t:general.header"
+    }
+  ]
+}
+{% endschema %}

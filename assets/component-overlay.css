@@ -1,0 +1,187 @@
+/* One shell for popup, drawer and bottom sheet. Content never owns geometry. */
+.component-overlay {
+  --overlay-inset: var(--overlay-drawer-content-padding-desktop, 1.5rem);
+  --overlay-drawer-inset: var(--overlay-drawer-padding-desktop, 0px);
+  --overlay-rest-transform: scale(.95);
+  --overlay-motion-duration: var(--motion-duration-standard);
+  --overlay-motion-ease: var(--motion-ease-standard);
+  --overlay-exit-duration: var(--overlay-motion-duration);
+  --overlay-exit-ease: var(--overlay-motion-ease);
+  --overlay-enter-delay: 0ms;
+  --overlay-backdrop-duration: var(--overlay-motion-duration);
+  --overlay-backdrop-ease: var(--overlay-motion-ease);
+  position: fixed;
+  z-index: var(--z-modal, 1000);
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--overlay-text-color);
+  box-shadow: none;
+}
+.component-overlay[hidden] { display: none; }
+.component-overlay__backdrop {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  cursor: pointer;
+  opacity: 0;
+  --backdrop-blur: 0px;
+  transition:
+    background-color var(--overlay-backdrop-duration) var(--overlay-backdrop-ease),
+    opacity var(--overlay-backdrop-duration) var(--overlay-backdrop-ease),
+    -webkit-backdrop-filter var(--overlay-backdrop-duration) var(--overlay-backdrop-ease),
+    backdrop-filter var(--overlay-backdrop-duration) var(--overlay-backdrop-ease);
+}
+.component-overlay__panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: min(var(--component-overlay-width, 550px), calc(100vw - 32px));
+  max-width: 100vw;
+  height: fit-content;
+  max-height: calc(100dvh - 32px);
+  flex-direction: column;
+  margin: auto;
+  overflow: visible;
+  border: var(--overlay-popover-border-width) solid var(--overlay-border-color);
+  border-radius: var(--drawer-radius);
+  background: var(--overlay-background-color);
+  box-shadow: var(--overlay-popover-shadow);
+  opacity: 0;
+  transform: var(--overlay-rest-transform);
+  transition:
+    transform var(--overlay-motion-duration) var(--overlay-motion-ease),
+    opacity var(--overlay-motion-duration) var(--overlay-motion-ease);
+}
+.component-overlay[data-state='open'] .component-overlay__panel {
+  opacity: 1;
+  transform: none;
+  transition-delay: var(--overlay-enter-delay);
+}
+.component-overlay[data-state='closing'] .component-overlay__panel {
+  opacity: 0;
+  transform: var(--overlay-rest-transform);
+  transition-delay: 0ms;
+  transition-duration: var(--overlay-exit-duration);
+  transition-timing-function: var(--overlay-exit-ease);
+}
+.component-overlay[data-state='open'] .component-overlay__backdrop {
+  --backdrop-blur: var(--overlay-backdrop-blur, 0px);
+  /* The color token already owns alpha; element opacity also attenuates blur. */
+  background-color: var(--overlay-backdrop-color);
+  opacity: 1;
+}
+.component-overlay[data-state='closing'] .component-overlay__backdrop {
+  --backdrop-blur: 0px;
+  background-color: transparent;
+  opacity: 0;
+}
+custom-cursor[data-component-overlay-cursor] {
+  position: fixed;
+  z-index: calc(var(--z-modal, 1000) + 1);
+  top: var(--cursor-y, -100px);
+  left: var(--cursor-x, -100px);
+  display: flex;
+  width: 0;
+  height: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  color: var(--color-cursor-text);
+  pointer-events: none;
+  background-color: var(--color-cursor-background);
+  transform: translate(-50%, -50%);
+  transition: width .2s ease, height .2s ease;
+  will-change: width, height;
+}
+custom-cursor[data-component-overlay-cursor].active {
+  width: 6.4rem;
+  height: 6.4rem;
+}
+custom-cursor[data-component-overlay-cursor] svg {
+  flex: none;
+  width: 2.2rem;
+  height: 2.2rem;
+}
+@media (hover: hover) and (pointer: fine) {
+  html.component-overlay-backdrop-cursor,
+  html.component-overlay-backdrop-cursor body,
+  .component-overlay.cursor-none .component-overlay__backdrop { cursor: none !important; }
+}
+.component-overlay__header { position: relative; display: flex; flex: none; align-items: center; justify-content: space-between; gap: 16px; min-height: 74px; padding: 16px var(--overlay-inset); border-bottom: 1px solid var(--overlay-border-color); }
+.component-overlay__header--untitled { z-index: 1; height: 0; min-height: 0; padding: 0; border-bottom: 0; }
+.component-overlay__header--untitled .component-overlay__close { position: absolute; top: 16px; right: var(--overlay-inset); }
+.component-overlay__title { min-width: 0; margin: 0; color: inherit; }
+.component-overlay__close { flex: none; }
+.component-overlay__handle { display: none; }
+.component-overlay__body { min-height: 0; padding: var(--overlay-inset); }
+.component-overlay__panel,
+.component-overlay__body { overscroll-behavior: contain; }
+.component-overlay__header--untitled + .component-overlay__body { padding-top: 56px; }
+.component-sheet { border-radius: var(--bottom-sheet-radius) var(--bottom-sheet-radius) 0 0; }
+@media (min-width: 768px) {
+  .component-overlay[data-desktop-layout='popup']:not([hidden]) {
+    display: grid;
+    place-items: center;
+  }
+
+  .component-overlay[data-desktop-layout='drawer'] .component-overlay__panel {
+    --overlay-rest-transform: translateX(100%);
+    position: absolute;
+    inset: var(--overlay-drawer-inset) var(--overlay-drawer-inset) var(--overlay-drawer-inset) auto;
+    width: min(var(--component-overlay-width, 550px), calc(100vw - var(--overlay-drawer-inset)));
+    height: calc(100dvh - var(--overlay-drawer-inset) - var(--overlay-drawer-inset));
+    max-height: calc(100dvh - var(--overlay-drawer-inset) - var(--overlay-drawer-inset));
+    margin: 0;
+    border-radius: var(--drawer-radius) 0 0 var(--drawer-radius);
+  }
+}
+@media (max-width: 767.98px) {
+  .component-sheet--mobile[class] { border-radius: var(--bottom-sheet-radius) var(--bottom-sheet-radius) 0 0; }
+  .component-sheet--mobile > .component-sheet__header,
+  .component-sheet > .component-sheet__header { min-height: 74px; padding-top: 24px; padding-bottom: 16px; }
+  .component-overlay {
+    --overlay-inset: var(--overlay-drawer-content-padding-mobile, 1rem);
+    --overlay-drawer-inset: var(--overlay-drawer-padding-mobile, 0px);
+  }
+  .component-overlay[data-mobile-layout='bottom_sheet'] .component-overlay__panel { --overlay-rest-transform: translateY(100%); position: absolute; inset: auto 0 0; width: 100%; max-height: calc(90dvh - env(safe-area-inset-top, 0px)); margin: 0; border-radius: var(--bottom-sheet-radius) var(--bottom-sheet-radius) 0 0; }
+  .component-overlay[data-mobile-layout='bottom_sheet']:is([data-state='opening'], [data-state='open']) .component-overlay__backdrop { opacity: calc(1 - (var(--sheet-drag-progress, 0) * 0.72)); }
+  .component-overlay[data-mobile-layout='drawer'] .component-overlay__panel {
+    --overlay-rest-transform: translateX(100%);
+    position: absolute;
+    inset: var(--overlay-drawer-inset) var(--overlay-drawer-inset) var(--overlay-drawer-inset) auto;
+    width: calc(100vw - var(--overlay-drawer-inset));
+    height: calc(100dvh - var(--overlay-drawer-inset) - var(--overlay-drawer-inset));
+    max-height: calc(100dvh - var(--overlay-drawer-inset) - var(--overlay-drawer-inset));
+    margin: 0;
+    border-radius: var(--drawer-radius) 0 0 var(--drawer-radius);
+  }
+  .component-overlay[data-mobile-layout='bottom_sheet'] .component-overlay__panel,
+  .component-sheet { touch-action: pan-y; }
+  .component-overlay[data-mobile-layout='bottom_sheet'] .component-overlay__panel.is-sheet-dragging,
+  .component-sheet.is-sheet-dragging { touch-action: none; user-select: none; }
+  .component-overlay[data-mobile-layout='bottom_sheet'] .component-overlay__header { padding-top: 24px; touch-action: none; user-select: none; cursor: grab; }
+  .component-overlay[data-mobile-layout='bottom_sheet'] .component-overlay__handle { display: block; }
+  .component-overlay[data-mobile-layout='bottom_sheet'] .component-overlay__header--untitled { height: 48px; min-height: 48px; padding: 0; }
+  .component-overlay[data-mobile-layout='bottom_sheet'] .component-overlay__header--untitled + .component-overlay__body { padding-top: 8px; }
+  .component-overlay__body { padding-bottom: max(var(--overlay-inset), env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .component-overlay__backdrop,
+  .component-overlay__panel,
+  custom-cursor[data-component-overlay-cursor] { transition: none; }
+}

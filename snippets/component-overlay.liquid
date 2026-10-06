@@ -1,0 +1,24 @@
+{% doc %}
+  Shared overlay shell. Pass captured feature content; header title is optional.
+  @param {string} id - Unique dialog identifier
+  @param {string} content - Captured body markup
+  @param {string} label - Accessible name when no header title is supplied
+  @param {string} [title] - Optional visible header title
+  @param {string} [desktop_layout] - popup or drawer
+  @param {string} [mobile_layout] - bottom_sheet or drawer
+  @param {string} [attributes] - Feature data hooks
+  @param {string} [body_class] - Content-only feature class
+  @param {number} [width] - Optional panel width in pixels
+  @param {boolean} [append_to_body] - Move the overlay root to document.body when initialized
+{% enddoc %}
+<div id="{{ id }}" class="component-overlay" data-component-overlay{% if append_to_body %} data-append-to-body{% endif %} data-desktop-layout="{{ desktop_layout | default: 'drawer' }}" data-mobile-layout="{{ mobile_layout | default: 'bottom_sheet' }}" data-state="closed" role="dialog" aria-modal="true" aria-hidden="true" aria-label="{{ label | escape }}"{% if title != blank %} aria-labelledby="{{ id }}-heading"{% endif %}{% if width %} style="--component-overlay-width: {{ width }}px;"{% endif %} scroll-lock hidden {{ attributes }}>
+  <button class="component-overlay__backdrop backdrop-blur" type="button" tabindex="-1" aria-label="{{ 'accessibility.close' | t }}" data-component-overlay-backdrop></button>
+  <div class="component-overlay__panel">
+    <header class="component-overlay__header{% if title == blank %} component-overlay__header--untitled{% endif %}">
+      <span class="bottom-sheet__handle component-overlay__handle" aria-hidden="true"></span>
+      {% if title != blank %}<h2 id="{{ id }}-heading" class="component-overlay__title heading-text heading-sm">{{ title }}</h2>{% endif %}
+      <button type="button" class="overlay-close component-overlay__close" data-overlay-close aria-label="{{ 'accessibility.close' | t }}">{% render 'icon', icon: 'x-mark', bare: true, class: 'overlay-close__icon' %}</button>
+    </header>
+    <div class="component-overlay__body scrollbar scrollbar--vertical {{ body_class }}">{{ content }}</div>
+  </div>
+</div>

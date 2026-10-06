@@ -1,0 +1,136 @@
+{% doc %}
+  Renders an interactive location item. Heading, text and button are global
+  theme blocks; the section owns active state and swaps this item's image.
+{% enddoc %}
+
+{% liquid
+  assign location_item_gap = block.settings.gap_desktop | default: 8 | plus: 0
+  assign location_item_gap_mobile = block.settings.gap_mobile | default: location_item_gap | plus: 0
+  assign location_item_padding_top = block.settings.padding_top | default: 16 | plus: 0
+  assign location_item_padding_right = block.settings.padding_right | default: 32 | plus: 0
+  assign location_item_padding_bottom = block.settings.padding_bottom | default: 16 | plus: 0
+  assign location_item_padding_left = block.settings.padding_left | default: 32 | plus: 0
+%}
+
+<div class="location-item" data-location-list-item="{{ block.id }}" style="--location-item-gap: {{ location_item_gap }}px; --location-item-gap-mobile: {{ location_item_gap_mobile }}px; --location-item-padding-top: {{ location_item_padding_top }}px; --location-item-padding-right: {{ location_item_padding_right }}px; --location-item-padding-bottom: {{ location_item_padding_bottom }}px; --location-item-padding-left: {{ location_item_padding_left }}px;" {{ block.shopify_attributes }}>
+  <div
+    class="location-item__trigger"
+    data-location-list-trigger
+    role="button"
+    tabindex="0"
+    aria-controls="LocationListMedia-{{ section.id }}"
+    aria-pressed="false"
+  >
+    <div class="location-item__content">
+      {% content_for 'blocks' %}
+    </div>
+  </div>
+
+  <template data-location-list-image>
+    {% if block.settings.image != blank %}
+      {{ block.settings.image | image_url: width: 2400 | image_tag: widths: '750, 1100, 1500, 2000, 2400', sizes: '(min-width: 768px) 58.333vw, 100vw', alt: block.settings.image_alt }}
+    {% endif %}
+  </template>
+</div>
+
+{% stylesheet %}
+  .location-item {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .location-item__trigger {
+    width: 100%;
+    padding-top: var(--location-item-padding-top, 16px);
+    padding-right: var(--location-item-padding-right, 32px);
+    padding-bottom: var(--location-item-padding-bottom, 16px);
+    padding-left: var(--location-item-padding-left, 32px);
+    border-left: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 220ms ease, border-color 220ms ease;
+  }
+
+  .location-item__trigger[aria-pressed='true'] {
+    border-left-color: var(--location-list-active-border, #000);
+    background: var(--location-list-active-background, #f7efed);
+  }
+
+  .location-item__trigger:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+  }
+
+  .location-item__content {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--location-item-gap, 8px);
+  }
+
+  .location-item__trigger[aria-pressed='true'] .location-item__content {
+    animation: location-item-active 300ms ease both;
+  }
+
+  @keyframes location-item-active {
+    from {
+      opacity: 0.45;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .location-item__content {
+      gap: var(--location-item-gap-mobile, var(--location-item-gap, 8px));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .location-item__trigger,
+    .location-item__trigger[aria-pressed='true'] .location-item__content {
+      animation: none;
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Location item",
+  "tag": null,
+  "blocks": [
+    { "type": "heading" },
+    { "type": "text" },
+    { "type": "button" }
+  ],
+  "settings": [
+    { "type": "header", "content": "Gap" },
+    { "type": "range", "id": "gap_desktop", "label": "Desktop", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8 },
+    { "type": "range", "id": "gap_mobile", "label": "Mobile", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8 },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding_top", "label": "Top", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "padding_right", "label": "Right", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 32 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "padding_left", "label": "Left", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 32 },
+    { "type": "header", "content": "Store image" },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "text", "id": "image_alt", "label": "Alt text", "default": "Store location" }
+  ],
+  "presets": [
+    {
+      "name": "Location item",
+      "category": "t:general.content",
+      "settings": { "gap_desktop": 8, "gap_mobile": 8, "padding_top": 16, "padding_right": 32, "padding_bottom": 16, "padding_left": 32, "image_alt": "Store location" },
+      "blocks": [
+        { "type": "heading", "settings": { "text": "<p>Store location</p>", "heading_size": "sm", "html_tag": "h4" } },
+        { "type": "text", "settings": { "text": "<p>123 Sample St, Sydney NSW 2000 AU</p>", "text_size": "sm" } },
+        { "type": "button", "settings": { "button_label": "Get directions", "button_style": "tertiary", "show_icon": false, "icon": "arrow", "icon_position": "after", "width": "fit" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

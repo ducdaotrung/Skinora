@@ -1,0 +1,102 @@
+{% liquid
+  assign links_scheme = section.settings.color_scheme.id | default: section.settings.color_scheme | default: 'scheme-1' | handleize
+%}
+
+<div class="collection-page-links color-scheme section-color-scope {{ links_scheme }}" style="--collection-page-links-gap: {{ section.settings.column_gap }}px; --collection-page-links-top: {{ section.settings.padding_top }}px; --collection-page-links-bottom: {{ section.settings.padding_bottom }}px;">
+  <div class="collection-page-links__inner">
+    <ul class="collection-page-links__list" role="list">
+      {% for block in section.blocks %}
+        {% liquid
+          assign card_collection = block.settings.collection
+          assign card_title = block.settings.title | default: card_collection.title
+          assign card_image = block.settings.image | default: card_collection.image
+          assign card_scheme = block.settings.color_scheme.id | default: block.settings.color_scheme | default: 'scheme-3' | handleize
+          assign card_placeholder = forloop.index0 | modulo: 3 | plus: 1
+          assign card_loading = 'lazy'
+          assign card_fetchpriority = 'auto'
+          if forloop.first
+            assign card_loading = 'eager'
+            assign card_fetchpriority = 'high'
+          endif
+        %}
+        <li class="collection-page-links__item color-scheme section-color-scope {{ card_scheme }}" style="--collection-page-links-overlay: {{ block.settings.overlay_opacity | divided_by: 100.0 }}; --collection-page-links-position: {{ block.settings.focal_point }};" {{ block.shopify_attributes }}>
+          {% if card_collection != blank %}<a class="collection-page-links__card" href="{{ card_collection.url | escape }}">{% else %}<div class="collection-page-links__card">{% endif %}
+            <div class="collection-page-links__media">
+              {% if card_image != blank %}
+                {{ card_image | image_url: width: 1000 | image_tag: widths: '360, 540, 750, 1000', sizes: '(min-width: 1150px) 25vw, (min-width: 768px) 33vw, 72vw', class: 'collection-page-links__image', loading: card_loading, fetchpriority: card_fetchpriority, alt: card_image.alt }}
+              {% else %}
+                {% assign placeholder_name = 'collection-' | append: card_placeholder %}
+                {{ placeholder_name | placeholder_svg_tag: 'collection-page-links__image' }}
+              {% endif %}
+            </div>
+            <span class="collection-page-links__shade" aria-hidden="true"></span>
+            <span class="collection-page-links__content collection-page-links__content--{{ block.settings.content_position }}">
+              {% if block.settings.subheading != blank %}<span class="collection-page-links__eyebrow">{{ block.settings.subheading | escape }}</span>{% endif %}
+              <span class="collection-page-links__title heading-text">{{ card_title | default: 'Collection' | escape }}</span>
+              {% if block.settings.show_product_count and card_collection != blank %}<span class="collection-page-links__count">{{ 'collection.product_count' | t: count: card_collection.products_count }}</span>{% endif %}
+              {% if block.settings.button_label != blank and card_collection != blank %}<span class="collection-page-links__button">{{ block.settings.button_label | escape }}</span>{% endif %}
+            </span>
+          {% if card_collection != blank %}</a>{% else %}</div>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% stylesheet %}
+  .collection-page-links { padding-block: var(--collection-page-links-top, 12px) var(--collection-page-links-bottom, 12px); background: var(--background-color); }
+  .collection-page-links__inner { overflow-x: auto; scrollbar-width: none; scroll-snap-type: x mandatory; }
+  .collection-page-links__inner::-webkit-scrollbar { display: none; }
+  .collection-page-links__list { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: var(--collection-page-links-gap, 20px); margin: 0; padding: 0 var(--page-margin); list-style: none; }
+  .collection-page-links__item { position: relative; min-width: 0; overflow: hidden; background: var(--background-color); color: var(--body-color); }
+  .collection-page-links__card { position: relative; display: block; min-height: 360px; color: inherit; text-decoration: none; }
+  .collection-page-links__card:focus-visible { outline: 2px solid currentcolor; outline-offset: -4px; }
+  .collection-page-links__media, .collection-page-links__image, .collection-page-links__shade { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .collection-page-links__image { object-fit: cover; object-position: var(--collection-page-links-position, center); }
+  .collection-page-links__shade { background: rgb(0 0 0 / var(--collection-page-links-overlay, .2)); }
+  .collection-page-links__content { position: relative; z-index: 1; display: flex; min-height: 360px; flex-direction: column; align-items: center; justify-content: end; gap: 8px; padding: 24px; color: #fff; text-align: center; }
+  .collection-page-links__content--top { justify-content: start; }
+  .collection-page-links__content--center { justify-content: center; }
+  .collection-page-links__title { font-size: var(--font-heading-md); line-height: var(--font-heading-md-line-height); }
+  .collection-page-links__eyebrow, .collection-page-links__count, .collection-page-links__button { font-size: var(--font-body-sm); }
+  .collection-page-links__button { border-bottom: 1px solid currentcolor; }
+  @media (max-width: 767.98px) {
+    .collection-page-links__list { grid-auto-columns: minmax(240px, 72vw); gap: 12px; padding-inline: var(--page-margin-mobile); }
+    .collection-page-links__item { scroll-snap-align: start; }
+    .collection-page-links__card, .collection-page-links__content { min-height: 320px; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection page links",
+  "tag": "section",
+  "class": "section-collection-page-links",
+  "enabled_on": { "templates": ["collection"] },
+  "max_blocks": 6,
+  "settings": [
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "column_gap", "label": "Desktop column gap", "min": 0, "max": 40, "step": 4, "unit": "px", "default": 20 },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Section padding" },
+    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 80, "step": 4, "unit": "px", "default": 12 },
+    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 80, "step": 4, "unit": "px", "default": 12 }
+  ],
+  "blocks": [
+    { "type": "collection_card", "name": "Collection card", "limit": 6, "settings": [
+      { "type": "collection", "id": "collection", "label": "Collection" },
+      { "type": "image_picker", "id": "image", "label": "Image" },
+      { "type": "text", "id": "title", "label": "Title" },
+      { "type": "checkbox", "id": "show_product_count", "label": "Show product count", "default": true },
+      { "type": "text", "id": "subheading", "label": "Subheading" },
+      { "type": "text", "id": "button_label", "label": "Button label" },
+      { "type": "select", "id": "content_position", "label": "Content position", "options": [{ "value": "top", "label": "Top" }, { "value": "center", "label": "Center" }, { "value": "bottom", "label": "Bottom" }], "default": "bottom" },
+      { "type": "select", "id": "focal_point", "label": "Focal point", "options": [{ "value": "center center", "label": "Center" }, { "value": "center top", "label": "Top" }, { "value": "center bottom", "label": "Bottom" }], "default": "center center" },
+      { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-3" },
+      { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity", "min": 0, "max": 70, "step": 5, "unit": "%", "default": 20 }
+    ] }
+  ],
+  "presets": [{ "name": "Collection page links", "blocks": [{ "type": "collection_card" }, { "type": "collection_card" }, { "type": "collection_card" }, { "type": "collection_card" }] }]
+}
+{% endschema %}

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    {% # Inlined CSS Variables %}
+    {% render 'css-variables' %}
+
+    {% comment %}
+      Font preloading:
+      1. Preconnect to font CDN for faster connection
+      2. Preload only the critical font variant (base weight)
+      3. Additional variants load on-demand via @font-face
+    {% endcomment %}
+    {% unless settings.type_primary_font.system? %}
+      <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
+
+      {% comment %} Preload the base font variant for initial page render {% endcomment %}
+      {{ settings.type_primary_font | font_url | preload_tag: as: 'font', crossorigin: 'anonymous' }}
+    {% endunless %}
+
+    {% # Load and preload the critical CSS %}
+    {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
+    {{ 'component-overlay.css' | asset_url | stylesheet_tag }}
+    <script src="{{ 'component-overlay.js' | asset_url }}" defer></script>
+    {% comment %} Footer-only disclosure styles should not delay the first paint. {% endcomment %}
+    <link rel="stylesheet" href="{{ 'accordion-details.css' | asset_url }}" media="print" onload="this.media='all'">
+    <noscript>{{ 'accordion-details.css' | asset_url | stylesheet_tag }}</noscript>
+    <link rel="stylesheet" href="{{ 'menu.css' | asset_url }}" media="print" onload="this.media='all'">
+    <noscript>{{ 'menu.css' | asset_url | stylesheet_tag }}</noscript>
+    {% render 'swiper-stylesheet' %}
+    <script src="{{ 'header.js' | asset_url }}" defer></script>
+    <script src="{{ 'theme-module-loader.js' | asset_url }}" defer></script>
+    <script src="{{ 'accordion-details.js' | asset_url }}" defer></script>
+    <script src="{{ 'product-card-variants.js' | asset_url }}" defer></script>
+    <script src="{{ 'share.js' | asset_url }}" defer></script>
+    <script src="{{ 'cart-drawer.js' | asset_url }}" defer></script>
+    <script src="{{ 'scroll-to.js' | asset_url }}" defer></script>
+    <script src="{{ 'hero.js' | asset_url }}" defer></script>
+    {% if request.design_mode %}
+      <script type="module" src="{{ 'timeline-list.js' | asset_url }}"></script>
+    {% endif %}
+
+    {% # Social, title, etc. %}
+    {% render 'meta-tags' %}
+
+    {{ content_for_header }}
+  </head>
+
+  {% assign default_color_scheme = settings.default_color_scheme %}
+  {% if settings.default_color_scheme.id != blank %}
+    {% assign default_color_scheme = settings.default_color_scheme.id %}
+  {% endif %}
+  <body class="{{ default_color_scheme | default: 'scheme-1' }} input-style--{{ settings.input_style | default: 'solid' }}">
+    {% sections 'header-group' %}
+    {% sections 'overlay-group' %}
+
+    <main id="MainContent" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+    {% render 'component-overlay-cursor' %}
+  </body>
+</html>

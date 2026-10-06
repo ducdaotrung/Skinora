@@ -1,0 +1,397 @@
+{% doc %}
+  Renders the product variant picker using the global Variant picker and
+  Swatches settings. Both presentations submit one resolved variant id.
+  Variant metadata is exposed on each option control so media and form
+  controllers can consume the same contract without taking over selection.
+
+  @param {product} product - Product whose options and variants should be rendered
+  @param {variant} current_variant - Selected or first available variant
+  @param {string} [section_id] - Section identifier used to namespace controls
+  @param {string} [media_gallery_id] - Id of the related product media gallery
+  @param {string} [form_id] - Id of the product form that receives the chosen variant
+  @param {string} [block_id] - Optional block identifier used to keep duplicate pickers addressable
+  @param {string} [type_override] - Optional local presentation override: button or dropdown
+  @param {boolean} [sync_external_variants] - Whether matching picker changes elsewhere in the section update this picker
+  @param {boolean} [update_url_on_change] - Whether this picker writes its selected variant to the page URL
+  @param {boolean} [ignore_url_variant] - Whether a page URL variant is ignored when initializing this picker
+  @param {string} [swatch_style_override] - Optional local swatch style: color, variant_image, button or dropdown
+  @param {string} [swatch_selected_style_override] - Optional local swatch selection style: border or underline
+  @param {number} [swatch_width_override] - Optional local desktop swatch width
+  @param {number} [swatch_width_mobile_override] - Optional local mobile swatch width
+  @param {string} [swatch_height_ratio_override] - Optional local CSS aspect ratio for swatches
+  @param {boolean} [show_option_names] - Whether option legends remain visible
+  @param {string} [size_chart_option_name] - Product option name that should expose the size guide
+  @param {page} [size_chart_page] - Page or dynamic page source rendered by the size guide
+  @param {string} [size_chart_desktop_layout] - Desktop size guide presentation: popup or drawer
+  @param {string} [size_chart_mobile_layout] - Mobile size guide presentation: bottom_sheet or drawer
+  @param {number} [size_chart_width] - Maximum desktop size guide width in pixels
+
+  @example
+  {% render 'variant-picker', product: product, current_variant: current_variant, section_id: section.id %}
+{% enddoc %}
+
+{% liquid
+  assign swatch_style = swatch_style_override | default: settings.swatch_style | default: 'color'
+  unless swatch_style == 'color' or swatch_style == 'variant_image' or swatch_style == 'button' or swatch_style == 'dropdown'
+    assign swatch_style = 'color'
+  endunless
+
+  assign swatch_width_desktop = swatch_width_override | default: settings.swatch_width_desktop | default: 40 | plus: 0
+  if swatch_width_desktop < 16 or swatch_width_desktop > 64
+    assign swatch_width_desktop = 40
+  endif
+
+  assign swatch_width_mobile_style = 'var(--swatch-width-mobile)'
+  if swatch_width_mobile_override != blank
+    assign swatch_width_mobile = swatch_width_mobile_override | plus: 0
+    if swatch_width_mobile < 16 or swatch_width_mobile > 64
+      assign swatch_width_mobile = 40
+    endif
+    assign swatch_width_mobile_style = swatch_width_mobile | append: 'px'
+  endif
+
+  assign swatch_selected_style = swatch_selected_style_override | default: settings.swatch_selected_style | default: 'underline'
+  unless swatch_selected_style == 'border' or swatch_selected_style == 'underline'
+    assign swatch_selected_style = 'underline'
+  endunless
+
+  assign picker_type = type_override
+  unless picker_type == 'button' or picker_type == 'dropdown'
+    assign picker_type = 'dropdown'
+    if settings.variant_picker_style == 'button' or settings.variant_picker_style == 'buttons'
+      assign picker_type = 'button'
+    endif
+  endunless
+
+  assign picker_sync_external_variants = true
+  if sync_external_variants == false
+    assign picker_sync_external_variants = false
+  endif
+  assign picker_update_url_on_change = true
+  if update_url_on_change == false
+    assign picker_update_url_on_change = false
+  endif
+  assign picker_ignore_url_variant = false
+  if ignore_url_variant == true
+    assign picker_ignore_url_variant = true
+  endif
+
+  assign picker_scope = section_id | default: product.id
+  assign product_form_id = form_id
+  if product_form_id == blank and block_id == blank
+    assign product_form_id = 'ProductForm-' | append: picker_scope
+  endif
+  assign picker_id = 'VariantPicker-' | append: picker_scope
+  if block_id != blank
+    assign picker_id = picker_id | append: '-' | append: block_id
+  endif
+  assign gallery_id = 'ProductMedia-' | append: picker_scope
+  if media_gallery_id != blank
+    assign gallery_id = media_gallery_id
+  endif
+  assign sold_out_label = 'products.sold_out' | t
+  assign unavailable_label = 'products.unavailable' | t
+  assign current_variant_id = current_variant.id | default: ''
+  assign current_variant_available = false
+  if current_variant != blank and current_variant.available
+    assign current_variant_available = true
+  endif
+  assign only_selected_media = false
+  if settings.variant_picker_only_selected_media
+    assign only_selected_media = true
+  endif
+  assign show_option_names_setting = show_option_names
+  assign show_option_names = true
+  if show_option_names_setting == false
+    assign show_option_names = false
+  endif
+
+  assign size_chart_option_name = size_chart_option_name | default: 'Size' | strip
+  assign size_chart_option_name_normalized = size_chart_option_name | downcase
+  assign size_chart_desktop_layout = size_chart_desktop_layout | default: 'modal'
+  unless size_chart_desktop_layout == 'modal' or size_chart_desktop_layout == 'drawer'
+    assign size_chart_desktop_layout = 'modal'
+  endunless
+  assign size_chart_mobile_layout = size_chart_mobile_layout | default: 'bottom_sheet'
+  unless size_chart_mobile_layout == 'bottom_sheet' or size_chart_mobile_layout == 'drawer'
+    assign size_chart_mobile_layout = 'bottom_sheet'
+  endunless
+  assign size_chart_width = size_chart_width | default: 600 | plus: 0
+  if size_chart_width < 320 or size_chart_width > 960
+    assign size_chart_width = 600
+  endif
+  assign size_chart_label = 'products.size_guide' | t
+  assign unavailable_selection_label = 'products.variant_selection_unavailable' | t
+  assign size_chart_dialog_id = picker_id | append: '-size-guide'
+  assign size_chart_page_title = size_chart_page.title | default: blank
+  if size_chart_page != blank and size_chart_page_title == blank
+    assign legacy_size_chart_page = pages[size_chart_page]
+    if legacy_size_chart_page != blank
+      assign size_chart_page = legacy_size_chart_page
+      assign size_chart_page_title = size_chart_page.title | default: blank
+    endif
+  endif
+  if size_chart_page_title == blank
+    assign size_chart_page_title = size_chart_label
+  endif
+%}
+
+<variant-picker
+  id="{{ picker_id }}"
+  class="variant-picker variant-picker--{{ picker_type }}"
+  data-product-variant-picker
+  data-section-id="{{ picker_scope }}"
+  data-sync-external-variants="{{ picker_sync_external_variants }}"
+  data-update-url-on-change="{{ picker_update_url_on_change }}"
+  data-ignore-url-variant="{{ picker_ignore_url_variant }}"
+  data-product-form-id="{{ product_form_id }}"
+  data-media-gallery-id="{{ gallery_id }}"
+  data-only-selected-media="{{ only_selected_media }}"
+  data-current-variant-id="{{ current_variant_id }}"
+  data-current-variant-available="{{ current_variant_available }}"
+  data-sold-out-label="{{ sold_out_label | escape }}"
+  data-unavailable-label="{{ unavailable_label | escape }}"
+  data-unavailable-selection-label="{{ unavailable_selection_label | escape }}"
+  data-size-chart-dialog-id="{{ size_chart_dialog_id }}"
+  data-swatch-style="{{ swatch_style }}"
+  data-show-option-captions="{{ show_option_names }}"
+  style="--product-swatch-width: {{ swatch_width_desktop }}px; --product-swatch-width-mobile: {{ swatch_width_mobile_style }};{% if swatch_height_ratio_override != blank %} --swatch-height-ratio: {{ swatch_height_ratio_override }};{% endif %}"
+>
+  {% if form_id == blank and block_id == blank %}
+    <input type="hidden" name="id" value="{{ current_variant_id }}" data-variant-id data-variant-id-input>
+  {% else %}
+    <input type="hidden" value="{{ current_variant_id }}" data-variant-id data-variant-id-input>
+  {% endif %}
+  <script type="application/json" data-variant-data>{{ product.variants | json }}</script>
+
+  {% for product_option in product.options_with_values %}
+    {% liquid
+      assign option_index = forloop.index0
+      assign option_id = picker_id | append: '-option-' | append: option_index
+      assign option_name_normalized = product_option.name | strip | downcase
+      assign option_uses_swatches = false
+      assign option_has_swatch = false
+      for option_value in product_option.values
+        if option_value.swatch != blank
+          assign option_has_swatch = true
+        endif
+      endfor
+      assign option_is_color = false
+      if option_has_swatch or option_name_normalized == 'color' or option_name_normalized == 'colour'
+        assign option_is_color = true
+      endif
+      assign option_swatch_style = swatch_style
+      assign option_selected_style = swatch_selected_style
+      assign option_use_dropdown = false
+      if picker_type == 'dropdown'
+        assign option_use_dropdown = true
+      endif
+      if option_is_color
+        assign option_use_dropdown = false
+        case swatch_style
+          when 'dropdown'
+            assign option_use_dropdown = true
+          when 'button'
+          else
+            assign option_uses_swatches = true
+        endcase
+      endif
+      assign selected_option_value = blank
+      for option_value in product_option.values
+        if option_value.selected
+          assign selected_option_value = option_value.name
+          break
+        endif
+      endfor
+      assign show_size_chart = false
+      if size_chart_page != blank and size_chart_option_name_normalized != blank and option_name_normalized == size_chart_option_name_normalized
+        assign show_size_chart = true
+      endif
+    %}
+
+    <fieldset class="variant-picker__option{% if option_uses_swatches %} variant-picker__option--swatches{% endif %}" data-option-index="{{ option_index }}">
+      <legend id="{{ option_id }}-label" class="visually-hidden">
+        {{ product_option.name | escape }}
+      </legend>
+      {% if show_option_names or show_size_chart %}
+        <div class="variant-picker__option-header">
+          {% if show_option_names %}
+            <span class="variant-picker__label body-sm">
+              <span class="variant-picker__option-name">{{ product_option.name | escape }}</span><span class="variant-picker__selected-value" data-variant-selected-value>{% if selected_option_value != blank %}: {{ selected_option_value | escape }}{% endif %}</span>
+            </span>
+          {% endif %}
+          {% if show_size_chart %}
+            <button
+              class="variant-picker__size-chart-trigger"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="{{ size_chart_dialog_id }}"
+              aria-expanded="false"
+              data-size-chart-trigger
+            >
+              {{ size_chart_label | escape }}
+            </button>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% if option_use_dropdown %}
+        <select
+          class="variant-picker__control variant-picker__control--select form__control"
+          id="{{ option_id }}"
+          name="options[{{ picker_id }}-{{ product_option.name | escape }}]"
+          {% if product_form_id != blank %}form="{{ product_form_id }}"{% endif %}
+          data-option-control
+          data-option-index="{{ option_index }}"
+          aria-labelledby="{{ option_id }}-label"
+        >
+          {% for option_value in product_option.values %}
+            {% liquid
+              assign value_state = 'available'
+              unless option_value.available
+                assign value_state = 'unavailable'
+                if option_value.variant != blank
+                  assign value_state = 'sold-out'
+                endif
+              endunless
+              assign option_value_id = option_value.id | default: blank
+              assign option_variant_id = blank
+              assign option_media_id = blank
+              if option_value.variant != blank
+                assign option_variant_id = option_value.variant.id
+                assign option_media_id = option_value.variant.featured_media.id
+              endif
+            %}
+            <option
+              value="{{ option_value.name | escape }}"
+              data-label="{{ option_value.name | escape }}"
+              data-option-value-id="{{ option_value_id }}"
+              data-option-available="{{ option_value.available }}"
+              data-variant-id="{{ option_variant_id }}"
+              data-option-media-id="{{ option_media_id }}"
+              data-option-control
+              data-option-index="{{ option_index }}"
+              data-variant-state="{{ value_state }}"
+              {% if option_value.selected %}
+                selected
+              {% endif %}
+              {% unless option_value.available or option_value.selected %}
+                disabled
+              {% endunless %}
+            >
+              {{ option_value.name | escape }}{% if value_state == 'unavailable' %} - {{ unavailable_label | escape }}{% elsif value_state == 'sold-out' %} - {{ sold_out_label | escape }}{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <div
+          class="variant-picker__controls{% if option_uses_swatches %} swatches swatches--selected-{{ option_selected_style }}{% endif %}"
+          role="radiogroup"
+          aria-labelledby="{{ option_id }}-label"
+        >
+          {% for option_value in product_option.values %}
+            {% liquid
+              assign value_state = 'available'
+              unless option_value.available
+                assign value_state = 'unavailable'
+                if option_value.variant != blank
+                  assign value_state = 'sold-out'
+                endif
+              endunless
+              assign value_input_id = option_id | append: '-' | append: forloop.index0
+              assign option_value_id = option_value.id | default: blank
+              assign option_variant_id = blank
+              assign option_media_id = blank
+              if option_value.variant != blank
+                assign option_variant_id = option_value.variant.id
+                assign option_media_id = option_value.variant.featured_media.id
+              endif
+            %}
+            <div
+              class="variant-picker__choice{% if value_state == 'unavailable' %} variant-picker__choice--unavailable{% elsif value_state == 'sold-out' %} variant-picker__choice--sold-out{% endif %}"
+              data-option-value="{{ option_value.name | escape }}"
+              data-option-value-id="{{ option_value_id }}"
+              data-option-available="{{ option_value.available }}"
+              data-variant-id="{{ option_variant_id }}"
+              data-option-media-id="{{ option_media_id }}"
+              data-variant-state="{{ value_state }}"
+            >
+              {% capture option_input_markup %}
+              <input
+                id="{{ value_input_id }}"
+                class="variant-picker__control variant-picker__control--radio{% if option_uses_swatches %} swatch__input{% endif %}"
+                type="radio"
+                name="options[{{ picker_id }}-{{ product_option.name | escape }}]"
+                {% if product_form_id != blank %}form="{{ product_form_id }}"{% endif %}
+                value="{{ option_value.name | escape }}"
+                data-option-value-id="{{ option_value_id }}"
+                data-option-available="{{ option_value.available }}"
+                data-variant-id="{{ option_variant_id }}"
+                data-option-media-id="{{ option_media_id }}"
+                data-option-control
+                data-option-index="{{ option_index }}"
+                {% if option_value.selected %}
+                  checked
+                {% endif %}
+                {% unless option_value.available or option_value.selected %}
+                  disabled
+                {% endunless %}
+              >
+              {% endcapture %}
+              {% if option_uses_swatches %}
+                {% capture option_label_class %}variant-picker__button swatch__label{% if value_state == 'unavailable' %} variant-picker__button--unavailable{% elsif value_state == 'sold-out' %} variant-picker__button--sold-out{% endif %}{% endcapture %}
+                {% render 'swatch-option', input_markup: option_input_markup, value: option_value.name, swatch: option_value.swatch, image: option_value.variant.featured_image, style: option_swatch_style, selected_style: option_selected_style, state: value_state, class: option_label_class, visual_class: 'variant-picker__swatch', track_status: true %}
+              {% else %}
+              {{ option_input_markup }}
+              <label
+                class="variant-picker__button{% if value_state == 'unavailable' %} variant-picker__button--unavailable{% elsif value_state == 'sold-out' %} variant-picker__button--sold-out{% endif %}"
+                for="{{ value_input_id }}"
+                {% if value_state == 'unavailable' %}
+                  aria-disabled="true"
+                {% endif %}
+              >
+                <span class="variant-picker__label">{{ option_value.name | escape }}</span>
+                <span
+                  class="variant-picker__status visually-hidden"
+                  data-variant-status
+                  {% if value_state == 'available' %}
+                    hidden
+                  {% endif %}
+                >
+                  {% if value_state == 'sold-out' %}{{ sold_out_label | escape }}{% elsif value_state == 'unavailable' %}{{ unavailable_label | escape }}{% endif %}
+                </span>
+              </label>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </fieldset>
+  {% endfor %}
+
+  <p class="variant-picker__status-message" data-variant-picker-status role="status" aria-live="polite" hidden></p>
+
+  {% assign has_size_chart = false %}
+  {% if size_chart_page != blank %}
+    {% for product_option in product.options_with_values %}
+      {% assign option_name_normalized = product_option.name | strip | downcase %}
+      {% if option_name_normalized == size_chart_option_name_normalized %}
+        {% assign has_size_chart = true %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+  {% if has_size_chart %}
+    {% capture chart_content %}
+          {% if size_chart_page.content != blank %}
+            {{ size_chart_page.content }}
+          {% elsif size_chart_page.url != blank %}
+            <p><a href="{{ size_chart_page.url | escape }}">{{ size_chart_page_title | escape }}</a></p>
+          {% else %}
+            <p>{{ 'products.size_guide_unavailable' | t }}</p>
+          {% endif %}
+    {% endcapture %}
+    {% assign chart_title = size_chart_page_title | escape %}
+    {% render 'component-overlay', id: size_chart_dialog_id, label: size_chart_page_title, title: chart_title, content: chart_content, append_to_body: true, desktop_layout: size_chart_desktop_layout, mobile_layout: size_chart_mobile_layout, attributes: 'data-size-chart-dialog', body_class: 'rte', width: size_chart_width %}
+  {% endif %}
+</variant-picker>

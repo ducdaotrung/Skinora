@@ -1,0 +1,97 @@
+{% liquid
+  assign faq_item_id = 'faq-' | append: block.id
+  assign faq_content_id = faq_item_id | append: '-content'
+  assign faq_question = block.settings.question | default: 'Frequently asked question'
+  assign faq_question_icon = block.settings.question_icon | default: 'check'
+  assign faq_has_nested_answer = false
+  for faq_answer_block in block.blocks
+    if faq_answer_block.settings.text != blank
+      assign faq_has_nested_answer = true
+      break
+    endif
+  endfor
+  assign faq_question_icon_gap = block.settings.question_icon_gap | default: 8 | plus: 0
+  assign faq_question_icon_size = block.settings.question_icon_size | default: 20 | plus: 0
+  if faq_question_icon_gap < 0 or faq_question_icon_gap > 100
+    assign faq_question_icon_gap = 8
+  endif
+  if faq_question_icon_size < 0 or faq_question_icon_size > 100
+    assign faq_question_icon_size = 20
+  endif
+%}
+
+{% capture faq_answer %}
+  {% if block.blocks.size > 0 %}
+    {% content_for 'blocks' %}
+  {% elsif block.settings.answer != blank %}
+    {{ block.settings.answer }}
+  {% elsif request.design_mode %}
+    <p>Share the answer to this question here.</p>
+  {% endif %}
+{% endcapture %}
+
+{% capture faq_summary %}
+  <span class="faq-item__question-wrap" style="--faq-question-icon-gap: {{ faq_question_icon_gap }}px;">
+    {% if block.settings.show_question_icon %}
+      <span class="faq-item__question-icon" style="--faq-question-icon-size: {{ faq_question_icon_size }}px;" aria-hidden="true">
+        {% render 'icon', icon: faq_question_icon, bare: true %}
+      </span>
+    {% endif %}
+    <span class="faq-item__question">{{ faq_question | escape }}</span>
+  </span>
+  <span class="faq-item__expand-icon" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </span>
+{% endcapture %}
+
+{% if faq_has_nested_answer or block.settings.answer != blank or request.design_mode %}
+  {% render 'accordion-details', id: faq_item_id, content_id: faq_content_id, class: 'faq-item', summary_class: 'faq-item__summary', content_class: 'faq-item__content', content_inner_class: 'faq-item__content-inner', summary: faq_summary, content: faq_answer, initially_open: block.settings.initially_open, attributes: block.shopify_attributes %}
+{% endif %}
+
+{% stylesheet %}
+  .faq-item { min-width: 0; }
+  .faq-item__summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; padding: 20px 0; color: var(--heading-color); }
+  .faq-item__question-wrap { display: inline-flex; min-width: 0; align-items: center; gap: var(--faq-question-icon-gap, 8px); }
+  .faq-item__question { min-width: 0; overflow-wrap: anywhere; }
+  .faq-item__question-icon { display: inline-flex; flex: 0 0 var(--faq-question-icon-size, 20px); width: var(--faq-question-icon-size, 20px); height: var(--faq-question-icon-size, 20px); align-items: center; justify-content: center; }
+  .faq-item__question-icon svg { display: block; width: 100%; height: 100%; }
+  .faq-item__expand-icon { position: relative; flex: 0 0 1rem; width: 1rem; height: 1rem; }
+  .faq-item__expand-icon svg { display: none; width: 20px; height: 20px; }
+  .faq-item__expand-icon::before, .faq-item__expand-icon::after { position: absolute; top: 50%; left: 50%; width: 0.75rem; height: 1px; background: currentColor; content: ''; transform: translate(-50%, -50%); }
+  .faq-item__expand-icon::after { transform: translate(-50%, -50%) rotate(90deg); transition: transform var(--motion-duration-standard) var(--motion-ease-standard); }
+  .faq-item[open] .faq-item__expand-icon::after { transform: translate(-50%, -50%) rotate(0deg); }
+  .faq-item__content-inner { width: 100%; padding: 0 2rem 1.5rem 0; color: var(--body-color); text-align: left; --text-align-default: left; }
+  .faq-item__content-inner > :first-child { margin-top: 0; }
+  .faq-item__content-inner > :last-child { margin-bottom: 0; }
+  @media (prefers-reduced-motion: reduce) { .faq-item__expand-icon::after { transition: none; } }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Accordion row",
+  "tag": null,
+  "blocks": [{ "type": "faq_answer_text" }],
+  "settings": [
+    { "type": "header", "content": "Question" },
+    { "type": "text", "id": "question", "label": "Question", "default": "Frequently asked question" },
+    { "type": "checkbox", "id": "show_question_icon", "label": "Show icon", "default": false },
+    { "type": "select", "id": "question_icon", "label": "Icon", "options": [{ "value": "arrow", "label": "Arrow" }, { "value": "arrow-left", "label": "Arrow left" }, { "value": "arrow-right", "label": "Arrow right" }, { "value": "bars-3", "label": "Menu" }, { "value": "chevron", "label": "Chevron" }, { "value": "chevron-down", "label": "Chevron down" }, { "value": "chevron-left", "label": "Chevron left" }, { "value": "chevron-right", "label": "Chevron right" }, { "value": "x-mark", "label": "Close" }, { "value": "magnifying-glass", "label": "Search" }, { "value": "shopping-bag", "label": "Shopping bag" }, { "value": "cart", "label": "Cart" }, { "value": "user", "label": "Account" }, { "value": "truck", "label": "Shipping" }, { "value": "tag", "label": "Tag" }, { "value": "discount", "label": "Discount" }, { "value": "trash", "label": "Trash" }, { "value": "document-text", "label": "Document" }, { "value": "receipt-percent", "label": "Receipt" }, { "value": "share", "label": "Share" }, { "value": "play", "label": "Play" }, { "value": "pause", "label": "Pause" }, { "value": "plus", "label": "Plus" }, { "value": "minus", "label": "Minus" }, { "value": "check", "label": "Check" }, { "value": "circle", "label": "Circle" }, { "value": "square", "label": "Square" }, { "value": "triangle", "label": "Triangle" }, { "value": "diamond", "label": "Diamond" }, { "value": "star", "label": "Star" }, { "value": "four-stars", "label": "Four stars" }, { "value": "five-stars", "label": "Five stars" }], "default": "check", "visible_if": "{{ block.settings.show_question_icon }}" },
+    { "type": "range", "id": "question_icon_gap", "label": "Gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8, "visible_if": "{{ block.settings.show_question_icon }}" },
+    { "type": "range", "id": "question_icon_size", "label": "Icon size", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 20, "visible_if": "{{ block.settings.show_question_icon }}" },
+    { "type": "checkbox", "id": "initially_open", "label": "t:labels.initially_open", "default": false }
+  ],
+  "presets": [
+    {
+      "name": "Accordion row",
+      "settings": {
+        "question": "Frequently asked question",
+        "show_question_icon": true,
+        "question_icon": "circle",
+        "initially_open": false
+      }
+    }
+  ]
+}
+{% endschema %}

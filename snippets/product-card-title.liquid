@@ -1,0 +1,57 @@
+{% doc %}
+  Renders the reusable title primitive for a Product Card.
+
+  Product titles use the card heading hierarchy when a product is available.
+  Placeholder titles use a paragraph so editor-only placeholders do not add
+  repeated headings to the storefront document outline.
+
+  @param {product} [product] - Product whose title and URL should be rendered
+  @param {string} [title] - Optional title override
+  @param {string} [url] - Optional URL override
+  @param {boolean} [placeholder] - Whether to render the placeholder title
+  @param {string} [class] - Additional title classes
+  @param {string} [heading_tag] - Heading level for a real product; defaults to h2
+
+  @example
+  {% render 'product-card-title', product: product %}
+{% enddoc %}
+
+{% liquid
+  assign product_card_title = title
+  assign product_card_title_url = url
+  if product_card_title == blank and product != blank
+    assign product_card_title = product.title
+  endif
+  if product_card_title_url == blank and product != blank
+    assign product_card_title_url = product.url
+  endif
+
+  assign is_placeholder_title = false
+  if placeholder or product_card_title == blank
+    assign is_placeholder_title = true
+    assign product_card_title = 'products.placeholder_title' | t
+  endif
+
+  assign product_card_title_class = 'product-card__title'
+  if class != blank
+    assign product_card_title_class = product_card_title_class | append: ' ' | append: class
+  endif
+  assign product_card_heading_tag = heading_tag | default: 'h2'
+  unless product_card_heading_tag == 'h2' or product_card_heading_tag == 'h3' or product_card_heading_tag == 'h4' or product_card_heading_tag == 'h5' or product_card_heading_tag == 'h6'
+    assign product_card_heading_tag = 'h2'
+  endunless
+%}
+
+{% if is_placeholder_title %}
+  <p class="{{ product_card_title_class | strip }}">{{ product_card_title | escape }}</p>
+{% else %}
+  <{{ product_card_heading_tag }} class="{{ product_card_title_class | strip }}">
+    {% if product_card_title_url != blank %}
+      <a class="product-card__title-link" href="{{ product_card_title_url | escape }}">
+        {{ product_card_title | escape }}
+      </a>
+    {% else %}
+      {{ product_card_title | escape }}
+    {% endif %}
+  </{{ product_card_heading_tag }}>
+{% endif %}

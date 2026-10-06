@@ -1,0 +1,136 @@
+{% doc %}
+  Renders the archive composition used only by the Blogs template.
+
+  This keeps the featured article and native pagination behavior of the blog
+  template separate from the reusable Blog posts feed used on other
+  templates. The shared Blog Card is still used for each archive article.
+{% enddoc %}
+
+{% liquid
+  assign blog_archive_source = blog
+  assign blog_archive_columns = block.settings.columns | default: '3' | plus: 0
+  if blog_archive_columns < 1 or blog_archive_columns > 5
+    assign blog_archive_columns = 3
+  endif
+  assign blog_archive_gap_horizontal = block.settings.gap_horizontal | default: 16 | plus: 0
+  assign blog_archive_gap_vertical = block.settings.gap_vertical | default: 40 | plus: 0
+  assign blog_archive_gap_mobile = block.settings.gap_mobile | default: 30 | plus: 0
+%}
+
+{% paginate blog_archive_source.articles by section.settings.posts_per_page %}
+<div
+  class="blog-archive-list"
+  style="--blog-archive-columns: {{ blog_archive_columns }}; --blog-archive-gap-horizontal: {{ blog_archive_gap_horizontal }}px; --blog-archive-gap-vertical: {{ blog_archive_gap_vertical }}px; --blog-archive-gap-mobile: {{ blog_archive_gap_mobile }}px;"
+  {{ block.shopify_attributes }}
+>
+  {% capture blog_archive_featured %}{% content_for 'block', type: 'featured-post', id: 'featured-post', closest.article: blog_archive_source.articles.first %}{% endcapture %}
+  {% assign blog_archive_featured = blog_archive_featured | strip %}
+  {% assign blog_archive_offset = 0 %}
+  {% if blog_archive_featured != blank and blog_archive_source.articles != blank %}{% assign blog_archive_offset = 1 %}{{ blog_archive_featured }}{% endif %}
+  {% assign blog_archive_item_limit = section.settings.posts_per_page | minus: blog_archive_offset %}
+  <div class="blog-archive-list__items">
+    {% if blog_archive_source != blank and blog_archive_source.articles != blank %}
+      {% for blog_archive_article in blog_archive_source.articles offset: blog_archive_offset limit: blog_archive_item_limit %}
+        <div class="blog-archive-list__item">
+          {% content_for 'block', type: 'blog-card', id: 'blog-card', closest.article: blog_archive_article, placeholder: false %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="blog-archive-list__empty" role="status">{{ 'blog.archive_empty' | t }}</div>
+    {% endif %}
+  </div>
+  {% content_for 'block', type: 'pagination', id: 'pagination', blog_paginate: paginate %}
+</div>
+{% endpaginate %}
+
+{% stylesheet %}
+  .blog-archive-list {
+    display: grid;
+    gap: var(--blog-archive-gap-vertical, 40px);
+    min-width: 0;
+  }
+
+  .blog-archive-list__items {
+    display: grid;
+    grid-template-columns: repeat(var(--blog-archive-columns, 3), minmax(0, 1fr));
+    gap: var(--blog-archive-gap-vertical, 40px) var(--blog-archive-gap-horizontal, 16px);
+    min-width: 0;
+  }
+
+  .blog-archive-list__item {
+    min-width: 0;
+  }
+
+  .blog-archive-list__empty {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    border: 1px dashed currentColor;
+    text-align: center;
+  }
+
+  @media (max-width: 767.98px) {
+    .blog-archive-list {
+      gap: var(--blog-archive-gap-mobile, 30px);
+    }
+    .blog-archive-list__items {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--blog-archive-gap-mobile, 30px);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Blog archive list",
+  "tag": null,
+  "blocks": [
+    { "type": "featured-post" },
+    { "type": "blog-card" },
+    { "type": "pagination" }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Desktop columns",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" },
+        { "value": "5", "label": "5" }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "range",
+      "id": "gap_horizontal",
+      "label": "Desktop column gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "gap_vertical",
+      "label": "Desktop row gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Mobile row gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 30
+    }
+  ]
+}
+{% endschema %}

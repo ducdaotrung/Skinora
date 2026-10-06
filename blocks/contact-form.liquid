@@ -1,0 +1,345 @@
+{% liquid
+  assign gap_desktop = block.settings.gap_desktop | default: 16 | plus: 0
+  assign gap_mobile = block.settings.gap_mobile | default: 16 | plus: 0
+  assign width_desktop = block.settings.width_desktop | default: 'fit'
+  assign width_mobile = block.settings.width_mobile | default: 'fit'
+  assign form_width_desktop = 'fit-content'
+  assign form_width_mobile = 'fit-content'
+  if width_desktop == 'fill'
+    assign form_width_desktop = '100%'
+  elsif width_desktop == 'custom'
+    assign form_width_desktop = block.settings.width_custom_desktop | default: 100 | append: '%'
+  endif
+  if width_mobile == 'fill'
+    assign form_width_mobile = '100%'
+  elsif width_mobile == 'custom'
+    assign form_width_mobile = block.settings.width_custom_mobile | default: 100 | append: '%'
+  endif
+
+  assign max_width_desktop = '100%'
+  if block.settings.limit_width_desktop
+    assign max_width_desktop = block.settings.max_width_desktop | default: 900 | append: 'px'
+  endif
+  assign max_width_mobile = '100%'
+  if block.settings.limit_width_mobile
+    assign max_width_mobile = block.settings.max_width_mobile | default: 480 | append: 'px'
+  endif
+
+  assign field_height_desktop = block.settings.field_height_desktop | default: 'inherit'
+  assign field_height_mobile = block.settings.field_height_mobile | default: 'inherit'
+  assign field_height_desktop_token = blank
+  assign field_height_mobile_token = blank
+
+  case field_height_desktop
+    when 'extra_small'
+      assign field_height_desktop_token = 'var(--control-height-xs, 3.4rem)'
+    when 'small'
+      assign field_height_desktop_token = 'var(--control-height-sm, 4rem)'
+    when 'medium'
+      assign field_height_desktop_token = 'var(--control-height-md, 4.4rem)'
+    when 'large'
+      assign field_height_desktop_token = 'var(--control-height-lg, 4.8rem)'
+    when 'extra_large'
+      assign field_height_desktop_token = 'var(--control-height-xl, 5.6rem)'
+    else
+      assign field_height_desktop = 'inherit'
+  endcase
+
+  case field_height_mobile
+    when 'extra_small'
+      assign field_height_mobile_token = 'var(--control-height-xs, 3.4rem)'
+    when 'small'
+      assign field_height_mobile_token = 'var(--control-height-sm, 4rem)'
+    when 'medium'
+      assign field_height_mobile_token = 'var(--control-height-md, 4.4rem)'
+    when 'large'
+      assign field_height_mobile_token = 'var(--control-height-lg, 4.8rem)'
+    when 'extra_large'
+      assign field_height_mobile_token = 'var(--control-height-xl, 5.6rem)'
+    else
+      assign field_height_mobile = 'inherit'
+  endcase
+  assign contact_form_id = 'ContactForm-' | append: block.id
+  assign contact_name_id = contact_form_id | append: '-Name'
+  assign contact_email_id = contact_form_id | append: '-Email'
+  assign contact_message_id = contact_form_id | append: '-Message'
+  assign submit_label = block.settings.submit_label | default: 'Send'
+  assign button_style = block.settings.button_style | default: 'primary'
+  assign animation_type = block.settings.animation_type | default: 'none'
+  assign submit_icon = blank
+  if block.settings.show_icon
+    assign submit_icon = block.settings.icon | default: 'arrow_right'
+  endif
+%}
+
+{% capture contact_form_style %}
+  {% render 'size-style',
+    width: form_width_desktop,
+    max_width: max_width_desktop,
+    width_mobile: form_width_mobile,
+    max_width_mobile: max_width_mobile
+  %}
+  --contact-form-gap-desktop: {{ gap_desktop }}px;
+  --contact-form-gap-mobile: {{ gap_mobile }}px;
+  {% if field_height_desktop_token != blank %}--contact-form-field-height-desktop: {{ field_height_desktop_token }};{% endif %}
+  {% if field_height_mobile_token != blank %}--contact-form-field-height-mobile: {{ field_height_mobile_token }};{% endif %}
+{% endcapture %}
+{% assign contact_form_style = contact_form_style | strip | replace: '\n', ' ' %}
+
+<div
+  class="contact-form-block size-style size-style--tablet{% if animation_type != 'none' %} motion-block{% endif %}"
+  id="ContactFormBlock-{{ block.id }}"
+  style="{{ contact_form_style }}"
+  {{ block.shopify_attributes }}
+>
+  {% form 'contact', id: contact_form_id, class: 'contact-form-block__form' %}
+    {% if form.posted_successfully? %}
+      <p class="form__success contact-form-block__success" role="status" tabindex="-1">
+        <span class="contact-form-block__success-icon" aria-hidden="true">
+          {% render 'icon', icon: 'check', bare: true %}
+        </span>
+        <span>{{ 'contact.form.post_success' | t }}</span>
+      </p>
+    {% endif %}
+    {% if form.errors %}
+      <div class="form__error" role="alert" tabindex="-1">{{ form.errors | default_errors }}</div>
+    {% endif %}
+    <div class="form__fields contact-form-block__fields">
+      <div class="contact-form-block__identity">
+        {% render 'form-field',
+          id: contact_name_id,
+          name: 'contact[name]',
+          label: 'Name',
+          placeholder: 'Name',
+          autocomplete: 'name',
+          value: form.name,
+          hide_label: true,
+          required: true
+        %}
+        {% render 'form-field',
+          id: contact_email_id,
+          name: 'contact[email]',
+          label: 'Email',
+          type: 'email',
+          placeholder: 'Email',
+          autocomplete: 'email',
+          value: form.email,
+          hide_label: true,
+          required: true
+        %}
+      </div>
+      {% content_for 'blocks' %}
+      {% render 'form-field',
+        id: contact_message_id,
+        name: 'contact[body]',
+        label: 'Message',
+        control: 'textarea',
+        placeholder: 'Message',
+        value: form.body,
+        hide_label: true,
+        required: true
+      %}
+    </div>
+    <div class="contact-form-block__submit">
+      {% render 'theme-button', label: submit_label, type: 'submit', variant: button_style, icon: submit_icon, icon_position: block.settings.icon_position, class: 'contact-form-block__button' %}
+    </div>
+  {% endform %}
+</div>
+
+{% stylesheet %}
+  .contact-form-block__form { display: grid; gap: var(--contact-form-gap-desktop, 16px); }
+  .contact-form-block__fields { gap: var(--contact-form-gap-desktop, 16px); }
+  .contact-form-block__identity { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--contact-form-gap-desktop, 16px); }
+  .contact-form-block__submit {
+    display: flex;
+    justify-content: var(--flex-align, start);
+  }
+  .contact-form-block .form__control--input {
+    padding: 0 calc(var(--input-height, 4.8rem) / 3);
+  }
+  .contact-form-block .form__control--textarea {
+    min-height: 100px;
+    padding-top: calc(var(--input-height, 4.8rem) / 3);
+  }
+  .contact-form-block__success {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0.75rem 0.875rem;
+    background: inherit;
+    color: var(--body-color);
+    font-size: var(--form-helper-font-size);
+  }
+  .contact-form-block__success-icon {
+    display: inline-flex;
+    flex: 0 0 1.25rem;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background: #3f9848;
+    color: #fff;
+  }
+  .contact-form-block__success-icon > svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+  .contact-form-block__button {
+    width: fit-content;
+    height: var(--contact-form-field-height-desktop, auto);
+    min-height: var(--contact-form-field-height-desktop, var(--button-height));
+  }
+  .contact-form-block .form__field .form__control:not(.form__control--textarea) {
+    height: var(--contact-form-field-height-desktop, auto);
+    min-height: var(--contact-form-field-height-desktop, var(--input-height));
+  }
+  @media (max-width: 991.98px) {
+    .contact-form-block__form, .contact-form-block__fields { gap: var(--contact-form-gap-mobile, 16px); }
+    .contact-form-block__identity { grid-template-columns: 1fr; gap: var(--contact-form-gap-mobile, 16px); }
+    .contact-form-block__submit { justify-content: var(--flex-align-mobile, var(--flex-align, start)); }
+    .contact-form-block .form__field .form__control:not(.form__control--textarea) {
+      height: var(--contact-form-field-height-mobile, auto);
+      min-height: var(--contact-form-field-height-mobile, var(--input-height-mobile));
+    }
+    .contact-form-block__button {
+      height: var(--contact-form-field-height-mobile, auto);
+      min-height: var(--contact-form-field-height-mobile, var(--button-height-mobile));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.contact_form",
+  "tag": null,
+  "blocks": [{ "type": "contact-field" }],
+  "settings": [
+    { "type": "header", "content": "t:general.gap" },
+    { "type": "range", "id": "gap_desktop", "label": "t:labels.desktop_gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "gap_mobile", "label": "t:labels.mobile_gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16 },
+    { "type": "header", "content": "t:labels.field_height" },
+    { "type": "select", "id": "field_height_desktop", "label": "t:options.device.desktop", "options": [
+      { "value": "inherit", "label": "Inherit" },
+      { "value": "extra_small", "label": "t:options.menu_font_size.extra_small" },
+      { "value": "small", "label": "t:options.menu_font_size.small" },
+      { "value": "medium", "label": "t:options.menu_font_size.medium" },
+      { "value": "large", "label": "t:options.menu_font_size.large" },
+      { "value": "extra_large", "label": "t:options.menu_font_size.extra_large" }
+    ], "default": "inherit" },
+    { "type": "select", "id": "field_height_mobile", "label": "t:options.device.mobile", "options": [
+      { "value": "inherit", "label": "Inherit" },
+      { "value": "extra_small", "label": "t:options.menu_font_size.extra_small" },
+      { "value": "small", "label": "t:options.menu_font_size.small" },
+      { "value": "medium", "label": "t:options.menu_font_size.medium" },
+      { "value": "large", "label": "t:options.menu_font_size.large" },
+      { "value": "extra_large", "label": "t:options.menu_font_size.extra_large" }
+    ], "default": "inherit" },
+    { "type": "header", "content": "t:general.button" },
+    { "type": "text", "id": "submit_label", "label": "t:labels.button_label", "default": "Send" },
+    { "type": "select", "id": "button_style", "label": "t:labels.style", "options": [
+      { "value": "primary", "label": "t:options.button_variant.primary" },
+      { "value": "secondary", "label": "t:options.button_variant.secondary" },
+      { "value": "tertiary", "label": "t:options.button_variant.tertiary" }
+    ], "default": "primary" },
+    { "type": "checkbox", "id": "show_icon", "label": "t:labels.show_icon", "default": false },
+{
+  "type": "select",
+  "id": "icon",
+  "label": "t:labels.icon",
+  "options": [
+    {
+      "value": "arrow_right",
+      "label": "Arrow right"
+    },
+    {
+      "value": "long_arrow_right",
+      "label": "Long arrow right"
+    },
+    {
+      "value": "chevron_right",
+      "label": "Chevron"
+    },
+    {
+      "value": "arrow_up_right",
+      "label": "Arrow up right"
+    },
+    {
+      "value": "circle_arrow",
+      "label": "Circle arrow"
+    },
+    {
+      "value": "circle_chevron",
+      "label": "Circle chevron"
+    },
+    {
+      "value": "long_arrow_up",
+      "label": "Long arrow up"
+    },
+    {
+      "value": "double_chevron",
+      "label": "Double chevron"
+    },
+    {
+      "value": "arrow_outline",
+      "label": "Arrow outline"
+    },
+    {
+      "value": "square_chevron",
+      "label": "Square chevron"
+    },
+    {
+      "value": "plus",
+      "label": "Plus"
+    }
+  ],
+  "default": "arrow_right",
+  "visible_if": "{{ block.settings.show_icon }}"
+},
+{
+  "type": "select",
+  "id": "icon_position",
+  "label": "t:labels.icon_position",
+  "options": [
+    {
+      "value": "before",
+      "label": "Left"
+    },
+    {
+      "value": "after",
+      "label": "Right"
+    }
+  ],
+  "default": "after",
+  "visible_if": "{{ block.settings.show_icon }}"
+},
+    { "type": "header", "content": "t:general.size" },
+    { "type": "select", "id": "width_desktop", "label": "t:labels.desktop_width", "options": [
+      { "value": "fit", "label": "t:options.width.fit" }, { "value": "fill", "label": "t:options.width.fill" }, { "value": "custom", "label": "t:options.width.custom" }
+    ], "default": "fit" },
+    { "type": "range", "id": "width_custom_desktop", "label": "t:labels.desktop_custom_width", "min": 1, "max": 100, "step": 1, "unit": "%", "default": 100, "visible_if": "{{ block.settings.width_desktop == 'custom' }}" },
+    { "type": "select", "id": "width_mobile", "label": "t:labels.mobile_width", "options": [
+      { "value": "fit", "label": "t:options.width.fit" }, { "value": "fill", "label": "t:options.width.fill" }, { "value": "custom", "label": "t:options.width.custom" }
+    ], "default": "fit" },
+    { "type": "range", "id": "width_custom_mobile", "label": "t:labels.mobile_custom_width", "min": 1, "max": 100, "step": 1, "unit": "%", "default": 100, "visible_if": "{{ block.settings.width_mobile == 'custom' }}" },
+    { "type": "checkbox", "id": "limit_width_desktop", "label": "t:labels.desktop_limit_width", "default": true },
+    { "type": "range", "id": "max_width_desktop", "label": "t:labels.desktop_max_width", "min": 240, "max": 1200, "step": 10, "unit": "px", "default": 900, "visible_if": "{{ block.settings.limit_width_desktop }}" },
+    { "type": "checkbox", "id": "limit_width_mobile", "label": "t:labels.mobile_limit_width", "default": false },
+    { "type": "range", "id": "max_width_mobile", "label": "t:labels.mobile_max_width", "min": 240, "max": 800, "step": 10, "unit": "px", "default": 480, "visible_if": "{{ block.settings.limit_width_mobile }}" },
+    { "type": "select", "id": "animation_type", "label": "Animation", "options": [{ "value": "none", "label": "None" }], "default": "none" }
+  ],
+  "presets": [{
+    "name": "t:general.contact_form",
+    "category": "t:general.forms",
+    "settings": {
+      "gap_desktop": 16, "gap_mobile": 16, "field_height_desktop": "inherit", "field_height_mobile": "inherit", "submit_label": "Send", "button_style": "primary", "show_icon": false,
+      "width_desktop": "fit", "width_custom_desktop": 100, "width_mobile": "fit", "width_custom_mobile": 100, "limit_width_desktop": true, "max_width_desktop": 900, "limit_width_mobile": false, "max_width_mobile": 480, "animation_type": "none"
+    },
+    "blocks": [
+      { "type": "contact-field", "settings": { "label": "Custom field", "field_type": "text", "required": false } },
+      { "type": "contact-field", "settings": { "label": "Custom field", "field_type": "text", "required": false } }
+    ]
+  }]
+}
+{% endschema %}

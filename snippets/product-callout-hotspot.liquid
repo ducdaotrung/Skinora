@@ -1,0 +1,223 @@
+{% doc %}
+  Renders the shared Product/custom content hotspot and accessible popover.
+  Product card options come from section.settings; icon/scheme and behavior
+  belong to the containing Product callout.
+
+  @param {block} block - Hotspot settings and stable identity
+  @param {boolean} [omit_editor_attributes] - The gallery image already owns the block attributes
+{% enddoc %}
+
+{% liquid
+  assign hotspot_section_type = section.type | handleize
+  assign hotspot_is_carousel = false
+  if hotspot_section_type == 'hotspot-full-width-carousel' or section.settings.desktop_height != blank and section.settings.mobile_height != blank
+    assign hotspot_is_carousel = true
+  endif
+
+  assign hotspot_type = 'product'
+  if block.settings.use_content and hotspot_is_carousel == false
+    assign hotspot_type = 'content'
+  endif
+
+  assign hotspot_product = block.settings.product
+  assign hotspot_has_product = false
+  if hotspot_type == 'product' and hotspot_product != blank and hotspot_product.id != blank and hotspot_product.url != blank
+    assign hotspot_has_product = true
+  endif
+
+  assign hotspot_content_heading = block.settings.content_heading
+  assign hotspot_content_text = block.settings.content_text
+
+  assign hotspot_vertical = block.settings.vertical_position | default: 50 | plus: 0
+  assign hotspot_horizontal = block.settings.horizontal_position | default: 50 | plus: 0
+  assign hotspot_mobile_vertical = block.settings.mobile_vertical_position | default: hotspot_vertical | plus: 0
+  assign hotspot_mobile_horizontal = block.settings.mobile_horizontal_position | default: hotspot_horizontal | plus: 0
+  if hotspot_vertical < 0 or hotspot_vertical > 100
+    assign hotspot_vertical = 50
+  endif
+  if hotspot_horizontal < 0 or hotspot_horizontal > 100
+    assign hotspot_horizontal = 50
+  endif
+  if hotspot_mobile_vertical < 0 or hotspot_mobile_vertical > 100
+    assign hotspot_mobile_vertical = hotspot_vertical
+  endif
+  if hotspot_mobile_horizontal < 0 or hotspot_mobile_horizontal > 100
+    assign hotspot_mobile_horizontal = hotspot_horizontal
+  endif
+
+  assign hotspot_popover_vertical = 'bottom'
+  if hotspot_vertical > 65
+    assign hotspot_popover_vertical = 'top'
+  endif
+
+  assign hotspot_product_category = 'products.category' | t
+  assign hotspot_product_title = 'products.placeholder_title' | t
+  if hotspot_has_product
+    assign hotspot_product_category = hotspot_product.type | default: hotspot_product.vendor | default: hotspot_product_category
+    assign hotspot_product_title = hotspot_product.title
+  endif
+
+  assign hotspot_show_product_type = true
+  assign hotspot_show_product_image = true
+  assign hotspot_show_price = true
+  assign hotspot_product_link_label = 'products.quick_view' | t
+  assign hotspot_has_section_product_card_settings = false
+  if section.settings.show_product_type == true or section.settings.show_product_type == false
+    assign hotspot_has_section_product_card_settings = true
+  endif
+  if hotspot_is_carousel or hotspot_has_section_product_card_settings
+    assign hotspot_show_product_type = section.settings.show_product_type
+    assign hotspot_show_product_image = section.settings.show_product_image
+    assign hotspot_show_price = section.settings.show_price
+    if section.settings.product_link_label != blank
+      assign hotspot_product_link_label = section.settings.product_link_label
+    else
+      assign hotspot_product_link_label = 'products.view_product' | t
+    endif
+    if hotspot_has_product
+      assign hotspot_product_category = hotspot_product.type
+    endif
+  endif
+
+  assign hotspot_popover_id = 'product-callout-popover-' | append: section.id | append: '-' | append: block.id
+  assign hotspot_popover_class = 'product-callout__popover product-callout__popover--' | append: hotspot_popover_vertical
+  assign hotspot_popover_label = hotspot_product_title
+  if hotspot_type == 'content'
+    assign hotspot_popover_class = hotspot_popover_class | append: ' product-callout__popover--content'
+    if hotspot_content_heading != blank
+      assign hotspot_popover_label = hotspot_content_heading
+    else
+      assign hotspot_popover_label = 'accessibility.product_callout_hotspot_content_fallback' | t
+    endif
+  endif
+
+  if hotspot_type == 'content'
+    if hotspot_content_heading != blank
+      assign hotspot_label = 'accessibility.product_callout_hotspot_content' | t: title: hotspot_content_heading
+    else
+      assign hotspot_label = 'accessibility.product_callout_hotspot_content_fallback' | t
+    endif
+  elsif hotspot_has_product
+    assign hotspot_label = 'accessibility.product_callout_hotspot' | t: product: hotspot_product.title
+  else
+    assign hotspot_label = 'accessibility.product_callout_hotspot_placeholder' | t
+  endif
+%}
+
+{% capture hotspot_style %}
+  --product-callout-hotspot-x: {{ hotspot_horizontal }}%;
+  --product-callout-hotspot-y: {{ hotspot_vertical }}%;
+  {% if block.settings.customize_mobile_position %}
+    --product-callout-hotspot-x-mobile: {{ hotspot_mobile_horizontal }}%;
+    --product-callout-hotspot-y-mobile: {{ hotspot_mobile_vertical }}%;
+  {% endif %}
+{% endcapture %}
+{% assign hotspot_style = hotspot_style | strip %}
+
+  <div
+    class="product-callout__hotspot-wrap"
+    style="{{ hotspot_style }}"
+    data-product-callout-hotspot-wrap
+    data-product-callout-hotspot-type="{{ hotspot_type }}"
+    {% unless omit_editor_attributes %}{{ block.shopify_attributes }}{% endunless %}
+  >
+    {% if hotspot_type == 'product' and hotspot_has_product %}
+      <a
+        class="product-callout__hotspot"
+        href="{{ hotspot_product.url | escape }}"
+        aria-label="{{ hotspot_label | escape }}"
+        aria-controls="{{ hotspot_popover_id }}"
+        aria-expanded="false"
+        data-product-callout-hotspot
+        data-product-id="{{ hotspot_product.id }}"
+      >
+    {% else %}
+      <button
+        class="product-callout__hotspot product-callout__hotspot--placeholder"
+        type="button"
+        aria-label="{{ hotspot_label | escape }}"
+        aria-controls="{{ hotspot_popover_id }}"
+        aria-expanded="false"
+        data-product-callout-hotspot
+      >
+    {% endif %}
+        <span class="product-callout__hotspot-icon product-callout__hotspot-icon--dot" aria-hidden="true"></span>
+        <span class="product-callout__hotspot-icon product-callout__hotspot-icon--plus" aria-hidden="true">
+          {% render 'icon', icon: 'plus', bare: true %}
+        </span>
+        <span class="product-callout__hotspot-icon product-callout__hotspot-icon--tag" aria-hidden="true">
+          {% render 'icon', icon: 'tag', bare: true %}
+        </span>
+        <span class="product-callout__hotspot-icon product-callout__hotspot-icon--bag" aria-hidden="true">
+          {% render 'icon', icon: 'shopping-bag', bare: true %}
+        </span>
+    {% if hotspot_type == 'product' and hotspot_has_product %}
+      </a>
+    {% else %}
+      </button>
+    {% endif %}
+
+    <div
+      id="{{ hotspot_popover_id }}"
+      class="{{ hotspot_popover_class }}"
+      data-product-callout-popover
+      role="dialog"
+      aria-label="{{ hotspot_popover_label | escape }}"
+      hidden
+    >
+      {% if hotspot_type == 'content' %}
+        <div class="product-callout__content-card">
+          {% if hotspot_content_heading != blank %}
+            <h3 class="product-callout__content-card-heading heading-block heading-text heading-md">{{ hotspot_content_heading | escape }}</h3>
+          {% endif %}
+          {% if hotspot_content_text != blank %}
+            <div class="product-callout__content-card-text text-block body-text body-sm rte">{{ hotspot_content_text }}</div>
+          {% else %}
+            {% if hotspot_content_heading == blank %}
+              <span class="product-callout__content-card-placeholder">{{ 'accessibility.product_callout_hotspot_content_fallback' | t }}</span>
+            {% endif %}
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="product-callout__product-card">
+          {% if hotspot_show_product_image %}
+            {% if hotspot_has_product and hotspot_product.featured_image != blank %}
+              <div class="product-callout__product-card-media">
+                {{ hotspot_product.featured_image | image_url: width: 180 | image_tag: widths: '90, 180', sizes: '5.5rem', alt: hotspot_product.title, loading: 'lazy' }}
+              </div>
+            {% else %}
+              <div class="product-callout__product-card-media placeholder-image" aria-hidden="true">
+                {{ 'product-1' | placeholder_svg_tag: 'product-callout__product-card-placeholder' }}
+              </div>
+            {% endif %}
+          {% endif %}
+
+          <div class="product-callout__product-card-details">
+            {% if hotspot_show_product_type and hotspot_product_category != blank %}
+              <span class="product-callout__product-card-category">{{ hotspot_product_category | escape }}</span>
+            {% endif %}
+            <span class="product-callout__product-card-title">{{ hotspot_product_title | escape }}</span>
+            {% if hotspot_has_product %}
+              {% if hotspot_show_price %}
+                {% render 'price', item: hotspot_product, context: 'product-card', class: 'product-callout__product-card-price' %}
+              {% endif %}
+              {% if hotspot_is_carousel %}
+                <a class="product-callout__product-card-action" href="{{ hotspot_product.url | escape }}">{{ hotspot_product_link_label | escape }}</a>
+              {% else %}
+                <a
+                  class="product-callout__product-card-action"
+                  href="{{ hotspot_product.url | escape }}"
+                  data-product-card-quick-view
+                  data-product-card-quick-view-url="{{ hotspot_product.url | escape }}"
+                  aria-haspopup="dialog"
+                  aria-expanded="false"
+                >{{ hotspot_product_link_label | escape }}</a>
+              {% endif %}
+            {% else %}
+              <span class="product-callout__product-card-action product-callout__product-card-action--disabled" aria-disabled="true">{{ hotspot_product_link_label | escape }}</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>

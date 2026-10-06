@@ -1,0 +1,22 @@
+{% doc %}
+  Renders a value owned by a dynamic row in its matching product column.
+
+  @param {object} block - Theme Block supplying merchant settings and editor attributes
+
+  @param {string} feature_id - ID of the feature row header
+  @param {string} product_id - ID of the product column header
+  @param {string} value_id - Unique ID for the text describing this cell value
+{% enddoc %}
+
+{% liquid
+  assign feature_id = feature_id | default: '__FEATURE_ID__'
+  assign product_id = product_id | default: '__PRODUCT_ID__'
+  assign value_id = value_id | default: '__VALUE_ID__'
+%}
+<template data-comparison-value-key="{{ block.settings.column_key | escape }}">
+<div class="comparison-table__row-value" {{ block.shopify_attributes }}>
+  {% render 'comparison-table-value', type: block.settings.type, text: block.settings.text, feature_id: feature_id, product_id: product_id, value_id: value_id %}
+</div>
+</template>
+
+

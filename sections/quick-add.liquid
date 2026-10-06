@@ -1,0 +1,194 @@
+{% liquid
+  assign quick_add_desktop_layout = section.settings.desktop_layout | default: 'drawer'
+  unless quick_add_desktop_layout == 'popup' or quick_add_desktop_layout == 'drawer'
+    assign quick_add_desktop_layout = 'drawer'
+  endunless
+
+  assign quick_add_mobile_layout = section.settings.mobile_layout | default: 'bottom_sheet'
+  unless quick_add_mobile_layout == 'bottom_sheet' or quick_add_mobile_layout == 'drawer'
+    assign quick_add_mobile_layout = 'bottom_sheet'
+  endunless
+
+  assign quick_add_media_position = section.settings.media_position | default: 'top'
+  unless quick_add_media_position == 'top' or quick_add_media_position == 'left'
+    assign quick_add_media_position = 'top'
+  endunless
+
+  assign quick_add_width = section.settings.desktop_width | default: 550 | plus: 0
+  if quick_add_width < 420 or quick_add_width > 900
+    assign quick_add_width = 550
+  endif
+
+  assign quick_add_gap_desktop = section.settings.gap_desktop | default: 20 | plus: 0
+  if quick_add_gap_desktop < 0 or quick_add_gap_desktop > 80
+    assign quick_add_gap_desktop = 20
+  endif
+
+  assign quick_add_gap_mobile = section.settings.gap_mobile | default: 20 | plus: 0
+  if quick_add_gap_mobile < 0 or quick_add_gap_mobile > 48
+    assign quick_add_gap_mobile = 20
+  endif
+
+  assign quick_add_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign quick_add_scheme = section.settings.color_scheme.id
+  endif
+  assign quick_add_scheme = quick_add_scheme | default: 'scheme-1' | handleize
+
+  assign quick_add_product = product
+  assign quick_add_title = 'products.quick_add' | t
+  assign quick_add_dialog_id = 'QuickAdd-' | append: section.id
+%}
+
+{{ 'product-information.css' | asset_url | stylesheet_tag }}
+{{ 'product-information-extras.css' | asset_url | stylesheet_tag }}
+{{ 'product-media.css' | asset_url | stylesheet_tag }}
+{{ 'component-bouncing-dots.css' | asset_url | stylesheet_tag }}
+{{ 'quick-add.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'quick-add.js' | asset_url }}"></script>
+
+{% capture quick_add_attributes %}
+  data-quick-add-overlay
+  data-quick-add-section-id="{{ section.id }}"
+  data-quick-add-error-label="{{ 'products.quick_add_error' | t | escape }}"
+  data-quick-add-retry-label="{{ 'products.quick_add_retry' | t | escape }}"
+  data-overlay-color-scheme="{{ quick_add_scheme }}"
+{% endcapture %}
+{% assign quick_add_attributes = quick_add_attributes | strip_newlines | strip %}
+
+{% capture quick_add_content %}
+  <div
+    class="quick-add__content color-scheme section-color-scope {{ quick_add_scheme }} quick-add--media-{{ quick_add_media_position }}"
+    data-quick-add-content
+    data-product-information
+    data-quick-add-has-product="{% if quick_add_product != blank %}true{% else %}false{% endif %}"
+    {% if quick_add_product != blank %}data-quick-add-product-id="{{ quick_add_product.id }}"{% endif %}
+    style="--quick-add-gap-desktop: {{ quick_add_gap_desktop }}px; --quick-add-gap-mobile: {{ quick_add_gap_mobile }}px;"
+  >
+    <div class="quick-add__layout" data-quick-add-layout hidden>
+      <div class="quick-add__media scrollbar scrollbar--vertical">
+        {% content_for 'block', type: '_overlay-product-media', id: 'product-media' %}
+      </div>
+      <div class="quick-add__details scrollbar scrollbar--vertical">
+        {% content_for 'block', type: '_product-details', id: 'product-details' %}
+      </div>
+    </div>
+
+    <div class="quick-add__loading" data-quick-add-loading role="status" aria-live="polite" hidden>
+      <span class="quick-add__spinner" aria-hidden="true"></span>
+      <span class="visually-hidden">{{ 'accessibility.loading' | t }}</span>
+    </div>
+
+    <div class="quick-add__error" data-quick-add-error role="alert" hidden>
+      <p data-quick-add-error-message>{{ 'products.quick_add_error' | t }}</p>
+      <button class="btn btn--secondary quick-add__retry" type="button" data-quick-add-retry>
+        {{ 'products.quick_add_retry' | t }}
+      </button>
+    </div>
+  </div>
+{% endcapture %}
+
+{% render 'component-overlay',
+  id: quick_add_dialog_id,
+  content: quick_add_content,
+  label: quick_add_title,
+  title: quick_add_title,
+  desktop_layout: quick_add_desktop_layout,
+  mobile_layout: quick_add_mobile_layout,
+  width: quick_add_width,
+  body_class: 'quick-add__body scrollbar--both',
+  append_to_body: true,
+  attributes: quick_add_attributes
+%}
+
+{% schema %}
+{
+  "name": "t:general.quick_add",
+  "class": "section-quick-add",
+  "enabled_on": { "groups": ["custom.overlay"] },
+  "blocks": [
+    { "type": "_overlay-product-media" },
+    { "type": "_product-details" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "desktop_layout",
+      "label": "t:labels.desktop_layout",
+      "options": [
+        { "value": "popup", "label": "Popup" },
+        { "value": "drawer", "label": "Drawer" }
+      ],
+      "default": "drawer"
+    },
+    {
+      "type": "range",
+      "id": "desktop_width",
+      "label": "t:labels.desktop_width",
+      "min": 420,
+      "max": 900,
+      "step": 10,
+      "unit": "px",
+      "default": 550
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "t:labels.mobile_layout",
+      "options": [
+        { "value": "bottom_sheet", "label": "Bottom sheet" },
+        { "value": "drawer", "label": "Drawer" }
+      ],
+      "default": "bottom_sheet"
+    },
+    {
+      "type": "select",
+      "id": "media_position",
+      "label": "Media position",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "left", "label": "Left" }
+      ],
+      "default": "top"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    }
+  ]
+}
+{% endschema %}

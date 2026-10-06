@@ -1,0 +1,328 @@
+{% liquid
+  assign location_list_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign location_list_scheme = section.settings.color_scheme.id
+  endif
+  assign location_list_scheme = location_list_scheme | default: 'scheme-1' | handleize
+
+  assign location_list_gap = section.settings.gap | default: 64 | plus: 0
+  assign location_list_gap_mobile = section.settings.gap_mobile | default: 32 | plus: 0
+  assign location_list_padding_top = section.settings.padding_top | default: 64 | plus: 0
+  assign location_list_padding_right = section.settings.padding_right | default: 0 | plus: 0
+  assign location_list_padding_bottom = section.settings.padding_bottom | default: 64 | plus: 0
+  assign location_list_padding_left = section.settings.padding_left | default: 0 | plus: 0
+  assign location_list_padding_top_mobile = section.settings.padding_top_mobile | default: location_list_padding_top | plus: 0
+  assign location_list_padding_right_mobile = section.settings.padding_right_mobile | default: location_list_padding_right | plus: 0
+  assign location_list_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: location_list_padding_bottom | plus: 0
+  assign location_list_padding_left_mobile = section.settings.padding_left_mobile | default: location_list_padding_left | plus: 0
+  unless section.settings.customize_mobile_padding
+    assign location_list_padding_top_mobile = location_list_padding_top
+    assign location_list_padding_right_mobile = location_list_padding_right
+    assign location_list_padding_bottom_mobile = location_list_padding_bottom
+    assign location_list_padding_left_mobile = location_list_padding_left
+  endunless
+
+  assign location_list_width = section.settings.section_width | default: 'page_width'
+  unless location_list_width == 'page_width' or location_list_width == 'full_width' or location_list_width == 'full_width_no_padding'
+    assign location_list_width = 'page_width'
+  endunless
+  assign location_list_container = 'page-width'
+  assign location_list_no_padding = false
+  if location_list_width == 'full_width' or location_list_width == 'full_width_no_padding'
+    assign location_list_container = 'full-width'
+  endif
+  if location_list_width == 'full_width_no_padding'
+    assign location_list_no_padding = true
+  endif
+
+  assign location_list_media_id = 'LocationListMedia-' | append: section.id
+%}
+
+<div
+  class="location-list location-list--{{ location_list_width }}"
+  data-location-list
+  style="--location-list-gap: {{ location_list_gap }}px; --location-list-gap-mobile: {{ location_list_gap_mobile }}px; --location-list-padding-top: {{ location_list_padding_top }}px; --location-list-padding-right: {{ location_list_padding_right }}px; --location-list-padding-bottom: {{ location_list_padding_bottom }}px; --location-list-padding-left: {{ location_list_padding_left }}px; --location-list-padding-top-mobile: {{ location_list_padding_top_mobile }}px; --location-list-padding-right-mobile: {{ location_list_padding_right_mobile }}px; --location-list-padding-bottom-mobile: {{ location_list_padding_bottom_mobile }}px; --location-list-padding-left-mobile: {{ location_list_padding_left_mobile }}px;"
+>
+  <div class="section-spacing location-list__spacing color-scheme section-color-scope {{ location_list_scheme }}">
+    <div class="container {{ location_list_container }} location-list__container{% if location_list_no_padding %} location-list__container--no-padding{% endif %}">
+      <div class="location-list__content">
+        {% content_for 'blocks' %}
+        <div class="location-list__media" id="{{ location_list_media_id }}" data-location-list-media aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .location-list {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .location-list__spacing {
+    width: 100%;
+    padding-top: var(--location-list-padding-top);
+    padding-right: var(--location-list-padding-right);
+    padding-bottom: var(--location-list-padding-bottom);
+    padding-left: var(--location-list-padding-left);
+  }
+
+  .location-list__container,
+  .location-list__content,
+  .location-list__stores,
+  .location-list__media {
+    min-width: 0;
+  }
+
+  .location-list__container--no-padding,
+  .container.full-width.location-list__container--no-padding {
+    padding-inline: 0;
+  }
+
+  .location-list__content {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--location-list-gap);
+    align-items: stretch;
+  }
+
+  .location-list__content > .group { grid-column: 1 / -1; min-width: 0; }
+  .location-list__content > .location-list-block { grid-column: 1; }
+  .location-list__content > .location-list__media { grid-column: 2; }
+
+  .location-list__media {
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--background-color) 82%, var(--body-color));
+  }
+
+  .location-list__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: location-list-image-active 360ms ease both;
+  }
+
+  @keyframes location-list-image-active {
+    from {
+      opacity: 0;
+      transform: scale(1.02);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .location-list__content > .location-list__media { grid-column: 1; }
+    .location-list__spacing {
+      padding-top: var(--location-list-padding-top-mobile, var(--location-list-padding-top));
+      padding-right: var(--location-list-padding-right-mobile, var(--location-list-padding-right));
+      padding-bottom: var(--location-list-padding-bottom-mobile, var(--location-list-padding-bottom));
+      padding-left: var(--location-list-padding-left-mobile, var(--location-list-padding-left));
+    }
+
+    .location-list__content {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--location-list-gap-mobile, var(--location-list-gap));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .location-list__media img {
+      animation: none;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    const selector = '[data-location-list]';
+
+    const initializeRoot = (scope = document) => {
+      const roots = [];
+      if (scope.matches?.(selector)) roots.push(scope);
+      scope.querySelectorAll?.(selector).forEach((root) => roots.push(root));
+
+      roots.forEach((root) => {
+        if (root.dataset.locationListInitialized === 'true') return;
+
+        const triggers = [...root.querySelectorAll('[data-location-list-trigger]')];
+        const media = root.querySelector('[data-location-list-media]');
+        if (!triggers.length || !media) return;
+
+        const activate = (trigger) => {
+          triggers.forEach((item) => {
+            item.setAttribute('aria-pressed', item === trigger ? 'true' : 'false');
+          });
+
+          const template = trigger.closest('[data-location-list-item]')?.querySelector('[data-location-list-image]');
+          media.replaceChildren(...(template ? [template.content.cloneNode(true)] : []));
+        };
+
+        triggers.forEach((trigger) => {
+          trigger.addEventListener('click', () => activate(trigger));
+          trigger.addEventListener('keydown', (event) => {
+            if (event.target !== trigger) return;
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            activate(trigger);
+          });
+        });
+
+        root.locationListActivate = activate;
+        root.dataset.locationListInitialized = 'true';
+        activate(triggers[0]);
+      });
+    };
+
+    document.addEventListener('shopify:section:load', (event) => initializeRoot(event.target));
+    document.addEventListener('shopify:block:select', (event) => {
+      const block = event.target.closest?.('[data-location-list-item]');
+      const root = block?.closest(selector);
+      const trigger = block?.querySelector('[data-location-list-trigger]');
+      if (root && trigger) root.locationListActivate?.(trigger);
+    });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => initializeRoot(), { once: true });
+    } else {
+      initializeRoot();
+    }
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Location list",
+  "class": "section-kernel",
+  "enabled_on": { "templates": ["*"] },
+  "blocks": [
+    { "type": "group" },
+    { "type": "location-list" }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "page_width", "label": "Page width" },
+        { "value": "full_width", "label": "Full width" },
+        { "value": "full_width_no_padding", "label": "Full width (no padding)" }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "header",
+      "content": "Gap"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Desktop",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 64 },
+    { "type": "range", "id": "padding_right", "label": "t:labels.right_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 64 },
+    { "type": "range", "id": "padding_left", "label": "t:labels.left_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "checkbox", "id": "customize_mobile_padding", "label": "t:labels.customize_mobile_padding", "default": false },
+    { "type": "range", "id": "padding_top_mobile", "label": "t:labels.mobile_top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 40, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_right_mobile", "label": "t:labels.mobile_right_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_bottom_mobile", "label": "t:labels.mobile_bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 40, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_left_mobile", "label": "t:labels.mobile_left_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ section.settings.customize_mobile_padding }}" }
+  ],
+  "presets": [
+    {
+      "name": "Location list",
+      "category": "t:general.content",
+      "settings": {
+        "section_width": "page_width",
+        "gap": 64,
+        "gap_mobile": 32,
+        "padding_top": 64,
+        "padding_right": 0,
+        "padding_bottom": 64,
+        "padding_left": 0,
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "width": "fill",
+            "gap_desktop": 8,
+            "gap_mobile": 8,
+            "height": "fit",
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0
+          },
+          "blocks": [
+            { "type": "eyebrow", "settings": { "text": "<p>SUBHEADING</p>", "show_background": false, "show_icon": false } },
+            { "type": "heading", "settings": { "text": "<p>Main Heading Placeholder</p>", "heading_size": "xl", "html_tag": "h2", "width": "fit" } },
+            { "type": "text", "settings": { "text": "<p>This is placeholder text for a paragraph that provides a short and engaging description to support the heading above and keep visual balance.</p>", "text_size": "sm", "width": "custom", "max_width": 640 } }
+          ]
+        },
+        {
+          "type": "location-list",
+          "settings": { "active_background_color": "#F7EFED", "active_border_color": "#000000", "gap": 24, "gap_mobile": 16 },
+          "blocks": [
+            {
+              "type": "location-item",
+              "settings": { "image_alt": "Sydney store" },
+              "blocks": [
+                { "type": "heading", "settings": { "text": "<p>Sydney</p>", "heading_size": "sm", "html_tag": "h4" } },
+                { "type": "text", "settings": { "text": "<p>123 Sample St, Sydney NSW 2000 AU</p>", "text_size": "sm" } },
+                { "type": "button", "settings": { "button_label": "Get directions", "button_link": "https://www.google.com/maps/dir/?api=1&destination=Sydney%2C%20Australia", "button_style": "tertiary", "show_icon": false, "icon": "arrow", "icon_position": "after", "width": "fit" } }
+              ]
+            },
+            {
+              "type": "location-item",
+              "settings": { "image_alt": "Ho Chi Minh City store" },
+              "blocks": [
+                { "type": "heading", "settings": { "text": "<p>Ho Chi Minh City</p>", "heading_size": "sm", "html_tag": "h4" } },
+                { "type": "text", "settings": { "text": "<p>2 Hai Trieu, District 1, Ho Chi Minh City</p>", "text_size": "sm" } },
+                { "type": "button", "settings": { "button_label": "Get directions", "button_link": "https://www.google.com/maps/dir/?api=1&destination=2%20Hai%20Trieu%2C%20Ho%20Chi%20Minh%20City", "button_style": "tertiary", "show_icon": false, "icon": "arrow", "icon_position": "after", "width": "fit" } }
+              ]
+            },
+            {
+              "type": "location-item",
+              "settings": { "image_alt": "London store" },
+              "blocks": [
+                { "type": "heading", "settings": { "text": "<p>London</p>", "heading_size": "sm", "html_tag": "h4" } },
+                { "type": "text", "settings": { "text": "<p>123 Sample St, London W1C 1DE, United Kingdom</p>", "text_size": "sm" } },
+                { "type": "button", "settings": { "button_label": "Get directions", "button_link": "https://www.google.com/maps/dir/?api=1&destination=London%2C%20United%20Kingdom", "button_style": "tertiary", "show_icon": false, "icon": "arrow", "icon_position": "after", "width": "fit" } }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

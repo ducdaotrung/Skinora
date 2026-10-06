@@ -1,0 +1,167 @@
+/* Parallax composition only; typography, media and child layout remain shared. */
+.parallax-section {
+  position: relative;
+  isolation: isolate;
+  background: var(--background-color);
+}
+.parallax-section > .background-media { z-index: -1; }
+.parallax-section__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--parallax-header-gap);
+}
+.parallax-section__inner > .block-header {
+  align-self: center;
+  z-index: 0;
+  --text-align-default: center;
+}
+.parallax-section__items {
+  display: block;
+  width: 100%;
+  --parallax-shift: 0;
+  --parallax-stagger-center: 0;
+  --parallax-stagger-right: 0;
+}
+.parallax-section__grid {
+  --parallax-columns: 0;
+  display: grid;
+  gap: var(--parallax-content-gap);
+}
+.parallax-section__grid > .parallax-item {
+  position: relative;
+  min-width: 0;
+  z-index: 1;
+}
+.parallax-section__grid.is-packed { display: block; position: relative; }
+.parallax-section__grid.is-packed > .parallax-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin-top: 0;
+}
+.parallax-item {
+  border: var(--parallax-item-border, 0px) solid var(--border-color);
+  border-radius: var(--parallax-item-radius, var(--radius-square));
+  padding: var(--parallax-item-padding-top, 0px) var(--parallax-item-padding-right, 0px)
+    var(--parallax-item-padding-bottom, 0px) var(--parallax-item-padding-left, 0px);
+  text-align: var(--parallax-item-align, left);
+  isolation: isolate;
+}
+.parallax-item--scheme { background-color: var(--background-color); }
+.parallax-item--inherit { background-color: transparent; }
+.parallax-item--shadow-extra_small {
+  box-shadow: 0 1px 5px var(--shadow-color);
+}
+.parallax-item--shadow-small {
+  box-shadow: 0 2px 10px var(--shadow-color);
+}
+.parallax-item > .background-media { z-index: -2; border-radius: inherit; }
+.parallax-item__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--parallax-item-overlay, transparent);
+  opacity: var(--parallax-item-overlay-opacity, 0);
+  pointer-events: none;
+}
+.parallax-item__content { position: relative; min-width: 0; }
+.parallax-item__link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.parallax-item__content :is(a, button, input, select, textarea, summary) { position: relative; z-index: 2; }
+@media (min-width: 768px) {
+  .parallax-section__items {
+    --parallax-shift: 400;
+    --parallax-stagger-center: 300;
+    --parallax-stagger-right: 120;
+  }
+  .parallax-section__inner > .block-header {
+    position: sticky;
+    top: calc(var(--header-sticky-height, 0px) + 2.4rem);
+  }
+  .parallax-section__grid {
+    --parallax-columns: 3;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: row dense;
+    align-items: start;
+  }
+  .parallax-section__grid > .parallax-item--left { grid-column: 1; }
+  .parallax-section__grid > .parallax-item--center {
+    grid-column: 2;
+    margin-top: calc(var(--parallax-stagger-center) * 1px);
+  }
+  .parallax-section__grid > .parallax-item--right {
+    grid-column: 3;
+    margin-top: calc(var(--parallax-stagger-right) * 1px);
+  }
+  .parallax-item--center ~ .parallax-item--center,
+  .parallax-item--right ~ .parallax-item--right { margin-top: 0; }
+  .parallax-section__grid:not(:has(> .parallax-item--center)) {
+    --parallax-columns: 2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .parallax-section__grid:not(:has(> .parallax-item--center)) > .parallax-item--right { grid-column: 2; }
+}
+/* These scoped thresholds reproduce the reference's gap caps, not device bands. */
+@media (min-width: 1280px) and (max-width: 1440px) {
+  .parallax-section__grid { column-gap: min(var(--parallax-content-gap), 100px); }
+}
+@media (min-width: 1025px) and (max-width: 1279px) {
+  .parallax-section__grid { column-gap: min(var(--parallax-content-gap), 50px); }
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+  .parallax-section__grid { column-gap: min(var(--parallax-content-gap), 40px); }
+}
+/* The requested reference keeps padding unchanged without a mobile override,
+   and interpolates independent mobile values through the wide-tablet range. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .parallax-section__inner {
+    gap: clamp(max(var(--parallax-header-gap-mobile), calc(var(--parallax-header-gap) * .3)),
+      var(--parallax-header-gap-fluid), var(--parallax-header-gap));
+  }
+  .parallax-section {
+    padding-top: clamp(max(var(--section-padding-top-mobile), calc(var(--section-padding-top) * .3)),
+      var(--parallax-padding-top-fluid), var(--section-padding-top));
+    padding-bottom: clamp(max(var(--section-padding-bottom-mobile), calc(var(--section-padding-bottom) * .3)),
+      var(--parallax-padding-bottom-fluid), var(--section-padding-bottom));
+  }
+}
+@media (max-width: 767.98px) {
+  .parallax-section {
+    padding-block: var(--section-padding-top-mobile) var(--section-padding-bottom-mobile);
+  }
+  .parallax-section__inner { gap: var(--parallax-header-gap-mobile); }
+  .parallax-section__items {
+    width: calc(100% + var(--page-margin-current) * 2);
+    margin-inline: calc(var(--page-margin-current) * -1);
+    padding-inline: var(--page-margin-current);
+    margin-block: -1rem;
+    padding-block: 1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    scroll-padding-inline: var(--page-margin-current);
+  }
+  .parallax-section__items::-webkit-scrollbar { display: none; }
+  .parallax-section__grid {
+    display: flex;
+    align-items: start;
+    gap: var(--parallax-content-gap-mobile);
+  }
+  .parallax-section__grid > .parallax-item {
+    flex: 0 0 75vw;
+    scroll-snap-align: start;
+    margin-top: 0;
+  }
+  .parallax-section__grid > .parallax-item:only-child {
+    flex-basis: calc(100vw - var(--page-margin-current) * 2);
+  }
+  .parallax-item {
+    padding: var(--parallax-item-padding-top-mobile, var(--parallax-item-padding-top, 0px))
+      var(--parallax-item-padding-right-mobile, var(--parallax-item-padding-right, 0px))
+      var(--parallax-item-padding-bottom-mobile, var(--parallax-item-padding-bottom, 0px))
+      var(--parallax-item-padding-left-mobile, var(--parallax-item-padding-left, 0px));
+  }
+}

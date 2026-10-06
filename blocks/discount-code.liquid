@@ -1,0 +1,175 @@
+{% liquid
+  assign block_gap_desktop = block.settings.gap_desktop | default: block.settings.gap | default: 16 | plus: 0
+  assign block_gap_mobile = block.settings.gap_mobile | default: block_gap_desktop | plus: 0
+  assign discount_code = block.settings.discount_code | default: '' | strip
+  assign button_style = block.settings.button_style | default: 'tertiary'
+  unless button_style == 'primary' or button_style == 'secondary' or button_style == 'tertiary'
+    assign button_style = 'tertiary'
+  endunless
+  assign button_icon = blank
+  if block.settings.show_icon
+    assign button_icon = block.settings.icon | default: 'arrow'
+  endif
+  assign button_icon_position = block.settings.icon_position | default: 'after'
+  unless button_icon_position == 'before' or button_icon_position == 'after'
+    assign button_icon_position = 'after'
+  endunless
+  assign button_icon_size = block.settings.icon_size | default: 'inherit'
+  unless button_icon_size == 'inherit' or button_icon_size == 'custom'
+    assign button_icon_size = 'inherit'
+  endunless
+  assign button_icon_width = block.settings.icon_width | default: 20 | plus: 0
+%}
+
+<div class="text-block announcement-discount-code-block body-text" style="--announcement-discount-gap: {{ block_gap_desktop }}px; --announcement-discount-gap-mobile: {{ block_gap_mobile }}px;{% if block.settings.message_color != blank %} --announcement-message-color: {{ block.settings.message_color | escape }};{% endif %}" {{ block.shopify_attributes }}>
+  {% if block.settings.message != blank %}
+    <div class="announcement-discount-code-block__message">{{ block.settings.message }}</div>
+  {% endif %}
+
+  {% if discount_code != blank %}
+    <button class="announcement-discount-code-block__code" type="button" data-discount-code-copy data-discount-code="{{ discount_code | escape }}" aria-label="Copy discount code {{ discount_code | escape }}">
+      <span>{{ discount_code | escape }}</span>
+      <span class="announcement-discount-code-block__copy-icon" aria-hidden="true">
+        <svg data-copy-icon-copy xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M3 12C2.175 12 1.5 11.325 1.5 10.5V3C1.5 2.175 2.175 1.5 3 1.5H10.5C11.325 1.5 12 2.175 12 3M7.5 6H15C15.8284 6 16.5 6.67157 16.5 7.5V15C16.5 15.8284 15.8284 16.5 15 16.5H7.5C6.67157 16.5 6 15.8284 6 15V7.5C6 6.67157 6.67157 6 7.5 6Z" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <svg data-copy-icon-check hidden viewBox="0 0 24 24" fill="none">
+          <path d="m4.5 12.75 6 6 9-13.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"></path>
+        </svg>
+      </span>
+    </button>
+  {% endif %}
+
+  {% if block.settings.button_label != blank and block.settings.button_link != blank %}
+    {% render 'theme-button',
+      label: block.settings.button_label,
+      url: block.settings.button_link,
+      open_in_new_tab: block.settings.button_open_in_new_tab,
+      variant: button_style,
+      icon: button_icon,
+      icon_position: button_icon_position,
+      icon_size: button_icon_size,
+      icon_width: button_icon_width,
+      class: 'announcement-discount-code-block__button'
+    %}
+  {% endif %}
+  <span class="announcement-discount-code-block__status visually-hidden" data-discount-code-status aria-live="polite"></span>
+</div>
+
+{% stylesheet %}
+  .text-block.announcement-discount-code-block { display: flex !important; flex-wrap: nowrap; align-items: center; justify-content: center; gap: var(--announcement-discount-gap, 16px); width: 100%; max-width: none; color: var(--announcement-message-color, inherit); }
+  .announcement-discount-code-block__message { display: inline-flex; flex: 0 1 auto; align-items: center; min-width: 0; white-space: nowrap; }
+  .announcement-discount-code-block__message > :where(p, h1, h2, h3, h4, h5, h6, ul, ol) { display: inline !important; margin: 0 !important; }
+  .announcement-discount-code-block__code { display: inline-flex; flex: 0 0 auto; align-items: center; min-height: unset; gap: var(--button-gap, .8rem); padding: .6rem 1.2rem; border: none; border-radius: 0; color: var(--body-color); background-color: color-mix(in srgb, var(--body-color) 10%, var(--background-color)); cursor: pointer; font: inherit; text-transform: none; text-align: center; transition: none; }
+  .announcement-discount-code-block__code:hover { background-color: color-mix(in srgb, var(--body-color) 16%, var(--background-color)); }
+  .announcement-discount-code-block__code:focus-visible { outline: 2px solid var(--input-focus-color, currentColor); outline-offset: 2px; }
+  .announcement-discount-code-block__copy-icon { display: inline-flex; width: 1.4rem; height: 1.4rem; }
+  .announcement-discount-code-block__copy-icon svg { display: inline-flex; width: 100%; height: 100%; }
+  .announcement-discount-code-block__copy-icon [data-copy-icon-copy] { display: inline-flex !important; }
+  .announcement-discount-code-block__copy-icon [data-copy-icon-check] { display: none !important; }
+  .announcement-discount-code-block__code[data-copied='true'] .announcement-discount-code-block__copy-icon [data-copy-icon-copy] { display: none !important; }
+  .announcement-discount-code-block__code[data-copied='true'] .announcement-discount-code-block__copy-icon [data-copy-icon-check] { display: inline-flex !important; }
+  .announcement-discount-code-block__copy-icon [hidden] { display: none !important; }
+  .announcement-discount-code-block__button { flex: 0 0 auto; }
+  .announcement-discount-code-block__status { position: absolute; }
+  @media (max-width: 767.98px) { .text-block.announcement-discount-code-block { gap: var(--announcement-discount-gap-mobile, var(--announcement-discount-gap, 16px)); } }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Discount code",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "Gap" },
+    { "type": "range", "id": "gap_desktop", "label": "PC", "min": 0, "max": 30, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "gap_mobile", "label": "Mobile", "min": 0, "max": 30, "step": 1, "unit": "px", "default": 12 },
+    { "type": "header", "content": "Message" },
+    { "type": "richtext", "id": "message", "label": "Message", "default": "<p>50% off - use code:</p>" },
+    { "type": "color", "alpha": true, "id": "message_color", "label": "Color" },
+    { "type": "header", "content": "Discount code" },
+    { "type": "text", "id": "discount_code", "label": "Discount code", "info": "Create and view discount codes in [Discounts](https://admin.shopify.com/store/omnise-theme-base/discounts)", "default": "BIG50" },
+    { "type": "header", "content": "Button" },
+    { "type": "text", "id": "button_label", "label": "Label", "default": "Shop now" },
+    { "type": "url", "id": "button_link", "label": "Link" },
+    { "type": "checkbox", "id": "button_open_in_new_tab", "label": "Open in new tab", "default": false },
+    { "type": "select", "id": "button_style", "label": "Style", "options": [{ "value": "primary", "label": "t:options.button_variant.primary" }, { "value": "secondary", "label": "t:options.button_variant.secondary" }, { "value": "tertiary", "label": "t:options.button_variant.tertiary" }], "default": "tertiary" },
+    { "type": "checkbox", "id": "show_icon", "label": "Show icon", "default": false },
+    {
+      "type": "select",
+      "id": "icon",
+      "label": "t:labels.icon",
+      "options": [
+        {
+          "value": "arrow_right",
+          "label": "Arrow right"
+        },
+        {
+          "value": "long_arrow_right",
+          "label": "Long arrow right"
+        },
+        {
+          "value": "chevron_right",
+          "label": "Chevron"
+        },
+        {
+          "value": "arrow_up_right",
+          "label": "Arrow up right"
+        },
+        {
+          "value": "circle_arrow",
+          "label": "Circle arrow"
+        },
+        {
+          "value": "circle_chevron",
+          "label": "Circle chevron"
+        },
+        {
+          "value": "long_arrow_up",
+          "label": "Long arrow up"
+        },
+        {
+          "value": "double_chevron",
+          "label": "Double chevron"
+        },
+        {
+          "value": "arrow_outline",
+          "label": "Arrow outline"
+        },
+        {
+          "value": "square_chevron",
+          "label": "Square chevron"
+        },
+        {
+          "value": "plus",
+          "label": "Plus"
+        }
+      ],
+      "default": "arrow_right",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "t:labels.icon_position",
+      "options": [
+        {
+          "value": "before",
+          "label": "Left"
+        },
+        {
+          "value": "after",
+          "label": "Right"
+        }
+      ],
+      "default": "after",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    { "type": "select", "id": "icon_size", "label": "Icon size", "options": [{ "value": "inherit", "label": "t:options.icon_size.inherit" }, { "value": "custom", "label": "t:options.icon_size.custom" }], "default": "inherit", "visible_if": "{{ block.settings.show_icon }}" },
+    { "type": "range", "id": "icon_width", "label": "Icon width", "min": 12, "max": 32, "step": 1, "unit": "px", "default": 20, "visible_if": "{{ block.settings.show_icon and block.settings.icon_size == 'custom' }}" }
+  ],
+  "presets": [{
+    "name": "Discount code",
+    "settings": { "gap_desktop": 16, "gap_mobile": 12, "message": "<p>50% off - use code:</p>", "discount_code": "BIG50", "button_label": "Shop now", "button_open_in_new_tab": false, "show_icon": false, "button_style": "tertiary" }
+  }]
+}
+{% endschema %}

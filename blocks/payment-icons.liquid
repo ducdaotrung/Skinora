@@ -1,0 +1,317 @@
+{% doc %}
+  Renders the payment methods enabled for the shop as Shopify-provided SVG icons.
+
+  Payment methods come from `shop.enabled_payment_types`; the merchant controls
+  availability in Shopify admin. The parent layout owns alignment and outer
+  spacing while this block owns the internal icon grouping.
+
+  @example
+  {% content_for 'block', type: 'payment-icons', id: 'payment-icons' %}
+{% enddoc %}
+
+{% liquid
+  assign payment_types = shop.enabled_payment_types
+  assign has_payment_types = false
+  if payment_types != blank
+    assign has_payment_types = true
+  endif
+
+  assign payment_icons_icon_width = block.settings.icon_width | default: 34 | plus: 0
+  if payment_icons_icon_width < 20 or payment_icons_icon_width > 100
+    assign payment_icons_icon_width = 34
+  endif
+
+  assign payment_icons_gap_desktop = block.settings.gap_desktop | default: 10 | plus: 0
+  if payment_icons_gap_desktop < 0 or payment_icons_gap_desktop > 100
+    assign payment_icons_gap_desktop = 10
+  endif
+
+  assign payment_icons_gap_mobile = block.settings.gap_mobile | default: 10 | plus: 0
+  if payment_icons_gap_mobile < 0 or payment_icons_gap_mobile > 100
+    assign payment_icons_gap_mobile = 10
+  endif
+
+  assign payment_icons_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign payment_icons_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign payment_icons_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign payment_icons_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign payment_icons_padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign payment_icons_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign payment_icons_padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign payment_icons_padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+
+  if payment_icons_padding_top < 0 or payment_icons_padding_top > 100
+    assign payment_icons_padding_top = 0
+  endif
+  if payment_icons_padding_bottom < 0 or payment_icons_padding_bottom > 100
+    assign payment_icons_padding_bottom = 0
+  endif
+  if payment_icons_padding_left < 0 or payment_icons_padding_left > 100
+    assign payment_icons_padding_left = 0
+  endif
+  if payment_icons_padding_right < 0 or payment_icons_padding_right > 100
+    assign payment_icons_padding_right = 0
+  endif
+  if payment_icons_padding_top_mobile < 0 or payment_icons_padding_top_mobile > 100
+    assign payment_icons_padding_top_mobile = 0
+  endif
+  if payment_icons_padding_bottom_mobile < 0 or payment_icons_padding_bottom_mobile > 100
+    assign payment_icons_padding_bottom_mobile = 0
+  endif
+  if payment_icons_padding_left_mobile < 0 or payment_icons_padding_left_mobile > 100
+    assign payment_icons_padding_left_mobile = 0
+  endif
+  if payment_icons_padding_right_mobile < 0 or payment_icons_padding_right_mobile > 100
+    assign payment_icons_padding_right_mobile = 0
+  endif
+%}
+
+{% capture payment_icons_style %}
+  --payment-icons-icon-width: {{ payment_icons_icon_width }}px;
+  --payment-icons-padding-top: {{ payment_icons_padding_top }}px;
+  --payment-icons-padding-bottom: {{ payment_icons_padding_bottom }}px;
+  --payment-icons-padding-left: {{ payment_icons_padding_left }}px;
+  --payment-icons-padding-right: {{ payment_icons_padding_right }}px;
+  {% if block.settings.customize_mobile_padding %}
+    --payment-icons-padding-top-mobile: {{ payment_icons_padding_top_mobile }}px;
+    --payment-icons-padding-bottom-mobile: {{ payment_icons_padding_bottom_mobile }}px;
+    --payment-icons-padding-left-mobile: {{ payment_icons_padding_left_mobile }}px;
+    --payment-icons-padding-right-mobile: {{ payment_icons_padding_right_mobile }}px;
+  {% endif %}
+{% endcapture %}
+{% assign payment_icons_style = payment_icons_style | strip %}
+
+{% capture payment_icons_list_style %}
+  {% render 'layout-flow-style',
+    direction: 'row',
+    wrap: 'wrap',
+    align_items: 'center',
+    gap: payment_icons_gap_desktop,
+    gap_mobile: payment_icons_gap_mobile
+  %}
+{% endcapture %}
+{% assign payment_icons_list_style = payment_icons_list_style | strip %}
+
+{% if has_payment_types or request.design_mode %}
+  <div
+    class="payment-icons-block{% unless has_payment_types %} payment-icons-block--empty{% endunless %}"
+    style="{{ payment_icons_style }}"
+    {{ block.shopify_attributes }}
+  >
+    {% if has_payment_types %}
+      <ul
+        class="payment-icons-block__list layout-flow layout-flow--responsive"
+        style="{{ payment_icons_list_style }}"
+        aria-label="{{ 'accessibility.payment_methods' | t | escape }}"
+      >
+        {% for payment_type in payment_types %}
+          <li class="payment-icons-block__item">
+            {{ payment_type | payment_type_svg_tag }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .payment-icons-block {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    padding-top: var(--payment-icons-padding-top, 0px);
+    padding-right: var(--payment-icons-padding-right, 0px);
+    padding-bottom: var(--payment-icons-padding-bottom, 0px);
+    padding-left: var(--payment-icons-padding-left, 0px);
+  }
+
+  .payment-icons-block__list {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .payment-icons-block__item {
+    display: flex;
+    flex: 0 0 auto;
+    line-height: 0;
+  }
+
+  .payment-icons-block__item > svg {
+    display: block;
+    width: var(--payment-icons-icon-width, 34px);
+    height: auto;
+    max-width: 100%;
+  }
+
+  .payment-icons-block--empty {
+    min-height: 1px;
+  }
+
+  @media (max-width: 767.98px) {
+    .payment-icons-block {
+      padding-top: var(--payment-icons-padding-top-mobile, var(--payment-icons-padding-top, 0px));
+      padding-right: var(--payment-icons-padding-right-mobile, var(--payment-icons-padding-right, 0px));
+      padding-bottom: var(--payment-icons-padding-bottom-mobile, var(--payment-icons-padding-bottom, 0px));
+      padding-left: var(--payment-icons-padding-left-mobile, var(--payment-icons-padding-left, 0px));
+    }
+
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.payment_icons",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:info.payment_icons"
+    },
+    {
+      "type": "range",
+      "id": "icon_width",
+      "label": "t:labels.icon_block_width",
+      "min": 20,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 34
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.payment_icons",
+      "category": "t:general.footer",
+      "settings": {
+        "icon_width": 34,
+        "gap_desktop": 10,
+        "gap_mobile": 10,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "customize_mobile_padding": false
+      }
+    }
+  ]
+}
+{% endschema %}

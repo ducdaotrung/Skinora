@@ -1,0 +1,346 @@
+{% doc %}
+  Renders the selected product variant price and templates used by the scoped
+  variant picker. Price formatting and commerce tokens come from Theme Settings.
+{% enddoc %}
+
+{% liquid
+  assign price_product = closest.product | default: product
+  assign current_variant = price_product.selected_or_first_available_variant
+
+  assign price_font = block.settings.font | default: 'body'
+  unless price_font == 'body' or price_font == 'heading' or price_font == 'accent'
+    assign price_font = 'body'
+  endunless
+
+  assign price_size = block.settings.font_size | default: 'md'
+  unless price_size == 'xs' or price_size == 'sm' or price_size == 'md' or price_size == 'lg' or price_size == 'xl' or price_size == 'xxl'
+    assign price_size = 'md'
+  endunless
+
+  assign price_tracking = block.settings.letter_spacing | default: 'normal'
+  unless price_tracking == 'tight' or price_tracking == 'normal' or price_tracking == 'relaxed' or price_tracking == 'loose' or price_tracking == 'extra_loose'
+    assign price_tracking = 'normal'
+  endunless
+
+  assign price_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign price_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign price_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign price_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign price_padding_top_mobile = block.settings.padding_top_mobile | default: price_padding_top | plus: 0
+  assign price_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: price_padding_bottom | plus: 0
+  assign price_padding_left_mobile = block.settings.padding_left_mobile | default: price_padding_left | plus: 0
+  assign price_padding_right_mobile = block.settings.padding_right_mobile | default: price_padding_right | plus: 0
+  if price_padding_top < 0 or price_padding_top > 100
+    assign price_padding_top = 0
+  endif
+  if price_padding_bottom < 0 or price_padding_bottom > 100
+    assign price_padding_bottom = 0
+  endif
+  if price_padding_left < 0 or price_padding_left > 100
+    assign price_padding_left = 0
+  endif
+  if price_padding_right < 0 or price_padding_right > 100
+    assign price_padding_right = 0
+  endif
+  if price_padding_top_mobile < 0 or price_padding_top_mobile > 100
+    assign price_padding_top_mobile = price_padding_top
+  endif
+  if price_padding_bottom_mobile < 0 or price_padding_bottom_mobile > 100
+    assign price_padding_bottom_mobile = price_padding_bottom
+  endif
+  if price_padding_left_mobile < 0 or price_padding_left_mobile > 100
+    assign price_padding_left_mobile = price_padding_left
+  endif
+  if price_padding_right_mobile < 0 or price_padding_right_mobile > 100
+    assign price_padding_right_mobile = price_padding_right
+  endif
+
+  assign price_class = 'product-price'
+  assign price_class = price_class | append: ' product-price--font-' | append: price_font
+  assign price_class = price_class | append: ' product-price--size-' | append: price_size
+  assign price_class = price_class | append: ' product-price--tracking-' | append: price_tracking
+
+  assign current_sale = false
+  if current_variant != blank and current_variant.compare_at_price != blank and current_variant.compare_at_price > current_variant.price
+    assign current_sale = true
+  endif
+
+  assign show_tax_shipping_notice = false
+  if cart.taxes_included or cart.duties_included or shop.shipping_policy.body != blank
+    assign show_tax_shipping_notice = true
+  endif
+%}
+
+{% capture price_style %}
+  {% if price_padding_top != 0 %}--product-price-padding-top: {{ price_padding_top }}px;{% endif %}
+  {% if price_padding_bottom != 0 %}--product-price-padding-bottom: {{ price_padding_bottom }}px;{% endif %}
+  {% if price_padding_left != 0 %}--product-price-padding-left: {{ price_padding_left }}px;{% endif %}
+  {% if price_padding_right != 0 %}--product-price-padding-right: {{ price_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if price_padding_top_mobile != price_padding_top %}--product-price-padding-top-mobile: {{ price_padding_top_mobile }}px;{% endif %}
+    {% if price_padding_bottom_mobile != price_padding_bottom %}--product-price-padding-bottom-mobile: {{ price_padding_bottom_mobile }}px;{% endif %}
+    {% if price_padding_left_mobile != price_padding_left %}--product-price-padding-left-mobile: {{ price_padding_left_mobile }}px;{% endif %}
+    {% if price_padding_right_mobile != price_padding_right %}--product-price-padding-right-mobile: {{ price_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign price_style = price_style | strip %}
+
+<div class="{{ price_class }}" data-product-price-container data-section-id="{{ section.id }}" aria-live="polite"{% if price_style != blank %} style="{{ price_style }}"{% endif %} {{ block.shopify_attributes }}>
+  <div class="product-price__content">
+    {% if current_variant != blank %}
+      {% render 'price', item: current_variant, context: 'product-page', class: 'product-page__price' %}
+    {% else %}
+      {% if price_product != blank %}
+        {% render 'price', item: price_product, context: 'product-page', class: 'product-page__price' %}
+      {% else %}
+        {% render 'price', amount: 1999, context: 'product-page', class: 'product-page__price' %}
+      {% endif %}
+    {% endif %}
+
+    {% if block.settings.show_sale_badge %}
+      <div data-variant-sale-badge-container>
+        {% if current_sale %}
+          {% liquid
+            assign sale_discount = current_variant.compare_at_price | minus: current_variant.price
+            assign sale_percentage = sale_discount | times: 100.0 | divided_by: current_variant.compare_at_price | round
+            assign sale_badge_type = settings.badge_sale_type | default: 'text'
+            case sale_badge_type
+              when 'percentage'
+                assign sale_label = 'products.sale_percentage' | t: percentage: sale_percentage
+              when 'percentage_only'
+                assign sale_label = 'products.sale_percentage_only' | t: percentage: sale_percentage
+              when 'amount_saved'
+                assign sale_amount = sale_discount | money
+                assign sale_label = 'products.sale_amount_saved' | t: amount: sale_amount
+              else
+                assign sale_label = 'products.sale' | t
+            endcase
+          %}
+          <div class="product-price__sale-badge">
+            {% render 'badge', text: sale_label, tone: 'sale' %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if block.settings.show_tax_shipping_notice and show_tax_shipping_notice %}
+    <p class="product-price__notice body-xs">
+      {% if cart.duties_included and cart.taxes_included %}
+        {{ 'cart.duties_and_taxes_included' | t }}
+      {% elsif cart.taxes_included %}
+        {{ 'cart.taxes_included' | t }}
+      {% elsif cart.duties_included %}
+        {{ 'cart.duties_included' | t }}
+      {% endif %}
+      {% if shop.shipping_policy.body != blank %}
+        {{ 'cart.shipping_policy_html' | t: link: shop.shipping_policy.url }}
+      {% endif %}
+    </p>
+  {% endif %}
+
+  <div hidden data-variant-price-templates aria-hidden="true">
+    {% for variant in price_product.variants %}
+      <template data-variant-price-template="{{ variant.id }}">
+        {% render 'price', item: variant, context: 'product-page', class: 'product-page__price' %}
+      </template>
+    {% endfor %}
+  </div>
+
+  {% if block.settings.show_sale_badge %}
+    <div hidden data-variant-sale-badge-templates aria-hidden="true">
+      {% for variant in price_product.variants %}
+        <template data-variant-sale-badge-template="{{ variant.id }}">
+          {% if variant.compare_at_price != blank and variant.compare_at_price > variant.price %}
+            {% liquid
+              assign sale_discount = variant.compare_at_price | minus: variant.price
+              assign sale_percentage = sale_discount | times: 100.0 | divided_by: variant.compare_at_price | round
+              assign sale_badge_type = settings.badge_sale_type | default: 'text'
+              case sale_badge_type
+                when 'percentage'
+                  assign sale_label = 'products.sale_percentage' | t: percentage: sale_percentage
+                when 'percentage_only'
+                  assign sale_label = 'products.sale_percentage_only' | t: percentage: sale_percentage
+                when 'amount_saved'
+                  assign sale_amount = sale_discount | money
+                  assign sale_label = 'products.sale_amount_saved' | t: amount: sale_amount
+                else
+                  assign sale_label = 'products.sale' | t
+              endcase
+            %}
+            <div class="product-price__sale-badge">
+              {% render 'badge', text: sale_label, tone: 'sale' %}
+            </div>
+          {% endif %}
+        </template>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "t:general.product_price",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.price_typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:labels.font",
+      "options": [
+        { "value": "body", "label": "t:options.product_price_font.body" },
+        { "value": "heading", "label": "t:options.product_price_font.heading" },
+        { "value": "accent", "label": "t:options.product_price_font.accent" }
+      ],
+      "default": "body"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:labels.font_size",
+      "options": [
+        { "value": "xs", "label": "t:options.product_price_size.xs" },
+        { "value": "sm", "label": "t:options.product_price_size.sm" },
+        { "value": "md", "label": "t:options.product_price_size.md" },
+        { "value": "lg", "label": "t:options.product_price_size.lg" },
+        { "value": "xl", "label": "t:options.product_price_size.xl" },
+        { "value": "xxl", "label": "t:options.product_price_size.xxl" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        { "value": "tight", "label": "t:options.letter_spacing.tight" },
+        { "value": "normal", "label": "t:options.letter_spacing.normal" },
+        { "value": "relaxed", "label": "t:options.letter_spacing.relaxed" },
+        { "value": "loose", "label": "t:options.letter_spacing.loose" },
+        { "value": "extra_loose", "label": "t:options.letter_spacing.extra_loose" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "header",
+      "content": "t:general.product_status"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "t:labels.show_sale_badge",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tax_shipping_notice",
+      "label": "t:labels.show_tax_shipping_notice",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.product_price",
+      "category": "t:general.product"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,108 @@
+{
+  "sections": {
+    "main": {
+      "type": "cart",
+      "settings": {},
+      "blocks": {
+        "content": {
+          "type": "_cart-content",
+          "static": true,
+          "settings": {},
+          "blocks": {
+            "shipping": {
+              "type": "cart-free-shipping",
+              "settings": {}
+            },
+            "items": {
+              "type": "cart-items",
+              "settings": {}
+            }
+          },
+          "block_order": [
+            "shipping",
+            "items"
+          ]
+        },
+        "summary": {
+          "type": "_cart-summary",
+          "static": true,
+          "settings": {},
+          "blocks": {
+            "order-summary": {
+              "type": "_cart-order-summary",
+              "static": true,
+              "settings": {}
+            },
+            "note": {
+              "type": "cart-order-note",
+              "settings": {}
+            },
+            "shipping": {
+              "type": "cart-shipping-estimator",
+              "settings": {}
+            }
+          },
+          "block_order": [
+            "note",
+            "shipping"
+          ]
+        }
+      }
+    },
+    "recommendations": {
+      "type": "cart-recommendations",
+      "blocks": {
+        "heading": {
+          "type": "heading",
+          "static": true,
+          "settings": {
+            "text": "<p>You May Also Like</p>",
+            "heading_size": "lg",
+            "html_tag": "h2"
+          }
+        },
+        "product-list": {
+          "type": "product-list",
+          "static": true,
+          "settings": {
+            "use_recommendations": true,
+            "recommendation_type": "related",
+            "max_products": 8,
+            "layout_type": "carousel",
+            "columns_desktop": "4",
+            "columns_mobile": "2",
+            "product_gap_desktop": 4,
+            "product_gap_mobile": 4,
+            "navigation_position": "outside",
+            "navigation_style": "secondary",
+            "navigation_icon": "chevron",
+            "navigation_behavior": "show_on_hover",
+            "show_pagination_on_desktop": true,
+            "pagination_type": "progress_bar",
+            "pagination_top_padding_desktop": 50,
+            "pagination_limit_width": true,
+            "pagination_max_width": 260
+          },
+          "blocks": {
+            "product-card": {
+              "type": "product-card",
+              "static": true,
+              "settings": {}
+            }
+          }
+        }
+      },
+      "settings": {
+        "padding_top": 0,
+        "padding_bottom": 90,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 0,
+        "padding_bottom_mobile": 50
+      }
+    }
+  },
+  "order": [
+    "main",
+    "recommendations"
+  ]
+}

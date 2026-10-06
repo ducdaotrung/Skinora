@@ -1,0 +1,384 @@
+{% doc %}
+  Renders a responsive column inside a row.
+
+  Fill-width columns share the space left by the row while preserving their
+  content minimum. A custom column uses its percentage as a requested flex
+  basis and shrinks when necessary to keep sibling columns inside the row. The
+  column owns its child flow, alignment, gap, and padding.
+
+  @example
+  {% content_for 'block', type: '_column', id: 'column' %}
+{% enddoc %}
+
+{% liquid
+  assign column_width_mode = block.settings.width | default: 'fill'
+  unless column_width_mode == 'fill' or column_width_mode == 'custom'
+    assign column_width_mode = 'fill'
+  endunless
+
+  assign column_custom_width = block.settings.custom_width | default: 50 | plus: 0
+  if column_custom_width < 1 or column_custom_width > 100
+    assign column_custom_width = 50
+  endif
+
+  assign column_gap_desktop = block.settings.gap_desktop | default: 12 | plus: 0
+  if column_gap_desktop < 0 or column_gap_desktop > 100
+    assign column_gap_desktop = 12
+  endif
+  assign column_gap_mobile = block.settings.gap_mobile | default: 8 | plus: 0
+  if column_gap_mobile < 0 or column_gap_mobile > 100
+    assign column_gap_mobile = 8
+  endif
+
+  assign column_alignment = 'start'
+  case block.settings.alignment
+    when 'center'
+      assign column_alignment = 'center'
+    when 'right'
+      assign column_alignment = 'end'
+  endcase
+
+  assign column_alignment_mobile = column_alignment
+  if block.settings.customize_mobile_alignment
+    case block.settings.alignment_mobile
+      when 'center'
+        assign column_alignment_mobile = 'center'
+      when 'right'
+        assign column_alignment_mobile = 'end'
+      when 'left'
+        assign column_alignment_mobile = 'start'
+    endcase
+  endif
+
+  assign padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+
+  if padding_top < 0 or padding_top > 100
+    assign padding_top = 0
+  endif
+  if padding_bottom < 0 or padding_bottom > 100
+    assign padding_bottom = 0
+  endif
+  if padding_left < 0 or padding_left > 100
+    assign padding_left = 0
+  endif
+  if padding_right < 0 or padding_right > 100
+    assign padding_right = 0
+  endif
+  if padding_top_mobile < 0 or padding_top_mobile > 100
+    assign padding_top_mobile = 0
+  endif
+  if padding_bottom_mobile < 0 or padding_bottom_mobile > 100
+    assign padding_bottom_mobile = 0
+  endif
+  if padding_left_mobile < 0 or padding_left_mobile > 100
+    assign padding_left_mobile = 0
+  endif
+  if padding_right_mobile < 0 or padding_right_mobile > 100
+    assign padding_right_mobile = 0
+  endif
+
+  assign column_class = 'block-column layout-flow layout-flow--responsive block-column--width-' | append: column_width_mode
+%}
+
+{% capture column_style %}
+  {% render 'layout-flow-style',
+    direction: 'column',
+    wrap: 'nowrap',
+    align_items: column_alignment,
+    align_items_mobile: column_alignment_mobile,
+    gap: column_gap_desktop,
+    gap_mobile: column_gap_mobile
+  %}
+  {% if column_width_mode == 'custom' %}--column-width: {{ column_custom_width }}%;{% endif %}
+  {% if column_alignment != 'start' %}--column-align: {{ column_alignment }};{% endif %}
+  {% if block.settings.customize_mobile_alignment and column_alignment_mobile != column_alignment %}--column-align-mobile: {{ column_alignment_mobile }};{% endif %}
+  {% if padding_top != 0 %}--column-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 0 %}--column-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if padding_left != 0 %}--column-padding-left: {{ padding_left }}px;{% endif %}
+  {% if padding_right != 0 %}--column-padding-right: {{ padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--column-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--column-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+    {% if padding_left_mobile != padding_left %}--column-padding-left-mobile: {{ padding_left_mobile }}px;{% endif %}
+    {% if padding_right_mobile != padding_right %}--column-padding-right-mobile: {{ padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign column_style = column_style | strip %}
+
+<div
+  class="{{ column_class }}"
+  {% if column_style != blank %}style="{{ column_style }}"{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .block-column {
+    --column-align: start;
+    --column-align-mobile: var(--column-align);
+    --flex-align: var(--column-align);
+    --flex-align-mobile: var(--column-align-mobile);
+    flex-basis: auto;
+    flex-grow: 0;
+    flex-shrink: 1;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    padding-top: var(--column-padding-top, 0px);
+    padding-right: var(--column-padding-right, 0px);
+    padding-bottom: var(--column-padding-bottom, 0px);
+    padding-left: var(--column-padding-left, 0px);
+    text-align: var(--column-align);
+  }
+
+  .block-column--width-fill {
+    flex: 1 1 0;
+    flex-basis: auto;
+    min-width: min-content;
+  }
+
+  .block-column--width-custom {
+    --column-flex-basis: var(--column-width, 50%);
+    flex-basis: var(--column-flex-basis);
+    min-width: 0;
+  }
+
+  .block-column > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  @media (max-width: 767.98px) {
+    .block-column {
+      --flex-align: var(--column-align-mobile, var(--column-align));
+      padding-top: var(--column-padding-top-mobile, var(--column-padding-top, 0px));
+      padding-right: var(--column-padding-right-mobile, var(--column-padding-right, 0px));
+      padding-bottom: var(--column-padding-bottom-mobile, var(--column-padding-bottom, 0px));
+      padding-left: var(--column-padding-left-mobile, var(--column-padding-left, 0px));
+      text-align: var(--column-align-mobile, var(--column-align));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.column",
+  "tag": null,
+  "blocks": [
+    { "type": "header" },
+    { "type": "heading" },
+    { "type": "eyebrow" },
+    { "type": "text" },
+    { "type": "image" },
+    { "type": "image-comparison" },
+    { "type": "image-card" },
+    { "type": "logo" },
+    { "type": "video" },
+    { "type": "button" },
+    { "type": "buttons" },
+    { "type": "icon" },
+    { "type": "divider" },
+    { "type": "spacer" },
+    { "type": "group" },
+    { "type": "menu" },
+    { "type": "social-links" },
+    { "type": "policy-links" },
+    { "type": "localization" },
+    { "type": "payment-icons" },
+    { "type": "email-signup" },
+    { "type": "product-list" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.width",
+      "options": [
+        { "value": "fill", "label": "t:options.column_width.fill" },
+        { "value": "custom", "label": "t:options.column_width.custom" }
+      ],
+      "default": "fill"
+    },
+    {
+      "type": "range",
+      "id": "custom_width",
+      "label": "t:labels.custom_width",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.customize_mobile_alignment",
+      "default": false
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment_mobile",
+      "label": "t:labels.mobile_alignment",
+      "default": "left",
+      "visible_if": "{{ block.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.column",
+      "category": "t:general.layout",
+      "settings": {
+        "width": "fill",
+        "custom_width": 50,
+        "gap_desktop": 12,
+        "gap_mobile": 8,
+        "alignment": "left",
+        "customize_mobile_alignment": false,
+        "alignment_mobile": "left",
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "text",
+          "settings": {
+            "text": "<p>Column content</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

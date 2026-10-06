@@ -1,0 +1,1022 @@
+{% doc %}
+  Renders a live countdown timer with fixed-time and duration modes.
+
+  Fixed-time values are parsed by Shopify's Liquid date filter before they are
+  passed to the browser, so the configured end time follows the store's
+  primary timezone. Duration timers count down from the configured hours and
+  minutes, then restart when they reach zero.
+
+  @example
+  {% content_for 'block', type: 'countdown-timer', id: 'countdown-timer' %}
+{% enddoc %}
+
+{% liquid
+  assign countdown_style = block.settings.style | default: 'with_labels'
+  unless countdown_style == 'with_labels' or countdown_style == 'inline' or countdown_style == 'inline_superscript' or countdown_style == 'numbers_only'
+    assign countdown_style = 'with_labels'
+  endunless
+
+  assign countdown_inline_font = block.settings.font | default: 'accent'
+  unless countdown_inline_font == 'body' or countdown_inline_font == 'heading' or countdown_inline_font == 'accent'
+    assign countdown_inline_font = 'accent'
+  endunless
+
+  assign countdown_inline_font_size = block.settings.font_size | default: 'md'
+  unless countdown_inline_font_size == 'xs' or countdown_inline_font_size == 'sm' or countdown_inline_font_size == 'md' or countdown_inline_font_size == 'lg' or countdown_inline_font_size == 'xl' or countdown_inline_font_size == 'xxl'
+    assign countdown_inline_font_size = 'md'
+  endunless
+
+  assign countdown_inline_letter_spacing = block.settings.letter_spacing | default: 'normal'
+  unless countdown_inline_letter_spacing == 'normal' or countdown_inline_letter_spacing == 'relaxed' or countdown_inline_letter_spacing == 'loose' or countdown_inline_letter_spacing == 'extra_loose'
+    assign countdown_inline_letter_spacing = 'normal'
+  endunless
+
+  assign countdown_inline_font_family = 'var(--font-accent-family)'
+  assign countdown_inline_font_style = 'var(--font-accent-style)'
+  assign countdown_inline_font_weight = 'var(--font-accent-weight)'
+  case countdown_inline_font
+    when 'body'
+      assign countdown_inline_font_family = 'var(--font-body-family)'
+      assign countdown_inline_font_style = 'var(--font-body-style)'
+      assign countdown_inline_font_weight = 'var(--font-body-weight)'
+    when 'heading'
+      assign countdown_inline_font_family = 'var(--font-heading-family)'
+      assign countdown_inline_font_style = 'var(--font-heading-style)'
+      assign countdown_inline_font_weight = 'var(--font-heading-weight)'
+  endcase
+
+  assign countdown_inline_font_size_token = 'var(--font-body-md)'
+  case countdown_inline_font_size
+    when 'xs'
+      assign countdown_inline_font_size_token = 'var(--font-body-xs)'
+    when 'sm'
+      assign countdown_inline_font_size_token = 'var(--font-body-sm)'
+    when 'lg'
+      assign countdown_inline_font_size_token = 'var(--font-body-lg)'
+    when 'xl'
+      assign countdown_inline_font_size_token = 'var(--font-body-xl)'
+    when 'xxl'
+      assign countdown_inline_font_size_token = 'var(--font-body-xxl)'
+  endcase
+
+  assign countdown_inline_letter_spacing_token = '0em'
+  case countdown_inline_letter_spacing
+    when 'relaxed'
+      assign countdown_inline_letter_spacing_token = '0.02em'
+    when 'loose'
+      assign countdown_inline_letter_spacing_token = '0.08em'
+    when 'extra_loose'
+      assign countdown_inline_letter_spacing_token = '0.2em'
+  endcase
+
+  assign countdown_inline_text_transform_token = 'var(--font-body-text-transform)'
+  if countdown_inline_font == 'heading'
+    assign countdown_inline_text_transform_token = 'var(--font-heading-md-text-transform)'
+    case countdown_inline_font_size
+      when 'xs'
+        assign countdown_inline_text_transform_token = 'var(--font-heading-xs-text-transform)'
+      when 'sm'
+        assign countdown_inline_text_transform_token = 'var(--font-heading-sm-text-transform)'
+      when 'lg'
+        assign countdown_inline_text_transform_token = 'var(--font-heading-lg-text-transform)'
+      when 'xl'
+        assign countdown_inline_text_transform_token = 'var(--font-heading-xl-text-transform)'
+      when 'xxl'
+        assign countdown_inline_text_transform_token = 'var(--font-heading-display-text-transform)'
+    endcase
+  endif
+
+  assign countdown_type = block.settings.type | default: 'fixed_time'
+  unless countdown_type == 'fixed_time' or countdown_type == 'recurring'
+    assign countdown_type = 'fixed_time'
+  endunless
+
+  assign countdown_duration_hours = block.settings.duration_hours | default: 24 | plus: 0 | floor
+  if countdown_duration_hours < 0
+    assign countdown_duration_hours = 0
+  elsif countdown_duration_hours > 999
+    assign countdown_duration_hours = 999
+  endif
+  assign countdown_duration_minutes = block.settings.duration_minutes | default: 0 | plus: 0 | floor
+  if countdown_duration_minutes < 0
+    assign countdown_duration_minutes = 0
+  elsif countdown_duration_minutes > 59
+    assign countdown_duration_minutes = 59
+  endif
+  assign countdown_duration_hours_seconds = countdown_duration_hours | times: 3600
+  assign countdown_duration_minutes_seconds = countdown_duration_minutes | times: 60
+  assign countdown_duration_seconds = countdown_duration_hours_seconds | plus: countdown_duration_minutes_seconds
+
+  assign countdown_end_timestamp = 0
+  if countdown_type == 'fixed_time'
+    assign countdown_end_time = block.settings.end_time
+    if countdown_end_time != blank
+      assign countdown_end_timestamp = countdown_end_time | date: '%s' | plus: 0
+    endif
+  endif
+  assign countdown_now_timestamp = 'now' | date: '%s' | plus: 0
+
+  assign countdown_hide_when_expired = true
+  if block.settings.hide_when_expired == false or block.settings.hide_when_expired == 'false'
+    assign countdown_hide_when_expired = false
+  endif
+  assign countdown_should_render = true
+  if countdown_type == 'fixed_time'
+    if countdown_end_timestamp <= 0 and request.design_mode == false
+      assign countdown_should_render = false
+    elsif countdown_hide_when_expired and countdown_end_timestamp <= countdown_now_timestamp and request.design_mode == false
+      assign countdown_should_render = false
+    endif
+  elsif countdown_duration_seconds <= 0 and request.design_mode == false
+    assign countdown_should_render = false
+  endif
+
+  if countdown_type == 'recurring'
+    assign countdown_remaining_seconds = countdown_duration_seconds
+  else
+    assign countdown_remaining_seconds = countdown_end_timestamp | minus: countdown_now_timestamp
+    if countdown_remaining_seconds < 0
+      assign countdown_remaining_seconds = 0
+    endif
+  endif
+
+  assign countdown_days = countdown_remaining_seconds | divided_by: 86400
+  assign countdown_day_remainder = countdown_remaining_seconds | modulo: 86400
+  assign countdown_hours = countdown_day_remainder | divided_by: 3600
+  assign countdown_hour_remainder = countdown_day_remainder | modulo: 3600
+  assign countdown_minutes = countdown_hour_remainder | divided_by: 60
+  assign countdown_seconds = countdown_hour_remainder | modulo: 60
+
+  assign countdown_days_display = countdown_days | append: ''
+  assign countdown_hours_display = countdown_hours | append: ''
+  assign countdown_minutes_display = countdown_minutes | append: ''
+  assign countdown_seconds_display = countdown_seconds | append: ''
+  if countdown_days < 10
+    assign countdown_days_display = '0' | append: countdown_days
+  endif
+  if countdown_hours < 10
+    assign countdown_hours_display = '0' | append: countdown_hours
+  endif
+  if countdown_minutes < 10
+    assign countdown_minutes_display = '0' | append: countdown_minutes
+  endif
+  if countdown_seconds < 10
+    assign countdown_seconds_display = '0' | append: countdown_seconds
+  endif
+
+  assign countdown_number_size = block.settings.number_size | default: 'md'
+  case countdown_number_size
+    when 'heading_1'
+      assign countdown_number_size = 'display'
+    when 'heading_2'
+      assign countdown_number_size = 'xl'
+    when 'heading_3'
+      assign countdown_number_size = 'lg'
+    when 'heading_4'
+      assign countdown_number_size = 'md'
+    when 'heading_5'
+      assign countdown_number_size = 'sm'
+    when 'heading_6'
+      assign countdown_number_size = 'xs'
+  endcase
+  unless countdown_number_size == 'display' or countdown_number_size == 'xl' or countdown_number_size == 'lg' or countdown_number_size == 'md' or countdown_number_size == 'sm' or countdown_number_size == 'xs' or countdown_number_size == 'custom'
+    assign countdown_number_size = 'md'
+  endunless
+  assign countdown_number_custom_size = block.settings.custom_number_size | default: 24 | plus: 0
+  if countdown_number_custom_size < 10 or countdown_number_custom_size > 100
+    assign countdown_number_custom_size = 24
+  endif
+
+  assign countdown_number_font_size = 'var(--font-heading-md)'
+  assign countdown_number_line_height = 'var(--font-heading-md-line-height)'
+  assign countdown_number_letter_spacing = 'var(--font-heading-md-letter-spacing)'
+  assign countdown_number_text_transform = 'var(--font-heading-md-text-transform)'
+  case countdown_number_size
+    when 'display'
+      assign countdown_number_font_size = 'var(--font-heading-display)'
+      assign countdown_number_line_height = 'var(--font-heading-display-line-height)'
+      assign countdown_number_letter_spacing = 'var(--font-heading-display-letter-spacing)'
+      assign countdown_number_text_transform = 'var(--font-heading-display-text-transform)'
+    when 'xl'
+      assign countdown_number_font_size = 'var(--font-heading-xl)'
+      assign countdown_number_line_height = 'var(--font-heading-xl-line-height)'
+      assign countdown_number_letter_spacing = 'var(--font-heading-xl-letter-spacing)'
+      assign countdown_number_text_transform = 'var(--font-heading-xl-text-transform)'
+    when 'lg'
+      assign countdown_number_font_size = 'var(--font-heading-lg)'
+      assign countdown_number_line_height = 'var(--font-heading-lg-line-height)'
+      assign countdown_number_letter_spacing = 'var(--font-heading-lg-letter-spacing)'
+      assign countdown_number_text_transform = 'var(--font-heading-lg-text-transform)'
+    when 'sm'
+      assign countdown_number_font_size = 'var(--font-heading-sm)'
+      assign countdown_number_line_height = 'var(--font-heading-sm-line-height)'
+      assign countdown_number_letter_spacing = 'var(--font-heading-sm-letter-spacing)'
+      assign countdown_number_text_transform = 'var(--font-heading-sm-text-transform)'
+    when 'xs'
+      assign countdown_number_font_size = 'var(--font-heading-xs)'
+      assign countdown_number_line_height = 'var(--font-heading-xs-line-height)'
+      assign countdown_number_letter_spacing = 'var(--font-heading-xs-letter-spacing)'
+      assign countdown_number_text_transform = 'var(--font-heading-xs-text-transform)'
+    when 'custom'
+      assign countdown_number_font_size = countdown_number_custom_size | append: 'px'
+      assign countdown_number_line_height = 'var(--font-heading-custom-line-height)'
+      assign countdown_number_letter_spacing = 'var(--font-heading-custom-letter-spacing)'
+      assign countdown_number_text_transform = 'var(--font-heading-custom-text-transform)'
+  endcase
+
+  assign countdown_label_size = block.settings.label_size | default: 'sm'
+  case countdown_label_size
+    when 'small'
+      assign countdown_label_size = 'sm'
+    when 'medium'
+      assign countdown_label_size = 'md'
+  endcase
+  unless countdown_label_size == 'xs' or countdown_label_size == 'sm' or countdown_label_size == 'md' or countdown_label_size == 'lg' or countdown_label_size == 'xl' or countdown_label_size == 'xxl'
+    assign countdown_label_size = 'sm'
+  endunless
+  assign countdown_label_font_size = 'var(--font-body-sm)'
+  case countdown_label_size
+    when 'xs'
+      assign countdown_label_font_size = 'var(--font-body-xs)'
+    when 'md'
+      assign countdown_label_font_size = 'var(--font-body-md)'
+    when 'lg'
+      assign countdown_label_font_size = 'var(--font-body-lg)'
+    when 'xl'
+      assign countdown_label_font_size = 'var(--font-body-xl)'
+    when 'xxl'
+      assign countdown_label_font_size = 'var(--font-body-xxl)'
+  endcase
+
+  assign countdown_color_type = block.settings.color_type | default: 'inherit'
+  unless countdown_color_type == 'inherit' or countdown_color_type == 'custom'
+    assign countdown_color_type = 'inherit'
+  endunless
+  assign countdown_number_color = 'var(--heading-color)'
+  assign countdown_background_color = 'color-mix(in srgb, var(--body-color) 12%, var(--background-color))'
+  if countdown_color_type == 'custom'
+    if block.settings.number_color != blank
+      assign countdown_number_color = block.settings.number_color | escape
+    endif
+    if block.settings.background_color != blank
+      assign countdown_background_color = block.settings.background_color | escape
+    endif
+  endif
+
+  assign countdown_corner_radius = block.settings.corner_radius | default: 'square'
+  unless countdown_corner_radius == 'square' or countdown_corner_radius == 'slightly_rounded' or countdown_corner_radius == 'rounded' or countdown_corner_radius == 'pill'
+    assign countdown_corner_radius = 'square'
+  endunless
+  assign countdown_radius = 'var(--radius-square)'
+  case countdown_corner_radius
+    when 'square'
+      assign countdown_radius = 'var(--radius-square)'
+    when 'slightly_rounded'
+      assign countdown_radius = 'var(--radius-slight)'
+    when 'rounded'
+      assign countdown_radius = 'var(--radius-rounded)'
+    when 'pill'
+      assign countdown_radius = 'var(--radius-pill)'
+  endcase
+
+  assign countdown_style_class = countdown_style | replace: '_', '-'
+  assign countdown_class = 'countdown-timer countdown-timer--style-' | append: countdown_style_class
+  if block.settings.show_background == false or block.settings.show_background == 'false'
+    assign countdown_class = countdown_class | append: ' countdown-timer--no-background'
+  endif
+
+  assign countdown_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign countdown_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign countdown_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign countdown_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign countdown_padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign countdown_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign countdown_padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign countdown_padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+  assign countdown_customize_mobile_padding = false
+  if block.settings.customize_mobile_padding == true or block.settings.customize_mobile_padding == 'true'
+    assign countdown_customize_mobile_padding = true
+  endif
+%}
+
+{% if countdown_should_render %}
+  <countdown-timer
+    class="{{ countdown_class }}"
+    data-countdown-timer
+    data-countdown-type="{{ countdown_type }}"
+    data-countdown-end-time="{{ countdown_end_timestamp }}"
+    data-countdown-duration="{{ countdown_duration_seconds }}"
+    data-countdown-key="{{ section.id }}-{{ block.id }}"
+    data-countdown-hide-when-expired="{{ countdown_hide_when_expired }}"
+    data-countdown-design-mode="{{ request.design_mode }}"
+    data-countdown-expired-label="{{ 'countdown.expired' | t | escape }}"
+    style="--countdown-number-size: {{ countdown_number_font_size }}; --countdown-number-line-height: {{ countdown_number_line_height }}; --countdown-number-letter-spacing: {{ countdown_number_letter_spacing }}; --countdown-number-text-transform: {{ countdown_number_text_transform }}; --countdown-label-size: {{ countdown_label_font_size }}; --countdown-inline-font-family: {{ countdown_inline_font_family }}; --countdown-inline-font-style: {{ countdown_inline_font_style }}; --countdown-inline-font-weight: {{ countdown_inline_font_weight }}; --countdown-inline-font-size: {{ countdown_inline_font_size_token }}; --countdown-inline-letter-spacing: {{ countdown_inline_letter_spacing_token }}; --countdown-inline-text-transform: {{ countdown_inline_text_transform_token }}; --countdown-number-color: {{ countdown_number_color }}; --countdown-background: {{ countdown_background_color }}; --countdown-radius: {{ countdown_radius }}; --countdown-padding-top: {{ countdown_padding_top }}px; --countdown-padding-bottom: {{ countdown_padding_bottom }}px; --countdown-padding-left: {{ countdown_padding_left }}px; --countdown-padding-right: {{ countdown_padding_right }}px;{% if countdown_customize_mobile_padding %} --countdown-padding-top-mobile: {{ countdown_padding_top_mobile }}px; --countdown-padding-bottom-mobile: {{ countdown_padding_bottom_mobile }}px; --countdown-padding-left-mobile: {{ countdown_padding_left_mobile }}px; --countdown-padding-right-mobile: {{ countdown_padding_right_mobile }}px;{% endif %}"
+    role="timer"
+    {{ block.shopify_attributes }}
+  >
+    <div class="countdown-timer__units" aria-hidden="true">
+      <div class="countdown-timer__unit" data-countdown-unit="days" data-countdown-unit-label="{{ 'countdown.days' | t | escape }}">
+        <span class="countdown-timer__value" data-countdown-value="days">{{ countdown_days_display }}</span>
+        {% if countdown_style != 'numbers_only' %}
+          <span class="countdown-timer__label" data-countdown-label>{{ 'countdown.days' | t }}</span>
+        {% endif %}
+      </div>
+      <div class="countdown-timer__unit" data-countdown-unit="hours" data-countdown-unit-label="{{ 'countdown.hours' | t | escape }}">
+        <span class="countdown-timer__value" data-countdown-value="hours">{{ countdown_hours_display }}</span>
+        {% if countdown_style != 'numbers_only' %}
+          <span class="countdown-timer__label" data-countdown-label>{{ 'countdown.hours' | t }}</span>
+        {% endif %}
+      </div>
+      <div class="countdown-timer__unit" data-countdown-unit="minutes" data-countdown-unit-label="{{ 'countdown.minutes' | t | escape }}">
+        <span class="countdown-timer__value" data-countdown-value="minutes">{{ countdown_minutes_display }}</span>
+        {% if countdown_style != 'numbers_only' %}
+          <span class="countdown-timer__label" data-countdown-label>{{ 'countdown.minutes' | t }}</span>
+        {% endif %}
+      </div>
+      <div class="countdown-timer__unit" data-countdown-unit="seconds" data-countdown-unit-label="{{ 'countdown.seconds' | t | escape }}">
+        <span class="countdown-timer__value" data-countdown-value="seconds">{{ countdown_seconds_display }}</span>
+        {% if countdown_style != 'numbers_only' %}
+          <span class="countdown-timer__label" data-countdown-label>{{ 'countdown.seconds' | t }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <span class="countdown-timer__announcement visually-hidden" data-countdown-announcement aria-live="polite">
+      {{ countdown_days_display }} {{ 'countdown.days' | t }}, {{ countdown_hours_display }} {{ 'countdown.hours' | t }}, {{ countdown_minutes_display }} {{ 'countdown.minutes' | t }}, {{ countdown_seconds_display }} {{ 'countdown.seconds' | t }}
+    </span>
+  </countdown-timer>
+{% endif %}
+
+{% stylesheet %}
+  .countdown-timer {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    /* Keep the timer readable when its parent uses a horizontal flex layout. */
+    flex-shrink: 0;
+    padding-top: var(--countdown-padding-top, 0px);
+    padding-right: var(--countdown-padding-right, 0px);
+    padding-bottom: var(--countdown-padding-bottom, 0px);
+    padding-left: var(--countdown-padding-left, 0px);
+    color: var(--countdown-number-color, var(--heading-color));
+  }
+
+  .countdown-timer[hidden] {
+    display: none;
+  }
+
+  .countdown-timer__units {
+    display: flex;
+    align-items: stretch;
+    gap: 0.8rem;
+    max-width: 100%;
+  }
+
+  .countdown-timer__unit {
+    display: flex;
+    width: var(--countdown-unit-width, auto);
+    min-width: 5.2rem;
+    min-height: 5.6rem;
+    padding: 0.8rem 0.9rem 0.7rem;
+    flex: 0 0 var(--countdown-unit-width, auto);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--countdown-radius, var(--radius-square));
+    background: var(--countdown-background, var(--background-color));
+    text-align: center;
+  }
+
+  .countdown-timer--no-background .countdown-timer__unit {
+    background: transparent;
+  }
+
+  .countdown-timer--style-inline .countdown-timer__units,
+  .countdown-timer--style-inline-superscript .countdown-timer__units {
+    border-radius: var(--countdown-radius, var(--radius-square));
+    background: var(--countdown-background, var(--background-color));
+  }
+
+  .countdown-timer--style-inline:not(.countdown-timer--no-background) .countdown-timer__units,
+  .countdown-timer--style-inline-superscript:not(.countdown-timer--no-background) .countdown-timer__units {
+    padding: 0.8rem 0.9rem 0.7rem;
+  }
+
+  .countdown-timer--style-inline .countdown-timer__unit,
+  .countdown-timer--style-inline-superscript .countdown-timer__unit {
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+    min-height: 0;
+    font-family: var(--countdown-inline-font-family, var(--font-accent-family));
+    font-size: var(--countdown-inline-font-size, var(--font-body-md));
+    font-style: var(--countdown-inline-font-style, var(--font-accent-style));
+    font-weight: var(--countdown-inline-font-weight, var(--font-accent-weight));
+    letter-spacing: var(--countdown-inline-letter-spacing, 0em);
+    line-height: var(--font-body-line-height);
+    text-transform: var(--countdown-inline-text-transform, inherit);
+  }
+
+  .countdown-timer--style-inline.countdown-timer--no-background .countdown-timer__units,
+  .countdown-timer--style-inline-superscript.countdown-timer--no-background .countdown-timer__units {
+    background: transparent;
+  }
+
+  .countdown-timer--style-inline .countdown-timer__unit,
+  .countdown-timer--style-inline-superscript .countdown-timer__unit {
+    flex-direction: row;
+    gap: 0.35rem;
+  }
+
+  .countdown-timer--style-inline .countdown-timer__unit {
+    align-items: baseline;
+  }
+
+  .countdown-timer--style-inline-superscript .countdown-timer__unit {
+    align-items: flex-start;
+  }
+
+  .countdown-timer__value {
+    font-family: var(--font-heading-family);
+    font-size: var(--countdown-number-size, var(--font-heading-md));
+    font-style: var(--font-heading-style);
+    font-weight: var(--font-heading-weight);
+    line-height: var(--countdown-number-line-height, var(--font-heading-md-line-height));
+    letter-spacing: var(--countdown-number-letter-spacing, var(--font-heading-md-letter-spacing));
+    text-transform: var(--countdown-number-text-transform, var(--font-heading-md-text-transform));
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .countdown-timer__label {
+    margin-top: 0.2rem;
+    color: color-mix(in srgb, currentcolor 72%, transparent);
+    font-family: var(--font-body-family);
+    font-size: var(--countdown-label-size, var(--font-body-xs));
+    font-style: var(--font-body-style);
+    font-weight: var(--font-body-weight);
+    line-height: var(--font-body-line-height);
+    white-space: nowrap;
+  }
+
+  .countdown-timer--style-with-labels .countdown-timer__label {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .countdown-timer--style-inline .countdown-timer__label,
+  .countdown-timer--style-inline-superscript .countdown-timer__label {
+    margin-top: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    line-height: inherit;
+    text-transform: inherit;
+  }
+
+  .countdown-timer--style-inline .countdown-timer__value,
+  .countdown-timer--style-inline-superscript .countdown-timer__value {
+    font-family: inherit;
+    font-size: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+
+  .countdown-timer--style-inline-superscript .countdown-timer__label {
+    font-size: 0.65em;
+    line-height: 1;
+  }
+
+  @media (max-width: 767.98px) {
+    .countdown-timer {
+      padding-top: var(--countdown-padding-top-mobile, var(--countdown-padding-top, 0px));
+      padding-right: var(--countdown-padding-right-mobile, var(--countdown-padding-right, 0px));
+      padding-bottom: var(--countdown-padding-bottom-mobile, var(--countdown-padding-bottom, 0px));
+      padding-left: var(--countdown-padding-left-mobile, var(--countdown-padding-left, 0px));
+    }
+
+    .countdown-timer__units {
+      gap: 0.4rem;
+    }
+
+    .countdown-timer__unit {
+      min-width: clamp(3.8rem, 20vw, 5.2rem);
+      min-height: 5.2rem;
+      padding: 0.6rem 0.5rem 0.5rem;
+    }
+
+    .countdown-timer--style-inline .countdown-timer__unit,
+    .countdown-timer--style-inline-superscript .countdown-timer__unit {
+      padding: 0;
+      min-height: 0;
+    }
+
+    .countdown-timer--style-inline:not(.countdown-timer--no-background) .countdown-timer__units,
+    .countdown-timer--style-inline-superscript:not(.countdown-timer--no-background) .countdown-timer__units {
+      padding: 0.6rem 0.5rem 0.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .countdown-timer__value,
+    .countdown-timer__label {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    if (customElements.get('countdown-timer')) return;
+
+    const SECOND = 1000;
+    const UNIT_ORDER = ['days', 'hours', 'minutes', 'seconds'];
+
+    class CountdownTimer extends HTMLElement {
+      connectedCallback() {
+        if (this.abortController) return;
+
+        this.abortController = new AbortController();
+        this.signal = this.abortController.signal;
+
+        this.values = Object.fromEntries(
+          UNIT_ORDER.map((unit) => [unit, this.querySelector(`[data-countdown-value="${unit}"]`)]),
+        );
+        this.units = Object.fromEntries(
+          UNIT_ORDER.map((unit) => [unit, this.querySelector(`[data-countdown-unit="${unit}"]`)]),
+        );
+        this.unitElements = UNIT_ORDER.map((unit) => this.units[unit]).filter(Boolean);
+        this.announcement = this.querySelector('[data-countdown-announcement]');
+        this.lastAnnouncementKey = '';
+        this.unitWidthKey = '';
+        this.handleResize = () => {
+          this.unitWidthKey = '';
+          this.syncUnitWidth();
+        };
+        window.addEventListener('resize', this.handleResize, { signal: this.signal });
+        const fontsReady = document.fonts?.ready;
+        fontsReady?.then(() => {
+          if (!this.isConnected) return;
+          this.unitWidthKey = '';
+          this.syncUnitWidth();
+        }).catch(() => {});
+        this.intervalId = window.setInterval(() => this.update(), SECOND);
+        this.update();
+      }
+
+      disconnectedCallback() {
+        if (this.intervalId) {
+          window.clearInterval(this.intervalId);
+        }
+        this.intervalId = null;
+        this.abortController?.abort();
+        this.abortController = null;
+        this.signal = null;
+        this.values = null;
+        this.units = null;
+        this.unitElements = null;
+        this.announcement = null;
+        this.lastAnnouncementKey = '';
+        this.unitWidthKey = '';
+        this.handleResize = null;
+      }
+
+      getTargetTime(now) {
+        if (this.dataset.countdownType === 'recurring') {
+          const duration = Number(this.dataset.countdownDuration) * SECOND;
+          if (!Number.isFinite(duration) || duration <= 0) return null;
+
+          // A visitor's recurring cycle survives page renders/reloads. If storage is
+          // unavailable, retain the anchor on this element for its lifetime.
+          if (!this.recurringStart) {
+            const key = `theme-countdown:${this.dataset.countdownKey}:${duration}`;
+            let savedStart;
+            try { savedStart = Number(localStorage.getItem(key)); } catch (_) {}
+            this.recurringStart = Number.isFinite(savedStart) && savedStart > 0 && savedStart <= now ? savedStart : now;
+            try { localStorage.setItem(key, String(this.recurringStart)); } catch (_) {}
+          }
+          const start = this.recurringStart;
+          const elapsed = Math.max(0, now - start);
+          return start + (Math.floor(elapsed / duration) + 1) * duration;
+        }
+
+        const initialTarget = Number(this.dataset.countdownEndTime) * SECOND;
+        if (!Number.isFinite(initialTarget) || initialTarget <= 0) return null;
+        return initialTarget;
+      }
+
+      update() {
+        const now = Date.now();
+        const target = this.getTargetTime(now);
+        const shouldHideWhenExpired = this.dataset.countdownType !== 'recurring' && this.dataset.countdownHideWhenExpired === 'true';
+        const isDesignMode = this.dataset.countdownDesignMode === 'true';
+
+        if (!target) {
+          this.setValues(0);
+          this.updateAnnouncement(true, this.dataset.countdownExpiredLabel || '');
+          if (shouldHideWhenExpired && !isDesignMode) this.hidden = true;
+          return;
+        }
+
+        const remainingSeconds = Math.max(0, Math.ceil((target - now) / SECOND));
+        if (remainingSeconds === 0 && shouldHideWhenExpired) {
+          this.setValues(0);
+          this.updateAnnouncement(true, this.dataset.countdownExpiredLabel || '');
+          if (shouldHideWhenExpired && !isDesignMode) this.hidden = true;
+          window.clearInterval(this.intervalId);
+          this.intervalId = null;
+          return;
+        }
+
+        this.hidden = false;
+        this.setValues(remainingSeconds);
+        this.updateAnnouncement(false);
+      }
+
+      setValues(totalSeconds) {
+        const values = {
+          days: Math.floor(totalSeconds / 86400),
+          hours: Math.floor((totalSeconds % 86400) / 3600),
+          minutes: Math.floor((totalSeconds % 3600) / 60),
+          seconds: totalSeconds % 60,
+        };
+
+        UNIT_ORDER.forEach((unit) => {
+          const value = this.values?.[unit];
+          if (value) value.textContent = String(values[unit]).padStart(2, '0');
+        });
+        this.currentValues = values;
+
+        const unitWidthKey = String(Math.max(2, String(values.days).length));
+        if (unitWidthKey !== this.unitWidthKey) {
+          this.unitWidthKey = unitWidthKey;
+          this.syncUnitWidth();
+        }
+      }
+
+      syncUnitWidth() {
+        if (!this.unitElements?.length) return;
+
+        this.style.removeProperty('--countdown-unit-width');
+        const maxWidth = Math.max(...this.unitElements.map((unit) => unit.getBoundingClientRect().width));
+        if (Number.isFinite(maxWidth) && maxWidth > 0) {
+          this.style.setProperty('--countdown-unit-width', `${Math.ceil(maxWidth)}px`);
+        }
+      }
+
+      updateAnnouncement(force, expiredLabel = '') {
+        if (!this.announcement) return;
+        if (expiredLabel) {
+          if (this.announcement.textContent.trim() !== expiredLabel) {
+            this.announcement.textContent = expiredLabel;
+          }
+          return;
+        }
+
+        const values = this.currentValues;
+        if (!values) return;
+        const announcementKey = `${values.days}:${values.hours}:${values.minutes}`;
+        if (!force && announcementKey === this.lastAnnouncementKey) return;
+
+        const parts = UNIT_ORDER.map((unit) => {
+          const label = this.units?.[unit]?.dataset.countdownUnitLabel || unit;
+          return `${String(values[unit]).padStart(2, '0')} ${label}`;
+        });
+        this.announcement.textContent = parts.join(', ');
+        this.lastAnnouncementKey = announcementKey;
+      }
+    }
+
+    customElements.define('countdown-timer', CountdownTimer);
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "t:general.countdown_timer",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "with_labels", "label": "t:options.countdown_style.with_labels" },
+        { "value": "numbers_only", "label": "t:options.countdown_style.numbers_only" },
+        { "value": "inline", "label": "t:options.countdown_style.inline" },
+        { "value": "inline_superscript", "label": "t:options.countdown_style.inline_superscript" }
+      ],
+      "default": "with_labels"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_background",
+      "label": "t:labels.show_background",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "t:labels.corner_radius",
+      "options": [
+        { "value": "square", "label": "t:options.radius_preset.square" },
+        { "value": "slightly_rounded", "label": "t:options.radius_preset.slightly_rounded" },
+        { "value": "rounded", "label": "t:options.radius_preset.rounded" },
+        { "value": "pill", "label": "t:options.radius_preset.pill" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "header",
+      "content": "t:general.timer"
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "fixed_time", "label": "t:options.countdown_type.fixed_time" },
+        { "value": "recurring", "label": "t:options.countdown_type.duration" }
+      ],
+      "default": "fixed_time"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:info.countdown_timezone",
+      "visible_if": "{{ block.settings.type == 'fixed_time' }}"
+    },
+    {
+      "type": "text",
+      "id": "end_time",
+      "label": "t:labels.end_time",
+      "info": "t:info.countdown_end_time_format",
+      "default": "2026-12-25 12:00",
+      "visible_if": "{{ block.settings.type == 'fixed_time' }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:info.countdown_duration",
+      "visible_if": "{{ block.settings.type == 'recurring' }}"
+    },
+    {
+      "type": "number",
+      "id": "duration_hours",
+      "label": "t:labels.duration_hours",
+      "default": 24,
+      "visible_if": "{{ block.settings.type == 'recurring' }}"
+    },
+    {
+      "type": "number",
+      "id": "duration_minutes",
+      "label": "t:labels.duration_minutes",
+      "default": 0,
+      "visible_if": "{{ block.settings.type == 'recurring' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_when_expired",
+      "label": "t:labels.hide_when_timer_ends",
+      "default": true,
+      "visible_if": "{{ block.settings.type == 'fixed_time' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "number_size",
+      "label": "t:labels.number_size",
+      "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
+        { "value": "xl", "label": "t:options.heading_size.xl" },
+        { "value": "lg", "label": "t:options.heading_size.lg" },
+        { "value": "md", "label": "t:options.heading_size.md" },
+        { "value": "sm", "label": "t:options.heading_size.sm" },
+        { "value": "xs", "label": "t:options.heading_size.xs" },
+        { "value": "custom", "label": "t:options.heading_size.custom" }
+      ],
+      "default": "md",
+      "visible_if": "{{ block.settings.style == 'with_labels' }}"
+    },
+    {
+      "type": "range",
+      "id": "custom_number_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.style == 'with_labels' and block.settings.number_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "label_size",
+      "label": "t:labels.label_size",
+      "options": [
+        { "value": "xs", "label": "t:options.text_size.xs" },
+        { "value": "sm", "label": "t:options.text_size.sm" },
+        { "value": "md", "label": "t:options.text_size.md" },
+        { "value": "lg", "label": "t:options.text_size.lg" },
+        { "value": "xl", "label": "t:options.text_size.xl" },
+        { "value": "xxl", "label": "t:options.text_size.xxl" }
+      ],
+      "default": "sm",
+      "visible_if": "{{ block.settings.style == 'with_labels' }}"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:labels.font",
+      "options": [
+        { "value": "body", "label": "t:options.menu_font.body" },
+        { "value": "heading", "label": "t:options.menu_font.heading" },
+        { "value": "accent", "label": "t:options.menu_font.accent" }
+      ],
+      "default": "accent",
+      "visible_if": "{{ block.settings.style == 'inline' or block.settings.style == 'inline_superscript' }}"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:labels.font_size",
+      "options": [
+        { "value": "xs", "label": "t:options.text_size.xs" },
+        { "value": "sm", "label": "t:options.text_size.sm" },
+        { "value": "md", "label": "t:options.text_size.md" },
+        { "value": "lg", "label": "t:options.text_size.lg" },
+        { "value": "xl", "label": "t:options.text_size.xl" },
+        { "value": "xxl", "label": "t:options.text_size.xxl" }
+      ],
+      "default": "md",
+      "visible_if": "{{ block.settings.style == 'inline' or block.settings.style == 'inline_superscript' }}"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        { "value": "normal", "label": "t:options.letter_spacing.normal" },
+        { "value": "relaxed", "label": "t:options.letter_spacing.relaxed" },
+        { "value": "loose", "label": "t:options.letter_spacing.loose" },
+        { "value": "extra_loose", "label": "t:options.letter_spacing.extra_loose" }
+      ],
+      "default": "normal",
+      "visible_if": "{{ block.settings.style == 'inline' or block.settings.style == 'inline_superscript' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.color"
+    },
+    {
+      "type": "select",
+      "id": "color_type",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "inherit", "label": "t:options.countdown_color_type.inherit" },
+        { "value": "custom", "label": "t:options.countdown_color_type.custom" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "number_color",
+      "label": "t:labels.number_color",
+      "default": "#0014CD",
+      "visible_if": "{{ block.settings.color_type == 'custom' }}"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "t:labels.background",
+      "default": "#B31F1F",
+      "visible_if": "{{ block.settings.color_type == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.countdown_timer",
+      "category": "t:general.basic",
+      "settings": {
+        "style": "with_labels",
+        "show_background": true,
+        "corner_radius": "square",
+        "type": "fixed_time",
+        "end_time": "2026-12-25 12:00",
+        "duration_hours": 24,
+        "duration_minutes": 0,
+        "hide_when_expired": true,
+        "number_size": "md",
+        "label_size": "sm",
+        "color_type": "inherit"
+      }
+    }
+  ]
+}
+{% endschema %}

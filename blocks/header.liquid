@@ -1,0 +1,497 @@
+{% doc %}
+  Renders a compound header block that stacks optional Eyebrow, Heading, and
+  Text child blocks.
+
+  This block owns its child flow, optional max width, gaps, and padding without
+  overriding child typography. Alignment can inherit from the parent layout.
+
+  @example
+  {% content_for 'block', type: 'header', id: 'header' %}
+{% enddoc %}
+
+{% liquid
+  assign header_width_mode = block.settings.width
+  if header_width_mode == blank
+    assign header_width_mode = 'fit'
+    if block.settings.limit_width
+      assign header_width_mode = 'custom'
+    endif
+  endif
+  unless header_width_mode == 'fit' or header_width_mode == 'fill' or header_width_mode == 'custom'
+    assign header_width_mode = 'fit'
+  endunless
+
+  assign header_width = '100%'
+  if header_width_mode == 'fit'
+    assign header_width = 'fit-content'
+  endif
+
+  assign header_max_width = block.settings.max_width | default: 750 | plus: 0
+  if header_max_width < 320 or header_max_width > 1200
+    assign header_max_width = 750
+  endif
+
+  assign header_width_mobile_mode = header_width_mode
+  assign header_width_mobile = header_width
+  assign header_max_width_mobile = header_max_width
+  if block.settings.customize_mobile_size
+    assign header_width_mobile_mode = block.settings.width_mobile | default: header_width_mode
+    unless header_width_mobile_mode == 'fit' or header_width_mobile_mode == 'fill' or header_width_mobile_mode == 'custom'
+      assign header_width_mobile_mode = header_width_mode
+    endunless
+
+    assign header_width_mobile = '100%'
+    if header_width_mobile_mode == 'fit'
+      assign header_width_mobile = 'fit-content'
+    endif
+
+    assign header_max_width_mobile = block.settings.max_width_mobile | default: 480 | plus: 0
+    if header_max_width_mobile < 240 or header_max_width_mobile > 800
+      assign header_max_width_mobile = 480
+    endif
+  endif
+  assign header_size_max_width = blank
+  if header_width_mode == 'custom'
+    assign header_size_max_width = header_max_width | append: 'px'
+  endif
+  assign header_size_width_mobile = blank
+  assign header_size_max_width_mobile = blank
+  if block.settings.customize_mobile_size
+    assign header_size_width_mobile = header_width_mobile
+    if header_width_mobile_mode == 'custom'
+      assign header_size_max_width_mobile = header_max_width_mobile | append: 'px'
+    elsif header_width_mode == 'custom'
+      assign header_size_max_width_mobile = '100%'
+    endif
+  endif
+
+  assign header_gap_desktop = block.settings.gap_desktop | default: 12 | plus: 0
+  if header_gap_desktop < 0 or header_gap_desktop > 100
+    assign header_gap_desktop = 12
+  endif
+
+  assign header_gap_mobile = block.settings.gap_mobile | default: 8 | plus: 0
+  if header_gap_mobile < 0 or header_gap_mobile > 100
+    assign header_gap_mobile = 8
+  endif
+
+  assign header_inherit_alignment = block.settings.inherit_alignment
+  assign header_alignment = 'start'
+  assign header_text_alignment = 'left'
+  case block.settings.alignment
+    when 'center'
+      assign header_alignment = 'center'
+      assign header_text_alignment = 'center'
+    when 'right'
+      assign header_alignment = 'end'
+      assign header_text_alignment = 'right'
+  endcase
+
+  assign header_alignment_mobile = header_alignment
+  assign header_text_alignment_mobile = header_text_alignment
+  if block.settings.customize_mobile_alignment
+    case block.settings.alignment_mobile
+      when 'center'
+        assign header_alignment_mobile = 'center'
+        assign header_text_alignment_mobile = 'center'
+      when 'right'
+        assign header_alignment_mobile = 'end'
+        assign header_text_alignment_mobile = 'right'
+      when 'left'
+        assign header_alignment_mobile = 'start'
+        assign header_text_alignment_mobile = 'left'
+    endcase
+  endif
+
+  assign padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+
+  if padding_top < 0 or padding_top > 100
+    assign padding_top = 0
+  endif
+  if padding_bottom < 0 or padding_bottom > 100
+    assign padding_bottom = 0
+  endif
+  if padding_left < 0 or padding_left > 100
+    assign padding_left = 0
+  endif
+  if padding_right < 0 or padding_right > 100
+    assign padding_right = 0
+  endif
+  if padding_top_mobile < 0 or padding_top_mobile > 100
+    assign padding_top_mobile = 0
+  endif
+  if padding_bottom_mobile < 0 or padding_bottom_mobile > 100
+    assign padding_bottom_mobile = 0
+  endif
+  if padding_left_mobile < 0 or padding_left_mobile > 100
+    assign padding_left_mobile = 0
+  endif
+  if padding_right_mobile < 0 or padding_right_mobile > 100
+    assign padding_right_mobile = 0
+  endif
+%}
+
+{% capture header_style %}
+  {% render 'layout-flow-style',
+    direction: 'column',
+    wrap: 'nowrap',
+    align_items: 'var(--header-align, var(--flex-align, flex-start))',
+    align_items_mobile: 'var(--header-align-mobile, var(--header-align, var(--flex-align-mobile, var(--flex-align, flex-start))))',
+    gap: header_gap_desktop,
+    gap_mobile: header_gap_mobile
+  %}
+  {% render 'size-style',
+    width: header_width,
+    max_width: header_size_max_width,
+    width_mobile: header_size_width_mobile,
+    max_width_mobile: header_size_max_width_mobile
+  %}
+  {% unless header_inherit_alignment %}
+    --header-align: {{ header_alignment }};
+    --header-text-align: {{ header_text_alignment }};
+    {% if block.settings.customize_mobile_alignment %}--header-align-mobile: {{ header_alignment_mobile }};{% endif %}
+    {% if block.settings.customize_mobile_alignment %}--header-text-align-mobile: {{ header_text_alignment_mobile }};{% endif %}
+  {% endunless %}
+  {% if padding_top != 0 %}--header-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 0 %}--header-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if padding_left != 0 %}--header-padding-left: {{ padding_left }}px;{% endif %}
+  {% if padding_right != 0 %}--header-padding-right: {{ padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--header-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--header-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+    {% if padding_left_mobile != padding_left %}--header-padding-left-mobile: {{ padding_left_mobile }}px;{% endif %}
+    {% if padding_right_mobile != padding_right %}--header-padding-right-mobile: {{ padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign header_style = header_style | strip %}
+
+<div
+  class="block-header size-style layout-flow layout-flow--responsive motion-block"
+  {% if header_style != blank %}style="{{ header_style }}"{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .block-header {
+    min-width: 0;
+    text-align: var(--header-text-align, inherit);
+    padding-top: var(--header-padding-top, 0px);
+    padding-right: var(--header-padding-right, 0px);
+    padding-bottom: var(--header-padding-bottom, 0px);
+    padding-left: var(--header-padding-left, 0px);
+  }
+
+  .block-header > * {
+    min-width: 0;
+  }
+
+  .block-header > :is(.heading-block, .text-block, .eyebrow-block) {
+    text-align: var(--header-text-align, inherit);
+  }
+
+  @media (max-width: 767.98px) {
+    .block-header {
+      text-align: var(--header-text-align-mobile, var(--header-text-align, inherit));
+      padding-top: var(--header-padding-top-mobile, var(--header-padding-top, 0px));
+      padding-right: var(--header-padding-right-mobile, var(--header-padding-right, 0px));
+      padding-bottom: var(--header-padding-bottom-mobile, var(--header-padding-bottom, 0px));
+      padding-left: var(--header-padding-left-mobile, var(--header-padding-left, 0px));
+    }
+
+    .block-header > :is(.heading-block, .text-block, .eyebrow-block) {
+      text-align: var(--header-text-align-mobile, var(--header-text-align, inherit));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header",
+  "tag": null,
+  "blocks": [
+    { "type": "button" },
+    { "type": "buttons" },
+    { "type": "collection-card-button" },
+    { "type": "collection-card-description" },
+    { "type": "collection-card-title" },
+    { "type": "countdown-timer" },
+    { "type": "divider" },
+    { "type": "editorial-text" },
+    { "type": "eyebrow" },
+    { "type": "heading" },
+    { "type": "icon" },
+    { "type": "image" },
+    { "type": "scroll-to" },
+    { "type": "spacer" },
+    { "type": "text" },
+    { "type": "video" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.size"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" },
+        { "value": "custom", "label": "t:options.width.custom" }
+      ],
+      "default": "fit"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "t:labels.max_width",
+      "min": 320,
+      "max": 1200,
+      "step": 10,
+      "unit": "px",
+      "default": 750,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_size",
+      "label": "t:labels.customize_mobile_size",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "width_mobile",
+      "label": "t:labels.mobile_width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" },
+        { "value": "custom", "label": "t:options.width.custom" }
+      ],
+      "default": "fit",
+      "visible_if": "{{ block.settings.customize_mobile_size }}"
+    },
+    {
+      "type": "range",
+      "id": "max_width_mobile",
+      "label": "t:labels.mobile_max_width",
+      "min": 240,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 480,
+      "visible_if": "{{ block.settings.customize_mobile_size and block.settings.width_mobile == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.alignment",
+      "visible_if": "{{ block.settings.inherit_alignment == false }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "inherit_alignment",
+      "label": "t:labels.inherit_alignment",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ block.settings.inherit_alignment == false }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.customize_mobile_alignment",
+      "default": false,
+      "visible_if": "{{ block.settings.inherit_alignment == false }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "t:labels.mobile_alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ block.settings.customize_mobile_alignment and block.settings.inherit_alignment == false }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.header",
+      "category": "t:general.basic",
+      "settings": {
+        "width": "fit",
+        "max_width": 750,
+        "customize_mobile_size": false,
+        "width_mobile": "fit",
+        "max_width_mobile": 480,
+        "alignment": "left",
+        "customize_mobile_alignment": false,
+        "alignment_mobile": "left",
+        "gap_desktop": 12,
+        "gap_mobile": 8,
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "eyebrow",
+          "settings": {
+            "text": "<p>New arrivals</p>"
+          }
+        },
+        {
+          "type": "heading",
+          "settings": {
+            "text": "<p>Build your base</p>",
+            "heading_size": "lg",
+            "html_tag": "h2"
+          }
+        },
+        {
+          "type": "text",
+          "settings": {
+            "text": "<p>A flexible header composition for editorial content and product stories.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,401 @@
+{% doc %}
+  Renders one collection tab in a Collection Tabs section. The block owns
+  the collection resource and tab label. Product Card is the only fixed static
+  child, rendered once per product in the selected collection; section settings
+  own the shared product-list presentation.
+
+  @example
+  {% content_for 'block', type: 'collection-tab', id: 'collection-tab' %}
+{% enddoc %}
+
+{% liquid
+  assign collection_tab_collection = block.settings.collection
+  assign collection_tab_label = block.settings.label | strip
+  if collection_tab_label == blank and collection_tab_collection != blank
+    assign collection_tab_label = collection_tab_collection.title
+  endif
+  if collection_tab_label == blank
+    assign collection_tab_label = 'collection_tabs.default_tab' | t
+  endif
+
+  assign collection_tab_max_products = section.settings.max_products | default: 8 | plus: 0
+  if collection_tab_max_products < 1 or collection_tab_max_products > 24
+    assign collection_tab_max_products = 8
+  endif
+
+  assign collection_tab_layout = section.settings.layout_type | default: 'carousel'
+  unless collection_tab_layout == 'grid' or collection_tab_layout == 'carousel'
+    assign collection_tab_layout = 'carousel'
+  endunless
+
+  assign collection_tab_autoplay_enabled = false
+  if collection_tab_layout == 'carousel' and section.settings.autoplay
+    assign collection_tab_autoplay_enabled = true
+  endif
+
+  assign collection_tab_autoplay_pause_on_hover = true
+  if section.settings.autoplay_pause_on_hover == false or section.settings.autoplay_pause_on_hover == 'false'
+    assign collection_tab_autoplay_pause_on_hover = false
+  endif
+
+  assign collection_tab_autoplay_speed = section.settings.autoplay_speed | default: 4 | plus: 0
+  if collection_tab_autoplay_speed < 1 or collection_tab_autoplay_speed > 10
+    assign collection_tab_autoplay_speed = 4
+  endif
+  assign collection_tab_autoplay_delay = collection_tab_autoplay_speed | times: 1000
+
+  assign collection_tab_navigation_position = section.settings.navigation_position | default: 'inside'
+  unless collection_tab_navigation_position == 'inside' or collection_tab_navigation_position == 'outside'
+    assign collection_tab_navigation_position = 'inside'
+  endunless
+
+  assign collection_tab_navigation_style = section.settings.navigation_style | default: 'secondary'
+  if collection_tab_navigation_style == 'tertiary'
+    assign collection_tab_navigation_style = 'icon_only'
+  endif
+  unless collection_tab_navigation_style == 'primary' or collection_tab_navigation_style == 'secondary' or collection_tab_navigation_style == 'outline' or collection_tab_navigation_style == 'icon_only'
+    assign collection_tab_navigation_style = 'secondary'
+  endunless
+
+  assign collection_tab_navigation_button_variant = collection_tab_navigation_style
+  assign collection_tab_navigation_button_modifier = blank
+  if collection_tab_navigation_style == 'icon_only'
+    assign collection_tab_navigation_button_variant = 'tertiary'
+    assign collection_tab_navigation_button_modifier = 'swiper-nav-button--icon-only'
+  elsif collection_tab_navigation_style == 'outline'
+    assign collection_tab_navigation_button_variant = 'secondary'
+    assign collection_tab_navigation_button_modifier = 'swiper-nav-button--outline'
+  endif
+
+  assign collection_tab_navigation_icon = section.settings.navigation_icon | default: 'chevron'
+  unless collection_tab_navigation_icon == 'chevron' or collection_tab_navigation_icon == 'arrow' or collection_tab_navigation_icon == 'long_arrow'
+    assign collection_tab_navigation_icon = 'chevron'
+  endunless
+
+  assign collection_tab_navigation_behavior = section.settings.navigation_behavior | default: 'show_on_hover'
+  unless collection_tab_navigation_behavior == 'show_on_hover' or collection_tab_navigation_behavior == 'always'
+    assign collection_tab_navigation_behavior = 'show_on_hover'
+  endunless
+
+  assign collection_tab_pagination_type = section.settings.pagination_type | default: 'progress_bar'
+  unless collection_tab_pagination_type == 'progress_bar' or collection_tab_pagination_type == 'bullets'
+    assign collection_tab_pagination_type = 'progress_bar'
+  endunless
+
+  assign collection_tab_pagination_size = 'var(--swiper-pagination-progressbar-size, 4px)'
+  if collection_tab_pagination_type == 'bullets'
+    assign collection_tab_pagination_size = 'var(--swiper-pagination-bullet-size, 0.5rem)'
+  endif
+
+  assign collection_tab_pagination_limit_width = false
+  if collection_tab_pagination_type == 'progress_bar' and section.settings.pagination_limit_width
+    assign collection_tab_pagination_limit_width = true
+  endif
+
+  assign collection_tab_pagination_top_padding_desktop = section.settings.pagination_top_padding_desktop | default: section.settings.pagination_top_padding | default: 50 | plus: 0
+  if collection_tab_pagination_top_padding_desktop < 0 or collection_tab_pagination_top_padding_desktop > 100
+    assign collection_tab_pagination_top_padding_desktop = 50
+  endif
+
+  assign collection_tab_pagination_top_padding_mobile = section.settings.pagination_top_padding_mobile | default: 24 | plus: 0
+  if collection_tab_pagination_top_padding_mobile < 0 or collection_tab_pagination_top_padding_mobile > 100
+    assign collection_tab_pagination_top_padding_mobile = 24
+  endif
+
+  assign collection_tab_pagination_max_width = section.settings.pagination_max_width | default: 260 | plus: 0
+  if collection_tab_pagination_max_width < 100 or collection_tab_pagination_max_width > 600
+    assign collection_tab_pagination_max_width = 260
+  endif
+
+  assign collection_tab_show_navigation = false
+  if collection_tab_layout == 'carousel' and section.settings.show_navigation_on_desktop
+    assign collection_tab_show_navigation = true
+  endif
+
+  assign collection_tab_show_pagination = false
+  if collection_tab_layout == 'carousel'
+    assign collection_tab_show_pagination = true
+    if section.settings.show_pagination_on_desktop == false or section.settings.show_pagination_on_desktop == 'false'
+      assign collection_tab_show_pagination = false
+    endif
+  endif
+
+  assign collection_tab_id = block.id | default: 'collection-tab'
+  assign collection_tab_trigger_id = 'CollectionTabTrigger-' | append: collection_tab_id
+  assign collection_tab_panel_id = 'CollectionTabPanel-' | append: collection_tab_id
+  assign collection_tab_carousel_id = 'CollectionTabCarousel-' | append: collection_tab_id
+  assign collection_tab_pagination_class = 'swiper-pagination--below collection-tab__pagination collection-tab__pagination--' | append: collection_tab_pagination_type
+
+  assign collection_tab_blocks = section.blocks | where: 'type', 'collection-tab'
+  assign collection_tab_first_block = collection_tab_blocks | first
+  assign collection_tab_is_initial = false
+  if collection_tab_first_block != blank and collection_tab_first_block.id == block.id
+    assign collection_tab_is_initial = true
+  endif
+
+  assign collection_tab_has_products = false
+  if collection_tab_collection != blank and collection_tab_collection.products != blank
+    assign collection_tab_has_products = true
+  endif
+
+  assign collection_tab_items = blank
+  assign collection_tab_item_limit = collection_tab_max_products
+  assign collection_tab_is_placeholder = false
+  if collection_tab_has_products
+    assign collection_tab_items = collection_tab_collection.products
+  elsif collection_tab_collection == blank
+    assign collection_tab_placeholder_count = collection_tab_max_products
+    assign collection_tab_items = (1..collection_tab_placeholder_count)
+    assign collection_tab_item_limit = collection_tab_placeholder_count
+    assign collection_tab_is_placeholder = true
+  endif
+
+  assign collection_tab_show_grid = false
+  if collection_tab_has_products
+    assign collection_tab_show_grid = true
+  elsif collection_tab_collection == blank
+    assign collection_tab_show_grid = true
+  endif
+%}
+
+{% capture collection_tab_items_content %}
+  {% if collection_tab_items != blank %}
+    {% for collection_tab_item in collection_tab_items limit: collection_tab_item_limit %}
+      {% liquid
+        assign collection_tab_card_product = collection_tab_item
+        assign collection_tab_card_placeholder = false
+        if collection_tab_is_placeholder
+          assign collection_tab_card_product = blank
+          assign collection_tab_card_placeholder = true
+        endif
+      %}
+      <div class="{% if collection_tab_layout == 'carousel' %}swiper-slide {% endif %}product-collection-grid__item product-card-layout__item collection-tab__product">
+        {% content_for 'block', type: 'product-card', id: 'product-card', product: collection_tab_card_product, closest.product: collection_tab_card_product, placeholder: collection_tab_card_placeholder %}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endcapture %}
+
+{% capture collection_tab_pagination_style %}
+  {% if collection_tab_show_pagination %}
+    --swiper-pagination-spacing: {{ collection_tab_pagination_top_padding_desktop }}px;
+    --swiper-pagination-spacing-mobile: {{ collection_tab_pagination_top_padding_mobile }}px;
+    {% if collection_tab_pagination_limit_width %}--swiper-pagination-width: min(100%, {{ collection_tab_pagination_max_width }}px);{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign collection_tab_pagination_style = collection_tab_pagination_style | strip %}
+
+{% capture collection_tab_navigation_center_style %}
+  {% if collection_tab_show_pagination %}--swiper-navigation-center-offset: calc(({{ collection_tab_pagination_top_padding_desktop }}px + {{ collection_tab_pagination_size }}) / 2);{% endif %}
+{% endcapture %}
+{% assign collection_tab_navigation_center_style = collection_tab_navigation_center_style | strip %}
+
+<div
+  class="collection-tab"
+  data-collection-tab
+  data-tab-id="{{ collection_tab_id | escape }}"
+  data-tab-active="{{ collection_tab_is_initial }}"
+  {{ block.shopify_attributes }}
+>
+  <button
+    id="{{ collection_tab_trigger_id | escape }}"
+    class="tab-layout__tab collection-tab__trigger link-underline"
+    type="button"
+    role="tab"
+    aria-selected="{{ collection_tab_is_initial }}"
+    aria-controls="{{ collection_tab_panel_id | escape }}"
+    tabindex="{% if collection_tab_is_initial %}0{% else %}-1{% endif %}"
+    data-collection-tab-trigger
+    data-underline="active"
+    data-tab-id="{{ collection_tab_id | escape }}"
+    {% if collection_tab_collection != blank %}data-collection-url="{{ collection_tab_collection.url | escape }}"{% endif %}
+  >
+    {{ collection_tab_label | escape }}
+  </button>
+
+  <div
+    id="{{ collection_tab_panel_id | escape }}"
+    class="collection-tab__panel"
+    role="tabpanel"
+    aria-labelledby="{{ collection_tab_trigger_id | escape }}"
+    data-collection-tab-panel
+    data-tab-id="{{ collection_tab_id | escape }}"
+    aria-hidden="{% if collection_tab_is_initial %}false{% else %}true{% endif %}"
+    {% unless collection_tab_is_initial %}hidden{% endunless %}
+  >
+    {% if collection_tab_show_grid %}
+      <div
+        class="collection-tab__carousel swiper-carousel__container"
+        data-collection-tab-carousel
+        data-tab-id="{{ collection_tab_id | escape }}"
+        data-autoplay="{{ collection_tab_autoplay_enabled }}"
+        data-swiper-autoplay="{{ collection_tab_autoplay_enabled }}"
+        data-swiper-autoplay-pause-on-hover="{{ collection_tab_autoplay_pause_on_hover }}"
+        data-swiper-autoplay-delay="{{ collection_tab_autoplay_delay }}"
+      >
+        {% render 'product-collection-grid',
+          collection: collection_tab_collection,
+          max_products: collection_tab_max_products,
+          layout_type: collection_tab_layout,
+          columns_desktop: section.settings.columns_desktop,
+          columns_mobile: section.settings.columns_mobile,
+          gap_horizontal: section.settings.product_gap_desktop,
+          gap_vertical: section.settings.product_gap_desktop,
+          gap_horizontal_mobile: section.settings.product_gap_mobile,
+          gap_vertical_mobile: section.settings.product_gap_mobile,
+          show_placeholders: collection_tab_is_placeholder,
+          placeholder_count: collection_tab_max_products,
+          grid_class: 'collection-tab__products',
+          item_class: 'collection-tab__product',
+          items_data_attributes: 'data-collection-tab-products',
+          next_slide_preview: section.settings.show_next_slide_preview_on_desktop,
+          carousel_id: collection_tab_carousel_id,
+          aria_label: collection_tab_label,
+          previous_selector: '[data-collection-carousel-previous]',
+          next_selector: '[data-collection-carousel-next]',
+          show_pagination: collection_tab_show_pagination,
+          pagination_type: collection_tab_pagination_type,
+          pagination_class: collection_tab_pagination_class,
+          pagination_style: collection_tab_pagination_style,
+          autoplay: collection_tab_autoplay_enabled,
+          autoplay_pause_on_hover: collection_tab_autoplay_pause_on_hover,
+          autoplay_delay: collection_tab_autoplay_delay,
+          items_content: collection_tab_items_content
+        %}
+
+        {% if collection_tab_show_navigation %}
+          <div
+            class="swiper-carousel__navigation--centered swiper-carousel__navigation--{{ collection_tab_navigation_behavior }} collection-tab__carousel-navigation collection-tab__carousel-navigation--{{ collection_tab_navigation_position }} collection-tab__carousel-navigation--{{ collection_tab_navigation_behavior }}"
+            data-collection-carousel-navigation
+            {% if collection_tab_navigation_center_style != blank %}style="{{ collection_tab_navigation_center_style }}"{% endif %}
+          >
+            <button
+              class="btn btn-{{ collection_tab_navigation_button_variant }} btn--{{ collection_tab_navigation_button_variant }} btn--icon{% if collection_tab_navigation_button_modifier != blank %} {{ collection_tab_navigation_button_modifier }}{% endif %} swiper-nav-button swiper-nav-button--prev collection-tab__carousel-button"
+              type="button"
+              data-collection-carousel-previous
+              aria-label="{{ 'collection_tabs.previous' | t | escape }}"
+            >
+              {% render 'carousel-navigation-icon', icon: collection_tab_navigation_icon, direction: 'previous' %}
+            </button>
+            <button
+              class="btn btn-{{ collection_tab_navigation_button_variant }} btn--{{ collection_tab_navigation_button_variant }} btn--icon{% if collection_tab_navigation_button_modifier != blank %} {{ collection_tab_navigation_button_modifier }}{% endif %} swiper-nav-button swiper-nav-button--next collection-tab__carousel-button"
+              type="button"
+              data-collection-carousel-next
+              aria-label="{{ 'collection_tabs.next' | t | escape }}"
+            >
+              {% render 'carousel-navigation-icon', icon: collection_tab_navigation_icon, direction: 'next' %}
+            </button>
+          </div>
+        {% endif %}
+
+      </div>
+    {% endif %}
+
+    {% if collection_tab_collection != blank and collection_tab_has_products == false %}
+      <p class="collection-tab__empty body-text body-sm">{{ 'collection_tabs.empty_collection' | t }}</p>
+    {% endif %}
+  </div>
+</div>
+{% stylesheet %}
+  .collection-tab {
+    min-width: 0;
+  }
+
+  .collection-tab__panel {
+    min-width: 0;
+  }
+
+  .collection-tab__panel[hidden] {
+    display: none !important;
+  }
+
+  .collection-tab__carousel {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .collection-tab__carousel-navigation {
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 0.5rem;
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .collection-tab__carousel-navigation--outside {
+    padding-inline: 0;
+  }
+
+  .collection-tab__carousel-navigation--outside .swiper-nav-button--prev {
+    margin-inline-start: calc(-1 * var(--swiper-nav-size) / 2);
+  }
+
+  .collection-tab__carousel-navigation--outside .swiper-nav-button--next {
+    margin-inline-end: calc(-1 * var(--swiper-nav-size) / 2);
+  }
+
+  .collection-tab__carousel-button {
+    pointer-events: auto;
+  }
+
+  .collection-tab__empty {
+    margin-block-start: 1rem;
+    color: color-mix(in srgb, var(--body-color) 72%, transparent);
+  }
+
+  @media (max-width: 767.98px) {
+    .collection-tab__carousel-navigation {
+      display: none;
+    }
+  }
+
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.collection_tab",
+  "tag": null,
+  "blocks": [
+    { "type": "product-card" }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "label",
+      "label": "t:labels.tab_label"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "t:labels.collection"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.collection_tab",
+      "category": "t:general.collection",
+      "settings": {
+        "label": "",
+        "collection": ""
+      },
+      "blocks": [
+        {
+          "type": "product-card",
+          "id": "product-card",
+          "static": true,
+          "settings": {
+            "color_type": "inherit",
+            "color_scheme": "scheme-1"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

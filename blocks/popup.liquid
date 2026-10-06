@@ -1,0 +1,28 @@
+{% doc %}
+  Generic drawer trigger and content composition block. Used inside a Group for
+  product assistance, but intentionally reusable on every supported surface.
+{% enddoc %}
+
+{% liquid
+  assign popup_id = 'Popup-' | append: section.id | append: '-' | append: block.id
+  assign popup_label = block.settings.trigger_label | default: 'Open'
+%}
+
+<script type="module" src="{{ 'product-information-extras.js' | asset_url }}"></script>
+
+<popup-block class="popup-block" data-popup {{ block.shopify_attributes }}>
+  <button type="button" class="btn btn-tertiary popup-block__trigger" data-popup-open data-pdp-drawer-open aria-haspopup="dialog" aria-controls="{{ popup_id }}" aria-expanded="false">{{ popup_label | escape }}</button>
+  {% capture popup_content %}{% content_for 'blocks' %}{% endcapture %}
+  {% render 'component-overlay', id: popup_id, label: popup_label, content: popup_content, append_to_body: true, attributes: 'data-popup-dialog data-pdp-drawer', body_class: 'popup-block__content' %}
+</popup-block>
+
+{% schema %}
+{
+  "name": "Popup",
+  "tag": null,
+  "blocks": [{ "type": "@theme" }, { "type": "@app" }],
+  "settings": [
+    { "type": "text", "id": "trigger_label", "label": "Button label", "default": "Open" }
+  ]
+}
+{% endschema %}

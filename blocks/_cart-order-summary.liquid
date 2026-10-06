@@ -1,0 +1,195 @@
+{% doc %}Fixed native checkout summary. Shopify Liquid owns pricing and discount allocation.{% enddoc %}
+<div class="cart-page__box cart-stack{% unless block.settings.inherit_color_scheme %} color-scheme section-color-scope {{ block.settings.color_scheme }}{% endunless %}" style="text-transform: {% if block.settings.text_case == 'original' %}none{% else %}{{ block.settings.text_case }}{% endif %}; {% render 'cart-surface-style', settings: block.settings %} --cart-gap: {{ block.settings.gap_desktop }}px; --cart-gap-mobile: {{ block.settings.gap_mobile }}px; --cart-pad-top: {{ block.settings.padding_top | default: 0 }}px; --cart-pad-bottom: {{ block.settings.padding_bottom | default: 0 }}px;{% if block.settings.customize_mobile_padding %} --cart-pad-top-mobile: {{ block.settings.padding_top_mobile }}px; --cart-pad-bottom-mobile: {{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+{% if block.settings.show_discount %}<form class="cart-page__discount" data-cart-page-discount><label class="visually-hidden" for="CartDiscount-{{ section.id }}">{{ 'cart_drawer.discount_code' | t }}</label><input id="CartDiscount-{{ section.id }}" name="discount" placeholder="{{ 'cart_drawer.discount_code' | t }}" required>{% assign apply_label = 'cart_drawer.apply' | t %}{% render 'theme-button', label: apply_label, type: 'submit', variant: block.settings.discount_button_style %}</form>{% endif %}
+<div class="cart-page__total"><span>{{ 'cart.subtotal' | t }}</span><span>{{ cart.items_subtotal_price | money_with_currency }}</span></div>
+{% for discount in cart.cart_level_discount_applications %}<div class="cart-page__total body-sm"><button class="cart-page__discount-chip" type="button" data-cart-page-discount-remove="{{ discount.title | escape }}">{% render 'icon', icon: 'tag', bare: true %}{{ discount.title | escape }}{% if discount.type == 'discount_code' %}{% render 'icon', icon: 'x-mark', bare: true %}{% endif %}</button><span>−{{ discount.total_allocated_amount | money_with_currency }}</span></div>{% endfor %}
+<div class="cart-page__total body-lg"><span>{{ 'cart.estimated_total' | t }}</span><strong>{{ cart.total_price | money_with_currency }}</strong></div>
+{% if block.settings.show_tax_notice %}<p class="body-text body-xs">{% if cart.duties_included and cart.taxes_included %}{{ 'cart.duties_and_taxes_included' | t }}{% elsif cart.taxes_included %}{{ 'cart.taxes_included' | t }}{% elsif cart.duties_included %}{{ 'cart.duties_included' | t }}{% else %}{{ 'cart.taxes_at_checkout' | t }}{% endif %}</p>{% endif %}
+<form id="CartCheckout-{{ section.id }}" action="{{ routes.cart_url }}" method="post"><button class="btn btn-primary cart-page__checkout" name="checkout" type="submit">{% render 'icon', icon: 'lock-closed', bare: true %}{{ 'cart.checkout' | t }}</button><noscript><button class="btn btn-secondary" type="submit">{{ 'cart.update' | t }}</button></noscript></form>
+{% if block.settings.show_accelerated_checkout and additional_checkout_buttons %}<div class="cart-page__accelerated">{{ content_for_additional_checkout_buttons }}</div>{% endif %}
+{% if block.settings.show_payment_icons %}<ul class="cart-page__payments" style="--cart-payment-width: {{ block.settings.payment_icon_width }}px" aria-label="{{ 'cart.payment_methods' | t }}">{% for type in shop.enabled_payment_types %}<li>{{ type | payment_type_svg_tag }}</li>{% endfor %}</ul>{% endif %}
+</div>
+
+
+{% schema %}
+{
+  "name": "Order summary",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "Desktop gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Mobile gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "show_discount",
+      "label": "Show discount code",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tax_notice",
+      "label": "Show tax and shipping notice",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_accelerated_checkout",
+      "label": "Show accelerated checkout",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "discount_button_style",
+      "label": "Discount button style",
+      "default": "secondary",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ],
+      "visible_if": "{{ block.settings.show_discount }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "Show payment icons",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "select",
+      "id": "padding",
+      "label": "Padding",
+      "default": "medium",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "text_case",
+      "label": "Text case",
+      "default": "original",
+      "options": [
+        {
+          "value": "original",
+          "label": "Original"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        },
+        {
+          "value": "capitalize",
+          "label": "Capitalize"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "label": "Border width",
+      "default": 0,
+      "min": 0,
+      "max": 6,
+      "step": 1,
+      "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "Shadow",
+      "default": "xs",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "xs",
+          "label": "Xs"
+        },
+        {
+          "value": "sm",
+          "label": "Sm"
+        },
+        {
+          "value": "md",
+          "label": "Md"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "inherit_color_scheme",
+      "label": "Inherit color scheme",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.inherit_color_scheme == false }}"
+    },
+    {
+      "type": "range",
+      "id": "payment_icon_width",
+      "label": "Payment icon width",
+      "default": 38,
+      "min": 20,
+      "max": 60,
+      "step": 1,
+      "unit": "px"
+    }
+  ]
+}
+{% endschema %}

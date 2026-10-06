@@ -1,0 +1,924 @@
+{% doc %}
+  Renders one Timeline List slide using the shared Carousel Slide layout contract.
+
+  Slide content is composed from the same theme blocks as Carousel Slide, with
+  an additional timeline label for the navigation rail.
+{% enddoc %}
+
+{% liquid
+  assign timeline_slide_label = block.settings.timeline_label | default: '' | strip
+  assign timeline_slide_id = 'TimelineSlide-' | append: section.id | append: '-' | append: block.id
+
+  assign group_direction = block.settings.direction | default: block.settings.layout_direction | default: 'vertical'
+  unless group_direction == 'horizontal' or group_direction == 'vertical' or group_direction == 'group--horizontal' or group_direction == 'group--vertical'
+    assign group_direction = 'vertical'
+  endunless
+  if group_direction == 'group--horizontal'
+    assign group_direction = 'horizontal'
+  elsif group_direction == 'group--vertical'
+    assign group_direction = 'vertical'
+  endif
+
+  assign group_alignment_source = block.settings.alignment | default: 'left'
+  if group_direction == 'horizontal'
+    assign group_alignment_source = block.settings.horizontal_alignment | default: group_alignment_source
+  endif
+
+  assign group_alignment = 'start'
+  assign group_justify = 'flex-start'
+  case group_alignment_source
+    when 'center'
+      assign group_alignment = 'center'
+      assign group_justify = 'center'
+    when 'right', 'end', 'flex-end'
+      assign group_alignment = 'end'
+      assign group_justify = 'flex-end'
+    when 'space-between'
+      assign group_justify = 'space-between'
+    else
+      assign group_alignment = 'start'
+  endcase
+
+  assign group_height_mode = block.settings.height | default: 'fit'
+  unless group_height_mode == 'fit' or group_height_mode == 'fill'
+    assign group_height_mode = 'fit'
+  endunless
+
+  assign group_position_source = 'top'
+  if group_direction == 'horizontal'
+    assign group_position_source = block.settings.position_horizontal | default: 'top'
+  elsif group_height_mode == 'fill'
+    assign group_position_source = block.settings.position | default: 'top'
+  endif
+  assign group_position_name = group_position_source
+  case group_position_name
+    when 'center'
+      assign group_position_name = 'center'
+    when 'bottom', 'flex-end'
+      assign group_position_name = 'bottom'
+    when 'space-between'
+      assign group_position_name = 'space-between'
+    else
+      assign group_position_name = 'top'
+  endcase
+
+  assign group_vertical_on_mobile = false
+  if group_direction == 'horizontal' and block.settings.customize_mobile_alignment
+    assign group_vertical_on_mobile = true
+  endif
+
+  assign group_alignment_mobile = group_alignment
+  assign group_justify_mobile = group_justify
+  assign group_mobile_alignment_enabled = false
+  if group_direction == 'vertical' or group_vertical_on_mobile
+    assign group_mobile_alignment_enabled = true
+  endif
+  assign group_alignment_mobile_source = block.settings.alignment_mobile | default: 'left'
+  unless group_alignment_mobile_source == 'left' or group_alignment_mobile_source == 'center' or group_alignment_mobile_source == 'right'
+    assign group_alignment_mobile_source = 'left'
+  endunless
+  if group_mobile_alignment_enabled
+    case group_alignment_mobile_source
+      when 'center'
+        assign group_alignment_mobile = 'center'
+        assign group_justify_mobile = 'center'
+      when 'right'
+        assign group_alignment_mobile = 'end'
+        assign group_justify_mobile = 'flex-end'
+      else
+        assign group_alignment_mobile = 'start'
+        assign group_justify_mobile = 'flex-start'
+    endcase
+  endif
+
+  assign group_gap_desktop = block.settings.gap_desktop | default: 16 | plus: 0
+  if group_gap_desktop < 0 or group_gap_desktop > 100
+    assign group_gap_desktop = 16
+  endif
+  assign group_gap_mobile = block.settings.gap_mobile | default: 12 | plus: 0
+  if group_gap_mobile < 0 or group_gap_mobile > 100
+    assign group_gap_mobile = 12
+  endif
+
+  assign group_border_type = block.settings.border_type | default: 'none'
+  unless group_border_type == 'none' or group_border_type == 'solid' or group_border_type == 'dashed' or group_border_type == 'dotted' or group_border_type == 'double'
+    assign group_border_type = 'none'
+  endunless
+
+  assign group_radius = block.settings.corner_radius | default: 'square'
+  unless group_radius == 'square' or group_radius == 'slightly_rounded' or group_radius == 'rounded' or group_radius == 'pill'
+    assign group_radius = 'square'
+  endunless
+
+  assign group_shadow = block.settings.shadow | default: 'none'
+  unless group_shadow == 'none' or group_shadow == 'small' or group_shadow == 'medium' or group_shadow == 'large'
+    assign group_shadow = 'none'
+  endunless
+
+  assign padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+
+  if padding_top < 0 or padding_top > 100
+    assign padding_top = 0
+  endif
+  if padding_bottom < 0 or padding_bottom > 100
+    assign padding_bottom = 0
+  endif
+  if padding_left < 0 or padding_left > 100
+    assign padding_left = 0
+  endif
+  if padding_right < 0 or padding_right > 100
+    assign padding_right = 0
+  endif
+  if padding_top_mobile < 0 or padding_top_mobile > 100
+    assign padding_top_mobile = 0
+  endif
+  if padding_bottom_mobile < 0 or padding_bottom_mobile > 100
+    assign padding_bottom_mobile = 0
+  endif
+  if padding_left_mobile < 0 or padding_left_mobile > 100
+    assign padding_left_mobile = 0
+  endif
+  if padding_right_mobile < 0 or padding_right_mobile > 100
+    assign padding_right_mobile = 0
+  endif
+
+  assign group_appearance_type = block.settings.appearance_type | default: 'inherit'
+  unless group_appearance_type == 'inherit' or group_appearance_type == 'scheme'
+    assign group_appearance_type = 'inherit'
+  endunless
+  assign group_scheme = blank
+  if group_appearance_type == 'scheme'
+    assign group_scheme = block.settings.color_scheme | default: 'scheme-1'
+    if block.settings.color_scheme.id != blank
+      assign group_scheme = block.settings.color_scheme.id
+    endif
+    assign group_scheme = group_scheme | default: 'scheme-1' | handleize
+  endif
+
+  assign group_class = 'carousel-slide-layout motion-block carousel-slide-layout--' | append: group_direction
+  assign group_class = group_class | append: ' carousel-slide-layout--align-' | append: group_alignment
+  assign group_class = group_class | append: ' carousel-slide-layout--position-' | append: group_position_name
+  assign group_class = group_class | append: ' carousel-slide-layout--height-' | append: group_height_mode
+  assign group_class = group_class | append: ' carousel-slide-layout--radius-' | append: group_radius
+  assign group_class = group_class | append: ' carousel-slide-layout--shadow-' | append: group_shadow
+  assign group_class = group_class | append: ' carousel-slide-layout--border-' | append: group_border_type
+  assign group_class = group_class | append: ' section-color-scope'
+  if group_appearance_type == 'scheme'
+    assign group_class = group_class | append: ' color-scheme ' | append: group_scheme
+  endif
+  if group_vertical_on_mobile
+    assign group_class = group_class | append: ' carousel-slide-layout--mobile-vertical'
+  endif
+%}
+
+{% capture group_style %}
+  {% if group_justify == 'space-between' %}--group-justify: {{ group_justify }};{% endif %}
+  {% if group_mobile_alignment_enabled and group_alignment_mobile != group_alignment %}--group-align-mobile: {{ group_alignment_mobile }};{% endif %}
+  {% if group_vertical_on_mobile and group_justify_mobile != group_justify %}--group-justify-mobile: {{ group_justify_mobile }};{% endif %}
+  {% if group_gap_desktop != 16 %}--group-gap-desktop: {{ group_gap_desktop }}px;{% endif %}
+  {% if group_gap_mobile != 12 %}--group-gap-mobile: {{ group_gap_mobile }}px;{% endif %}
+  {% if block.settings.border_color != blank %}--group-border-color: {{ block.settings.border_color | escape }};{% endif %}
+  {% if padding_top != 0 %}--group-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 0 %}--group-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if padding_left != 0 %}--group-padding-left: {{ padding_left }}px;{% endif %}
+  {% if padding_right != 0 %}--group-padding-right: {{ padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--group-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--group-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+    {% if padding_left_mobile != padding_left %}--group-padding-left-mobile: {{ padding_left_mobile }}px;{% endif %}
+    {% if padding_right_mobile != padding_right %}--group-padding-right-mobile: {{ padding_right_mobile }}px;{% endif %}
+  {% endif %}
+  {% if group_appearance_type == 'scheme' %}
+    {% if block.settings.background_color != blank %}--group-background-color: {{ block.settings.background_color | escape }};{% endif %}
+    {% if block.settings.background_image != blank %}--group-background-image: url('{{ block.settings.background_image | image_url: width: 2400 }}');{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign group_style = group_style | strip %}
+
+<div
+  id="{{ timeline_slide_id | escape }}"
+  class="carousel-slide swiper-slide"
+  data-timeline-label="{{ timeline_slide_label | escape }}"
+>
+  <div class="{{ group_class }}" {% if group_style != blank %}style="{{ group_style }}"{% endif %} {{ block.shopify_attributes }}>
+    {% content_for 'blocks' %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .carousel-slide.swiper-slide {
+    min-width: 0;
+  }
+  .carousel-slide-layout--vertical {
+    flex-wrap: nowrap;
+  }
+  .carousel-slide-layout--horizontal > * {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+  @media (max-width: 767.98px) {
+    .carousel-slide-layout--horizontal.carousel-slide-layout--mobile-vertical > * {
+      flex: 0 1 auto;
+    }
+  }
+  .carousel-slide-layout {
+    /* Keep layout overrides local when groups are nested inside other groups. */
+    --group-height: initial;
+    --group-gap-desktop: initial;
+    --group-gap-mobile: initial;
+    --group-padding-top: initial;
+    --group-padding-right: initial;
+    --group-padding-bottom: initial;
+    --group-padding-left: initial;
+    --group-padding-top-mobile: initial;
+    --group-padding-right-mobile: initial;
+    --group-padding-bottom-mobile: initial;
+    --group-padding-left-mobile: initial;
+    --group-background-color: initial;
+    --group-background-image: initial;
+    --group-border-color: var(--border-color);
+    --group-align: start;
+    --group-align-mobile: var(--group-align);
+    --group-justify: flex-start;
+    --group-justify-mobile: var(--group-justify);
+    --group-position: flex-start;
+    --flex-align: var(--group-align);
+    --flex-align-mobile: var(--group-align-mobile);
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: var(--group-align);
+    justify-content: var(--group-position);
+    gap: var(--group-gap-desktop, 16px);
+    height: var(--group-height, fit-content);
+    min-width: 0;
+    padding-top: var(--group-padding-top, 0px);
+    padding-right: var(--group-padding-right, 0px);
+    padding-bottom: var(--group-padding-bottom, 0px);
+    padding-left: var(--group-padding-left, 0px);
+    border: 0 solid var(--group-border-color, var(--border-color));
+    border-radius: var(--group-radius, var(--radius-square));
+    background-color: var(--group-background-color, var(--background-color));
+    background-image: var(--group-background-image, none);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: var(--body-color);
+    text-align: var(--group-align);
+    box-shadow: none;
+    position: relative;
+    isolation: isolate;
+  }
+
+  .carousel-slide-layout--horizontal {
+    flex-direction: row;
+    align-items: var(--group-position);
+    justify-content: var(--group-justify);
+  }
+
+  .carousel-slide-layout--align-start {
+    --group-align: start;
+    --group-justify: flex-start;
+  }
+
+  .carousel-slide-layout--align-center {
+    --group-align: center;
+    --group-justify: center;
+  }
+
+  .carousel-slide-layout--align-end {
+    --group-align: end;
+    --group-justify: flex-end;
+  }
+
+  .carousel-slide-layout--position-top {
+    --group-position: flex-start;
+  }
+
+  .carousel-slide-layout--position-center {
+    --group-position: center;
+  }
+
+  .carousel-slide-layout--position-bottom {
+    --group-position: flex-end;
+  }
+
+  .carousel-slide-layout--position-space-between {
+    --group-position: space-between;
+  }
+
+  .carousel-slide-layout--height-fill {
+    --group-height: 100%;
+  }
+
+  .carousel-slide-layout--radius-square {
+    --group-radius: var(--radius-square);
+  }
+
+  .carousel-slide-layout--radius-slightly_rounded {
+    --group-radius: var(--radius-slight);
+  }
+
+  .carousel-slide-layout--radius-rounded {
+    --group-radius: var(--radius-rounded);
+  }
+
+  .carousel-slide-layout--radius-pill {
+    --group-radius: var(--radius-pill);
+  }
+
+  .carousel-slide-layout--border-solid,
+  .carousel-slide-layout--border-dashed,
+  .carousel-slide-layout--border-dotted,
+  .carousel-slide-layout--border-double {
+    border-width: var(--shape-border-width, 1px);
+  }
+
+  .carousel-slide-layout--border-solid {
+    border-style: solid;
+  }
+
+  .carousel-slide-layout--border-dashed {
+    border-style: dashed;
+  }
+
+  .carousel-slide-layout--border-dotted {
+    border-style: dotted;
+  }
+
+  .carousel-slide-layout--border-double {
+    border-style: double;
+  }
+
+  .carousel-slide-layout--shadow-small {
+    box-shadow: 0 0.25rem 0.75rem color-mix(in srgb, var(--shadow-color) 12%, transparent);
+  }
+
+  .carousel-slide-layout--shadow-medium {
+    box-shadow: 0 0.5rem 1.25rem color-mix(in srgb, var(--shadow-color) 18%, transparent);
+  }
+
+  .carousel-slide-layout--shadow-large {
+    box-shadow: 0 1rem 2rem color-mix(in srgb, var(--shadow-color) 24%, transparent);
+  }
+
+  .carousel-slide-layout > * {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+  }
+
+  @media (max-width: 767.98px) {
+    .carousel-slide-layout {
+      --flex-align: var(--group-align-mobile, var(--group-align));
+      gap: var(--group-gap-mobile, 12px);
+      padding-top: var(--group-padding-top-mobile, var(--group-padding-top, 0px));
+      padding-right: var(--group-padding-right-mobile, var(--group-padding-right, 0px));
+      padding-bottom: var(--group-padding-bottom-mobile, var(--group-padding-bottom, 0px));
+      padding-left: var(--group-padding-left-mobile, var(--group-padding-left, 0px));
+    }
+
+    .carousel-slide-layout--vertical {
+      align-items: var(--group-align-mobile, var(--group-align));
+      justify-content: var(--group-position, flex-start);
+      text-align: var(--group-align-mobile, var(--group-align));
+    }
+
+    .carousel-slide-layout--horizontal {
+      align-items: var(--group-position, flex-start);
+      justify-content: var(--group-justify-mobile, var(--group-justify));
+      text-align: var(--group-align-mobile, var(--group-align));
+    }
+
+    .carousel-slide-layout--horizontal.carousel-slide-layout--mobile-vertical {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: var(--group-align-mobile, var(--group-align));
+      justify-content: var(--group-justify-mobile, flex-start);
+      text-align: var(--group-align-mobile, var(--group-align));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.slide",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "@theme"
+    }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.content"
+    },
+    {
+      "type": "text",
+      "id": "timeline_label",
+      "label": "t:timeline.label",
+      "placeholder": "2014",
+      "default": "Label"
+    },
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "t:labels.direction",
+      "options": [
+        {
+          "value": "horizontal",
+          "label": "t:options.direction.horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "t:options.direction.vertical"
+        }
+      ],
+      "default": "vertical"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:labels.position",
+      "options": [
+        {
+          "value": "top",
+          "label": "t:options.position.top"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.position.bottom"
+        },
+        {
+          "value": "space-between",
+          "label": "t:options.alignment.space_between"
+        }
+      ],
+      "default": "top",
+      "visible_if": "{{ block.settings.direction == 'vertical' and block.settings.height == 'fill' }}"
+    },
+    {
+      "type": "select",
+      "id": "position_horizontal",
+      "label": "t:labels.position",
+      "options": [
+        {
+          "value": "top",
+          "label": "t:options.position.top"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.position.bottom"
+        }
+      ],
+      "default": "top",
+      "visible_if": "{{ block.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "horizontal_alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        },
+        {
+          "value": "space-between",
+          "label": "t:options.alignment.space_between"
+        }
+      ],
+      "default": "left",
+      "visible_if": "{{ block.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.vertical_on_mobile",
+      "default": true,
+      "visible_if": "{{ block.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        }
+      ],
+      "default": "left",
+      "visible_if": "{{ block.settings.direction == 'vertical' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "t:labels.alignment_mobile",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        }
+      ],
+      "default": "left",
+      "visible_if": "{{ block.settings.direction == 'vertical' or block.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "t:general.size"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "t:labels.height",
+      "options": [
+        {
+          "value": "fit",
+          "label": "t:options.width.fit"
+        },
+        {
+          "value": "fill",
+          "label": "t:options.width.fill"
+        }
+      ],
+      "default": "fill"
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "select",
+      "id": "appearance_type",
+      "label": "t:labels.type",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "t:options.appearance_type.inherit"
+        },
+        {
+          "value": "scheme",
+          "label": "t:options.appearance_type.scheme"
+        }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.appearance_type == 'scheme' }}"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "t:labels.background_color",
+      "visible_if": "{{ block.settings.appearance_type == 'scheme' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:labels.background_image",
+      "visible_if": "{{ block.settings.appearance_type == 'scheme' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.border"
+    },
+    {
+      "type": "select",
+      "id": "border_type",
+      "label": "t:labels.type",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.border_type.none"
+        },
+        {
+          "value": "solid",
+          "label": "t:options.border_type.solid"
+        },
+        {
+          "value": "dashed",
+          "label": "t:options.border_type.dashed"
+        },
+        {
+          "value": "dotted",
+          "label": "t:options.border_type.dotted"
+        },
+        {
+          "value": "double",
+          "label": "t:options.border_type.double"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "border_color",
+      "label": "t:labels.border_color_picker",
+      "visible_if": "{{ block.settings.border_type != 'none' }}"
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "t:labels.corner_radius",
+      "options": [
+        {
+          "value": "square",
+          "label": "t:options.radius_preset.square"
+        },
+        {
+          "value": "slightly_rounded",
+          "label": "t:options.radius_preset.slightly_rounded"
+        },
+        {
+          "value": "rounded",
+          "label": "t:options.radius_preset.rounded"
+        },
+        {
+          "value": "pill",
+          "label": "t:options.radius_preset.pill"
+        }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "t:labels.shadow",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.overlay_shadow.none"
+        },
+        {
+          "value": "small",
+          "label": "t:options.overlay_shadow.small"
+        },
+        {
+          "value": "medium",
+          "label": "t:options.overlay_shadow.medium"
+        },
+        {
+          "value": "large",
+          "label": "t:options.overlay_shadow.large"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.slide",
+      "category": "t:general.carousel",
+      "settings": {
+        "timeline_label": "Label",
+        "direction": "horizontal",
+        "position_horizontal": "center",
+        "horizontal_alignment": "left",
+        "alignment": "left",
+        "customize_mobile_alignment": true,
+        "alignment_mobile": "left",
+        "gap_desktop": 24,
+        "gap_mobile": 16,
+        "height": "fill",
+        "appearance_type": "inherit",
+        "color_scheme": "scheme-1",
+        "border_type": "none",
+        "corner_radius": "square",
+        "shadow": "none",
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "width": "fill",
+            "height": "fit",
+            "gap_desktop": 16,
+            "gap_mobile": 12,
+            "appearance_type": "inherit",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none"
+          },
+          "blocks": [
+            {
+              "type": "eyebrow",
+              "settings": {
+                "text": "<p>SECTION TAG</p>"
+              }
+            },
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>The beginning</p>",
+                "heading_size": "lg",
+                "html_tag": "h3"
+              }
+            },
+            {
+              "type": "text",
+              "settings": {
+                "text": "<p>Share the moment that made this year important. Add a short story to support the heading above.</p>",
+                "text_size": "md"
+              }
+            },
+            {
+              "type": "buttons",
+              "settings": {
+                "button_1_label": "Button label",
+                "button_1_link": "/",
+                "button_1_style": "primary",
+                "direction": "row",
+                "width": "fit",
+                "gap": 12,
+                "gap_mobile": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "settings": {
+            "image_ratio_desktop": "square",
+            "width_desktop": "fill",
+            "show_image_first_mobile": true,
+            "image_ratio_mobile": "square",
+            "width_mobile": "fill"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

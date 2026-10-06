@@ -1,0 +1,307 @@
+{% doc %}
+  Renders an uploaded or external video with an optional cover image and play control.
+
+  @param {video} [video] - An uploaded Shopify video
+  @param {external_video} [external_video] - A YouTube or Vimeo video URL entry
+  @param {image} [poster] - Optional cover image for an uploaded video
+  @param {boolean} [autoplay] - Whether the video should autoplay
+  @param {boolean} [loop] - Whether the video should loop
+  @param {string} [play_label] - Accessible label for the play button
+  @param {string} [class] - Optional class for the media wrapper
+  @example
+  {% render 'video', video: block.settings.video, play_label: 'Play video' %}
+{% enddoc %}
+
+{% liquid
+  assign video_autoplay = autoplay | default: false
+  assign video_loop = loop | default: false
+  assign video_muted = false
+  assign video_play_label = play_label | default: 'video.play' | t
+  assign video_pause_label = 'video.pause' | t
+  assign video_width = video.preview_image.width | default: 1600
+  assign video_height = video.preview_image.height
+  assign video_is_placeholder = true
+  if video_autoplay
+    assign video_muted = true
+  endif
+  if video != blank
+    assign video_is_placeholder = false
+  elsif external_video != blank
+    assign external_video_type = external_video.type | default: '' | downcase
+    assign external_video_id = external_video.id | default: ''
+    if external_video_type == 'youtube' or external_video_type == 'vimeo'
+      if external_video_id != blank
+        assign video_is_placeholder = false
+      endif
+    endif
+  endif
+%}
+
+<theme-video class="video{% if video_is_placeholder %} placeholder-image{% endif %} {{ class }}" data-video-media>
+  {% if video != blank %}
+    {{ video | video_tag: image_size: '1600x', autoplay: video_autoplay, loop: video_loop, muted: video_muted, controls: true, loading: 'lazy', width: video_width, height: video_height }}
+    {% if poster != blank and video_autoplay == false %}
+      <div class="video__cover" data-video-cover aria-hidden="true">
+        {{ poster | image_url: width: 1600 | image_tag: alt: '' }}
+      </div>
+    {% endif %}
+    {% if video_autoplay == false %}
+      <button
+        class="video__play"
+        type="button"
+        data-video-play
+        data-play-label="{{ video_play_label | escape }}"
+        data-pause-label="{{ video_pause_label | escape }}"
+        aria-label="{{ video_play_label | escape }}"
+        aria-pressed="false"
+      >
+        <span class="video__play-icon" aria-hidden="true">{% render 'icon', icon: 'play', bare: true %}</span>
+        <span class="video__pause-icon" aria-hidden="true">{% render 'icon', icon: 'pause', bare: true %}</span>
+      </button>
+    {% endif %}
+  {% elsif external_video != blank %}
+    {% assign external_video_type = external_video.type | default: '' | downcase %}
+    {% assign external_video_id = external_video.id | default: '' %}
+    {% assign external_video_query = 'playsinline=1&controls=1' %}
+    {% if video_autoplay %}
+      {% assign external_video_query = external_video_query | append: '&autoplay=1&muted=1' %}
+    {% endif %}
+    {% if video_loop %}
+      {% assign external_video_query = external_video_query | append: '&loop=1' %}
+    {% endif %}
+
+    {% if external_video_type == 'youtube' and external_video_id != blank %}
+      {% if video_loop %}
+        {% assign external_video_query = external_video_query | append: '&playlist=' | append: external_video_id %}
+      {% endif %}
+      <iframe
+        loading="lazy"
+        src="https://www.youtube.com/embed/{{ external_video_id | escape }}?{{ external_video_query }}"
+        title="{{ video_play_label | escape }}"
+        frameborder="0"
+        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    {% elsif external_video_type == 'vimeo' and external_video_id != blank %}
+      <iframe
+        loading="lazy"
+        src="https://player.vimeo.com/video/{{ external_video_id | escape }}?{{ external_video_query }}"
+        title="{{ video_play_label | escape }}"
+        frameborder="0"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen
+      ></iframe>
+    {% else %}
+      {{ 'product-1' | placeholder_svg_tag: 'video__placeholder' }}
+    {% endif %}
+  {% else %}
+    {{ 'product-1' | placeholder_svg_tag: 'video__placeholder' }}
+  {% endif %}
+</theme-video>
+
+{% stylesheet %}
+  .video {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    background-color: var(--placeholder-background-color);
+  }
+
+  .video > video,
+  .video > iframe,
+  .video__placeholder {
+    display: block;
+    width: 100%;
+    height: var(--video-block-height, 100%);
+    border: 0;
+  }
+
+  .video > video {
+    object-fit: cover;
+  }
+
+  .video__cover {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .video__cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .video__play {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: var(--video-play-button-size, 50px);
+    height: var(--video-play-button-size, 50px);
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: var(--video-play-button-icon, #1c1c1c);
+    background: var(--video-play-button-background, #fff);
+    transform: translate(-50%, -50%);
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    cursor: pointer;
+    transition: opacity 180ms ease, visibility 180ms ease;
+  }
+
+  .video[data-video-ready] .video__play {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .video__play svg {
+    display: block;
+    width: 45%;
+    height: 45%;
+    margin-left: 4%;
+  }
+
+  .video__play:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+
+  .video.has-started .video__cover {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .video__pause-icon {
+    display: none;
+  }
+
+  .video.is-playing .video__play-icon {
+    display: none;
+  }
+
+  .video.is-playing .video__pause-icon {
+    display: block;
+  }
+
+  .video[data-video-ready].is-playing .video__play {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .video[data-video-ready].is-playing:hover .video__play,
+  .video[data-video-ready].is-playing .video__play:focus-visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (hover: none) {
+    .video[data-video-ready].is-playing .video__play {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .video__play {
+      transition: none;
+    }
+  }
+
+  .video__placeholder {
+    height: var(--video-block-height, auto);
+    background-color: var(--background-color);
+  }
+
+  @media (max-width: 767.98px) {
+    .video__play {
+      width: var(--video-play-button-size-mobile, var(--video-play-button-size, 40px));
+      height: var(--video-play-button-size-mobile, var(--video-play-button-size, 40px));
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    if (customElements.get('theme-video')) return;
+
+    class ThemeVideo extends HTMLElement {
+      connectedCallback() {
+        if (this.abortController) return;
+
+        const video = this.querySelector('video');
+        if (!video) return;
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches && video.autoplay) {
+          video.autoplay = false;
+          video.removeAttribute('autoplay');
+          video.pause();
+        }
+
+        const playButton = this.querySelector('[data-video-play]');
+        if (!playButton) return;
+
+        this.abortController = new AbortController();
+        const eventOptions = { signal: this.abortController.signal };
+
+        const hideNativeControls = () => {
+          video.controls = false;
+          video.removeAttribute('controls');
+        };
+
+        const updateButtonState = () => {
+          const isPlaying = !video.paused && !video.ended;
+          this.classList.toggle('is-playing', isPlaying);
+          playButton.setAttribute(
+            'aria-label',
+            isPlaying
+              ? playButton.dataset.pauseLabel || playButton.getAttribute('aria-label') || ''
+              : playButton.dataset.playLabel || playButton.getAttribute('aria-label') || ''
+          );
+          playButton.setAttribute('aria-pressed', isPlaying ? 'true' : 'false');
+        };
+
+        hideNativeControls();
+        this.dataset.videoReady = '';
+        updateButtonState();
+
+        playButton.addEventListener('click', () => {
+          if (video.paused || video.ended) {
+            const playPromise = video.play();
+            playPromise?.catch(() => {});
+          } else {
+            video.pause();
+          }
+        }, eventOptions);
+
+        video.addEventListener('play', () => {
+          this.classList.add('has-started');
+          updateButtonState();
+        }, eventOptions);
+        video.addEventListener('pause', () => {
+          hideNativeControls();
+          updateButtonState();
+        }, eventOptions);
+        video.addEventListener('ended', updateButtonState, eventOptions);
+      }
+
+      disconnectedCallback() {
+        this.abortController?.abort();
+        this.abortController = null;
+      }
+    }
+
+    customElements.define('theme-video', ThemeVideo);
+  })();
+{% endjavascript %}

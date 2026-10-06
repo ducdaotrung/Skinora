@@ -1,0 +1,170 @@
+{% doc %}
+  Renders the current blog title and optional RSS feed link.
+  Shopify's blog template owns the resource; typography and spacing reuse base tokens.
+{% enddoc %}
+{% assign blog_title_tag = block.settings.html_tag | default: 'h1' %}
+<div class="blog-title" style="--blog-block-padding-top: {{ block.settings.padding_top }}px; --blog-block-padding-bottom: {{ block.settings.padding_bottom }}px;{% if block.settings.customize_mobile_padding %} --blog-block-padding-top-mobile: {{ block.settings.padding_top_mobile }}px; --blog-block-padding-bottom-mobile: {{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+  <{{ blog_title_tag }} class="blog-title__heading heading-text heading-{{ block.settings.heading_size | default: 'xl' }}"{% if block.settings.heading_size == 'custom' %} style="font-size: {{ block.settings.custom_heading_size }}px;"{% endif %}>{{ blog.title | escape }}</{{ blog_title_tag }}>
+  {% if block.settings.show_rss_icon and blog != blank %}<a class="blog-title__rss" href="{{ blog.url }}.atom" aria-label="{{ 'blog.rss_feed' | t }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="5" cy="19" r="1.5" fill="currentColor" stroke="none"/><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/></svg></a>{% endif %}
+</div>
+{% stylesheet %}
+  .blog-title { display: flex; align-items: center; justify-content: var(--flex-align, flex-start); gap: 16px; padding-top: var(--blog-block-padding-top, 0px); padding-bottom: var(--blog-block-padding-bottom, 0px); }
+  .blog-title__heading { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  .blog-title__rss { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; color: inherit; }
+  .blog-title__rss svg { width: 20px; height: 20px; }
+  @media (max-width: 767.98px) { .blog-title { padding-top: var(--blog-block-padding-top-mobile, var(--blog-block-padding-top)); padding-bottom: var(--blog-block-padding-bottom-mobile, var(--blog-block-padding-bottom)); } }
+{% endstylesheet %}
+{% schema %}
+{
+  "name": "Title",
+  "tag": null,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_rss_icon",
+      "label": "Show RSS icon",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        {
+          "value": "display",
+          "label": "t:options.heading_size.display"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.heading_size.xl"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.heading_size.lg"
+        },
+        {
+          "value": "md",
+          "label": "t:options.heading_size.md"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.heading_size.sm"
+        },
+        {
+          "value": "xs",
+          "label": "t:options.heading_size.xs"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.heading_size.custom"
+        }
+      ],
+      "default": "xl"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "html_tag",
+      "label": "t:labels.html_tag",
+      "info": "t:info.heading_html_tag",
+      "options": [
+        {
+          "value": "div",
+          "label": "t:options.html_tag.paragraph"
+        },
+        {
+          "value": "h1",
+          "label": "t:options.html_tag.h1"
+        },
+        {
+          "value": "h2",
+          "label": "t:options.html_tag.h2"
+        },
+        {
+          "value": "h3",
+          "label": "t:options.html_tag.h3"
+        },
+        {
+          "value": "h4",
+          "label": "t:options.html_tag.h4"
+        },
+        {
+          "value": "h5",
+          "label": "t:options.html_tag.h5"
+        },
+        {
+          "value": "h6",
+          "label": "t:options.html_tag.h6"
+        }
+      ],
+      "default": "h1"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ]
+}
+{% endschema %}

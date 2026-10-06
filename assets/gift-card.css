@@ -1,0 +1,29 @@
+.gift-card {
+  width: min(468px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 96px 0 72px;
+  text-align: center;
+}
+.gift-card h1, .gift-card h2, .gift-card p { margin: 0; }
+.gift-card__image { display: block; width: min(320px, 100%); height: auto; margin: 28px auto 24px; }
+.gift-card__shop { margin-bottom: 12px !important; }
+.gift-card__instructions { font-size: var(--font-body-size); }
+.gift-card__qr { width: 160px; height: 160px; padding: 20px; margin: 28px auto; background: #fff; }
+.gift-card__qr img, .gift-card__qr canvas { display: block; width: 120px; height: 120px; }
+.gift-card__code { border: 2px dashed var(--border-color); padding: 12px; overflow-wrap: anywhere; font-size: var(--font-body-size); }
+.gift-card__actions { display: flex; gap: 12px; margin-top: 16px; }
+.gift-card__actions .btn { flex: 1; min-width: 0; padding-inline: 12px; }
+.gift-card [hidden] { display: none; }
+.gift-card__feedback { min-height: 1.5em; margin-top: 8px !important; }
+.gift-card__state { margin-top: 12px !important; }
+.gift-card__wallet { display: inline-block; margin-top: 16px; }
+@media (max-width: 767.98px) {
+  .gift-card { padding: 52px 0 48px; }
+  .gift-card__actions { flex-direction: column; }
+}
+@media print {
+  .gift-card { padding: 20px 0; color: #000; }
+  .gift-card__actions, .gift-card__feedback, .gift-card__wallet { display: none; }
+  .gift-card__code { border-color: #000; }
+  .gift-card__image, .gift-card__qr { break-inside: avoid; }
+}

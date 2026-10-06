@@ -1,0 +1,579 @@
+{% doc %}
+  Shared media-card renderer for the Image card and Featured collection: Banner blocks.
+
+  @param {object} media_card_block - The Theme block and its settings
+  @param {string} [children] - Rendered child blocks
+  @param {string} [class_modifier] - Optional class added to the media card
+  @param {boolean} [enable_sticky] - Whether the media card content sticks while scrolling
+  @param {boolean} [use_image_ratio] - Whether the caller supplies responsive image ratio settings
+{% enddoc %}
+
+{% liquid
+  assign image_card_media_type = media_card_block.settings.background_type | default: 'image'
+
+  assign image_card_width_desktop_mode = media_card_block.settings.width_desktop | default: 'fill'
+  unless image_card_width_desktop_mode == 'fill' or image_card_width_desktop_mode == 'custom'
+    assign image_card_width_desktop_mode = 'fill'
+  endunless
+  assign image_card_width_desktop = '100%'
+  assign image_card_size_desktop = '100vw'
+  if image_card_width_desktop_mode == 'custom'
+    assign image_card_width_desktop_value = media_card_block.settings.width_custom_desktop | default: 100 | plus: 0
+    if image_card_width_desktop_value < 10 or image_card_width_desktop_value > 100
+      assign image_card_width_desktop_value = 100
+    endif
+    assign image_card_width_desktop = image_card_width_desktop_value | append: '%'
+    assign image_card_size_desktop = image_card_width_desktop_value | append: 'vw'
+  endif
+
+  assign image_card_max_width_desktop = '100%'
+  assign image_card_max_width_desktop_value = media_card_block.settings.max_width_desktop | default: 1600 | plus: 0
+  if image_card_max_width_desktop_value < 0 or image_card_max_width_desktop_value > 1600
+    assign image_card_max_width_desktop_value = 1600
+  endif
+  if media_card_block.settings.limit_width_desktop and image_card_max_width_desktop_value > 0
+    assign image_card_max_width_desktop = image_card_max_width_desktop_value | append: 'px'
+  endif
+
+  assign image_card_width_mobile_mode = media_card_block.settings.width_mobile | default: 'fill'
+  unless image_card_width_mobile_mode == 'fill' or image_card_width_mobile_mode == 'custom'
+    assign image_card_width_mobile_mode = 'fill'
+  endunless
+  assign image_card_width_mobile = '100%'
+  assign image_card_size_mobile = '100vw'
+  if image_card_width_mobile_mode == 'custom'
+    assign image_card_width_mobile_value = media_card_block.settings.width_custom_mobile | default: 100 | plus: 0
+    if image_card_width_mobile_value < 10 or image_card_width_mobile_value > 100
+      assign image_card_width_mobile_value = 100
+    endif
+    assign image_card_width_mobile = image_card_width_mobile_value | append: '%'
+    assign image_card_size_mobile = image_card_width_mobile_value | append: 'vw'
+  endif
+
+  assign image_card_max_width_mobile = '100%'
+  assign image_card_max_width_mobile_value = media_card_block.settings.max_width_mobile | default: 1600 | plus: 0
+  if image_card_max_width_mobile_value < 0 or image_card_max_width_mobile_value > 1600
+    assign image_card_max_width_mobile_value = 1600
+  endif
+  if media_card_block.settings.limit_width_mobile and image_card_max_width_mobile_value > 0
+    assign image_card_max_width_mobile = image_card_max_width_mobile_value | append: 'px'
+  endif
+
+  assign image_card_height_desktop = media_card_block.settings.height_desktop | default: 'ratio_1_1'
+  assign image_card_height_mobile = media_card_block.settings.height_mobile | default: 'ratio_1_1'
+  assign image_card_ratio_desktop = '1'
+  assign image_card_ratio_mobile = '1'
+
+  if use_image_ratio
+    assign image_card_height_desktop = 'ratio_1_1'
+    assign image_card_height_mobile = 'ratio_1_1'
+    assign image_card_ratio_desktop_setting = media_card_block.settings.image_ratio_desktop | default: 'square'
+    assign image_card_ratio_mobile_setting = media_card_block.settings.image_ratio_mobile | default: 'square'
+
+    assign image_card_ratio_desktop = media_card_block.settings.image.aspect_ratio
+    if image_card_ratio_desktop == blank
+      assign image_card_ratio_desktop = media_card_block.settings.mobile_image.aspect_ratio
+    endif
+    if image_card_ratio_desktop == blank
+      assign image_card_ratio_desktop = media_card_block.settings.video.preview_image.aspect_ratio
+    endif
+    if image_card_ratio_desktop == blank
+      assign image_card_ratio_desktop = media_card_block.settings.mobile_video.preview_image.aspect_ratio
+    endif
+    if image_card_ratio_desktop == blank
+      assign image_card_ratio_desktop = 1
+    endif
+
+    assign image_card_ratio_mobile = media_card_block.settings.mobile_image.aspect_ratio
+    if image_card_ratio_mobile == blank
+      assign image_card_ratio_mobile = media_card_block.settings.image.aspect_ratio
+    endif
+    if image_card_ratio_mobile == blank
+      assign image_card_ratio_mobile = media_card_block.settings.mobile_video.preview_image.aspect_ratio
+    endif
+    if image_card_ratio_mobile == blank
+      assign image_card_ratio_mobile = media_card_block.settings.video.preview_image.aspect_ratio
+    endif
+    if image_card_ratio_mobile == blank
+      assign image_card_ratio_mobile = 1
+    endif
+
+    if image_card_ratio_desktop_setting == 'full_screen'
+      assign image_card_height_desktop = 'fill'
+      assign image_card_ratio_desktop_setting = 'square'
+    endif
+
+    capture image_card_ratio_desktop
+      render 'image-ratio-value', setting: image_card_ratio_desktop_setting, fallback_ratio: image_card_ratio_desktop, custom_width: media_card_block.settings.image_ratio_custom_width_desktop, custom_height: media_card_block.settings.image_ratio_custom_height_desktop
+    endcapture
+    assign image_card_ratio_desktop = image_card_ratio_desktop | strip
+
+    capture image_card_ratio_mobile
+      render 'image-ratio-value', setting: image_card_ratio_mobile_setting, fallback_ratio: image_card_ratio_mobile, custom_width: media_card_block.settings.image_ratio_custom_width_mobile, custom_height: media_card_block.settings.image_ratio_custom_height_mobile
+    endcapture
+    assign image_card_ratio_mobile = image_card_ratio_mobile | strip
+  else
+    if image_card_height_desktop == 'adapt'
+      if image_card_media_type == 'video'
+        assign image_card_ratio_desktop = media_card_block.settings.video.preview_image.aspect_ratio | default: media_card_block.settings.mobile_video.preview_image.aspect_ratio | default: media_card_block.settings.image.aspect_ratio | default: media_card_block.settings.mobile_image.aspect_ratio | default: 1
+      else
+        assign image_card_ratio_desktop = media_card_block.settings.image.aspect_ratio | default: media_card_block.settings.mobile_image.aspect_ratio | default: media_card_block.settings.video.preview_image.aspect_ratio | default: media_card_block.settings.mobile_video.preview_image.aspect_ratio | default: 1
+      endif
+    endif
+    if image_card_height_mobile == 'adapt'
+      if image_card_media_type == 'video'
+        assign image_card_ratio_mobile = media_card_block.settings.mobile_video.preview_image.aspect_ratio | default: media_card_block.settings.video.preview_image.aspect_ratio | default: media_card_block.settings.mobile_image.aspect_ratio | default: media_card_block.settings.image.aspect_ratio | default: 1
+      else
+        assign image_card_ratio_mobile = media_card_block.settings.mobile_image.aspect_ratio | default: media_card_block.settings.image.aspect_ratio | default: media_card_block.settings.mobile_video.preview_image.aspect_ratio | default: media_card_block.settings.video.preview_image.aspect_ratio | default: 1
+      endif
+    endif
+  endif
+  assign image_card_position_desktop = media_card_block.settings.position_desktop | default: 'top_center'
+  assign image_card_position_mobile = media_card_block.settings.position_mobile | default: 'top_center'
+
+  assign image_card_gap_desktop = media_card_block.settings.gap_desktop | default: 20 | plus: 0
+  assign image_card_gap_mobile = media_card_block.settings.gap_mobile | default: 16 | plus: 0
+
+  assign image_card_padding_top = media_card_block.settings.padding_top | default: 0 | plus: 0
+  assign image_card_padding_bottom = media_card_block.settings.padding_bottom | default: 0 | plus: 0
+  assign image_card_padding_left = media_card_block.settings.padding_left | default: 0 | plus: 0
+  assign image_card_padding_right = media_card_block.settings.padding_right | default: 0 | plus: 0
+
+  if image_card_padding_top < 0 or image_card_padding_top > 100
+    assign image_card_padding_top = 0
+  endif
+  if image_card_padding_bottom < 0 or image_card_padding_bottom > 100
+    assign image_card_padding_bottom = 0
+  endif
+  if image_card_padding_left < 0 or image_card_padding_left > 100
+    assign image_card_padding_left = 0
+  endif
+  if image_card_padding_right < 0 or image_card_padding_right > 100
+    assign image_card_padding_right = 0
+  endif
+
+  assign image_card_padding_top_mobile = image_card_padding_top
+  assign image_card_padding_bottom_mobile = image_card_padding_bottom
+  assign image_card_padding_left_mobile = image_card_padding_left
+  assign image_card_padding_right_mobile = image_card_padding_right
+  if media_card_block.settings.customize_mobile_padding
+    assign image_card_padding_top_mobile = media_card_block.settings.padding_top_mobile | default: image_card_padding_top | plus: 0
+    assign image_card_padding_bottom_mobile = media_card_block.settings.padding_bottom_mobile | default: image_card_padding_bottom | plus: 0
+    assign image_card_padding_left_mobile = media_card_block.settings.padding_left_mobile | default: image_card_padding_left | plus: 0
+    assign image_card_padding_right_mobile = media_card_block.settings.padding_right_mobile | default: image_card_padding_right | plus: 0
+
+    if image_card_padding_top_mobile < 0 or image_card_padding_top_mobile > 100
+      assign image_card_padding_top_mobile = image_card_padding_top
+    endif
+    if image_card_padding_bottom_mobile < 0 or image_card_padding_bottom_mobile > 100
+      assign image_card_padding_bottom_mobile = image_card_padding_bottom
+    endif
+    if image_card_padding_left_mobile < 0 or image_card_padding_left_mobile > 100
+      assign image_card_padding_left_mobile = image_card_padding_left
+    endif
+    if image_card_padding_right_mobile < 0 or image_card_padding_right_mobile > 100
+      assign image_card_padding_right_mobile = image_card_padding_right
+    endif
+  endif
+
+  assign image_card_radius = media_card_block.settings.corner_radius | default: 'square'
+  unless image_card_radius == 'inherit' or image_card_radius == 'square' or image_card_radius == 'slightly_rounded' or image_card_radius == 'rounded' or image_card_radius == 'pill' or image_card_radius == 'custom'
+    assign image_card_radius = 'square'
+  endunless
+  assign image_card_custom_radius = media_card_block.settings.custom_corner_radius | default: 0 | plus: 0
+  if image_card_custom_radius < 0 or image_card_custom_radius > 40
+    assign image_card_custom_radius = 0
+  endif
+  assign image_card_scheme = media_card_block.settings.color_scheme | default: 'scheme-1'
+  if media_card_block.settings.color_scheme.id != blank
+    assign image_card_scheme = media_card_block.settings.color_scheme.id
+  endif
+  assign image_card_scheme = image_card_scheme | default: 'scheme-1' | handleize
+
+  assign image_card_has_link = false
+  if media_card_block.settings.link != blank
+    assign image_card_has_link = true
+  endif
+
+  assign image_card_media_alt = media_card_block.settings.image.alt | default: media_card_block.settings.mobile_image.alt | default: media_card_block.settings.video.preview_image.alt | default: media_card_block.settings.mobile_video.preview_image.alt
+
+  assign image_card_link_label = 'accessibility.image_card_link' | t
+  if image_card_media_alt != blank
+    assign image_card_link_label = image_card_media_alt
+  endif
+
+  assign image_card_media_aria_hidden = false
+  if image_card_has_link or image_card_media_type == 'video'
+    assign image_card_media_aria_hidden = true
+  endif
+
+  assign image_card_class = 'image-card'
+  if image_card_has_link
+    assign image_card_class = image_card_class | append: ' image-card--linked'
+  endif
+  if media_card_block.settings.show_overlay
+    assign image_card_class = image_card_class | append: ' image-card--has-overlay'
+  endif
+  if enable_sticky
+    assign image_card_class = image_card_class | append: ' image-card--content-sticky'
+  endif
+  if image_card_width_desktop_mode == 'custom'
+    assign image_card_class = image_card_class | append: ' image-card--width-desktop-custom'
+  endif
+  if image_card_width_mobile_mode == 'custom'
+    assign image_card_class = image_card_class | append: ' image-card--width-mobile-custom'
+  endif
+  assign image_card_class = image_card_class | append: ' image-card--height-desktop-' | append: image_card_height_desktop
+  assign image_card_class = image_card_class | append: ' image-card--height-mobile-' | append: image_card_height_mobile
+  assign image_card_class = image_card_class | append: ' image-card--position-desktop-' | append: image_card_position_desktop
+  assign image_card_class = image_card_class | append: ' image-card--position-mobile-' | append: image_card_position_mobile
+  assign image_card_class = image_card_class | append: ' image-card--radius-' | append: image_card_radius
+  assign image_card_class = image_card_class | append: ' color-scheme section-color-scope ' | append: image_card_scheme
+  if class_modifier != blank
+    assign image_card_class = image_card_class | append: ' ' | append: class_modifier
+  endif
+%}
+
+{% capture image_card_style %}
+  {% if image_card_width_desktop != '100%' %}--image-card-width: {{ image_card_width_desktop }};{% endif %}
+  {% if image_card_max_width_desktop != '100%' %}--image-card-max-width: {{ image_card_max_width_desktop }};{% endif %}
+  {% if image_card_padding_top != 0 %}--image-card-padding-top: {{ image_card_padding_top }}px;{% endif %}
+  {% if image_card_padding_bottom != 0 %}--image-card-padding-bottom: {{ image_card_padding_bottom }}px;{% endif %}
+  {% if image_card_padding_left != 0 %}--image-card-padding-left: {{ image_card_padding_left }}px;{% endif %}
+  {% if image_card_padding_right != 0 %}--image-card-padding-right: {{ image_card_padding_right }}px;{% endif %}
+  {% if image_card_radius == 'custom' %}--image-card-custom-radius: {{ image_card_custom_radius }}px;{% endif %}
+  {% if image_card_width_mobile != image_card_width_desktop %}--image-card-width-mobile: {{ image_card_width_mobile }};{% endif %}
+  {% if image_card_max_width_mobile != image_card_max_width_desktop %}--image-card-max-width-mobile: {{ image_card_max_width_mobile }};{% endif %}
+  {% if use_image_ratio or image_card_height_desktop == 'adapt' %}
+    {% unless image_card_ratio_desktop == 1 or image_card_ratio_desktop == '1' %}--image-card-ratio: {{ image_card_ratio_desktop }};{% endunless %}
+  {% endif %}
+  {% if use_image_ratio or image_card_height_mobile == 'adapt' %}
+    {% unless image_card_ratio_mobile == 1 or image_card_ratio_mobile == '1' %}--image-card-ratio-mobile: {{ image_card_ratio_mobile }};{% endunless %}
+  {% endif %}
+  {% if media_card_block.settings.customize_mobile_padding %}
+    {% if image_card_padding_top_mobile != image_card_padding_top %}--image-card-padding-top-mobile: {{ image_card_padding_top_mobile }}px;{% endif %}
+    {% if image_card_padding_bottom_mobile != image_card_padding_bottom %}--image-card-padding-bottom-mobile: {{ image_card_padding_bottom_mobile }}px;{% endif %}
+    {% if image_card_padding_left_mobile != image_card_padding_left %}--image-card-padding-left-mobile: {{ image_card_padding_left_mobile }}px;{% endif %}
+    {% if image_card_padding_right_mobile != image_card_padding_right %}--image-card-padding-right-mobile: {{ image_card_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign image_card_style = image_card_style | strip %}
+
+{% assign image_card_content_justify = 'var(--image-card-content-justify, flex-start)' %}
+{% if enable_sticky %}
+  {% assign image_card_content_justify = 'flex-start' %}
+{% endif %}
+
+{% capture image_card_content_style %}
+  {% render 'layout-flow-style',
+    direction: 'column',
+    wrap: 'nowrap',
+    align_items: 'var(--flex-align, flex-start)',
+    justify_content: image_card_content_justify,
+    align_items_mobile: 'var(--flex-align-mobile, var(--flex-align, flex-start))',
+    gap: image_card_gap_desktop,
+    gap_mobile: image_card_gap_mobile
+  %}
+{% endcapture %}
+{% assign image_card_content_style = image_card_content_style | strip %}
+
+{% capture image_card_sizes %}(min-width: 768px) {{ image_card_size_desktop }}, {{ image_card_size_mobile }}{% endcapture %}
+
+<article
+  class="{{ image_card_class }}"
+  {% if image_card_style != blank %}style="{{ image_card_style }}"{% endif %}
+  {{ media_card_block.shopify_attributes }}
+>
+  <div class="image-card__media">
+    {% render 'media-background',
+      media_type: image_card_media_type,
+      image: media_card_block.settings.image,
+      mobile_image: media_card_block.settings.mobile_image,
+      video: media_card_block.settings.video,
+      mobile_video: media_card_block.settings.mobile_video,
+      alt: image_card_media_alt,
+      sizes: image_card_sizes,
+      aria_hidden: image_card_media_aria_hidden
+    %}
+  </div>
+
+  {% if media_card_block.settings.show_overlay %}
+    <span class="image-card__overlay" aria-hidden="true"></span>
+  {% endif %}
+
+  {% if image_card_has_link %}
+    <a
+      class="image-card__link"
+      href="{{ media_card_block.settings.link | escape }}"
+      aria-label="{{ image_card_link_label | escape }}"
+      {% if media_card_block.settings.open_in_new_tab %}
+        target="_blank"
+        rel="noopener noreferrer"
+      {% endif %}
+    ></a>
+  {% endif %}
+
+  <div class="image-card__content layout-flow layout-flow--responsive align-content{% if enable_sticky %} image-card__content--sticky{% endif %}" style="{{ image_card_content_style }}">
+    {{ children }}
+  </div>
+</article>
+
+{% stylesheet %}
+  .image-card {
+    position: relative;
+    display: block;
+    width: var(--image-card-width, 100%);
+    max-width: min(var(--image-card-max-width, 100%), 100%);
+    min-width: 0;
+    aspect-ratio: var(--image-card-ratio, 1);
+    overflow: hidden;
+    border-radius: var(--image-card-radius, var(--radius-square));
+    background-color: var(--background-color);
+    color: var(--body-color);
+    isolation: isolate;
+  }
+
+  .image-card--content-sticky {
+    overflow: clip;
+  }
+
+  .image-card--width-desktop-custom {
+    flex: 0 0 var(--image-card-width, 100%);
+  }
+
+  .image-card--height-desktop-ratio_4_5 {
+    --image-card-ratio: 0.8;
+  }
+
+  .image-card--height-desktop-ratio_3_2 {
+    --image-card-ratio: 1.5;
+  }
+
+  .image-card--height-desktop-ratio_4_3 {
+    --image-card-ratio: 1.3333;
+  }
+
+  .image-card--height-desktop-ratio_16_9 {
+    --image-card-ratio: 1.7778;
+  }
+
+  .image-card--height-desktop-ratio_2_3 {
+    --image-card-ratio: 0.6667;
+  }
+
+  .image-card--height-desktop-ratio_3_4 {
+    --image-card-ratio: 0.75;
+  }
+
+  .image-card--height-desktop-ratio_9_16 {
+    --image-card-ratio: 0.5625;
+  }
+
+  .image-card--height-desktop-fill {
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .image-card--radius-slightly_rounded {
+    --image-card-radius: var(--radius-slight);
+  }
+
+  .image-card--radius-inherit {
+    --image-card-radius: var(--media-radius, var(--radius-square));
+  }
+
+  .image-card--radius-custom {
+    --image-card-radius: var(--image-card-custom-radius, 0px);
+  }
+
+  .image-card--radius-rounded {
+    --image-card-radius: var(--radius-rounded);
+  }
+
+  .image-card--radius-pill {
+    --image-card-radius: var(--radius-pill);
+  }
+
+  .image-card--position-desktop-top_left .image-card__content,
+  .image-card--position-desktop-center_left .image-card__content,
+  .image-card--position-desktop-bottom_left .image-card__content {
+    --flex-align: start;
+  }
+
+  .image-card--position-desktop-top_right .image-card__content,
+  .image-card--position-desktop-center_right .image-card__content,
+  .image-card--position-desktop-bottom_right .image-card__content {
+    --flex-align: end;
+  }
+
+  .image-card--position-desktop-center_left .image-card__content,
+  .image-card--position-desktop-center_center .image-card__content,
+  .image-card--position-desktop-center_right .image-card__content {
+    --image-card-content-justify: center;
+  }
+
+  .image-card--position-desktop-bottom_left .image-card__content,
+  .image-card--position-desktop-bottom_center .image-card__content,
+  .image-card--position-desktop-bottom_right .image-card__content {
+    --image-card-content-justify: flex-end;
+  }
+
+  .image-card__media,
+  .image-card__overlay,
+  .image-card__link,
+  .image-card__content {
+    position: absolute;
+    inset: 0;
+  }
+
+  .image-card__media {
+    z-index: 0;
+  }
+
+  .image-card__overlay {
+    z-index: 1;
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.52));
+    pointer-events: none;
+  }
+
+  .image-card__link {
+    z-index: 2;
+    display: block;
+    border-radius: inherit;
+    cursor: pointer;
+  }
+
+  .image-card__link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -4px;
+  }
+
+  .image-card__content {
+    --flex-align: center;
+    --flex-align-mobile: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: var(--image-card-content-justify, flex-start);
+    z-index: 3;
+    min-height: 0;
+    padding-top: var(--image-card-padding-top, 0px);
+    padding-right: var(--image-card-padding-right, 0px);
+    padding-bottom: var(--image-card-padding-bottom, 0px);
+    padding-left: var(--image-card-padding-left, 0px);
+    overflow: visible;
+    color: var(--image-card-content-color, var(--body-color));
+  }
+
+  .image-card__content--sticky {
+    position: sticky;
+    inset: auto;
+    top: calc(var(--header-height, 0px) + 2rem);
+    align-self: flex-start;
+    justify-content: flex-start;
+    overflow: visible;
+  }
+
+  .image-card--has-overlay .image-card__content {
+    --image-card-content-color: #fff;
+    --heading-color: currentColor;
+    --body-color: currentColor;
+    --accent-color: currentColor;
+  }
+
+  .image-card--linked .image-card__content {
+    pointer-events: none;
+  }
+
+  .image-card--linked .image-card__content :where(a, button, input, select, textarea) {
+    pointer-events: auto;
+  }
+
+  @media (max-width: 767.98px) {
+    .image-card {
+      --image-card-ratio-mobile: 1;
+      width: var(--image-card-width-mobile, var(--image-card-width, 100%));
+      max-width: min(var(--image-card-max-width-mobile, var(--image-card-max-width, 100%)), 100%);
+      aspect-ratio: var(--image-card-ratio-mobile, var(--image-card-ratio, 1));
+      height: auto;
+    }
+
+    .image-card--width-desktop-custom {
+      flex: 0 1 auto;
+    }
+
+    .image-card--width-mobile-custom {
+      flex: 0 0 var(--image-card-width-mobile, var(--image-card-width, 100%));
+    }
+
+    .image-card--height-mobile-ratio_4_5 {
+      --image-card-ratio-mobile: 0.8;
+    }
+
+    .image-card--height-mobile-ratio_3_2 {
+      --image-card-ratio-mobile: 1.5;
+    }
+
+    .image-card--height-mobile-ratio_4_3 {
+      --image-card-ratio-mobile: 1.3333;
+    }
+
+    .image-card--height-mobile-ratio_16_9 {
+      --image-card-ratio-mobile: 1.7778;
+    }
+
+    .image-card--height-mobile-ratio_2_3 {
+      --image-card-ratio-mobile: 0.6667;
+    }
+
+    .image-card--height-mobile-ratio_3_4 {
+      --image-card-ratio-mobile: 0.75;
+    }
+
+    .image-card--height-mobile-ratio_9_16 {
+      --image-card-ratio-mobile: 0.5625;
+    }
+
+    .image-card--height-mobile-fill {
+      height: 100%;
+      aspect-ratio: auto;
+    }
+
+    .image-card__content {
+      --flex-align-mobile: center;
+      padding-top: var(--image-card-padding-top-mobile, var(--image-card-padding-top, 0px));
+      padding-right: var(--image-card-padding-right-mobile, var(--image-card-padding-right, 0px));
+      padding-bottom: var(--image-card-padding-bottom-mobile, var(--image-card-padding-bottom, 0px));
+      padding-left: var(--image-card-padding-left-mobile, var(--image-card-padding-left, 0px));
+      --image-card-content-justify: flex-start;
+    }
+
+    .image-card--position-mobile-top_left .image-card__content,
+    .image-card--position-mobile-center_left .image-card__content,
+    .image-card--position-mobile-bottom_left .image-card__content {
+      --flex-align-mobile: start;
+    }
+
+    .image-card--position-mobile-top_right .image-card__content,
+    .image-card--position-mobile-center_right .image-card__content,
+    .image-card--position-mobile-bottom_right .image-card__content {
+      --flex-align-mobile: end;
+    }
+
+    .image-card--position-mobile-center_left .image-card__content,
+    .image-card--position-mobile-center_center .image-card__content,
+    .image-card--position-mobile-center_right .image-card__content {
+      --image-card-content-justify: center;
+    }
+
+    .image-card--position-mobile-bottom_left .image-card__content,
+    .image-card--position-mobile-bottom_center .image-card__content,
+    .image-card--position-mobile-bottom_right .image-card__content {
+      --image-card-content-justify: flex-end;
+    }
+  }
+  @media (min-width: 768px) {
+    .image-card--featured-collection-banner.image-card--height-desktop-fill {
+      height: 100vh;
+    }
+  }
+{% endstylesheet %}

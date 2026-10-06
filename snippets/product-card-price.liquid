@@ -1,0 +1,31 @@
+{% doc %}
+  Renders the reusable price primitive for a Product Card.
+
+  Real prices delegate to the shared price component. Placeholder cards render
+  a configurable sample amount through the same price component, so currency
+  formatting stays identical to a real product price.
+
+  @param {product} [item] - Product or variant with price data
+  @param {boolean} [placeholder] - Whether to render the placeholder price
+  @param {number} [placeholder_price] - Sample amount in shop currency units
+  @param {string} [class] - Additional price classes
+
+  @example
+  {% render 'product-card-price', item: product %}
+{% enddoc %}
+
+{% liquid
+  assign product_card_price_class = 'product-card__price'
+  if class != blank
+    assign product_card_price_class = product_card_price_class | append: ' ' | append: class
+  endif
+%}
+
+{% if item != blank and item.price != blank %}
+  {% render 'price', item: item, context: 'product-card', class: product_card_price_class %}
+{% elsif placeholder %}
+  {% liquid
+    assign product_card_placeholder_price = placeholder_price | default: 19 | times: 100
+  %}
+  {% render 'price', amount: product_card_placeholder_price, context: 'product-card', class: product_card_price_class %}
+{% endif %}

@@ -1,0 +1,96 @@
+{% doc %}
+  Renders one visual swatch. Its parent control supplies the accessible name.
+
+  Shopify standard swatch data is preferred. Color mode is intentionally color
+  only; variant_image mode is the only mode that renders an image. Common color
+  names also receive a theme fallback when no Shopify swatch is configured.
+
+  @param {string} value - Option value used for the fallback class
+  @param {swatch} [swatch] - Shopify product option-value swatch data
+  @param {image} [image] - Optional linked variant image
+  @param {string} [style] - color or variant_image
+  @param {string} [class] - Additional classes
+  @param {boolean} [decorative] - Hide the visual from assistive technology
+
+  @example
+  {% render 'swatch', value: 'Navy', swatch: option_value.swatch, decorative: true %}
+{% enddoc %}
+
+{% liquid
+  assign swatch_style = style | default: settings.swatch_style | default: 'color'
+  unless swatch_style == 'variant_image'
+    assign swatch_style = 'color'
+  endunless
+
+  assign swatch_key = value | handleize
+  assign swatch_class = 'swatch swatch--' | append: swatch_style
+  assign swatch_class = swatch_class | append: ' swatch--' | append: swatch_key
+  if class != blank
+    assign swatch_class = swatch_class | append: ' ' | append: class
+  endif
+
+  assign swatch_image = blank
+  assign swatch_color = blank
+  case swatch_key
+    when 'black', 'ebony', 'charcoal'
+      assign swatch_color = '#1a1a1a'
+    when 'white', 'ivory', 'cream'
+      assign swatch_color = '#ffffff'
+    when 'red', 'burgundy'
+      assign swatch_color = '#b42318'
+    when 'blue', 'navy'
+      assign swatch_color = '#1c4d8c'
+    when 'green', 'olive'
+      assign swatch_color = '#4b6b3c'
+    when 'silver', 'platinum', 'steel', 'gray', 'grey'
+      assign swatch_color = '#b7bcc3'
+    when 'gold', 'yellow'
+      assign swatch_color = '#d4af37'
+    when 'orange'
+      assign swatch_color = '#d97706'
+    when 'purple', 'violet'
+      assign swatch_color = '#7c3aed'
+    when 'pink', 'rose', 'rose-gold'
+      assign swatch_color = '#d98b8b'
+    when 'brown'
+      assign swatch_color = '#8b5e3c'
+    when 'beige', 'tan'
+      assign swatch_color = '#d8c3a5'
+  endcase
+  if swatch != blank and swatch.color != blank
+    if swatch.color.rgb != blank
+      assign swatch_color = 'rgb(' | append: swatch.color.rgb | append: ')'
+    else
+      assign native_swatch_color = swatch.color | append: '' | strip
+      unless native_swatch_color == '#00000000' or native_swatch_color == '#0000'
+        assign swatch_color = native_swatch_color
+      endunless
+    endif
+  endif
+  if swatch_color == blank
+    assign swatch_color = '#e5e7eb'
+  endif
+  if swatch_style == 'variant_image'
+    if image != blank
+      assign swatch_image = image
+    elsif swatch != blank and swatch.image != blank
+      assign swatch_image = swatch.image
+    endif
+  endif
+%}
+
+<span
+  class="{{ swatch_class | strip }}"
+  {% if swatch_color != blank and swatch_style == 'color' %}
+    style="--swatch-color: {{ swatch_color | escape }}; background-color: {{ swatch_color | escape }};"
+  {% endif %}
+  {% if decorative %}
+    aria-hidden="true"
+  {% else %}
+    role="img" aria-label="{{ value | escape }}"
+  {% endif %}
+>
+  {% if swatch_image != blank %}
+    {{ swatch_image | image_url: width: 128 | image_tag: class: 'swatch__image', alt: '' }}
+  {% endif %}
+</span>

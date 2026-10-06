@@ -1,0 +1,225 @@
+{% doc %}
+  Renders an intentional spacing block for compositions.
+
+  Pixel is the default unit. Percent spacing uses an inherited
+  --spacer-reference-block-size when a parent provides a definite reference;
+  otherwise it falls back to a safe 100px reference.
+
+  @example
+  {% content_for 'block', type: 'spacer', id: 'spacer' %}
+{% enddoc %}
+
+{% liquid
+  assign spacer_unit_desktop = block.settings.unit_desktop | default: 'pixel'
+  unless spacer_unit_desktop == 'pixel' or spacer_unit_desktop == 'percent'
+    assign spacer_unit_desktop = 'pixel'
+  endunless
+
+  assign spacer_size_desktop_px = block.settings.size_desktop_px
+  if spacer_size_desktop_px == nil
+    assign spacer_size_desktop_px = 100
+  endif
+  assign spacer_size_desktop_px = spacer_size_desktop_px | plus: 0
+  if spacer_size_desktop_px < 0 or spacer_size_desktop_px > 400
+    assign spacer_size_desktop_px = 100
+  endif
+
+  assign spacer_size_desktop_percent = block.settings.size_desktop_percent
+  if spacer_size_desktop_percent == nil
+    assign spacer_size_desktop_percent = 25
+  endif
+  assign spacer_size_desktop_percent = spacer_size_desktop_percent | plus: 0
+  if spacer_size_desktop_percent < 0 or spacer_size_desktop_percent > 100
+    assign spacer_size_desktop_percent = 25
+  endif
+
+  assign spacer_show_on_mobile = block.settings.show_on_mobile
+  if spacer_show_on_mobile == nil
+    assign spacer_show_on_mobile = true
+  endif
+
+  assign spacer_unit_mobile = block.settings.unit_mobile | default: 'pixel'
+  unless spacer_unit_mobile == 'pixel' or spacer_unit_mobile == 'percent'
+    assign spacer_unit_mobile = 'pixel'
+  endunless
+
+  assign spacer_size_mobile_px = block.settings.size_mobile_px
+  if spacer_size_mobile_px == nil
+    assign spacer_size_mobile_px = 52
+  endif
+  assign spacer_size_mobile_px = spacer_size_mobile_px | plus: 0
+  if spacer_size_mobile_px < 0 or spacer_size_mobile_px > 400
+    assign spacer_size_mobile_px = 52
+  endif
+
+  assign spacer_size_mobile_percent = block.settings.size_mobile_percent
+  if spacer_size_mobile_percent == nil
+    assign spacer_size_mobile_percent = 25
+  endif
+  assign spacer_size_mobile_percent = spacer_size_mobile_percent | plus: 0
+  if spacer_size_mobile_percent < 0 or spacer_size_mobile_percent > 100
+    assign spacer_size_mobile_percent = 25
+  endif
+
+  assign spacer_class = 'block-spacer'
+  if spacer_show_on_mobile == false
+    assign spacer_class = spacer_class | append: ' block-spacer--hidden-mobile'
+  endif
+
+  assign spacer_desktop_pixel_value = spacer_size_desktop_px | append: 'px'
+  assign spacer_mobile_pixel_value = spacer_size_mobile_px | append: 'px'
+  assign spacer_desktop_percent_factor = spacer_size_desktop_percent | times: 0.01
+  assign spacer_mobile_percent_factor = spacer_size_mobile_percent | times: 0.01
+  assign spacer_desktop_percent_value = 'calc(var(--spacer-reference-block-size, 100px) * ' | append: spacer_desktop_percent_factor | append: ')'
+  assign spacer_mobile_percent_value = 'calc(var(--spacer-reference-block-size, 100px) * ' | append: spacer_mobile_percent_factor | append: ')'
+%}
+
+{% capture spacer_style %}
+  {% if spacer_unit_desktop == 'pixel' %}
+    {% if spacer_size_desktop_px != 100 %}--spacer-size-desktop: {{ spacer_desktop_pixel_value }};{% endif %}
+  {% else %}
+    --spacer-size-desktop: {{ spacer_desktop_percent_value }};
+  {% endif %}
+  {% if spacer_show_on_mobile %}
+    {% if spacer_unit_mobile == 'pixel' %}
+      {% if spacer_size_mobile_px != 52 %}--spacer-size-mobile: {{ spacer_mobile_pixel_value }};{% endif %}
+    {% else %}
+      --spacer-size-mobile: {{ spacer_mobile_percent_value }};
+    {% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign spacer_style = spacer_style | strip %}
+
+<div
+  class="{{ spacer_class }}"
+  {% if spacer_style != blank %}style="{{ spacer_style }}"{% endif %}
+  aria-hidden="true"
+  {{ block.shopify_attributes }}
+></div>
+
+{% stylesheet %}
+  .block-spacer {
+    display: block;
+    flex: 0 0 auto;
+    inline-size: 100%;
+    block-size: var(--spacer-size-desktop, 100px);
+    min-block-size: 0;
+  }
+
+  .block-spacer--hidden-mobile {
+    display: block;
+  }
+
+  @media (max-width: 767.98px) {
+    .block-spacer {
+      block-size: var(--spacer-size-mobile, 52px);
+    }
+
+    .block-spacer--hidden-mobile {
+      display: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.spacer",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:options.device.desktop"
+    },
+    {
+      "type": "select",
+      "id": "unit_desktop",
+      "label": "t:labels.unit",
+      "options": [
+        { "value": "pixel", "label": "t:options.unit.pixel" },
+        { "value": "percent", "label": "t:options.unit.percent" }
+      ],
+      "default": "pixel"
+    },
+    {
+      "type": "range",
+      "id": "size_desktop_px",
+      "label": "t:labels.size",
+      "min": 0,
+      "max": 400,
+      "step": 4,
+      "unit": "px",
+      "default": 100,
+      "visible_if": "{{ block.settings.unit_desktop == 'pixel' }}"
+    },
+    {
+      "type": "range",
+      "id": "size_desktop_percent",
+      "label": "t:labels.size",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 25,
+      "visible_if": "{{ block.settings.unit_desktop == 'percent' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:options.device.mobile"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_mobile",
+      "label": "t:labels.show_on_mobile",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "unit_mobile",
+      "label": "t:labels.unit",
+      "options": [
+        { "value": "pixel", "label": "t:options.unit.pixel" },
+        { "value": "percent", "label": "t:options.unit.percent" }
+      ],
+      "default": "pixel",
+      "visible_if": "{{ block.settings.show_on_mobile }}"
+    },
+    {
+      "type": "range",
+      "id": "size_mobile_px",
+      "label": "t:labels.size",
+      "min": 0,
+      "max": 400,
+      "step": 4,
+      "unit": "px",
+      "default": 52,
+      "visible_if": "{{ block.settings.show_on_mobile and block.settings.unit_mobile == 'pixel' }}"
+    },
+    {
+      "type": "range",
+      "id": "size_mobile_percent",
+      "label": "t:labels.size",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 25,
+      "visible_if": "{{ block.settings.show_on_mobile and block.settings.unit_mobile == 'percent' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.spacer",
+      "category": "t:general.layout",
+      "settings": {
+        "unit_desktop": "pixel",
+        "size_desktop_px": 100,
+        "size_desktop_percent": 25,
+        "show_on_mobile": true,
+        "unit_mobile": "pixel",
+        "size_mobile_px": 52,
+        "size_mobile_percent": 25
+      }
+    }
+  ]
+}
+{% endschema %}

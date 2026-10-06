@@ -1,0 +1,654 @@
+{% doc %}
+  Renders the shared before-and-after image comparison component.
+
+  The caller owns the block settings and outer sizing. This snippet owns the
+  comparison DOM, responsive media markup, labels, handle treatment and the
+  scoped custom-element runtime.
+
+  @param {image} [before_image] - The image shown before the comparison.
+  @param {image} [before_mobile_image] - An optional mobile before image.
+  @param {string} [before_alt] - The before image alt text.
+  @param {string} [before_label] - Rich text shown over the before image.
+  @param {image} [after_image] - The image shown after the comparison.
+  @param {image} [after_mobile_image] - An optional mobile after image.
+  @param {string} [after_alt] - The after image alt text.
+  @param {string} [after_label] - Rich text shown over the after image.
+  @param {string} [variant] - `slider` or `side_by_side`.
+  @param {string} [direction] - `horizontal` or `vertical`.
+  @param {number} [initial_position] - Initial slider position from 0 to 100.
+  @param {string} [handle_icon] - `bars` or `compare`.
+  @param {boolean} [show_label_background] - Whether labels receive a background.
+  @param {boolean} [show_image_first_mobile] - Whether the before image is first on mobile.
+  @param {boolean} [separate_images] - Whether side-by-side images have a visible gap.
+  @param {string} [comparison_label] - Accessible name for the component.
+  @param {string} [component_style] - Inline custom properties supplied by the caller.
+
+  @example
+  {% render 'image-comparison', before_image: block.settings.before_image, after_image: block.settings.after_image %}
+{% enddoc %}
+
+{% liquid
+  assign comparison_variant = variant | default: 'slider'
+  unless comparison_variant == 'slider' or comparison_variant == 'side_by_side'
+    assign comparison_variant = 'slider'
+  endunless
+
+  assign comparison_direction = direction | default: 'horizontal'
+  unless comparison_direction == 'horizontal' or comparison_direction == 'vertical'
+    assign comparison_direction = 'horizontal'
+  endunless
+
+  assign comparison_position = initial_position | default: 50 | plus: 0
+  if comparison_position < 0 or comparison_position > 100
+    assign comparison_position = 50
+  endif
+
+  assign comparison_handle_icon = handle_icon | default: 'compare'
+  unless comparison_handle_icon == 'bars' or comparison_handle_icon == 'compare'
+    assign comparison_handle_icon = 'compare'
+  endunless
+
+  assign before_alt_text = before_alt
+  if before_alt_text == blank
+    assign before_alt_text = 'image_comparison.before_image_alt' | t
+  endif
+  assign after_alt_text = after_alt
+  if after_alt_text == blank
+    assign after_alt_text = 'image_comparison.after_image_alt' | t
+  endif
+
+  assign comparison_accessible_label = comparison_label
+  if comparison_accessible_label == blank
+    assign comparison_accessible_label = 'image_comparison.compare' | t
+  endif
+
+  assign comparison_variant_class = comparison_variant | replace: '_', '-'
+  assign comparison_direction_class = comparison_direction | replace: '_', '-'
+  assign comparison_mobile_order_class = ''
+  if show_image_first_mobile
+    assign comparison_mobile_order_class = ' image-compare-shell--mobile-before-first'
+  endif
+
+  assign comparison_separate_images_class = ''
+  if separate_images and comparison_variant == 'side_by_side'
+    assign comparison_separate_images_class = ' image-compare-shell--separate-images'
+  endif
+
+  assign comparison_label_background_class = ' image-compare-shell--no-label-background'
+  if show_label_background
+    assign comparison_label_background_class = ' image-compare-shell--label-background'
+  endif
+%}
+
+<image-compare-component
+  class="image-compare-shell image-compare-shell--variant-{{ comparison_variant_class }} image-compare-shell--direction-{{ comparison_direction_class }}{{ comparison_mobile_order_class }}{{ comparison_label_background_class }}{{ comparison_separate_images_class }}"
+  data-image-compare-shell
+  data-comparison-style="{{ comparison_variant }}"
+  data-comparison-direction="{{ comparison_direction }}"
+  data-comparison-position="{{ comparison_position }}"
+  {% if component_style != blank %}style="{{ component_style }}"{% endif %}
+>
+  <image-compare
+    class="image-compare__root"
+    role="group"
+    aria-label="{{ comparison_accessible_label | escape }}"
+  >
+    <div class="image-compare__viewport" data-comparison-viewport>
+      <div class="image-compare__layer image-compare__layer--before" data-comparison-layer="before">
+        {% render 'image',
+          image: before_image,
+          mobile_image: before_mobile_image,
+          alt: before_alt_text,
+          class: 'image-compare__media',
+          width: 2400,
+          widths: '400, 600, 800, 1200, 1600, 2400',
+          sizes: '100vw'
+        %}
+        {% if before_label != blank %}
+          <div class="image-compare__label image-compare__label--before" data-comparison-label="before">
+            {{ before_label }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="image-compare__layer image-compare__layer--after" data-comparison-layer="after">
+        {% render 'image',
+          image: after_image,
+          mobile_image: after_mobile_image,
+          alt: after_alt_text,
+          class: 'image-compare__media',
+          width: 2400,
+          widths: '400, 600, 800, 1200, 1600, 2400',
+          sizes: '100vw'
+        %}
+        {% if after_label != blank %}
+          <div class="image-compare__label image-compare__label--after" data-comparison-label="after">
+            {{ after_label }}
+          </div>
+        {% endif %}
+      </div>
+
+      {% if comparison_variant == 'slider' %}
+        <input
+          class="image-compare__range"
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value="{{ comparison_position }}"
+          aria-label="{{ 'image_comparison.slider_label' | t | escape }}"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="{{ comparison_position }}"
+          aria-orientation="{{ comparison_direction }}"
+          data-comparison-range
+        >
+        <div class="image-compare__divider" data-comparison-divider aria-hidden="true">
+          <span class="image-compare__handle">
+            {% if comparison_handle_icon == 'compare' %}
+              <span class="image-compare__handle-icon image-compare__handle-icon--compare" aria-hidden="true">
+                {% render 'carousel-navigation-icon', icon: 'chevron', direction: 'previous' %}
+                {% render 'carousel-navigation-icon', icon: 'chevron', direction: 'next' %}
+              </span>
+            {% else %}
+              {% render 'icon', icon: comparison_handle_icon, bare: true, class: 'image-compare__handle-icon' %}
+            {% endif %}
+          </span>
+        </div>
+      {% endif %}
+    </div>
+  </image-compare>
+</image-compare-component>
+
+{% stylesheet %}
+  .image-compare-shell {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    --image-compare-handle-size: 64px;
+    --image-compare-handle-icon-size: 24px;
+  }
+
+  .image-compare__root {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .image-compare__viewport {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: var(--image-compare-ratio, 1.7778);
+    border-radius: var(--image-compare-radius, var(--media-radius, var(--radius-square)));
+    background: var(--image-compare-before-background, var(--background-color));
+  }
+
+  .image-compare__layer {
+    position: absolute;
+    inset: 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .image-compare__layer--before {
+    z-index: 1;
+  }
+
+  .image-compare__layer--after {
+    z-index: 2;
+    clip-path: inset(0 0 0 var(--image-compare-position, 50%));
+  }
+
+  .image-compare__media,
+  .image-compare__media > picture,
+  .image-compare__media > img,
+  .image-compare__media > picture > img,
+  .image-compare__media > .image__placeholder {
+    display: block;
+    width: 100%;
+    max-width: none;
+  }
+
+  .image-compare__layer > .image-compare__media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .image-compare__layer > .image-compare__media > picture,
+  .image-compare__layer > .image-compare__media > img,
+  .image-compare__layer > .image-compare__media > picture > img,
+  .image-compare__layer > .image-compare__media > .image__placeholder {
+    height: 100%;
+  }
+
+  .image-compare__media > img,
+  .image-compare__media > picture > img {
+    object-fit: cover;
+  }
+
+  .image-compare__layer--before .image-compare__media.placeholder-image > .image__placeholder {
+    background-color: var(--placeholder-background-color);
+  }
+
+  .image-compare__layer--after .image-compare__media.placeholder-image > .image__placeholder {
+    background-color: var(--placeholder-background-color);
+  }
+
+  .image-compare__label {
+    position: absolute;
+    z-index: 3;
+    bottom: 1.6rem;
+    max-width: calc(50% - 2rem);
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--radius-pill);
+    color: var(--image-compare-label-color, #fff);
+    font-family: var(--image-compare-label-font-family, var(--font-body-family));
+    font-size: var(--image-compare-label-font-size, var(--font-body-md));
+    font-style: var(--image-compare-label-font-style, var(--font-body-style));
+    font-weight: var(--image-compare-label-font-weight, var(--font-body-weight));
+    letter-spacing: var(--image-compare-label-letter-spacing, 0em);
+    line-height: var(--font-body-line-height);
+    overflow-wrap: anywhere;
+    text-transform: var(--image-compare-label-text-transform, var(--font-body-text-transform));
+  }
+
+  .image-compare__label p {
+    margin: 0;
+  }
+
+  .image-compare-shell--label-background .image-compare__label {
+    background: var(--image-compare-label-background, #000);
+  }
+
+  .image-compare-shell--no-label-background .image-compare__label {
+    background: transparent;
+  }
+
+  .image-compare__label--before {
+    left: 1.6rem;
+  }
+
+  .image-compare__label--after {
+    right: 1.6rem;
+    text-align: right;
+  }
+
+  .image-compare__range {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    cursor: ew-resize;
+    opacity: 0;
+    touch-action: none;
+    appearance: none;
+  }
+
+  .image-compare__range::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+  }
+
+  .image-compare__range::-webkit-slider-thumb {
+    width: var(--image-compare-handle-size, 64px);
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    cursor: inherit;
+    appearance: none;
+  }
+
+  .image-compare__range::-moz-range-track {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+  }
+
+  .image-compare__range::-moz-range-thumb {
+    width: var(--image-compare-handle-size, 64px);
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    cursor: inherit;
+  }
+
+  .image-compare__divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--image-compare-position, 50%);
+    z-index: 4;
+    display: block;
+    width: var(--image-compare-divider-width, 2px);
+    background: var(--image-compare-handle-background, #fff);
+    pointer-events: none;
+    transform: translateX(-50%);
+  }
+
+  .image-compare__handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    width: var(--image-compare-handle-size, 64px);
+    min-width: var(--image-compare-handle-size, 64px);
+    height: var(--image-compare-handle-size, 64px);
+    min-height: var(--image-compare-handle-size, 64px);
+    place-items: center;
+    border-radius: 50%;
+    background: var(--image-compare-handle-background, #fff);
+    color: var(--image-compare-handle-color, #262626);
+    box-shadow: 0 0.1rem 0.6rem rgb(0 0 0 / 15%);
+    transform: translate(-50%, -50%);
+  }
+
+  .image-compare__handle-icon {
+    display: block;
+    width: var(--image-compare-handle-icon-size, 24px);
+    height: var(--image-compare-handle-icon-size, 24px);
+  }
+
+  .image-compare__handle-icon--compare {
+    display: inline-flex;
+    width: calc(var(--image-compare-handle-icon-size, 24px) * 2);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .image-compare__handle-icon--compare > svg {
+    display: block;
+    flex: 0 0 var(--image-compare-handle-icon-size, 24px);
+    width: var(--image-compare-handle-icon-size, 24px);
+    height: var(--image-compare-handle-icon-size, 24px);
+  }
+
+  .image-compare-shell--direction-vertical .image-compare__handle-icon {
+    transform: rotate(90deg);
+  }
+
+  .image-compare__range:focus-visible + .image-compare__divider .image-compare__handle {
+    outline: 2px solid var(--input-focus-color, currentcolor);
+    outline-offset: 4px;
+  }
+
+  .image-compare-shell--direction-vertical .image-compare__range {
+    cursor: ns-resize;
+  }
+
+  .image-compare-shell--direction-vertical .image-compare__layer--after {
+    clip-path: inset(var(--image-compare-position, 50%) 0 0);
+  }
+
+  .image-compare-shell--direction-vertical .image-compare__divider {
+    top: var(--image-compare-position, 50%);
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: auto;
+    height: var(--image-compare-divider-width, 2px);
+    background: var(--image-compare-handle-background, #fff);
+    transform: translateY(-50%);
+  }
+
+  .image-compare-shell--direction-vertical .image-compare__label--before {
+    top: 1.6rem;
+    bottom: auto;
+  }
+
+  .image-compare-shell--direction-vertical .image-compare__label--after {
+    top: auto;
+    right: auto;
+    bottom: 1.6rem;
+    left: 1.6rem;
+    text-align: left;
+  }
+
+  .image-compare-shell--variant-side-by-side .image-compare__viewport {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: auto;
+    gap: var(--image-compare-split-gap, 0px);
+    overflow: hidden;
+    aspect-ratio: auto;
+  }
+
+  .image-compare-shell--variant-side-by-side .image-compare__layer {
+    position: relative;
+    inset: auto;
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: var(--image-compare-ratio, 1.7778);
+    clip-path: none;
+  }
+
+  .image-compare-shell--variant-side-by-side .image-compare__layer--after {
+    order: 2;
+  }
+
+  .image-compare-shell--variant-side-by-side .image-compare__layer--before {
+    order: 1;
+  }
+
+  .image-compare-shell--variant-side-by-side.image-compare-shell--separate-images .image-compare__viewport {
+    gap: 1.6rem;
+    overflow: visible;
+  }
+
+  .image-compare-shell--variant-side-by-side.image-compare-shell--separate-images .image-compare__layer {
+    border-radius: var(--image-compare-radius, var(--media-radius, var(--radius-square)));
+  }
+
+  .image-compare-shell--variant-side-by-side.image-compare-shell--direction-vertical .image-compare__viewport {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, auto);
+  }
+
+  .image-compare-shell--variant-side-by-side.image-compare-shell--mobile-before-first .image-compare__layer--before {
+    order: 1;
+  }
+
+  @media (max-width: 767.98px) {
+    .image-compare-shell {
+      --image-compare-handle-size: 48px;
+      --image-compare-handle-icon-size: 20px;
+    }
+
+    .image-compare__viewport {
+      aspect-ratio: var(--image-compare-ratio-mobile, var(--image-compare-ratio, 1.7778));
+    }
+
+    .image-compare__label {
+      bottom: 1.2rem;
+      max-width: calc(50% - 1.6rem);
+      padding: 0.45rem 0.9rem;
+    }
+
+    .image-compare__label--before {
+      left: 1.2rem;
+    }
+
+    .image-compare__label--after {
+      right: 1.2rem;
+      text-align: right;
+    }
+
+    .image-compare-shell--direction-vertical .image-compare__label--before {
+      top: 1.2rem;
+      bottom: auto;
+    }
+
+    .image-compare-shell--direction-vertical .image-compare__label--after {
+      top: auto;
+      right: auto;
+      bottom: 1.2rem;
+      left: 1.2rem;
+      text-align: left;
+    }
+
+    .image-compare-shell--variant-side-by-side .image-compare__viewport {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: repeat(2, auto);
+    }
+
+    .image-compare-shell--variant-side-by-side.image-compare-shell--separate-images .image-compare__viewport {
+      gap: 1.2rem;
+    }
+
+    .image-compare-shell--variant-side-by-side .image-compare__layer--after {
+      order: 1;
+    }
+
+    .image-compare-shell--variant-side-by-side .image-compare__layer--before {
+      order: 2;
+    }
+
+    .image-compare-shell--variant-side-by-side.image-compare-shell--mobile-before-first .image-compare__layer--before {
+      order: 1;
+    }
+
+    .image-compare-shell--variant-side-by-side.image-compare-shell--mobile-before-first .image-compare__layer--after {
+      order: 2;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .image-compare__range,
+    .image-compare__divider,
+    .image-compare__handle {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    if (customElements.get('image-compare-component')) return;
+
+    class ImageComparisonComponent extends HTMLElement {
+      connectedCallback() {
+        if (this.abortController) return;
+
+        this.abortController = new AbortController();
+        this.signal = this.abortController.signal;
+        this.input = this.querySelector('[data-comparison-range]');
+        this.direction = this.dataset.comparisonDirection === 'vertical' ? 'vertical' : 'horizontal';
+        this.position = this.clamp(Number(this.dataset.comparisonPosition || this.input?.value || 50));
+        this.setPosition(this.position, false);
+
+        if (!this.input) return;
+
+        const eventOptions = { signal: this.signal };
+        this.input.addEventListener('input', () => {
+          this.setPosition(this.input.value, false);
+        }, eventOptions);
+        this.input.addEventListener('keydown', (event) => this.handleKeydown(event), eventOptions);
+        this.input.addEventListener('pointerdown', (event) => {
+          event.preventDefault();
+          this.input.setPointerCapture?.(event.pointerId);
+          this.updateFromPointer(event);
+        }, eventOptions);
+        this.input.addEventListener('pointermove', (event) => {
+          if (!this.input.hasPointerCapture?.(event.pointerId)) return;
+          event.preventDefault();
+          this.updateFromPointer(event);
+        }, eventOptions);
+        this.input.addEventListener('change', () => {
+          this.dispatchChangeEvent();
+        }, eventOptions);
+      }
+
+      disconnectedCallback() {
+        this.abortController?.abort();
+        this.abortController = null;
+        this.signal = null;
+        this.input = null;
+      }
+
+      clamp(value) {
+        if (!Number.isFinite(value)) return 50;
+        return Math.min(100, Math.max(0, Math.round(value)));
+      }
+
+      setPosition(value, announce = false) {
+        const position = this.clamp(Number(value));
+        this.position = position;
+        this.dataset.comparisonPosition = String(position);
+        this.style.setProperty('--image-compare-position', `${position}%`);
+
+        if (this.input && this.input.value !== String(position)) {
+          this.input.value = String(position);
+        }
+        this.input?.setAttribute('aria-valuenow', String(position));
+        this.input?.setAttribute('aria-valuetext', `${position}%`);
+
+        if (announce) this.dispatchChangeEvent();
+      }
+
+      updateFromPointer(event) {
+        const viewport = this.querySelector('[data-comparison-viewport]');
+        if (!viewport) return;
+
+        const bounds = viewport.getBoundingClientRect();
+        const size = this.direction === 'vertical' ? bounds.height : bounds.width;
+        if (!size) return;
+
+        const offset = this.direction === 'vertical'
+          ? event.clientY - bounds.top
+          : event.clientX - bounds.left;
+        this.setPosition((offset / size) * 100, false);
+      }
+
+      handleKeydown(event) {
+        let nextPosition = null;
+        const step = event.shiftKey ? 10 : 1;
+        const isHorizontal = this.direction === 'horizontal';
+
+        if (event.key === 'Home') nextPosition = 0;
+        if (event.key === 'End') nextPosition = 100;
+        if (isHorizontal && event.key === 'ArrowLeft') nextPosition = this.position - step;
+        if (isHorizontal && event.key === 'ArrowRight') nextPosition = this.position + step;
+        if (!isHorizontal && event.key === 'ArrowUp') nextPosition = this.position - step;
+        if (!isHorizontal && event.key === 'ArrowDown') nextPosition = this.position + step;
+
+        if (nextPosition === null) return;
+
+        event.preventDefault();
+        this.setPosition(nextPosition, true);
+      }
+
+      dispatchChangeEvent() {
+        this.dispatchEvent(
+          new CustomEvent('image-compare:change', {
+            bubbles: true,
+            detail: {
+              direction: this.direction,
+              position: this.position
+            }
+          })
+        );
+      }
+    }
+
+    customElements.define('image-compare-component', ImageComparisonComponent);
+  })();
+{% endjavascript %}

@@ -1,0 +1,252 @@
+{% doc %}
+  Renders the article title inside Blog Card.
+
+  The parent Blog Card supplies the current article through `closest.article`.
+  This child owns heading semantics, visual size, line clamping and spacing.
+{% enddoc %}
+
+{% liquid
+  assign blog_card_title_article = closest.article | default: article
+  assign blog_card_title_text = blog_card_title_article.title | default: 'Blog Title Heading Will Go Here'
+  assign blog_card_title_url = blog_card_title_article.url
+
+  assign blog_card_title_size = block.settings.heading_size | default: block.settings.size | default: 'sm'
+  case blog_card_title_size
+    when 'heading_1', 'h1', 'display'
+      assign blog_card_title_size = 'display'
+    when 'heading_2', 'h2', 'xl'
+      assign blog_card_title_size = 'xl'
+    when 'heading_3', 'h3', 'lg'
+      assign blog_card_title_size = 'lg'
+    when 'heading_4', 'h4', 'md'
+      assign blog_card_title_size = 'md'
+    when 'heading_5', 'h5', 'sm'
+      assign blog_card_title_size = 'sm'
+    when 'heading_6', 'h6', 'xs'
+      assign blog_card_title_size = 'xs'
+    when 'custom'
+      assign blog_card_title_size = 'custom'
+    else
+      assign blog_card_title_size = 'sm'
+  endcase
+
+  assign blog_card_title_custom_size = block.settings.custom_heading_size | default: 24 | plus: 0
+  if blog_card_title_custom_size < 10 or blog_card_title_custom_size > 100
+    assign blog_card_title_custom_size = 24
+  endif
+
+  assign blog_card_title_tag = block.settings.html_tag | default: 'h3'
+  unless blog_card_title_tag == 'div' or blog_card_title_tag == 'h1' or blog_card_title_tag == 'h2' or blog_card_title_tag == 'h3' or blog_card_title_tag == 'h4' or blog_card_title_tag == 'h5' or blog_card_title_tag == 'h6'
+    assign blog_card_title_tag = 'h3'
+  endunless
+
+  assign blog_card_title_line_limit = block.settings.line_limit | default: 'no_limit'
+  unless blog_card_title_line_limit == 'no_limit' or blog_card_title_line_limit == 'one' or blog_card_title_line_limit == 'two' or blog_card_title_line_limit == 'three'
+    assign blog_card_title_line_limit = 'no_limit'
+  endunless
+
+  assign blog_card_title_padding_top = block.settings.padding_top | default: 8 | plus: 0
+  assign blog_card_title_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign blog_card_title_padding_top_mobile = block.settings.padding_top_mobile | default: blog_card_title_padding_top | plus: 0
+  assign blog_card_title_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: blog_card_title_padding_bottom | plus: 0
+%}
+
+{% capture blog_card_title_style %}
+  {% if blog_card_title_size == 'custom' %}--blog-card-title-custom-size: {{ blog_card_title_custom_size }}px;{% endif %}
+  {% if blog_card_title_padding_top != 0 %}--blog-card-title-padding-top: {{ blog_card_title_padding_top }}px;{% endif %}
+  {% if blog_card_title_padding_bottom != 0 %}--blog-card-title-padding-bottom: {{ blog_card_title_padding_bottom }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if blog_card_title_padding_top_mobile != blog_card_title_padding_top %}--blog-card-title-padding-top-mobile: {{ blog_card_title_padding_top_mobile }}px;{% endif %}
+    {% if blog_card_title_padding_bottom_mobile != blog_card_title_padding_bottom %}--blog-card-title-padding-bottom-mobile: {{ blog_card_title_padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign blog_card_title_style = blog_card_title_style | strip %}
+
+{% if blog_card_title_text != blank or request.design_mode %}
+  <div
+    class="blog-card-title blog-card-title--limit-{{ blog_card_title_line_limit }}"
+    {% if blog_card_title_style != blank %}style="{{ blog_card_title_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    <{{ blog_card_title_tag }} class="blog-card-title__heading heading-text heading-{{ blog_card_title_size }}">
+      {% if blog_card_title_url != blank %}<a href="{{ blog_card_title_url | escape }}">{% endif %}{{ blog_card_title_text | escape }}{% if blog_card_title_url != blank %}</a>{% endif %}
+    </{{ blog_card_title_tag }}>
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .blog-card-title {
+    display: block;
+    width: 100%;
+    padding-top: var(--blog-card-title-padding-top, 0px);
+    padding-bottom: var(--blog-card-title-padding-bottom, 0px);
+    text-align: inherit;
+  }
+
+  .blog-card-title__heading {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .blog-card-title__heading a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .blog-card-title__heading.heading-custom { font-size: var(--blog-card-title-custom-size, var(--font-heading-custom)); }
+
+  .blog-card-title--limit-one .blog-card-title__heading,
+  .blog-card-title--limit-two .blog-card-title__heading,
+  .blog-card-title--limit-three .blog-card-title__heading {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+  }
+
+  .blog-card-title--limit-one .blog-card-title__heading { -webkit-line-clamp: 1; }
+  .blog-card-title--limit-two .blog-card-title__heading { -webkit-line-clamp: 2; }
+  .blog-card-title--limit-three .blog-card-title__heading { -webkit-line-clamp: 3; }
+
+  @media (max-width: 767.98px) {
+    .blog-card-title {
+      padding-top: var(--blog-card-title-padding-top-mobile, var(--blog-card-title-padding-top, 8px));
+      padding-bottom: var(--blog-card-title-padding-bottom-mobile, var(--blog-card-title-padding-bottom, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Title",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "line_limit",
+      "label": "Title line limit",
+      "options": [
+        { "value": "no_limit", "label": "No limit" },
+        { "value": "one", "label": "1 line" },
+        { "value": "two", "label": "2 lines" },
+        { "value": "three", "label": "3 lines" }
+      ],
+      "default": "no_limit"
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
+        { "value": "xl", "label": "t:options.heading_size.xl" },
+        { "value": "lg", "label": "t:options.heading_size.lg" },
+        { "value": "md", "label": "t:options.heading_size.md" },
+        { "value": "sm", "label": "t:options.heading_size.sm" },
+        { "value": "xs", "label": "t:options.heading_size.xs" },
+        { "value": "custom", "label": "t:options.heading_size.custom" }
+      ],
+      "default": "sm"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "html_tag",
+      "label": "t:labels.html_tag",
+      "info": "t:info.heading_html_tag",
+      "options": [
+        { "value": "div", "label": "t:options.html_tag.paragraph" },
+        { "value": "h1", "label": "t:options.html_tag.h1" },
+        { "value": "h2", "label": "t:options.html_tag.h2" },
+        { "value": "h3", "label": "t:options.html_tag.h3" },
+        { "value": "h4", "label": "t:options.html_tag.h4" },
+        { "value": "h5", "label": "t:options.html_tag.h5" },
+        { "value": "h6", "label": "t:options.html_tag.h6" }
+      ],
+      "default": "h3"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Title",
+      "category": "Blog",
+      "settings": {
+        "line_limit": "no_limit",
+        "heading_size": "sm",
+        "html_tag": "h3",
+        "padding_top": 8,
+        "padding_bottom": 0,
+        "customize_mobile_padding": false,
+        "padding_top_mobile": 8,
+        "padding_bottom_mobile": 0
+      }
+    }
+  ]
+}
+{% endschema %}

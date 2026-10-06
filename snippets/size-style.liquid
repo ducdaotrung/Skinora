@@ -1,0 +1,15 @@
+{% doc %}
+  Emits shared width and max-width custom properties for the `.size-style`
+  utility. Values are normalized by the calling block so each block can keep
+  its own editor schema and defaults.
+
+  @param {string} [width] - Desktop CSS width
+  @param {string} [max_width] - Desktop CSS max-width
+  @param {string} [width_mobile] - Mobile CSS width override
+  @param {string} [max_width_mobile] - Mobile CSS max-width override
+{% enddoc %}
+
+{% if width != blank and width != 'fit-content' %}--size-style-width: {{ width }};{% endif %}
+{% if max_width != blank and max_width != '100%' %}--size-style-max-width: {{ max_width }};{% endif %}
+{% if width_mobile != blank and width_mobile != width %}--size-style-width-mobile: {{ width_mobile }};{% endif %}
+{% if max_width_mobile != blank and max_width_mobile != max_width and max_width_mobile != '100%' %}--size-style-max-width-mobile: {{ max_width_mobile }};{% elsif max_width_mobile == '100%' and max_width != blank and max_width != '100%' %}--size-style-max-width-mobile: 100%;{% endif %}

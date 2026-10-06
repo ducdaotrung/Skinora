@@ -1,0 +1,232 @@
+{% doc %}
+  Renders native Shopify blog tag routes, preserving the tag limit and active state.
+  The owning blog section supplies alignment and the current blog resource.
+{% enddoc %}
+{% liquid
+  assign blog_tag_limit = block.settings.tag_limit | default: 5 | minus: 1
+  assign blog_filter_tags = blog.all_tags | slice: 0, blog_tag_limit
+  assign blog_filter_current_tag = current_tags | first
+  if blog_filter_current_tag != blank and blog_tag_limit > 0
+    unless blog_filter_tags contains blog_filter_current_tag
+      assign blog_filter_keep = blog_tag_limit | minus: 1
+      assign blog_filter_tags = blog_filter_tags | slice: 0, blog_filter_keep
+      assign blog_filter_selected = current_tags | slice: 0, 1
+      assign blog_filter_tags = blog_filter_tags | concat: blog_filter_selected
+    endunless
+  endif
+  assign blog_filter_font = 'inherit'
+  case block.settings.font
+    when 'heading'
+      assign blog_filter_font = 'var(--font-heading-family)'
+    when 'body'
+      assign blog_filter_font = 'var(--font-body-family)'
+    when 'accent'
+      assign blog_filter_font = 'var(--font-accent-family)'
+  endcase
+%}
+<nav class="blog-tag-filter blog-tag-filter--{{ block.settings.style | default: 'underline' }} heading-{{ block.settings.heading_size | default: 'lg' }}" aria-label="{{ 'blog.filter_by_tag' | t }}" style="{% if block.settings.heading_size == 'custom' %}font-size: {{ block.settings.custom_heading_size }}px;{% endif %}--blog-tag-filter-font: {{ blog_filter_font }}; --blog-tag-filter-gap: {{ block.settings.gap_desktop }}px; --blog-tag-filter-gap-mobile: {{ block.settings.gap_mobile }}px; --blog-block-padding-top: {{ block.settings.padding_top }}px; --blog-block-padding-bottom: {{ block.settings.padding_bottom }}px;{% if block.settings.customize_mobile_padding %} --blog-block-padding-top-mobile: {{ block.settings.padding_top_mobile }}px; --blog-block-padding-bottom-mobile: {{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+  <a class="blog-tag-filter__link{% if current_tags == blank %} is-active{% endif %}{% if block.settings.style == 'button' %} btn {% if current_tags == blank %}btn-primary{% else %}btn-secondary{% endif %}{% endif %}" href="{{ blog.url }}"{% if current_tags == blank %} aria-current="page"{% endif %}>{% if block.settings.style == 'icon' %}{% render 'icon', icon: 'tag', bare: true %}{% endif %}{{ 'blog.all_posts' | t }}</a>
+  {% for tag in blog_filter_tags %}
+    <a class="blog-tag-filter__link{% if current_tags contains tag %} is-active{% endif %}{% if block.settings.style == 'button' %} btn {% if current_tags contains tag %}btn-primary{% else %}btn-secondary{% endif %}{% endif %}" href="{{ blog.url }}/tagged/{{ tag | handleize }}"{% if current_tags contains tag %} aria-current="page"{% endif %}>{% if block.settings.style == 'icon' %}{% render 'icon', icon: 'tag', bare: true %}{% endif %}{{ tag | escape }}</a>
+  {% endfor %}
+</nav>
+{% stylesheet %}
+  .blog-tag-filter { display: flex; align-items: center; justify-content: var(--flex-align, flex-start); flex-wrap: wrap; gap: var(--blog-tag-filter-gap, 40px); font-family: var(--blog-tag-filter-font, inherit); padding-top: var(--blog-block-padding-top, 0px); padding-bottom: var(--blog-block-padding-bottom, 0px); }
+  .blog-tag-filter__link { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 44px; text-decoration: none; overflow-wrap: anywhere; font-family: inherit; font-size: inherit; }
+  .blog-tag-filter__link:not(.btn) { color: inherit; }
+  .blog-tag-filter__link.btn { --button-font-family: var(--blog-tag-filter-font, inherit); font-size: inherit; }
+  .blog-tag-filter--underline .blog-tag-filter__link { padding-block: 6px; border-bottom: 1px solid transparent; }
+  .blog-tag-filter--underline .blog-tag-filter__link:is(.is-active, :hover) { border-bottom-color: currentColor; }
+  .blog-tag-filter--icon .blog-tag-filter__link svg { width: 20px; height: 20px; }
+  .blog-tag-filter--icon .blog-tag-filter__link.is-active { text-decoration: underline; text-underline-offset: 0.3em; }
+  @media (max-width: 767.98px) { .blog-tag-filter { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; min-width: 0; gap: var(--blog-tag-filter-gap-mobile, 24px); padding-top: var(--blog-block-padding-top-mobile, var(--blog-block-padding-top)); padding-bottom: var(--blog-block-padding-bottom-mobile, var(--blog-block-padding-bottom)); } .blog-tag-filter__link { flex-shrink: 0; } }
+{% endstylesheet %}
+{% schema %}
+{
+  "name": "Tag filter",
+  "tag": null,
+  "settings": [
+    {
+      "type": "range",
+      "id": "tag_limit",
+      "label": "Tag limit",
+      "info": "Includes All posts.",
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "options": [
+        {
+          "value": "underline",
+          "label": "Underline"
+        },
+        {
+          "value": "button",
+          "label": "Button"
+        },
+        {
+          "value": "icon",
+          "label": "Icon"
+        }
+      ],
+      "default": "underline"
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "Font",
+      "options": [
+        {
+          "value": "default",
+          "label": "Default"
+        },
+        {
+          "value": "heading",
+          "label": "Heading"
+        },
+        {
+          "value": "body",
+          "label": "Body"
+        },
+        {
+          "value": "accent",
+          "label": "Accent"
+        }
+      ],
+      "default": "heading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        {
+          "value": "display",
+          "label": "t:options.heading_size.display"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.heading_size.xl"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.heading_size.lg"
+        },
+        {
+          "value": "md",
+          "label": "t:options.heading_size.md"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.heading_size.sm"
+        },
+        {
+          "value": "xs",
+          "label": "t:options.heading_size.xs"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.heading_size.custom"
+        }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,170 @@
+{% doc %}Server-rendered cart lines; stable line keys preserve distinct properties and selling plans.{% enddoc %}
+<div class="cart-page__items cart-block{% if block.settings.show_dividers %} cart-page__items--dividers{% endif %}" style="--cart-gap: {{ block.settings.gap_desktop }}px; --cart-gap-mobile: {{ block.settings.gap_mobile }}px; --cart-pad-top: {{ block.settings.padding_top | default: 0 }}px; --cart-pad-bottom: {{ block.settings.padding_bottom | default: 0 }}px;{% if block.settings.customize_mobile_padding %} --cart-pad-top-mobile: {{ block.settings.padding_top_mobile }}px; --cart-pad-bottom-mobile: {{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+{% for item in cart.items %}
+<article class="cart-page__item" data-cart-page-line data-line-key="{{ item.key | escape }}">
+<a class="cart-page__media" href="{{ item.url }}">{% if item.image %}{{ item.image | image_url: width: 360 | image_tag: widths: '120,240,360', sizes: '(max-width: 767px) 90px, 120px', loading: 'lazy' }}{% endif %}</a>
+<div class="cart-page__item-info">
+{% if block.settings.show_vendor %}<p class="body-text body-xs">{{ item.product.vendor | escape }}</p>{% endif %}
+<a class="card-title-text" href="{{ item.url }}">{{ item.product.title | escape }}</a>
+{% render 'price', item: item.variant, amount: item.final_price, context: 'product-page', class: 'cart-page__price' %}
+{% if item.selling_plan_allocation %}<p class="body-sm">{{ item.selling_plan_allocation.selling_plan.name | escape }}</p>{% endif %}
+{% for property in item.properties %}{% assign first_character = property.first | slice: 0 %}{% unless property.last == blank or first_character == '_' %}<p class="body-sm">{{ property.first | escape }}: {% if property.last contains '/uploads/' %}<a href="{{ property.last }}">{{ property.last | split: '/' | last | escape }}</a>{% else %}{{ property.last | escape }}{% endif %}</p>{% endunless %}{% endfor %}
+{% for allocation in item.line_level_discount_allocations %}<p class="body-sm">{% render 'icon', icon: 'tag', bare: true %} {{ allocation.discount_application.title | escape }} (−{{ allocation.amount | money }})</p>{% endfor %}
+<div class="cart-page__options body-sm">{% unless item.product.has_only_default_variant %}{{ item.variant.title | replace: ' / ', ' | ' | escape }}{% endunless %}
+{% if block.settings.enable_quick_edit and item.product.has_only_default_variant == false %}
+{% assign edit_id = 'CartEdit-' | append: block.id | append: '-' | append: forloop.index %}
+<button class="cart-page__edit-trigger" type="button" data-cart-page-edit-open="{{ edit_id }}" aria-haspopup="dialog" aria-controls="{{ edit_id }}" aria-label="{{ 'cart.quick_edit' | t }}">{% render 'icon', icon: 'pencil-square', bare: true %}</button>
+{% capture edit_content %}
+<form class="cart-page__edit-form" data-cart-page-edit data-line-key="{{ item.key | escape }}">
+{% if block.settings.show_product_media and item.image %}{{ item.image | image_url: width: 600 | image_tag: widths: '240,480,600', sizes: '240px', loading: 'lazy', class: 'cart-page__edit-media' }}{% endif %}
+{% if block.settings.show_badges %}{% render 'product-badges', product: item.product %}{% endif %}
+<p class="card-title-text">{{ item.product.title | escape }}</p>
+<label for="CartVariant-{{ block.id }}-{{ forloop.index }}">{{ 'cart.variant' | t }}</label>
+<select id="CartVariant-{{ block.id }}-{{ forloop.index }}" name="id">{% for variant in item.product.variants %}<option value="{{ variant.id }}"{% if variant.id == item.variant.id %} selected{% endif %}{% unless variant.available %} disabled{% endunless %}>{{ variant.title | escape }}</option>{% endfor %}</select>
+{% if block.settings.show_quantity_selector %}<label for="CartEditQuantity-{{ block.id }}-{{ forloop.index }}">{{ 'accessibility.quantity' | t }}</label><input id="CartEditQuantity-{{ block.id }}-{{ forloop.index }}" name="quantity" type="number" min="1" step="1" value="{{ item.quantity }}">{% else %}<input name="quantity" type="hidden" value="{{ item.quantity }}">{% endif %}
+<p data-cart-page-edit-error role="alert" hidden></p>
+{% assign update_label = 'cart.update' | t %}{% render 'theme-button', label: update_label, type: 'submit', variant: 'primary' %}
+</form>
+{% endcapture %}
+{% assign edit_label = 'cart.quick_edit' | t %}
+{% render 'component-overlay', id: edit_id, content: edit_content, label: edit_label, title: edit_label, desktop_layout: 'popup', mobile_layout: 'bottom_sheet', width: 600, body_class: 'cart-page__edit-body' %}{% endif %}</div>
+</div>
+<div class="cart-page__actions"><a href="{{ item.url_to_remove }}" data-cart-page-remove aria-label="{{ 'cart.remove' | t }} {{ item.product.title | escape }}">{% render 'icon', icon: 'trash', bare: true %}</a>
+<div class="cart-page__quantity"><button type="button" data-cart-page-step="-1" aria-label="{{ 'cart.decrease' | t }}">{% render 'icon', icon: 'minus', bare: true %}</button><label class="visually-hidden" for="CartQuantity-{{ block.id }}-{{ forloop.index }}">{{ 'accessibility.quantity' | t }}</label><input id="CartQuantity-{{ block.id }}-{{ forloop.index }}" name="updates[]" form="CartCheckout-{{ section.id }}" type="number" min="0" step="1" value="{{ item.quantity }}" data-current-quantity="{{ item.quantity }}" data-cart-page-quantity><button type="button" data-cart-page-step="1" aria-label="{{ 'cart.increase' | t }}">{% render 'icon', icon: 'plus', bare: true %}</button></div></div>
+</article>
+{% endfor %}
+</div>
+
+
+{% schema %}
+{
+  "name": "Cart items",
+  "tag": null,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_dividers",
+      "label": "Show dividers",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show vendor",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Quick edit"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_quick_edit",
+      "label": "Enable quick edit",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_media",
+      "label": "Show product media",
+      "default": true,
+      "visible_if": "{{ block.settings.enable_quick_edit }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badges",
+      "label": "Show badges",
+      "default": false,
+      "visible_if": "{{ block.settings.enable_quick_edit }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quantity_selector",
+      "label": "Show quantity selector",
+      "default": true,
+      "visible_if": "{{ block.settings.enable_quick_edit }}"
+    },
+    {
+      "type": "header",
+      "content": "Gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "Desktop gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Mobile gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "Customize for mobile",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Top (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 4,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Bottom (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 4,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cart items"
+    }
+  ]
+}
+{% endschema %}

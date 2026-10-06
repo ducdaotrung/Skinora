@@ -1,0 +1,54 @@
+{% doc %}
+  Fixed quantity control inside the Product Buy buttons form. Its limits follow
+  the selected variant and are updated by product-buy-buttons.js.
+
+  @param {string} form_id - Parent product form ID
+  @param {number} quantity_min - Selected variant minimum
+  @param {number} quantity_step - Selected variant increment
+  @param {number} [quantity_max] - Selected variant maximum
+{% enddoc %}
+
+{% assign quantity_label = block.settings.label | strip %}
+{% capture quantity_style %}
+  {% if block.settings.style == 'custom' %}
+    {% if block.settings.background_color != blank %}--product-buy-quantity-background: {{ block.settings.background_color }};{% endif %}
+    {% if block.settings.text_color != blank %}--product-buy-quantity-text: {{ block.settings.text_color }};{% endif %}
+    {% if block.settings.border_color != blank %}--product-buy-quantity-border: {{ block.settings.border_color }};{% endif %}
+    --product-buy-quantity-border-width: {{ block.settings.border_thickness }}px;
+    --product-buy-quantity-radius: {{ block.settings.corner_radius }}px;
+  {% endif %}
+{% endcapture %}
+<div class="product-buy-buttons__quantity form__field{% if block.settings.style == 'custom' %} product-buy-buttons__quantity--custom{% endif %}" data-buy-quantity{% if block.settings.style == 'custom' %} style="{{ quantity_style | strip }}"{% endif %} {{ block.shopify_attributes }}>
+  <label class="form__label{% if quantity_label == blank %} visually-hidden{% endif %}" for="{{ form_id }}-quantity">{% if quantity_label != blank %}{{ quantity_label | escape }}{% else %}{{ 'accessibility.quantity' | t }}{% endif %}</label>
+  <div class="product-buy-buttons__quantity-control">
+    <button class="product-buy-buttons__quantity-button" type="button" aria-label="{{ 'cart.decrease' | t | escape }}" aria-controls="{{ form_id }}-quantity" data-quantity-decrease>
+      {% render 'icon', icon: 'minus', bare: true %}
+    </button>
+    <input id="{{ form_id }}-quantity" class="form__control form__control--input" type="number" name="quantity" value="{{ quantity_min }}" min="{{ quantity_min }}" step="{{ quantity_step }}" inputmode="numeric" autocomplete="off"{% if quantity_max != blank %} max="{{ quantity_max }}"{% endif %} data-quantity-input>
+    <button class="product-buy-buttons__quantity-button" type="button" aria-label="{{ 'cart.increase' | t | escape }}" aria-controls="{{ form_id }}-quantity" data-quantity-increase>
+      {% render 'icon', icon: 'plus', bare: true %}
+    </button>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:general.quantity",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "label", "label": "t:labels.label" },
+    { "type": "select", "id": "style", "label": "t:labels.style", "options": [
+      { "value": "default", "label": "t:options.product_quantity_style.default" },
+      { "value": "custom", "label": "t:options.product_quantity_style.custom" }
+    ], "default": "default" },
+    { "type": "paragraph", "content": "t:info.product_quantity_default_style", "visible_if": "{{ block.settings.style == 'default' }}" },
+    { "type": "paragraph", "content": "t:info.product_quantity_rules" },
+    { "type": "header", "content": "t:general.colors", "visible_if": "{{ block.settings.style == 'custom' }}" },
+    { "type": "color", "alpha": true, "id": "background_color", "label": "t:labels.background", "visible_if": "{{ block.settings.style == 'custom' }}" },
+    { "type": "color", "alpha": true, "id": "text_color", "label": "t:labels.text_color", "visible_if": "{{ block.settings.style == 'custom' }}" },
+    { "type": "color", "alpha": true, "id": "border_color", "label": "t:labels.border_color", "visible_if": "{{ block.settings.style == 'custom' }}" },
+    { "type": "range", "id": "border_thickness", "label": "t:labels.border_thickness", "min": 0, "max": 5, "step": 1, "unit": "px", "default": 1, "visible_if": "{{ block.settings.style == 'custom' }}" },
+    { "type": "range", "id": "corner_radius", "label": "t:labels.corner_radius", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 4, "visible_if": "{{ block.settings.style == 'custom' }}" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,232 @@
+{% liquid
+  assign product_information_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign product_information_scheme = section.settings.color_scheme.id
+  endif
+  assign product_information_scheme = product_information_scheme | default: 'scheme-1' | handleize
+
+  assign product_information_width = section.settings.width | default: 'full'
+  unless product_information_width == 'page' or product_information_width == 'full' or product_information_width == 'full_no_padding'
+    assign product_information_width = 'full'
+  endunless
+
+  assign container_class = 'page-width'
+  if product_information_width == 'full' or product_information_width == 'full_no_padding'
+    assign container_class = 'full-width'
+  endif
+
+  assign product_information_media_width = section.settings.media_width | default: 'large'
+  unless product_information_media_width == 'small' or product_information_media_width == 'medium' or product_information_media_width == 'large'
+    assign product_information_media_width = 'large'
+  endunless
+  assign media_width = '65%'
+  case product_information_media_width
+    when 'small'
+      assign media_width = '45%'
+    when 'medium'
+      assign media_width = '55%'
+    when 'large'
+      assign media_width = '65%'
+  endcase
+
+  assign padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = section.settings.padding_bottom | default: 120 | plus: 0
+  if padding_top < 0 or padding_top > 160
+    assign padding_top = 0
+  endif
+  if padding_bottom < 0 or padding_bottom > 160
+    assign padding_bottom = 120
+  endif
+  assign padding_top_mobile = section.settings.padding_top_mobile | default: padding_top | plus: 0
+  assign padding_bottom_mobile = section.settings.padding_bottom_mobile | default: padding_bottom | plus: 0
+  if section.settings.customize_mobile_padding
+    if padding_top_mobile < 0 or padding_top_mobile > 100
+      assign padding_top_mobile = padding_top
+      if padding_top_mobile > 100
+        assign padding_top_mobile = 100
+      endif
+    endif
+    if padding_bottom_mobile < 0 or padding_bottom_mobile > 100
+      assign padding_bottom_mobile = padding_bottom
+      if padding_bottom_mobile > 100
+        assign padding_bottom_mobile = 100
+      endif
+    endif
+  endif
+  assign product_information_gap = section.settings.gap | default: 70 | plus: 0
+  assign product_information_gap_mobile = section.settings.gap_mobile | default: 30 | plus: 0
+  if product_information_gap < 0 or product_information_gap > 120
+    assign product_information_gap = 70
+  endif
+  if product_information_gap_mobile < 0 or product_information_gap_mobile > 60
+    assign product_information_gap_mobile = 30
+  endif
+%}
+
+{% capture product_information_style %}
+  {% if media_width != '65%' %}--product-information-media-width: {{ media_width }};{% endif %}
+  {% if product_information_gap != 70 %}--product-information-gap: {{ product_information_gap }}px;{% endif %}
+  {% if product_information_gap_mobile != 30 %}--product-information-gap-mobile: {{ product_information_gap_mobile }}px;{% endif %}
+  {% if padding_top != 0 %}--product-information-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 120 %}--product-information-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if section.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--product-information-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--product-information-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign product_information_style = product_information_style | strip %}
+
+{{ 'product-information.css' | asset_url | stylesheet_tag }}
+{{ 'product-information-extras.css' | asset_url | stylesheet_tag }}
+{{ 'product-media.css' | asset_url | stylesheet_tag }}
+<div
+  class="section-spacing product-information color-scheme section-color-scope {{ product_information_scheme }}"
+  data-product-information
+  {% if product_information_style != blank %}style="{{ product_information_style }}"{% endif %}
+>
+  <div class="container {{ container_class }} product-information__container{% if product_information_width == 'full_no_padding' %} product-information__container--no-padding{% endif %}">
+    <product-sticky-layout class="product-information__layout"{% unless section.settings.sticky_content == false %} data-sticky-enabled{% endunless %}>
+      {% content_for 'block', type: '_product-media', id: 'product-media' %}
+      {% content_for 'block', type: '_product-details', id: 'product-details' %}
+    </product-sticky-layout>
+  </div>
+</div>
+
+<script type="module" src="{{ 'variant-picker.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product-buy-buttons.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product-description.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product-inventory.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product-media.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product-information-extras.js' | asset_url }}"></script>
+
+{% schema %}
+{
+  "name": "t:general.product_information",
+  "class": "section-product-information",
+  "enabled_on": { "templates": ["product"] },
+  "blocks": [
+    { "type": "_product-media" },
+    { "type": "_product-details" }
+  ],
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "sticky_content",
+      "label": "t:labels.sticky_content",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:general.product_composition"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.content_width",
+      "options": [
+        { "value": "page", "label": "t:options.product_information_width.page" },
+        { "value": "full", "label": "t:options.product_information_width.full" },
+        { "value": "full_no_padding", "label": "t:options.product_information_width.full_no_padding" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "select",
+      "id": "media_width",
+      "label": "t:labels.gallery_share",
+      "options": [
+        { "value": "small", "label": "t:options.product_information_media_width.small" },
+        { "value": "medium", "label": "t:options.product_information_media_width.medium" },
+        { "value": "large", "label": "t:options.product_information_media_width.large" }
+      ],
+      "default": "large"
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:general.spacing"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 120
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 60,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ]
+}
+{% endschema %}

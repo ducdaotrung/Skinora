@@ -1,0 +1,180 @@
+{% doc %}
+  Renders an accessible product hotspot for a shoppable image.
+
+  The caller owns the containing image and coordinates. The component owns the
+  button, touch target, accessible label, and shared hotspot indicator.
+
+  @param {product} [product] - Product linked from the hotspot
+  @param {boolean} [placeholder] - Render an editor-only placeholder hotspot
+  @param {string} [block_id] - Stable parent block id for placeholder clicks
+  @param {number} [x] - Desktop horizontal position as a percentage
+  @param {number} [y] - Desktop vertical position as a percentage
+  @param {number} [mobile_x] - Mobile horizontal position as a percentage
+  @param {number} [mobile_y] - Mobile vertical position as a percentage
+  @param {string} [class] - Additional hotspot classes
+
+  @example
+  {% render 'product-hotspot', product: product, x: 72, y: 48 %}
+{% enddoc %}
+
+{% liquid
+  assign product_hotspot_id = blank
+  assign product_hotspot_url = blank
+  assign product_hotspot_is_product = false
+  if product != blank
+    assign product_hotspot_id = product.id | default: blank
+    assign product_hotspot_url = product.url | default: blank
+    if product_hotspot_id != blank and product_hotspot_url != blank
+      assign product_hotspot_is_product = true
+    endif
+  endif
+  assign product_hotspot_is_placeholder = false
+  if placeholder and block_id != blank
+    assign product_hotspot_is_placeholder = true
+  endif
+  assign product_hotspot_x = x | default: 50 | plus: 0
+  assign product_hotspot_y = y | default: 50 | plus: 0
+  assign product_hotspot_mobile_x = mobile_x | default: product_hotspot_x | plus: 0
+  assign product_hotspot_mobile_y = mobile_y | default: product_hotspot_y | plus: 0
+
+  if product_hotspot_x < 0 or product_hotspot_x > 100
+    assign product_hotspot_x = 50
+  endif
+  if product_hotspot_y < 0 or product_hotspot_y > 100
+    assign product_hotspot_y = 50
+  endif
+  if product_hotspot_mobile_x < 0 or product_hotspot_mobile_x > 100
+    assign product_hotspot_mobile_x = product_hotspot_x
+  endif
+  if product_hotspot_mobile_y < 0 or product_hotspot_mobile_y > 100
+    assign product_hotspot_mobile_y = product_hotspot_y
+  endif
+
+  assign product_hotspot_class = 'product-hotspot'
+  if class != blank
+    assign product_hotspot_class = product_hotspot_class | append: ' ' | append: class
+  endif
+
+  if product_hotspot_is_product
+    assign product_hotspot_label = 'accessibility.shop_the_look_product' | t: product: product.title
+  else
+    assign product_hotspot_label = 'accessibility.shop_the_look_product_placeholder' | t
+  endif
+%}
+
+{% capture product_hotspot_style %}
+  --product-hotspot-x: {{ product_hotspot_x }}%; --product-hotspot-y: {{ product_hotspot_y }}%; --product-hotspot-x-mobile: {{ product_hotspot_mobile_x }}%; --product-hotspot-y-mobile: {{ product_hotspot_mobile_y }}%;
+{% endcapture %}
+
+{% if product_hotspot_is_product or product_hotspot_is_placeholder %}
+  <button
+    class="{{ product_hotspot_class | strip }}{% if product_hotspot_is_placeholder %} product-hotspot--placeholder{% endif %}"
+    type="button"
+    style="{{ product_hotspot_style | strip }}"
+    aria-label="{{ product_hotspot_label | escape }}"
+    data-product-hotspot
+    {% if product_hotspot_id != blank %}data-product-id="{{ product_hotspot_id }}"{% endif %}
+    {% if product_hotspot_url != blank %}data-product-url="{{ product_hotspot_url | escape }}"{% endif %}
+    {% if block_id != blank %}data-shop-the-look-block-id="{{ block_id | escape }}"{% endif %}
+  >
+    <span class="product-hotspot__dot" aria-hidden="true"></span>
+  </button>
+{% endif %}
+
+{% stylesheet %}
+  .product-hotspot {
+    --product-hotspot-color-rgb: 255 255 255;
+    --product-hotspot-ring-width: 32px;
+    --product-hotspot-dot-width: 12px;
+    position: absolute;
+    inset-block-start: var(--product-hotspot-y, 50%);
+    inset-inline-start: var(--product-hotspot-x, 50%);
+    display: grid;
+    width: var(--product-hotspot-width, 4rem);
+    height: var(--product-hotspot-width, 4rem);
+    place-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: rgb(var(--product-hotspot-color-rgb, 0 0 0));
+    cursor: pointer;
+    font: inherit;
+    text-decoration: none;
+    pointer-events: auto;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+
+  .product-hotspot::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--product-hotspot-ring-width);
+    height: var(--product-hotspot-ring-width);
+    border-radius: 50%;
+    background-color: rgb(var(--product-hotspot-color-rgb, 255 255 255) / 30%);
+    content: '';
+    transform: translate(-50%, -50%);
+    animation: 2s ease infinite product-hotspot-ripple;
+  }
+
+  .product-hotspot__dot {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: var(--product-hotspot-dot-width);
+    height: var(--product-hotspot-dot-width);
+    place-items: center;
+    border: 0.1rem solid rgb(var(--product-hotspot-color-rgb, 255 255 255));
+    border-radius: 50%;
+    background: rgb(var(--product-hotspot-color-rgb, 255 255 255));
+    color: rgb(0 0 0);
+    box-shadow: 0 0 1.5rem rgb(0 0 0 / 30%);
+    transition: transform 0.5s cubic-bezier(0.3, 1, 0.3, 1);
+  }
+
+  .product-hotspot:is(:hover, :focus-visible),
+  .product-hotspot[data-product-hotspot-active='true'],
+  .product-hotspot.product-hotspot--active {
+    z-index: 4;
+  }
+
+  .product-hotspot:is(:hover, :focus-visible) .product-hotspot__dot,
+  .product-hotspot[data-product-hotspot-active='true'] .product-hotspot__dot,
+  .product-hotspot.product-hotspot--active .product-hotspot__dot {
+    transform: scale(1.35);
+  }
+
+  .product-hotspot--placeholder .product-hotspot__dot {
+    background: rgb(var(--product-hotspot-color-rgb, 255 255 255) / 88%);
+  }
+
+  @keyframes product-hotspot-ripple {
+    0% {
+      box-shadow: 0 0 rgb(var(--product-hotspot-color-rgb, 255 255 255) / 40%);
+    }
+
+    70% {
+      box-shadow: 0 0 0 1rem rgb(var(--product-hotspot-color-rgb, 255 255 255) / 0%);
+    }
+
+    100% {
+      box-shadow: 0 0 rgb(var(--product-hotspot-color-rgb, 255 255 255) / 0%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-hotspot::before,
+    .product-hotspot__dot {
+      transition: none;
+      animation: none;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .product-hotspot {
+      inset-block-start: var(--product-hotspot-y-mobile, var(--product-hotspot-y, 50%));
+      inset-inline-start: var(--product-hotspot-x-mobile, var(--product-hotspot-x, 50%));
+    }
+  }
+{% endstylesheet %}

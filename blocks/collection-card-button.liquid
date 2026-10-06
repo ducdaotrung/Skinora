@@ -1,0 +1,456 @@
+{% doc %}
+  Renders the collection card call-to-action using the shared Button
+  Foundation. The destination is always the current collection, so this block
+  intentionally exposes no editable link setting.
+
+  @example
+  {% content_for 'block', type: 'collection-card-button', id: 'button' %}
+{% enddoc %}
+
+{% liquid
+  assign collection_card_button_collection = closest.collection
+  assign collection_card_button_label = block.settings.button_label | default: 'Shop now'
+  assign collection_card_button_open_in_new_tab = block.settings.button_open_in_new_tab
+
+  assign collection_card_button_style = block.settings.button_style | default: 'tertiary'
+  unless collection_card_button_style == 'primary' or collection_card_button_style == 'secondary' or collection_card_button_style == 'tertiary'
+    assign collection_card_button_style = 'tertiary'
+  endunless
+
+  assign collection_card_button_width = block.settings.width | default: 'fit'
+  unless collection_card_button_width == 'fit' or collection_card_button_width == 'fill'
+    assign collection_card_button_width = 'fit'
+  endunless
+  assign collection_card_button_width_mobile = block.settings.width_mobile | default: collection_card_button_width
+  unless collection_card_button_width_mobile == 'fit' or collection_card_button_width_mobile == 'fill'
+    assign collection_card_button_width_mobile = collection_card_button_width
+  endunless
+  assign collection_card_button_size_width = 'fit-content'
+  if collection_card_button_width == 'fill'
+    assign collection_card_button_size_width = '100%'
+  endif
+  assign collection_card_button_size_width_mobile = 'fit-content'
+  if collection_card_button_width_mobile == 'fill'
+    assign collection_card_button_size_width_mobile = '100%'
+  endif
+
+  assign collection_card_button_icon = blank
+  if block.settings.show_icon
+    assign collection_card_button_icon = block.settings.icon | default: 'arrow'
+    if collection_card_button_icon == 'arrow-right'
+      assign collection_card_button_icon = 'arrow'
+    elsif collection_card_button_icon == 'shopping-bag'
+      assign collection_card_button_icon = 'cart'
+    endif
+  endif
+
+  assign collection_card_button_icon_position = block.settings.icon_position | default: 'after'
+  unless collection_card_button_icon_position == 'before' or collection_card_button_icon_position == 'after'
+    assign collection_card_button_icon_position = 'after'
+  endunless
+
+  assign collection_card_button_icon_size = block.settings.icon_size | default: 'inherit'
+  unless collection_card_button_icon_size == 'inherit' or collection_card_button_icon_size == 'custom'
+    assign collection_card_button_icon_size = 'inherit'
+  endunless
+
+  assign collection_card_button_icon_width = block.settings.icon_width | default: 20 | plus: 0
+  if collection_card_button_icon_width < 12 or collection_card_button_icon_width > 32
+    assign collection_card_button_icon_width = 20
+  endif
+
+  assign collection_card_button_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign collection_card_button_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign collection_card_button_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign collection_card_button_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign collection_card_button_padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign collection_card_button_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign collection_card_button_padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign collection_card_button_padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+
+  if collection_card_button_padding_top < 0 or collection_card_button_padding_top > 100
+    assign collection_card_button_padding_top = 0
+  endif
+  if collection_card_button_padding_bottom < 0 or collection_card_button_padding_bottom > 100
+    assign collection_card_button_padding_bottom = 0
+  endif
+  if collection_card_button_padding_left < 0 or collection_card_button_padding_left > 100
+    assign collection_card_button_padding_left = 0
+  endif
+  if collection_card_button_padding_right < 0 or collection_card_button_padding_right > 100
+    assign collection_card_button_padding_right = 0
+  endif
+  if collection_card_button_padding_top_mobile < 0 or collection_card_button_padding_top_mobile > 100
+    assign collection_card_button_padding_top_mobile = 0
+  endif
+  if collection_card_button_padding_bottom_mobile < 0 or collection_card_button_padding_bottom_mobile > 100
+    assign collection_card_button_padding_bottom_mobile = 0
+  endif
+  if collection_card_button_padding_left_mobile < 0 or collection_card_button_padding_left_mobile > 100
+    assign collection_card_button_padding_left_mobile = 0
+  endif
+  if collection_card_button_padding_right_mobile < 0 or collection_card_button_padding_right_mobile > 100
+    assign collection_card_button_padding_right_mobile = 0
+  endif
+
+  assign collection_card_button_class = 'collection-card-button size-style collection-card-button--width-' | append: collection_card_button_width
+  assign collection_card_button_class = collection_card_button_class | append: ' collection-card-button--width-mobile-' | append: collection_card_button_width_mobile
+  assign collection_card_button_should_render = false
+  if collection_card_button_collection.url != blank and collection_card_button_label != blank
+    assign collection_card_button_should_render = true
+  elsif request.design_mode
+    assign collection_card_button_should_render = true
+  endif
+  if collection_card_button_label == blank
+    assign collection_card_button_class = collection_card_button_class | append: ' collection-card-button--empty'
+  endif
+%}
+
+{% capture collection_card_button_style_attribute %}
+  {% render 'size-style',
+    width: collection_card_button_size_width,
+    width_mobile: collection_card_button_size_width_mobile
+  %}
+  {% if collection_card_button_padding_top != 0 %}--collection-card-button-padding-top: {{ collection_card_button_padding_top }}px;{% endif %}
+  {% if collection_card_button_padding_bottom != 0 %}--collection-card-button-padding-bottom: {{ collection_card_button_padding_bottom }}px;{% endif %}
+  {% if collection_card_button_padding_left != 0 %}--collection-card-button-padding-left: {{ collection_card_button_padding_left }}px;{% endif %}
+  {% if collection_card_button_padding_right != 0 %}--collection-card-button-padding-right: {{ collection_card_button_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if collection_card_button_padding_top_mobile != collection_card_button_padding_top %}--collection-card-button-padding-top-mobile: {{ collection_card_button_padding_top_mobile }}px;{% endif %}
+    {% if collection_card_button_padding_bottom_mobile != collection_card_button_padding_bottom %}--collection-card-button-padding-bottom-mobile: {{ collection_card_button_padding_bottom_mobile }}px;{% endif %}
+    {% if collection_card_button_padding_left_mobile != collection_card_button_padding_left %}--collection-card-button-padding-left-mobile: {{ collection_card_button_padding_left_mobile }}px;{% endif %}
+    {% if collection_card_button_padding_right_mobile != collection_card_button_padding_right %}--collection-card-button-padding-right-mobile: {{ collection_card_button_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign collection_card_button_style_attribute = collection_card_button_style_attribute | strip %}
+
+{% if collection_card_button_should_render %}
+  <div
+    class="{{ collection_card_button_class }}"
+    {% if collection_card_button_style_attribute != blank %}style="{{ collection_card_button_style_attribute }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    {% render 'theme-button',
+      label: collection_card_button_label,
+      url: collection_card_button_collection.url,
+      open_in_new_tab: collection_card_button_open_in_new_tab,
+      variant: collection_card_button_style,
+      icon: collection_card_button_icon,
+      icon_position: collection_card_button_icon_position,
+      icon_size: collection_card_button_icon_size,
+      icon_width: collection_card_button_icon_width,
+      class: 'collection-card-button__button'
+    %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .collection-card-button {
+    display: block;
+    min-width: 0;
+    padding-top: var(--collection-card-button-padding-top, 0px);
+    padding-right: var(--collection-card-button-padding-right, 0px);
+    padding-bottom: var(--collection-card-button-padding-bottom, 0px);
+    padding-left: var(--collection-card-button-padding-left, 0px);
+  }
+
+  .collection-card-button__button {
+    max-width: 100%;
+  }
+
+  .collection-card-button--width-fill .collection-card-button__button {
+    width: 100%;
+  }
+
+  @media (max-width: 767.98px) {
+    .collection-card-button {
+      padding-top: var(--collection-card-button-padding-top-mobile, var(--collection-card-button-padding-top, 0px));
+      padding-right: var(--collection-card-button-padding-right-mobile, var(--collection-card-button-padding-right, 0px));
+      padding-bottom: var(--collection-card-button-padding-bottom-mobile, var(--collection-card-button-padding-bottom, 0px));
+      padding-left: var(--collection-card-button-padding-left-mobile, var(--collection-card-button-padding-left, 0px));
+    }
+
+    .collection-card-button--width-mobile-fill .collection-card-button__button {
+      width: 100%;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Button",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.content"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:labels.button_label",
+      "default": "Shop now"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_open_in_new_tab",
+      "label": "t:labels.open_in_new_tab",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" },
+        { "value": "tertiary", "label": "t:options.button_variant.tertiary" }
+      ],
+      "default": "tertiary"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "t:labels.show_icon",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "icon",
+      "label": "t:labels.icon",
+      "options": [
+        {
+          "value": "arrow_right",
+          "label": "Arrow right"
+        },
+        {
+          "value": "long_arrow_right",
+          "label": "Long arrow right"
+        },
+        {
+          "value": "chevron_right",
+          "label": "Chevron"
+        },
+        {
+          "value": "arrow_up_right",
+          "label": "Arrow up right"
+        },
+        {
+          "value": "circle_arrow",
+          "label": "Circle arrow"
+        },
+        {
+          "value": "circle_chevron",
+          "label": "Circle chevron"
+        },
+        {
+          "value": "long_arrow_up",
+          "label": "Long arrow up"
+        },
+        {
+          "value": "double_chevron",
+          "label": "Double chevron"
+        },
+        {
+          "value": "arrow_outline",
+          "label": "Arrow outline"
+        },
+        {
+          "value": "square_chevron",
+          "label": "Square chevron"
+        },
+        {
+          "value": "plus",
+          "label": "Plus"
+        }
+      ],
+      "default": "arrow_right",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "t:labels.icon_position",
+      "options": [
+        {
+          "value": "before",
+          "label": "Left"
+        },
+        {
+          "value": "after",
+          "label": "Right"
+        }
+      ],
+      "default": "after",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "icon_size",
+      "label": "t:labels.icon_size",
+      "options": [
+        { "value": "inherit", "label": "t:options.icon_size.inherit" },
+        { "value": "custom", "label": "t:options.icon_size.custom" }
+      ],
+      "default": "inherit",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "range",
+      "id": "icon_width",
+      "label": "t:labels.icon_width",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.show_icon and block.settings.icon_size == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.size"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" }
+      ],
+      "default": "fit"
+    },
+    {
+      "type": "select",
+      "id": "width_mobile",
+      "label": "t:labels.mobile_width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" }
+      ],
+      "default": "fit"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Button",
+      "category": "t:general.basic",
+      "settings": {
+        "button_label": "Shop now",
+        "button_open_in_new_tab": false,
+        "button_style": "tertiary",
+        "show_icon": false,
+        "icon": "arrow_right",
+        "icon_position": "after",
+        "icon_size": "inherit",
+        "icon_width": 20,
+        "width": "fit",
+        "width_mobile": "fit",
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "padding_left": 0,
+        "padding_right": 0,
+        "padding_top_mobile": 0,
+        "padding_bottom_mobile": 0,
+        "padding_left_mobile": 0,
+        "padding_right_mobile": 0,
+        "customize_mobile_padding": false
+      }
+    }
+  ]
+}
+{% endschema %}

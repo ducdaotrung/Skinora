@@ -1,0 +1,114 @@
+{% doc %}
+  Fixed native collection sorting with keyboard-accessible enhanced listbox.
+{% enddoc %}
+{% liquid
+ assign sort_by = collection.sort_by | default: collection.default_sort_by
+ assign sort_label = 'collection.sort_by' | t | remove: ':' | strip
+ assign active_filter_count = 0
+ for filter in collection.filters
+  assign active_filter_count = active_filter_count | plus: filter.active_values.size
+  if filter.type == 'price_range'
+   if filter.min_value.value != nil or filter.max_value.value != nil
+    assign active_filter_count = active_filter_count | plus: 1
+   endif
+  endif
+ endfor
+%}
+            <form class="main-collection__sort-form main-collection__sort-form--mobile-hidden body-text body-sm" action="{{ collection.url | escape }}" method="get" data-collection-sort-form data-style="{{ block.settings.style }}" {{ block.shopify_attributes }}>
+            {% for filter in collection.filters %}
+              {% for value in filter.active_values %}
+                <input type="hidden" name="{{ value.param_name }}" value="{{ value.value }}">
+              {% endfor %}
+              {% if filter.type == 'price_range' %}
+                {% if filter.min_value.value != nil %}
+                  <input
+                    type="hidden"
+                    name="{{ filter.min_value.param_name }}"
+                    value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"
+                  >
+                {% endif %}
+                {% if filter.max_value.value != nil %}
+                  <input
+                    type="hidden"
+                    name="{{ filter.max_value.param_name }}"
+                    value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"
+                  >
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            <label id="CollectionSortLabel-{{ section.id }}" for="CollectionSort-{{ section.id }}">{{ sort_label }}:</label>
+            <collection-sort-select class="main-collection__sort-select-wrap"{% if block.settings.style == 'text' %} data-static-label="{{ 'collection.sort_trigger' | t | escape }}"{% endif %}>
+              <select
+                id="CollectionSort-{{ section.id }}"
+                name="sort_by"
+                aria-labelledby="CollectionSortLabel-{{ section.id }}"
+                data-collection-sort
+                data-collection-sort-native
+              >
+                {% for option in collection.sort_options %}
+                  <option value="{{ option.value }}"{% if option.value == sort_by %} selected{% endif %}>
+                    {{ option.name }}
+                  </option>
+                {% endfor %}
+              </select>
+              <button
+                class="main-collection__sort-trigger body-text body-xs"
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="CollectionSortOptions-{{ section.id }}"
+                aria-labelledby="CollectionSortLabel-{{ section.id }} CollectionSortValue-{{ section.id }}"
+                data-collection-sort-trigger
+              >
+                <span id="CollectionSortValue-{{ section.id }}" data-collection-sort-value>
+                  {% for option in collection.sort_options %}
+                    {% if option.value == sort_by %}{{ option.name }}{% endif %}
+                  {% endfor %}
+                </span>
+                {% render 'icon', icon: 'chevron-down', bare: true %}
+              </button>
+              <div
+                class="main-collection__sort-listbox body-text body-sm"
+                id="CollectionSortOptions-{{ section.id }}"
+                role="listbox"
+                aria-labelledby="CollectionSortLabel-{{ section.id }}"
+                data-collection-sort-listbox
+                hidden
+              >
+                {% for option in collection.sort_options %}
+                  <button
+                    class="main-collection__sort-option-button"
+                    type="button"
+                    role="option"
+                    aria-selected="{% if option.value == sort_by %}true{% else %}false{% endif %}"
+                    title="{{ option.name | escape }}"
+                    data-value="{{ option.value | escape }}"
+                    data-collection-sort-option
+                  >
+                    <span>{{ option.name }}</span>
+                    {% render 'icon', icon: 'check', bare: true %}
+                  </button>
+                {% endfor %}
+              </div>
+            </collection-sort-select>
+            <button class="main-collection__sort-submit" type="submit">{{ 'collection.apply_sort' | t }}</button>
+            </form>
+{% schema %}
+{
+  "name": "Sort",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "style",
+      "label": "Style",
+      "options": [
+        { "value": "secondary", "label": "Secondary" },
+        { "value": "outline", "label": "Outline" },
+        { "value": "text", "label": "Text" }
+      ],
+      "default": "text"
+    }
+  ]
+}
+{% endschema %}

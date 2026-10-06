@@ -1,0 +1,624 @@
+{% doc %}
+  Renders the static feature column with legacy slots or editable row blocks.
+
+  Theme Block children are lazy @theme references until rendered natively.
+  Render each once to resolve settings and editor IDs, cache its fragments,
+  and compose headers/values using the matching column key. Re-rendering a
+  child can suffix its generated ID, so references use cached rendered IDs.
+  Internal template/comment delimiters carry fragments only; the composed
+  storefront output contains the actual table cells and no templates.
+
+  @param {string} comparison_table_dom_id - Section and table namespace for feature, tooltip and dialog IDs
+  @param {block[]} comparison_table_columns - Dynamic product column blocks supplied by the owning table
+  @param {number} [comparison_table_column_count] - Number of product columns used for feature track sizing
+{% enddoc %}
+
+{% liquid
+  assign comparison_feature_min_width = block.settings.min_width | default: 160 | plus: 0
+  if comparison_feature_min_width < 100 or comparison_feature_min_width > 200
+    assign comparison_feature_min_width = 160
+  endif
+  assign comparison_feature_min_width_css = comparison_feature_min_width | append: 'px'
+  assign comparison_feature_width = 'minmax(' | append: comparison_feature_min_width_css | append: ', 1fr)'
+  assign comparison_feature_fixed_width = comparison_feature_width
+  if block.settings.width == 'custom'
+    assign comparison_feature_custom_width = block.settings.custom_width | default: 30 | plus: 0
+    if comparison_feature_custom_width < 10 or comparison_feature_custom_width > 50
+      assign comparison_feature_custom_width = 30
+    endif
+    assign comparison_feature_width = 'max(' | append: comparison_feature_min_width_css | append: ', ' | append: comparison_feature_custom_width | append: '%)'
+    assign comparison_feature_fixed_width = comparison_feature_width
+  else
+    assign comparison_feature_column_count = comparison_table_column_count | default: 1 | plus: 0
+    if comparison_feature_column_count < 1
+      assign comparison_feature_column_count = 1
+    endif
+    assign comparison_feature_track_count = comparison_feature_column_count | plus: 1
+    assign comparison_feature_fill_percent = 100.0 | divided_by: comparison_feature_track_count
+    assign comparison_feature_fixed_width = 'minmax(' | append: comparison_feature_min_width_css | append: ', ' | append: comparison_feature_fill_percent | append: '%)'
+  endif
+  assign comparison_feature_heading = block.settings.heading
+  if comparison_feature_heading == nil
+    assign comparison_feature_heading = 'Feature heading'
+  endif
+  assign comparison_feature_heading = comparison_feature_heading | strip
+  assign comparison_feature_show_heading = block.settings.show_heading
+  if comparison_feature_show_heading == nil
+    assign comparison_feature_show_heading = true
+  endif
+  assign comparison_feature_font = block.settings.font | default: 'heading'
+  assign comparison_feature_font_family = 'var(--font-heading-family)'
+  case comparison_feature_font
+    when 'body'
+      assign comparison_feature_font_family = 'var(--font-body-family)'
+    when 'accent'
+      assign comparison_feature_font_family = 'var(--font-accent-family)'
+  endcase
+
+  assign comparison_feature_size = block.settings.font_size | default: 'lg'
+  unless comparison_feature_size == 'xs' or comparison_feature_size == 'sm' or comparison_feature_size == 'md' or comparison_feature_size == 'lg' or comparison_feature_size == 'xl' or comparison_feature_size == 'xxl'
+    assign comparison_feature_size = 'lg'
+  endunless
+  assign comparison_feature_size_token = 'var(--font-body-lg)'
+  assign comparison_feature_line_height = 'var(--font-body-line-height)'
+  case comparison_feature_size
+    when 'xs'
+      assign comparison_feature_size_token = 'var(--font-body-xs)'
+    when 'sm'
+      assign comparison_feature_size_token = 'var(--font-body-sm)'
+    when 'md'
+      assign comparison_feature_size_token = 'var(--font-body-md)'
+    when 'xl'
+      assign comparison_feature_size_token = 'var(--font-body-xl)'
+    when 'xxl'
+      assign comparison_feature_size_token = 'var(--font-body-xxl)'
+  endcase
+%}
+
+{% capture comparison_feature_style %}
+  {% if comparison_feature_min_width != 160 %}--comparison-table-feature-min-width: {{ comparison_feature_min_width }}px;{% endif %}
+  {% if comparison_feature_size != 'lg' %}--comparison-table-feature-label-size: {{ comparison_feature_size_token }}; --comparison-feature-line-height: {{ comparison_feature_line_height }};{% endif %}
+  {% if comparison_feature_font != 'heading' %}--comparison-feature-font-family: {{ comparison_feature_font_family }};{% endif %}
+{% endcapture %}
+{% assign comparison_feature_style = comparison_feature_style | strip | replace: '\n', ' ' %}
+
+{% if comparison_table_dom_id != blank %}
+  <style>
+    #{{ comparison_table_dom_id }} .comparison-table__scroll--with-feature {
+      --comparison-table-feature-width: {{ comparison_feature_width }};
+      --comparison-table-feature-width-fixed: {{ comparison_feature_fixed_width }};
+    }
+  </style>
+{% endif %}
+
+{% capture comparison_rows_native %}
+  {% for comparison_row in block.blocks %}
+    <!-- comparison-native-row-{{ forloop.index }}-start -->{% render comparison_row %}<!-- comparison-native-row-{{ forloop.index }}-end -->
+  {% endfor %}
+{% endcapture %}
+{% capture comparison_feature_column %}
+<div
+  class="comparison-table__col grid comparison-table__col--feature{% if block.settings.keep_visible %} comparison-table__col--feature-sticky{% endif %}"
+  data-sticky="{% if block.settings.keep_visible %}true{% else %}false{% endif %}"
+  {% if comparison_feature_style != blank %}style="{{ comparison_feature_style }}"{% endif %}
+  role="rowgroup"
+  {{ block.shopify_attributes }}
+>
+  <div class="comparison-table__row comparison-table__row--header" role="row" aria-rowindex="1">
+    <div class="comparison-table__cell comparison-table__cell--header comparison-table__cell--feature comparison-table__feature-heading-cell" role="columnheader">
+      {% if comparison_feature_show_heading and comparison_feature_heading != blank %}
+        <h3 class="comparison-table__heading">{{ comparison_feature_heading | escape }}</h3>
+      {% else %}
+        <span class="visually-hidden">{{ 'comparison_table.features_heading' | t }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if block.blocks.size > 0 or block.settings.row_mode == 'dynamic' %}
+    {% for comparison_row in block.blocks %}
+      {% assign comparison_row_start = '<!-- comparison-native-row-' | append: forloop.index | append: '-start -->' %}
+      {% assign comparison_row_end = '<!-- comparison-native-row-' | append: forloop.index | append: '-end -->' %}
+      {% assign comparison_row_native = comparison_rows_native | split: comparison_row_start | last | split: comparison_row_end | first %}
+      {% assign comparison_row_feature = comparison_row_native | split: '<!-- comparison-feature-end -->' | first %}
+      {% assign comparison_row_index = forloop.index | append: '' %}
+      {% assign comparison_row_aria_index = forloop.index | plus: 1 | append: '' %}
+      {{ comparison_row_feature | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id | replace: '__ROW_INDEX__', comparison_row_index | replace: '__ARIA_ROW_INDEX__', comparison_row_aria_index }}
+    {% endfor %}
+  {% else %}
+  {% assign comparison_feature_row_count = 1 %}
+  {% for feature_index in (1..16) %}
+    {% assign feature_label_key = 'feature_' | append: feature_index | append: '_label' %}
+    {% assign feature_tooltip_key = 'feature_' | append: feature_index | append: '_tooltip' %}
+    {% assign feature_label = block.settings[feature_label_key] | default: '' | strip %}
+    {% assign feature_tooltip = block.settings[feature_tooltip_key] | default: '' | strip %}
+    {% assign feature_label_id = 'comparison-feature-' | append: comparison_table_dom_id | append: '-' | append: feature_index %}
+    {% assign feature_tooltip_id = 'comparison-feature-tooltip-' | append: comparison_table_dom_id | append: '-' | append: feature_index %}
+    {% assign feature_dialog_id = 'comparison-feature-dialog-' | append: comparison_table_dom_id | append: '-' | append: feature_index %}
+    {% assign comparison_feature_row_count = comparison_feature_row_count | plus: 1 %}
+    {% assign feature_label_empty_class = '' %}
+    {% if feature_label == blank and feature_tooltip == blank %}
+      {% assign feature_label_empty_class = ' comparison-table__cell--empty' %}
+    {% endif %}
+
+    <div
+      class="comparison-table__row comparison-table__row--feature-{{ feature_index }}"
+      role="row"
+      aria-rowindex="{{ comparison_feature_row_count }}"
+      data-comparison-table-row="{{ feature_index }}"
+      data-comparison-table-feature-label="{{ feature_label | escape }}"
+      data-comparison-table-feature-tooltip="{{ feature_tooltip | escape }}"
+    >
+      <div class="comparison-table__cell comparison-table__cell--feature{{ feature_label_empty_class }}" role="rowheader" id="{{ feature_label_id }}">
+        {% if feature_tooltip != blank %}
+          {% render 'tooltip',
+            label: feature_label,
+            tooltip: feature_tooltip,
+            tooltip_id: feature_tooltip_id,
+            dialog_id: feature_dialog_id
+          %}
+        {% elsif feature_label != blank %}
+          <span class="comparison-table__label">{{ feature_label | escape }}</span>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+  {% endif %}
+</div>
+
+{% endcapture %}
+{% assign comparison_feature_dynamic_rows = false %}
+{% if block.settings.row_mode == 'dynamic' %}{% assign comparison_feature_dynamic_rows = true %}{% endif %}
+{% capture comparison_product_columns %}
+  {% for comparison_column in comparison_table_columns %}
+    {% capture comparison_column_native %}{% render comparison_column %}{% endcapture %}
+    {% if comparison_feature_dynamic_rows or block.blocks.size > 0 %}
+      {% assign comparison_column_header = comparison_column_native | split: '<!-- comparison-column-rows -->' | first %}
+      {% assign comparison_column_key = comparison_column_header | split: 'data-comparison-column-key="' | last | split: '"' | first %}
+      {% assign comparison_column_product_id = comparison_column_header | split: 'id="comparison-product-' | last | split: '"' | first | prepend: 'comparison-product-' | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id %}
+      {{ comparison_column_header | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id }}
+      {% for comparison_row in block.blocks %}
+        {% assign comparison_row_start = '<!-- comparison-native-row-' | append: forloop.index | append: '-start -->' %}
+      {% assign comparison_row_end = '<!-- comparison-native-row-' | append: forloop.index | append: '-end -->' %}
+      {% assign comparison_row_native = comparison_rows_native | split: comparison_row_start | last | split: comparison_row_end | first %}
+        {% assign comparison_value_marker = '<template data-comparison-value-key="' | append: comparison_column_key | append: '">' %}
+        {% assign comparison_feature_id = comparison_row_native | split: 'id="comparison-feature-' | last | split: '"' | first | prepend: 'comparison-feature-' | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id %}
+        {% assign comparison_value_id = comparison_column_product_id | append: '-' | append: comparison_feature_id | append: '-value' %}
+        <div class="comparison-table__row" role="row" aria-rowindex="{{ forloop.index | plus: 1 }}" data-comparison-table-row="{{ forloop.index }}">
+          {% if comparison_row_native contains comparison_value_marker %}
+            {% assign comparison_value_content = comparison_row_native | split: comparison_value_marker | last | split: '</template>' | first %}
+            {{ comparison_value_content | replace: '__FEATURE_ID__', comparison_feature_id | replace: '__PRODUCT_ID__', comparison_column_product_id | replace: '__VALUE_ID__', comparison_value_id }}
+          {% else %}
+            {% render 'comparison-table-value', type: 'none', feature_id: comparison_feature_id, product_id: comparison_column_product_id, value_id: comparison_value_id %}
+          {% endif %}
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}
+      {{ comparison_column_native | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id }}
+    {% endif %}
+  {% endfor %}
+{% endcapture %}
+{% assign comparison_feature_track_count = 17 %}
+{% if block.blocks.size > 0 or block.settings.row_mode == 'dynamic' %}
+  {% assign comparison_feature_track_count = block.blocks.size | plus: 1 %}
+{% endif %}
+{% if block.settings.keep_visible %}
+  <div class="comparison-table__layout comparison-table__layout--feature-fixed comparison-table__scroll--with-feature grid" role="table" aria-label="{{ 'comparison_table.table_label' | t }}" aria-description="{{ 'comparison_table.scroll_label' | t }}" style="--comparison-table-track-count: {{ comparison_feature_track_count }};">
+    {{ comparison_feature_column }}
+    <div class="comparison-table__scroll comparison-table__scroll--products grid scrollbar scrollbar--horizontal scrollbar--hidden-mobile" role="group" aria-label="{{ 'comparison_table.scroll_label' | t }}" tabindex="0">
+      {{ comparison_product_columns }}
+    </div>
+  </div>
+{% else %}
+  <div class="comparison-table__scroll comparison-table__scroll--with-feature grid scrollbar scrollbar--horizontal scrollbar--hidden-mobile" role="table" aria-label="{{ 'comparison_table.table_label' | t }}" aria-description="{{ 'comparison_table.scroll_label' | t }}" tabindex="0" style="--comparison-table-track-count: {{ comparison_feature_track_count }};">
+    {{ comparison_feature_column }}
+    {{ comparison_product_columns }}
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "t:general.feature",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "comparison-table-row"
+    }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "row_mode",
+      "label": "Row content",
+      "options": [
+        {
+          "value": "legacy",
+          "label": "Existing fixed rows"
+        },
+        {
+          "value": "dynamic",
+          "label": "Editable row blocks"
+        }
+      ],
+      "default": "legacy",
+      "info": "Use editable row blocks to add, remove, duplicate and reorder features."
+    },
+    {
+      "type": "header",
+      "content": "Feature column"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_heading",
+      "label": "Show heading",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Feature heading",
+      "visible_if": "{{ block.settings.show_heading }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "keep_visible",
+      "label": "Keep column visible while scrolling",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:general.size"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Desktop width",
+      "options": [
+        {
+          "value": "fill",
+          "label": "Fill"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "fill"
+    },
+    {
+      "type": "range",
+      "id": "custom_width",
+      "label": "Custom width",
+      "min": 10,
+      "max": 50,
+      "step": 1,
+      "unit": "%",
+      "default": 30,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "min_width",
+      "label": "Min width",
+      "min": 100,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "default": 160
+    },
+    {
+      "type": "header",
+      "content": "Label typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "Font",
+      "options": [
+        {
+          "value": "heading",
+          "label": "Heading"
+        },
+        {
+          "value": "body",
+          "label": "Body"
+        },
+        {
+          "value": "accent",
+          "label": "Accent"
+        }
+      ],
+      "default": "heading"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:labels.text_size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "t:options.text_size.xs"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.text_size.sm"
+        },
+        {
+          "value": "md",
+          "label": "t:options.text_size.md"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.text_size.lg"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.text_size.xl"
+        },
+        {
+          "value": "xxl",
+          "label": "t:options.text_size.xxl"
+        }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "header",
+      "content": "Feature 1"
+    },
+    {
+      "type": "text",
+      "id": "feature_1_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_1_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 2"
+    },
+    {
+      "type": "text",
+      "id": "feature_2_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_2_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 3"
+    },
+    {
+      "type": "text",
+      "id": "feature_3_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_3_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 4"
+    },
+    {
+      "type": "text",
+      "id": "feature_4_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_4_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 5"
+    },
+    {
+      "type": "text",
+      "id": "feature_5_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_5_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 6"
+    },
+    {
+      "type": "text",
+      "id": "feature_6_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_6_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 7"
+    },
+    {
+      "type": "text",
+      "id": "feature_7_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_7_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 8"
+    },
+    {
+      "type": "text",
+      "id": "feature_8_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_8_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 9"
+    },
+    {
+      "type": "text",
+      "id": "feature_9_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_9_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 10"
+    },
+    {
+      "type": "text",
+      "id": "feature_10_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_10_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 11"
+    },
+    {
+      "type": "text",
+      "id": "feature_11_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_11_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 12"
+    },
+    {
+      "type": "text",
+      "id": "feature_12_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_12_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 13"
+    },
+    {
+      "type": "text",
+      "id": "feature_13_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_13_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 14"
+    },
+    {
+      "type": "text",
+      "id": "feature_14_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_14_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 15"
+    },
+    {
+      "type": "text",
+      "id": "feature_15_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_15_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "header",
+      "content": "Feature 16"
+    },
+    {
+      "type": "text",
+      "id": "feature_16_label",
+      "label": "Label",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    },
+    {
+      "type": "textarea",
+      "id": "feature_16_tooltip",
+      "label": "Tooltip text",
+      "visible_if": "{{ block.settings.row_mode == 'legacy' }}"
+    }
+  ]
+}
+{% endschema %}

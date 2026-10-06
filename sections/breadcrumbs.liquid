@@ -1,0 +1,250 @@
+{% comment %}A product Collection reference metafield at custom.breadcrumb_collection overrides the default collection.{% endcomment %}
+{% liquid
+  assign breadcrumbs_container_width = 'page-width'
+  if section.settings.section_width == 'full_width'
+    assign breadcrumbs_container_width = 'full-width'
+  endif
+
+  assign breadcrumbs_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign breadcrumbs_scheme = section.settings.color_scheme.id
+  endif
+  assign breadcrumbs_scheme = breadcrumbs_scheme | default: 'scheme-1' | handleize
+
+  assign breadcrumbs_alignment = section.settings.alignment | default: 'left'
+  unless breadcrumbs_alignment == 'left' or breadcrumbs_alignment == 'center' or breadcrumbs_alignment == 'right'
+    assign breadcrumbs_alignment = 'left'
+  endunless
+  assign breadcrumbs_justify = 'flex-start'
+  if breadcrumbs_alignment == 'center'
+    assign breadcrumbs_justify = 'center'
+  elsif breadcrumbs_alignment == 'right'
+    assign breadcrumbs_justify = 'flex-end'
+  endif
+
+  assign breadcrumbs_separator_style = section.settings.separator_style | default: 'dot'
+  unless breadcrumbs_separator_style == 'dot' or breadcrumbs_separator_style == 'slash' or breadcrumbs_separator_style == 'chevron'
+    assign breadcrumbs_separator_style = 'dot'
+  endunless
+
+  assign breadcrumbs_text_size = section.settings.text_size | default: 'sm'
+  unless breadcrumbs_text_size == 'sm' or breadcrumbs_text_size == 'md' or breadcrumbs_text_size == 'lg'
+    assign breadcrumbs_text_size = 'sm'
+  endunless
+
+  assign breadcrumbs_collection = product.metafields.custom.breadcrumb_collection.value
+  if breadcrumbs_collection == blank
+    assign breadcrumbs_collection = product.collections | first
+  endif
+
+  assign breadcrumbs_padding_top = section.settings.padding_top | default: 34 | plus: 0
+  assign breadcrumbs_padding_bottom = section.settings.padding_bottom | default: 34 | plus: 0
+  assign breadcrumbs_padding_top_mobile = section.settings.padding_top_mobile | default: breadcrumbs_padding_top | plus: 0
+  assign breadcrumbs_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: breadcrumbs_padding_bottom | plus: 0
+%}
+
+{% capture breadcrumbs_style %}
+  {% if breadcrumbs_justify != 'flex-start' %}--breadcrumbs-justify: {{ breadcrumbs_justify }};{% endif %}
+  {% if breadcrumbs_padding_top != 34 %}--breadcrumbs-padding-top: {{ breadcrumbs_padding_top }}px;{% endif %}
+  {% if breadcrumbs_padding_bottom != 34 %}--breadcrumbs-padding-bottom: {{ breadcrumbs_padding_bottom }}px;{% endif %}
+  {% if section.settings.customize_mobile_padding %}
+    {% if breadcrumbs_padding_top_mobile != breadcrumbs_padding_top %}--breadcrumbs-padding-top-mobile: {{ breadcrumbs_padding_top_mobile }}px;{% endif %}
+    {% if breadcrumbs_padding_bottom_mobile != breadcrumbs_padding_bottom %}--breadcrumbs-padding-bottom-mobile: {{ breadcrumbs_padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign breadcrumbs_style = breadcrumbs_style | strip %}
+
+{{ 'breadcrumbs.css' | asset_url | stylesheet_tag }}
+
+<div
+  class="section-spacing breadcrumbs color-scheme section-color-scope {{ breadcrumbs_scheme }}{% if section.settings.show_top_divider %} breadcrumbs--top-divider{% endif %}{% if section.settings.show_bottom_divider %} breadcrumbs--bottom-divider{% endif %}"
+  {% if breadcrumbs_style != blank %}style="{{ breadcrumbs_style }}"{% endif %}
+>
+  <div class="container {{ breadcrumbs_container_width }} breadcrumbs__container">
+    <nav class="breadcrumbs__navigation" aria-label="{{ 'breadcrumbs.navigation_label' | t | escape }}">
+      <ol class="breadcrumbs__list body-{{ breadcrumbs_text_size }} breadcrumbs--separator-{{ breadcrumbs_separator_style }}">
+        <li class="breadcrumbs__item"><a href="{{ routes.root_url }}">{{ 'breadcrumbs.home' | t }}</a></li>
+
+        {% if breadcrumbs_collection != blank %}
+          <li class="breadcrumbs__separator" aria-hidden="true">
+            {% if breadcrumbs_separator_style == 'slash' %}
+              /
+            {% elsif breadcrumbs_separator_style == 'chevron' %}
+              {% render 'icon', icon: 'chevron-right', bare: true %}
+            {% endif %}
+          </li>
+          <li class="breadcrumbs__item"><a href="{{ breadcrumbs_collection.url }}">{{ breadcrumbs_collection.title | escape }}</a></li>
+        {% endif %}
+
+        <li class="breadcrumbs__separator" aria-hidden="true">
+          {% if breadcrumbs_separator_style == 'slash' %}
+            /
+          {% elsif breadcrumbs_separator_style == 'chevron' %}
+            {% render 'icon', icon: 'chevron-right', bare: true %}
+          {% endif %}
+        </li>
+        <li class="breadcrumbs__item breadcrumbs__item--current" aria-current="page">{{ product.title | escape }}</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:general.breadcrumbs",
+  "class": "section-breadcrumbs",
+  "limit": 1,
+  "enabled_on": { "templates": ["product"] },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:info.breadcrumb_collection_metafield"
+    },
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" }
+      ],
+      "default": "full_width"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_top_divider",
+      "label": "t:labels.show_top_divider",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_bottom_divider",
+      "label": "t:labels.show_bottom_divider",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "separator_style",
+      "label": "t:labels.separator_style",
+      "options": [
+        { "value": "dot", "label": "t:options.breadcrumb_separator.dot" },
+        { "value": "slash", "label": "t:options.breadcrumb_separator.slash" },
+        { "value": "chevron", "label": "t:options.breadcrumb_separator.chevron" }
+      ],
+      "default": "dot"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "t:labels.text_size",
+      "options": [
+        { "value": "sm", "label": "t:options.text_size.sm" },
+        { "value": "md", "label": "t:options.text_size.md" },
+        { "value": "lg", "label": "t:options.text_size.lg" }
+      ],
+      "default": "sm"
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 34
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 34
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.breadcrumbs",
+      "category": "t:general.navigation",
+      "settings": {
+        "section_width": "full_width",
+        "show_top_divider": true,
+        "show_bottom_divider": false,
+        "separator_style": "dot",
+        "alignment": "left",
+        "text_size": "sm",
+        "color_scheme": "scheme-1",
+        "padding_top": 34,
+        "padding_bottom": 34,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 24,
+        "padding_bottom_mobile": 24
+      }
+    }
+  ]
+}
+{% endschema %}

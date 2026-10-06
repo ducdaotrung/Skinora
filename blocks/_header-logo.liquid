@@ -1,0 +1,136 @@
+{% liquid
+  assign logo_position = block.settings.position | default: 'center'
+  unless logo_position == 'left' or logo_position == 'center'
+    assign logo_position = 'center'
+  endunless
+
+  assign logo_width = settings.logo_width | default: 180 | plus: 0
+  assign logo_width_mobile = settings.logo_width_mobile | default: 140 | plus: 0
+  assign logo_sizes = '(min-width: 992px) ' | append: logo_width | append: 'px, ' | append: logo_width_mobile | append: 'px'
+  assign logo_image = settings.logo
+  assign logo_class = 'header-logo site-logo header-logo--' | append: logo_position
+
+  assign logo_has_overlay_image = false
+  if template.name == 'index' and section.settings.header_overlay and settings.logo_transparent != blank
+    assign logo_has_overlay_image = true
+  endif
+%}
+
+<a
+  class="{{ logo_class }}"
+  href="{{ routes.root_url }}"
+  aria-label="{{ shop.name | escape }}"
+  {{ block.shopify_attributes }}
+>
+  {% if logo_has_overlay_image %}
+    {{ settings.logo_transparent | image_url: width: logo_width | image_tag: widths: '80, 120, 140, 180, 240, 320, 400', sizes: logo_sizes, class: 'site-logo__image site-logo__image--overlay', alt: shop.name }}
+  {% endif %}
+  {% if logo_image != blank %}
+    {{
+      logo_image
+      | image_url: width: logo_width
+      | image_tag:
+        widths: '80, 120, 140, 180, 240, 320, 400',
+        sizes: logo_sizes,
+        class: 'site-logo__image site-logo__image--base',
+        alt: shop.name
+    }}
+  {% else %}
+    <span class="site-logo__fallback heading-text heading-md">{{ shop.name | escape }}</span>
+  {% endif %}
+</a>
+
+{% stylesheet %}
+  .header-logo {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .site-logo {
+    display: flex;
+    align-items: center;
+    width: var(--logo-width);
+    max-width: min(var(--logo-width), 45vw);
+    min-width: 0;
+    color: var(--body-color);
+    text-decoration: none;
+  }
+
+  .site-logo .site-logo__image--overlay { display: none; }
+  .header-top--transparent-scheme .site-logo:has(.site-logo__image--overlay) > :is(.site-logo__image--base, .site-logo__fallback) { display: none; }
+  .header-top--transparent-scheme .site-logo .site-logo__image--overlay { display: block; }
+
+  .site-logo__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 4rem;
+    object-fit: contain;
+  }
+
+  .site-logo__fallback {
+    overflow-wrap: normal;
+    white-space: nowrap;
+  }
+
+  .site-logo:has(.site-logo__fallback) { width: max-content; }
+
+  .header-logo--left {
+    margin-inline-end: auto;
+  }
+
+  .header-logo--center {
+    position: absolute;
+    inset-inline-start: 50%;
+    justify-content: center;
+    transform: translateX(-50%);
+  }
+
+  @media (max-width: 991.98px) {
+    .site-logo {
+      width: min(var(--logo-width-mobile), 52vw);
+      max-width: min(var(--logo-width-mobile), 52vw);
+    }
+
+    .site-logo__image {
+      max-height: 3rem;
+    }
+
+    .site-logo__fallback {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header_logo",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:info.header_logo"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" }
+      ],
+      "default": "center"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.header_logo",
+      "category": "t:general.header"
+    }
+  ]
+}
+{% endschema %}

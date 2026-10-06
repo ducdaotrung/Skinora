@@ -1,0 +1,307 @@
+{% liquid
+  assign testimonial_direction = block.settings.direction | default: 'horizontal'
+  unless testimonial_direction == 'horizontal' or testimonial_direction == 'vertical'
+    assign testimonial_direction = 'horizontal'
+  endunless
+
+  assign testimonial_position = block.settings.position | default: 'center'
+  unless testimonial_position == 'top' or testimonial_position == 'center' or testimonial_position == 'bottom'
+    assign testimonial_position = 'center'
+  endunless
+
+  assign testimonial_alignment = block.settings.alignment | default: 'center'
+  unless testimonial_alignment == 'left' or testimonial_alignment == 'center' or testimonial_alignment == 'right' or testimonial_alignment == 'space-between'
+    assign testimonial_alignment = 'center'
+  endunless
+
+  assign testimonial_alignment_mobile = block.settings.alignment_mobile | default: 'center'
+  unless testimonial_alignment_mobile == 'left' or testimonial_alignment_mobile == 'center' or testimonial_alignment_mobile == 'right'
+    assign testimonial_alignment_mobile = 'center'
+  endunless
+
+  assign testimonial_gap_desktop = block.settings.gap_desktop | default: 80 | plus: 0
+  assign testimonial_gap_mobile = block.settings.gap_mobile | default: 36 | plus: 0
+  assign testimonial_border_thickness = block.settings.border_thickness | default: 0 | plus: 0
+  if testimonial_border_thickness < 0 or testimonial_border_thickness > 8
+    assign testimonial_border_thickness = 0
+  endif
+
+  assign testimonial_radius = block.settings.corner_radius | default: 'square'
+  unless testimonial_radius == 'square' or testimonial_radius == 'slightly_rounded' or testimonial_radius == 'rounded' or testimonial_radius == 'pill'
+    assign testimonial_radius = 'square'
+  endunless
+
+  assign testimonial_shadow = block.settings.shadow | default: 'none'
+  unless testimonial_shadow == 'none' or testimonial_shadow == 'small' or testimonial_shadow == 'medium' or testimonial_shadow == 'large'
+    assign testimonial_shadow = 'none'
+  endunless
+
+  assign testimonial_position_value = 'center'
+  if testimonial_position == 'top'
+    assign testimonial_position_value = 'start'
+  elsif testimonial_position == 'bottom'
+    assign testimonial_position_value = 'end'
+  endif
+
+  assign testimonial_alignment_mobile_value = 'center'
+  if testimonial_alignment_mobile == 'left'
+    assign testimonial_alignment_mobile_value = 'start'
+  elsif testimonial_alignment_mobile == 'right'
+    assign testimonial_alignment_mobile_value = 'end'
+  endif
+
+%}
+
+{% capture testimonial_style %}
+  --testimonial-gap-desktop: {{ testimonial_gap_desktop }}px;
+  --testimonial-gap-mobile: {{ testimonial_gap_mobile }}px;
+  --testimonial-border-width: {{ testimonial_border_thickness }}px;
+  {% if block.settings.background_color != blank %}--testimonial-background-color: {{ block.settings.background_color | escape }};{% endif %}
+  {% if block.settings.background_image != blank %}--testimonial-background-image: url('{{ block.settings.background_image | image_url: width: 2400 }}');{% endif %}
+  {% if block.settings.overlay_color != blank %}--testimonial-overlay-color: {{ block.settings.overlay_color | escape }};{% endif %}
+  --testimonial-overlay-opacity: 1;
+  --testimonial-mobile-justify: {{ testimonial_alignment_mobile_value }};
+{% endcapture %}
+
+<article
+  class="testimonial-item testimonial-item--{{ testimonial_direction }} testimonial-item--position-{{ testimonial_position }} testimonial-item--align-{{ testimonial_alignment }} testimonial-item--radius-{{ testimonial_radius }} testimonial-item--shadow-{{ testimonial_shadow }}{% if block.settings.vertical_on_mobile and testimonial_direction == 'horizontal' %} testimonial-item--vertical-mobile{% endif %}{% if block.settings.overlay_color != blank %} testimonial-item--has-overlay{% endif %} swiper-slide"
+  style="{{ testimonial_style | strip }}"
+  {{ block.shopify_attributes }}
+>
+  {% content_for 'blocks' %}
+</article>
+
+{% stylesheet %}
+  .testimonial-item {
+    position: relative;
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    gap: var(--testimonial-gap-desktop, 80px);
+    align-items: var(--testimonial-position, center);
+    border: var(--testimonial-border-width, 0px) solid var(--border-color);
+    border-radius: var(--testimonial-radius, var(--radius-square));
+    background-color: var(--testimonial-background-color, var(--background-color));
+    background-image: var(--testimonial-background-image, none);
+    background-position: center;
+    background-size: cover;
+    box-shadow: var(--testimonial-shadow, none);
+    isolation: isolate;
+  }
+  .testimonial-item--horizontal.swiper-slide {
+    display: flex !important;
+    flex-direction: row;
+  }
+  .testimonial-item--horizontal > .image-block,
+  .testimonial-item--horizontal > .group {
+    flex: 1 1 0%;
+  }
+  .testimonial-item--vertical.swiper-slide {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .testimonial-item--position-top { --testimonial-position: start; }
+  .testimonial-item--position-center { --testimonial-position: center; }
+  .testimonial-item--position-bottom { --testimonial-position: end; }
+  .testimonial-item--position-top > .group { --layout-flow-justify-content: flex-start !important; }
+  .testimonial-item--position-center > .group { --layout-flow-justify-content: center !important; }
+  .testimonial-item--position-bottom > .group { --layout-flow-justify-content: flex-end !important; }
+  .testimonial-item--align-left { justify-items: start; }
+  .testimonial-item--align-center { justify-items: center; }
+  .testimonial-item--align-right { justify-items: end; }
+  .testimonial-item--align-space-between { justify-content: space-between; }
+  .testimonial-item--radius-square { --testimonial-radius: var(--radius-square); }
+  .testimonial-item--radius-slightly_rounded { --testimonial-radius: var(--radius-slight); }
+  .testimonial-item--radius-rounded { --testimonial-radius: var(--radius-rounded); }
+  .testimonial-item--radius-pill { --testimonial-radius: var(--radius-pill); }
+  .testimonial-item--shadow-small { --testimonial-shadow: 0 0.25rem 0.75rem color-mix(in srgb, var(--shadow-color) 12%, transparent); }
+  .testimonial-item--shadow-medium { --testimonial-shadow: 0 0.5rem 1.25rem color-mix(in srgb, var(--shadow-color) 18%, transparent); }
+  .testimonial-item--shadow-large { --testimonial-shadow: 0 1rem 2rem color-mix(in srgb, var(--shadow-color) 24%, transparent); }
+  .testimonial-item--has-overlay::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background: var(--testimonial-overlay-color, transparent);
+    opacity: var(--testimonial-overlay-opacity, 0);
+    content: '';
+    pointer-events: none;
+  }
+  .testimonial-item > .image-block,
+  .testimonial-item > .group { min-width: 0; width: 100%; max-width: none; }
+  .testimonial-item > .image-block,
+  .testimonial-item > .group { position: relative; z-index: 1; }
+  .testimonial-item > .image-block { align-self: var(--testimonial-position, center); }
+  .testimonial-item > .image-block .image-block__media { height: 100%; min-height: 100%; border-radius: inherit; }
+  .testimonial-item > .group { align-self: var(--testimonial-position, center); justify-content: center; }
+  .testimonial-item > .group .eyebrow-block { margin-bottom: 1rem; letter-spacing: 0.12em; }
+  .testimonial-item > .group .text-block:first-of-type { letter-spacing: 0.05em; }
+  @media (max-width: 767.98px) {
+    .testimonial-item { gap: var(--testimonial-gap-mobile, 36px); }
+    .testimonial-item--vertical.swiper-slide,
+    .testimonial-item--vertical-mobile.swiper-slide {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .testimonial-item--align-left { justify-items: start; }
+    .testimonial-item--align-center { justify-items: center; }
+    .testimonial-item--align-right { justify-items: end; }
+    .testimonial-item--align-space-between { justify-content: space-between; }
+    .testimonial-item { justify-items: var(--testimonial-mobile-justify, center); }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Testimonial item",
+  "tag": null,
+  "blocks": [
+    { "type": "image" },
+    { "type": "group" }
+  ],
+  "settings": [
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "Direction",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal" },
+        { "value": "vertical", "label": "Vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Position",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" },
+        { "value": "space-between", "label": "Space between" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "vertical_on_mobile",
+      "label": "Vertical on mobile",
+      "default": true,
+      "visible_if": "{{ block.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "Mobile alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center",
+      "visible_if": "{{ block.settings.direction == 'vertical' or block.settings.vertical_on_mobile }}"
+    },
+    { "type": "header", "content": "Gap" },
+    { "type": "range", "id": "gap_desktop", "label": "Desktop gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 80 },
+    { "type": "range", "id": "gap_mobile", "label": "Mobile gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 36 },
+    { "type": "header", "content": "Appearance" },
+    { "type": "range", "id": "border_thickness", "label": "Border thickness", "min": 0, "max": 8, "step": 1, "unit": "px", "default": 0 },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "Corner radius",
+      "options": [
+        { "value": "square", "label": "Square" },
+        { "value": "slightly_rounded", "label": "Slightly rounded" },
+        { "value": "rounded", "label": "Rounded" },
+        { "value": "pill", "label": "Pill" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "Shadow",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "none"
+    },
+    { "type": "header", "content": "Background" },
+    { "type": "color", "alpha": true, "id": "background_color", "label": "Background color" },
+    { "type": "image_picker", "id": "background_image", "label": "Background image" },
+    { "type": "header", "content": "Overlay" },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "overlay_color",
+      "label": "Overlay color"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Testimonial item",
+      "category": "Trust & social proof",
+      "settings": {
+        "direction": "horizontal",
+        "position": "center",
+        "alignment": "center",
+        "vertical_on_mobile": true,
+        "alignment_mobile": "center",
+        "gap_desktop": 80,
+        "gap_mobile": 36,
+        "border_thickness": 0,
+        "corner_radius": "square",
+        "shadow": "none"
+},
+      "blocks": [
+        {
+          "type": "image",
+          "settings": {
+            "image_ratio_desktop": "square",
+            "image_ratio_mobile": "square",
+            "width_desktop": "fill",
+            "width_mobile": "fill"
+          }
+        },
+        {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "width": "fill",
+            "height": "fill",
+            "gap_desktop": 16,
+            "gap_mobile": 12,
+            "appearance_type": "inherit",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none"
+          },
+          "blocks": [
+            { "type": "eyebrow", "settings": { "text": "<p>FROM THE PEOPLE</p>" } },
+            { "type": "icon", "settings": { "source": "library", "icon": "five-stars", "icon_width": 74, "custom_mobile": false } },
+            { "type": "text", "settings": { "text": "<p>Share a customer testimonial that builds trust in your products and brand.</p>", "text_size": "md" } },
+            { "type": "heading", "settings": { "text": "<p>— Customer name</p>", "heading_size": "xs", "html_tag": "h5", "width": "fit", "customize_mobile_size": false, "width_mobile": "fit" } }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

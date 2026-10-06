@@ -1,0 +1,53 @@
+{% doc %}
+  Groups location items into the interactive store list.
+{% enddoc %}
+
+{% liquid
+  assign location_list_active_background = block.settings.active_background_color | default: '#F7EFED'
+  assign location_list_active_border = block.settings.active_border_color | default: '#000000'
+  assign location_list_block_gap = block.settings.gap | default: 24 | plus: 0
+  assign location_list_block_gap_mobile = block.settings.gap_mobile | default: 16 | plus: 0
+%}
+
+<div class="location-list-block" style="--location-list-block-gap: {{ location_list_block_gap }}px; --location-list-block-gap-mobile: {{ location_list_block_gap_mobile }}px; --location-list-active-background: {{ location_list_active_background | escape }}; --location-list-active-border: {{ location_list_active_border | escape }};" {{ block.shopify_attributes }}>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .location-list-block {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--location-list-block-gap, 0px);
+  }
+
+  @media (max-width: 767.98px) {
+    .location-list-block {
+      gap: var(--location-list-block-gap-mobile, var(--location-list-block-gap, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Location list group",
+  "tag": null,
+  "blocks": [{ "type": "location-item" }],
+  "settings": [
+    { "type": "header", "content": "Active store" },
+    { "type": "color", "alpha": true, "id": "active_background_color", "label": "Background", "default": "#F7EFED" },
+    { "type": "color", "alpha": true, "id": "active_border_color", "label": "Left border", "default": "#000000" },
+    { "type": "header", "content": "Gap" },
+    { "type": "range", "id": "gap", "label": "Desktop", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 24 },
+    { "type": "range", "id": "gap_mobile", "label": "Mobile", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16 }
+  ],
+  "presets": [
+    {
+      "name": "Location list",
+      "category": "t:general.content",
+      "settings": { "active_background_color": "#F7EFED", "active_border_color": "#000000", "gap": 24, "gap_mobile": 16 }
+    }
+  ]
+}
+{% endschema %}

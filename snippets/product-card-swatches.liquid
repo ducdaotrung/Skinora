@@ -1,0 +1,213 @@
+{% doc %}
+  Renders product option swatches for the Product cards surface.
+
+  The standard Shopify option-value swatch object determines the option when
+  available. A legacy `Color` option name remains a data fallback only, so a
+  merchant never loses a useful variant link while migrating product data.
+  Each local option carries inert media/price templates for inline selection.
+  The visible structure follows the reference card picker: custom element,
+  form, list, list item, label, radio, visual swatch and accessible name.
+
+  @param {product} product - Product whose option values should be rendered
+  @param {boolean} [secondary_image_enabled] - Whether the card supports the secondary hover image
+  @param {number} [image_width] - Product card image width
+  @param {number} [image_height] - Product card fixed image height
+
+  @example
+  {% render 'product-card-swatches', product: product %}
+{% enddoc %}
+
+{% liquid
+  assign swatch_option = blank
+  assign swatch_has_native_values = false
+  for option in product.options_with_values
+    for option_value in option.values
+      if option_value.swatch != blank
+        assign swatch_option = option
+        assign swatch_has_native_values = true
+        break
+      endif
+    endfor
+    if swatch_option != blank
+      break
+    endif
+  endfor
+
+  if swatch_option == blank
+    for option in product.options_with_values
+      if option.name == 'Color'
+        assign swatch_option = option
+        break
+      endif
+    endfor
+  endif
+
+  assign swatch_limit = settings.product_card_swatch_limit | default: 4 | plus: 0
+  assign swatch_option_value_count = 0
+  if swatch_option != blank
+    for option_value in swatch_option.values
+      if swatch_has_native_values
+        if option_value.swatch != blank
+          assign swatch_option_value_count = swatch_option_value_count | plus: 1
+        endif
+      else
+        assign swatch_option_value_count = swatch_option_value_count | plus: 1
+      endif
+    endfor
+  endif
+  assign swatch_overflow_count = swatch_option_value_count | minus: swatch_limit
+  assign swatch_type = settings.product_card_swatch_type | default: settings.swatch_style | default: 'color'
+  unless swatch_type == 'variant_image'
+    assign swatch_type = 'color'
+  endunless
+  assign selected_style = settings.product_card_swatch_selected_style | default: 'border'
+  unless selected_style == 'underline'
+    assign selected_style = 'border'
+  endunless
+
+  assign swatch_variant_templates = ''
+  assign swatches_rendered = 0
+  assign swatch_product_url = product.url | split: '?' | first
+%}
+
+{% if swatch_option != blank and swatch_option_value_count > 0 %}
+  <swatches-variant-picker-component
+    class="product-card__swatches-variant-picker"
+    data-product-id="{{ product.id }}"
+    data-product-url="{{ swatch_product_url | escape }}"
+  >
+    <form autocomplete="off">
+      <ul
+        class="product-card__swatches product-card__swatches--selected-{{ selected_style }}"
+        data-product-card-swatches
+        data-product-id="{{ product.id }}"
+        data-product-url="{{ swatch_product_url | escape }}"
+      >
+    {% for option_value in swatch_option.values %}
+      {% if swatch_has_native_values and option_value.swatch == blank %}{% continue %}{% endif %}
+      {% if swatches_rendered >= swatch_limit %}{% break %}{% endif %}
+      {% assign swatches_rendered = swatches_rendered | plus: 1 %}
+      {% liquid
+        assign swatch_variant = option_value.variant
+        assign swatch_image = swatch_variant.featured_image | default: product.featured_image
+        assign swatch_secondary_image = blank
+        if secondary_image_enabled != false and swatch_variant != blank and swatch_image != blank
+          for product_image in product.images
+            if product_image.id != swatch_image.id and product_image.variants != blank
+              for image_variant in product_image.variants
+                if image_variant.id == swatch_variant.id
+                  assign swatch_secondary_image = product_image
+                  break
+                endif
+              endfor
+              if swatch_secondary_image != blank
+                break
+              endif
+            endif
+          endfor
+
+          if swatch_secondary_image == blank
+            for product_image in product.images
+              if product_image.id != swatch_image.id and product_image.variants == blank
+                assign swatch_secondary_image = product_image
+                break
+              endif
+            endfor
+          endif
+        endif
+
+        assign swatch_url = option_value.product_url | default: swatch_product_url
+        if option_value.product_url == blank and swatch_variant != blank
+          assign swatch_url = swatch_product_url | append: '?variant=' | append: swatch_variant.id
+        endif
+
+        assign swatch_is_sold_out = false
+        if option_value.available == false and option_value.product_url == blank
+          assign swatch_is_sold_out = true
+        endif
+      %}
+      {% if option_value.product_url == blank and swatch_variant == blank %}
+        {% capture swatch_option_value_ids %}
+          {%- assign option_value_separator = '' -%}
+          {%- for product_option in product.options_with_values -%}
+            {%- if product_option.position == swatch_option.position -%}
+              {{- option_value_separator -}}{{- option_value.id -}}
+            {%- else -%}
+              {%- assign selected_option_value = blank -%}
+              {%- for product_option_value in product_option.values -%}
+                {%- if product_option_value.selected -%}
+                  {%- assign selected_option_value = product_option_value -%}
+                  {%- break -%}
+                {%- endif -%}
+              {%- endfor -%}
+              {%- if selected_option_value == blank -%}
+                {%- assign selected_option_value = product_option.values.first -%}
+              {%- endif -%}
+              {%- if selected_option_value != blank -%}
+                {{- option_value_separator -}}{{- selected_option_value.id -}}
+              {%- endif -%}
+            {%- endif -%}
+            {%- assign option_value_separator = ',' -%}
+          {%- endfor -%}
+        {% endcapture %}
+        {% assign swatch_option_value_ids = swatch_option_value_ids | strip %}
+        {% if swatch_option_value_ids != blank %}
+          {% assign swatch_url = swatch_product_url | append: '?option_values=' | append: swatch_option_value_ids %}
+        {% endif %}
+      {% endif %}
+      <li class="product-card__swatch-item{% if swatch_is_sold_out %} product-card__swatch-item--sold-out{% endif %}">
+        {% capture card_swatch_input %}
+          <input
+            class="product-card__swatch-input"
+            type="radio"
+            name="{{ swatch_option.name | escape }}-{{ product.id }}-swatch"
+            value="{{ option_value.name | escape }}"
+            {% if swatch_is_sold_out %}aria-disabled="true"{% endif %}
+            data-product-card-swatch
+            data-product-url="{{ swatch_url | escape }}"
+            data-option-value-id="{{ option_value.id }}"
+            {% if swatch_variant != blank %}
+              data-variant-id="{{ swatch_variant.id }}"
+              data-first-available-or-first-variant-id="{{ swatch_variant.id }}"
+            {% endif %}
+            {% if swatch_is_sold_out %}disabled{% endif %}
+          >
+        {% endcapture %}
+        {% assign card_swatch_state = 'available' %}
+        {% if swatch_is_sold_out %}{% assign card_swatch_state = 'sold-out' %}{% endif %}
+        {% capture card_swatch_class %}product-card__swatch-label{% if swatch_is_sold_out %} product-card__swatch-label--sold-out{% endif %}{% endcapture %}
+        {% render 'swatch-option', input_markup: card_swatch_input, value: option_value.name, swatch: option_value.swatch, image: swatch_image, style: swatch_type, selected_style: selected_style, state: card_swatch_state, class: card_swatch_class, visual_class: 'product-card__swatch-box' %}
+      </li>
+      {% if option_value.product_url == blank and swatch_variant != blank %}
+        {% capture swatch_variant_template %}
+          <template data-product-card-variant="{{ swatch_variant.id }}">
+            {% render 'product-card-price', item: swatch_variant %}
+            {% if swatch_image != blank %}
+              {% render 'image', image: swatch_image, class: 'product-card__image', width: image_width, height: image_height, crop: 'center', alt: product.title %}
+            {% endif %}
+            {% if swatch_secondary_image != blank %}
+              {% render 'image', image: swatch_secondary_image, class: 'product-card__secondary-image', width: image_width, height: image_height, crop: 'center', alt: product.title %}
+            {% endif %}
+          </template>
+        {% endcapture %}
+        {% assign swatch_variant_templates = swatch_variant_templates | append: swatch_variant_template %}
+      {% endif %}
+    {% endfor %}
+    {% if swatch_overflow_count > 0 %}
+      <li class="product-card__swatch-more" slot="more">
+        <button
+          type="button"
+          class="product-card__swatch-count btn btn-tertiary btn--tertiary"
+          aria-label="{{ 'products.show_all_options' | t | escape }}"
+          data-product-card-swatch-more
+        >
+          <span class="product-card__swatch-count-label btn__text">+{{ swatch_overflow_count }}</span>
+          <span class="bouncing-dots hidden" data-loading-dots aria-hidden="true"><span></span></span>
+        </button>
+      </li>
+    {% endif %}
+      </ul>
+    </form>
+    {{ swatch_variant_templates }}
+  </swatches-variant-picker-component>
+{% endif %}

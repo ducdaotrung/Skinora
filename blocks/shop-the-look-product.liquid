@@ -1,0 +1,181 @@
+{% doc %}
+  Renders one product card in a Shop the look list.
+
+  This block owns the product and hotspot settings. The shared product-card
+  snippet keeps card presentation aligned with collection and recommendation
+  surfaces; the hidden hotspot source is moved to the section image by the
+  parent Shop the look controller. Unassigned or unavailable products retain
+  their placeholder card on the storefront as well as in the Theme Editor.
+
+  @example
+  {% content_for 'block', type: 'shop-the-look-product', id: 'product-1' %}
+{% enddoc %}
+
+{% liquid
+  assign shop_the_look_product = block.settings.product
+  assign shop_the_look_product_id = blank
+  assign shop_the_look_product_url = blank
+  assign shop_the_look_has_product = false
+  if shop_the_look_product != blank
+    assign shop_the_look_product_id = shop_the_look_product.id | default: blank
+    assign shop_the_look_product_url = shop_the_look_product.url | default: blank
+    if shop_the_look_product_id != blank and shop_the_look_product_url != blank
+      assign shop_the_look_has_product = true
+    endif
+  endif
+  assign shop_the_look_product_placeholder = false
+  unless shop_the_look_has_product
+    assign shop_the_look_product_placeholder = true
+  endunless
+%}
+
+  <div
+    class="shop-the-look-product product-card-layout__item swiper-slide"
+    {% if shop_the_look_has_product %}data-shop-the-look-product="{{ shop_the_look_product_id }}"{% else %}data-shop-the-look-product{% endif %}
+    data-shop-the-look-block-id="{{ block.id }}"
+    {{ block.shopify_attributes }}
+  >
+    {% render 'product-card',
+      product: shop_the_look_product,
+      placeholder: shop_the_look_product_placeholder,
+      class: 'shop-the-look-product__card'
+    %}
+
+    <div class="shop-the-look-product__hotspot-source" data-shop-the-look-hotspot-source hidden aria-hidden="true">
+      {% assign shop_the_look_hotspot_placeholder = false %}
+      {% if shop_the_look_has_product == false %}
+        {% assign shop_the_look_hotspot_placeholder = true %}
+      {% endif %}
+      {% assign shop_the_look_render_hotspot = false %}
+      {% if block.settings.show_hotspot != false %}
+        {% if shop_the_look_has_product or request.design_mode and shop_the_look_hotspot_placeholder %}
+          {% assign shop_the_look_render_hotspot = true %}
+        {% endif %}
+      {% endif %}
+      {% if shop_the_look_render_hotspot %}
+        {% assign shop_the_look_hotspot_x = block.settings.hotspot_horizontal | default: 50 | plus: 0 %}
+        {% assign shop_the_look_hotspot_y = block.settings.hotspot_vertical | default: 50 | plus: 0 %}
+        {% assign shop_the_look_hotspot_x_mobile = shop_the_look_hotspot_x %}
+        {% assign shop_the_look_hotspot_y_mobile = shop_the_look_hotspot_y %}
+        {% if block.settings.customize_mobile_position %}
+          {% assign shop_the_look_hotspot_x_mobile = block.settings.hotspot_horizontal_mobile | default: shop_the_look_hotspot_x | plus: 0 %}
+          {% assign shop_the_look_hotspot_y_mobile = block.settings.hotspot_vertical_mobile | default: shop_the_look_hotspot_y | plus: 0 %}
+        {% endif %}
+
+        {% render 'product-hotspot',
+          product: shop_the_look_product,
+          placeholder: shop_the_look_hotspot_placeholder,
+          block_id: block.id,
+          x: shop_the_look_hotspot_x,
+          y: shop_the_look_hotspot_y,
+          mobile_x: shop_the_look_hotspot_x_mobile,
+          mobile_y: shop_the_look_hotspot_y_mobile
+        %}
+      {% endif %}
+    </div>
+  </div>
+
+{% stylesheet %}
+  .shop-the-look-product {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .shop-the-look-product__card {
+    width: 100%;
+  }
+
+  .shop-the-look-product__hotspot-source {
+    display: none;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.product",
+  "tag": null,
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "t:labels.product"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_hotspot",
+      "label": "t:labels.show_hotspot_on_image",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:labels.hotspot_position",
+      "visible_if": "{{ block.settings.show_hotspot }}"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_horizontal",
+      "label": "t:labels.horizontal",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.show_hotspot }}"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_vertical",
+      "label": "t:labels.vertical",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.show_hotspot }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_position",
+      "label": "t:labels.custom_mobile_position",
+      "default": false,
+      "visible_if": "{{ block.settings.show_hotspot }}"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_horizontal_mobile",
+      "label": "t:labels.horizontal_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.show_hotspot and block.settings.customize_mobile_position }}"
+    },
+    {
+      "type": "range",
+      "id": "hotspot_vertical_mobile",
+      "label": "t:labels.vertical_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.show_hotspot and block.settings.customize_mobile_position }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.product",
+      "category": "t:general.product",
+      "settings": {
+        "show_hotspot": true,
+        "hotspot_horizontal": 50,
+        "hotspot_vertical": 50,
+        "customize_mobile_position": false,
+        "hotspot_horizontal_mobile": 50,
+        "hotspot_vertical_mobile": 50
+      }
+    }
+  ]
+}
+{% endschema %}

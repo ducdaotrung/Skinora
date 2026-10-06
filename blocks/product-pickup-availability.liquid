@@ -1,0 +1,219 @@
+{% doc %}
+  Pickup availability for the selected product variant. The block intentionally
+  renders only when at least one variant has retail pickup configured.
+{% enddoc %}
+
+{% liquid
+  assign pickup_product = closest.product | default: product
+  assign pickup_variant = pickup_product.selected_or_first_available_variant
+  assign has_pickup = false
+  for variant in pickup_product.variants
+    assign variant_has_pickup = false
+    for availability in variant.store_availabilities
+      if availability.available
+        assign variant_has_pickup = true
+        break
+      endif
+    endfor
+    if variant_has_pickup
+      assign has_pickup = true
+      break
+    endif
+  endfor
+
+  assign pickup_store = blank
+  for availability in pickup_variant.store_availabilities
+    if availability.available
+      assign pickup_store = availability
+      break
+    endif
+  endfor
+
+  assign boxed = block.settings.boxed | default: false
+  assign pickup_desktop_layout = block.settings.desktop_layout | default: 'drawer'
+  unless pickup_desktop_layout == 'popup' or pickup_desktop_layout == 'drawer'
+    assign pickup_desktop_layout = 'drawer'
+  endunless
+  assign pickup_mobile_layout = block.settings.mobile_layout | default: 'bottom_sheet'
+  unless pickup_mobile_layout == 'bottom_sheet' or pickup_mobile_layout == 'drawer'
+    assign pickup_mobile_layout = 'bottom_sheet'
+  endunless
+  assign message_size = block.settings.message_size | default: 'medium'
+  assign message_color = block.settings.message_color | default: 'text'
+  assign pickup_id = 'PickupAvailability-' | append: section.id | append: '-' | append: block.id
+  assign pickup_title_id = pickup_id | append: '-title'
+  assign border_thickness = block.settings.border_thickness | default: 1
+  assign corner_radius = block.settings.corner_radius | default: 'inherit'
+  assign shadow = block.settings.shadow | default: 'none'
+  assign appearance_type = block.settings.appearance_type | default: 'inherit'
+  assign color_scheme = block.settings.color_scheme | default: 'scheme-1'
+  if block.settings.color_scheme.id != blank
+    assign color_scheme = block.settings.color_scheme.id
+  endif
+  assign padding_top = block.settings.padding_top | default: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 0
+  assign mobile_padding_top = block.settings.mobile_padding_top | default: 0
+  assign mobile_padding_bottom = block.settings.mobile_padding_bottom | default: 0
+
+  capture pickup_style
+    echo '--pickup-border-width: ' | append: border_thickness | append: 'px;'
+    echo '--pickup-padding-top: ' | append: padding_top | append: 'px;'
+    echo '--pickup-padding-bottom: ' | append: padding_bottom | append: 'px;'
+    echo '--pickup-padding-top-mobile: ' | append: mobile_padding_top | append: 'px;'
+    echo '--pickup-padding-bottom-mobile: ' | append: mobile_padding_bottom | append: 'px;'
+  endcapture
+%}
+
+{% if has_pickup %}
+  <product-pickup-availability
+    class="product-pickup-availability{% if boxed %} product-pickup-availability--boxed{% endif %} product-pickup-availability--radius-{{ corner_radius }} product-pickup-availability--shadow-{{ shadow }} product-pickup-availability--message-{{ message_size }} product-pickup-availability--message-{{ message_color }}{% if appearance_type == 'color_scheme' %} section-color-scope color-scheme {{ color_scheme | handleize }}{% endif %}"
+    data-product-pickup-availability
+    data-current-variant-id="{{ pickup_variant.id | default: '' }}"
+    data-desktop-layout="{{ pickup_desktop_layout }}"
+    data-mobile-layout="{{ pickup_mobile_layout }}"
+    {% if block.settings.custom_mobile_padding %}data-custom-mobile-padding{% endif %}
+    style="{{ pickup_style }}"
+    {{ block.shopify_attributes }}
+  >
+    <div data-pickup-availability-message role="status" aria-live="polite">
+      {% if pickup_store != blank %}
+        {% render 'icon', icon: 'check', bare: true, class: 'product-pickup-availability__icon' %}
+        <span>Pickup available at {{ pickup_store.location.name | escape }}{% if pickup_store.pick_up_time != blank %} — {{ pickup_store.pick_up_time | escape }}{% endif %}</span>
+      {% endif %}
+    </div>
+    <button class="product-pickup-availability__link" type="button" data-pickup-availability-open data-pdp-drawer-open aria-haspopup="dialog" aria-controls="{{ pickup_id }}" aria-expanded="false">Check availability at other stores</button>
+
+    {% capture pickup_content %}
+            <div class="product-pickup-availability__product">
+              {% if pickup_product.featured_image != blank %}
+                {{ pickup_product.featured_image | image_url: width: 160 | image_tag: widths: '80, 160', class: 'product-pickup-availability__image', loading: 'lazy' }}
+              {% endif %}
+              <div><h2 id="{{ pickup_title_id }}" class="product-pickup-availability__title">{{ pickup_product.title | escape }}</h2><p class="product-pickup-availability__variant" data-pickup-availability-variant>{{ pickup_variant.title | escape }}</p></div>
+            </div>
+            <div class="product-pickup-availability__stores" data-pickup-availability-stores>{% render 'pickup-availability-stores', variant: pickup_variant %}</div>
+    {% endcapture %}
+    {% render 'component-overlay', id: pickup_id, label: pickup_product.title, content: pickup_content, append_to_body: true, desktop_layout: pickup_desktop_layout, mobile_layout: pickup_mobile_layout, attributes: 'data-pickup-availability-dialog data-pdp-drawer', body_class: 'product-pickup-availability__body' %}
+
+    <div hidden aria-hidden="true" data-pickup-availability-templates>
+      {% for variant in pickup_product.variants %}
+        {% liquid
+          assign variant_has_pickup = false
+          assign variant_pickup_store = blank
+          for availability in variant.store_availabilities
+            if availability.available
+              assign variant_has_pickup = true
+              if variant_pickup_store == blank
+                assign variant_pickup_store = availability
+              endif
+            endif
+          endfor
+        %}
+        <template data-pickup-availability-template="{{ variant.id }}" data-has-pickup="{{ variant_has_pickup }}">
+          <span hidden data-pickup-availability-variant-template>{{ variant.title | escape }}</span>
+          <div data-pickup-availability-message-template>{% if variant_pickup_store != blank %}{% render 'icon', icon: 'check', bare: true, class: 'product-pickup-availability__icon' %}<span>Pickup available at {{ variant_pickup_store.location.name | escape }}{% if variant_pickup_store.pick_up_time != blank %} — {{ variant_pickup_store.pick_up_time | escape }}{% endif %}</span>{% endif %}</div>
+          <div data-pickup-availability-stores-template>{% render 'pickup-availability-stores', variant: variant %}</div>
+        </template>
+      {% endfor %}
+    </div>
+  </product-pickup-availability>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Pickup availability",
+  "tag": null,
+  "settings": [
+    { "type": "checkbox", "id": "boxed", "label": "Enable boxed layout", "default": false },
+    { "type": "header", "content": "Popup presentation" },
+    {
+      "type": "select",
+      "id": "desktop_layout",
+      "label": "Desktop layout",
+      "default": "drawer",
+      "options": [
+        { "value": "popup", "label": "Popup" },
+        { "value": "drawer", "label": "Drawer" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "Mobile layout",
+      "default": "bottom_sheet",
+      "options": [
+        { "value": "bottom_sheet", "label": "Bottom sheet" },
+        { "value": "drawer", "label": "Drawer" }
+      ]
+    },
+    { "type": "header", "content": "Typography" },
+    {
+      "type": "select",
+      "id": "message_size",
+      "label": "Pickup message size",
+      "default": "medium",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "message_color",
+      "label": "Pickup message color",
+      "default": "text",
+      "options": [
+        { "value": "heading", "label": "Heading" },
+        { "value": "text", "label": "Text" }
+      ]
+    },
+    { "type": "header", "content": "Appearance" },
+    { "type": "range", "id": "border_thickness", "label": "Border thickness", "min": 0, "max": 8, "step": 1, "unit": "px", "default": 1 },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "Corner radius",
+      "default": "inherit",
+      "options": [
+        { "value": "inherit", "label": "Inherit" },
+        { "value": "none", "label": "None" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "Shadow",
+      "default": "none",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" }
+      ]
+    },
+    { "type": "header", "content": "Color" },
+    {
+      "type": "select",
+      "id": "appearance_type",
+      "label": "Type",
+      "default": "inherit",
+      "options": [
+        { "value": "inherit", "label": "Inherit" },
+        { "value": "color_scheme", "label": "Color scheme" }
+      ]
+    },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "visible_if": "{{ block.settings.appearance_type == 'color_scheme' }}" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding_top", "label": "Top", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "checkbox", "id": "custom_mobile_padding", "label": "Custom for mobile", "default": false },
+    { "type": "range", "id": "mobile_padding_top", "label": "Top (mobile)", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ block.settings.custom_mobile_padding }}" },
+    { "type": "range", "id": "mobile_padding_bottom", "label": "Bottom (mobile)", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ block.settings.custom_mobile_padding }}" }
+  ],
+  "presets": [
+    { "name": "Pickup availability" }
+  ]
+}
+{% endschema %}

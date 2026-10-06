@@ -1,0 +1,508 @@
+{% liquid
+  assign email_signup_form_alignment = 'start'
+  case section.settings.alignment
+    when 'center'
+      assign email_signup_form_alignment = 'center'
+    when 'right'
+      assign email_signup_form_alignment = 'end'
+  endcase
+
+  assign email_signup_form_alignment_mobile = email_signup_form_alignment
+  if section.settings.customize_mobile_alignment
+    assign email_signup_form_alignment_mobile = 'start'
+    case section.settings.alignment_mobile
+      when 'center'
+        assign email_signup_form_alignment_mobile = 'center'
+      when 'right'
+        assign email_signup_form_alignment_mobile = 'end'
+    endcase
+  endif
+
+  assign padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_top_mobile = section.settings.padding_top_mobile | default: 0 | plus: 0
+  assign padding_bottom_mobile = section.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign content_gap = section.settings.content_gap | default: 40 | plus: 0
+  assign content_gap_mobile = section.settings.content_gap_mobile | default: 40 | plus: 0
+  if section.settings.customize_mobile_gap
+    assign content_gap_mobile = section.settings.content_gap_mobile | default: content_gap | plus: 0
+  endif
+
+  assign container_width = 'page-width'
+  assign section_width_class = 'email-signup-form--width-page_width'
+  if section.settings.section_width == 'full_width'
+    assign container_width = 'full-width'
+    assign section_width_class = 'email-signup-form--width-full_width'
+  elsif section.settings.section_width == 'full_width_no_padding'
+    assign container_width = 'full-width'
+    assign section_width_class = 'email-signup-form--width-full_width_no_padding'
+  endif
+
+  assign form_layout = section.settings.form_layout | default: 'horizontal'
+  unless form_layout == 'horizontal' or form_layout == 'vertical'
+    assign form_layout = 'horizontal'
+  endunless
+
+  assign form_position = section.settings.form_position | default: 'center'
+  unless form_position == 'left' or form_position == 'center' or form_position == 'right'
+    assign form_position = 'center'
+  endunless
+
+  assign content_direction = 'column'
+  assign content_align_items = 'var(--flex-align, flex-start)'
+  assign content_justify_content = 'flex-start'
+  if form_layout == 'vertical'
+    assign content_direction = 'row'
+    assign content_align_items = 'center'
+    case form_position
+      when 'center'
+        assign content_justify_content = 'center'
+      when 'right'
+        assign content_justify_content = 'flex-end'
+    endcase
+  else
+    case form_position
+      when 'center'
+        assign content_align_items = 'center'
+      when 'right'
+        assign content_align_items = 'flex-end'
+    endcase
+  endif
+
+  assign color_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign color_scheme = section.settings.color_scheme.id
+  endif
+  assign color_scheme = color_scheme | default: 'scheme-1' | handleize
+%}
+
+{% capture section_style %}
+  {% if email_signup_form_alignment != 'start' %}--flex-align: {{ email_signup_form_alignment }};{% endif %}
+  {% if section.settings.customize_mobile_alignment and email_signup_form_alignment_mobile != email_signup_form_alignment %}--flex-align-mobile: {{ email_signup_form_alignment_mobile }};{% endif %}
+  {% if section.settings.background_color != blank %}--email-signup-form-background-color: {{ section.settings.background_color | escape }};{% endif %}
+  {% if padding_top != 0 %}--email-signup-form-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 0 %}--email-signup-form-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if section.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--email-signup-form-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--email-signup-form-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign section_style = section_style | strip %}
+
+{% capture content_style %}
+  {% render 'layout-flow-style',
+    direction: content_direction,
+    wrap: 'nowrap',
+    align_items: content_align_items,
+    align_items_mobile: 'var(--flex-align-mobile, var(--flex-align, flex-start))',
+    justify_content: content_justify_content,
+    direction_mobile: 'column',
+    gap: content_gap,
+    gap_mobile: content_gap_mobile
+  %}
+{% endcapture %}
+{% assign content_style = content_style | strip %}
+
+<div class="email-signup-form {{ section_width_class }} email-signup-form--layout-{{ form_layout }} email-signup-form--position-{{ form_position }}">
+  <div
+    class="section-spacing email-signup-form__spacing color-scheme section-color-scope {{ color_scheme }}"
+    {% if section_style != blank %}style="{{ section_style }}"{% endif %}
+  >
+    {% if section.settings.background_image != blank %}
+      <div class="email-signup-form__background" aria-hidden="true">
+        {{ section.settings.background_image | image_url: width: 2000 | image_tag }}
+      </div>
+    {% endif %}
+
+    <div class="container {{ container_width }} email-signup-form__container">
+      <div class="email-signup-form__content layout-flow layout-flow--responsive align-content" style="{{ content_style }}">
+        {% content_for 'block', type: 'header', id: 'header' %}
+        {% content_for 'block', type: 'email-signup', id: 'email-signup' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .email-signup-form--width-page_width {
+    width: 100%;
+    max-width: var(--page-width);
+    margin-inline: auto;
+  }
+
+  .email-signup-form__spacing {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background-color: var(--email-signup-form-background-color, var(--background-color));
+    padding-top: var(--email-signup-form-padding-top, 0px);
+    padding-bottom: var(--email-signup-form-padding-bottom, 0px);
+  }
+
+  .email-signup-form__background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .email-signup-form__background img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .email-signup-form__container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .email-signup-form--width-page_width .email-signup-form__container {
+    width: 100%;
+    max-width: var(--page-width);
+    padding-inline: var(--page-margin-current);
+    margin-inline: auto;
+  }
+
+  .email-signup-form--width-full_width .email-signup-form__container {
+    width: 100%;
+    max-width: none;
+    padding-inline: var(--page-margin-current);
+  }
+
+  .email-signup-form--width-full_width_no_padding .email-signup-form__container {
+    width: 100%;
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  .email-signup-form__content {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .email-signup-form--layout-vertical .email-signup-form__content {
+    flex-direction: row;
+  }
+
+  .email-signup-form--layout-horizontal.email-signup-form--position-left .email-signup-form__content {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .email-signup-form--layout-horizontal.email-signup-form--position-center .email-signup-form__content {
+    align-items: center;
+    text-align: center;
+  }
+
+  .email-signup-form--layout-horizontal.email-signup-form--position-right .email-signup-form__content {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .email-signup-form--layout-vertical.email-signup-form--position-left .email-signup-form__content {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .email-signup-form--layout-vertical.email-signup-form--position-center .email-signup-form__content {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .email-signup-form--layout-vertical.email-signup-form--position-right .email-signup-form__content {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .email-signup-form--position-left .email-signup-form__content > .block-header {
+    --header-align: flex-start !important;
+    --header-text-align: left !important;
+  }
+
+  .email-signup-form--position-center .email-signup-form__content > .block-header {
+    --header-align: center !important;
+    --header-text-align: center !important;
+  }
+
+  .email-signup-form--position-right .email-signup-form__content > .block-header {
+    --header-align: flex-end !important;
+    --header-text-align: right !important;
+  }
+
+  .email-signup-form--layout-vertical .email-signup-form__content > .block-header {
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
+  }
+
+  .email-signup-form--layout-vertical .email-signup-form__content > .email-signup-block {
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
+  }
+
+  .email-signup-form--layout-horizontal .email-signup-form__content > * {
+    flex: 0 0 auto;
+  }
+
+  @media (max-width: 767.98px) {
+    .email-signup-form--layout-vertical .email-signup-form__content {
+      flex-direction: column;
+    }
+
+    .email-signup-form--layout-vertical .email-signup-form__content > .block-header,
+    .email-signup-form--layout-vertical .email-signup-form__content > .email-signup-block {
+      flex: 0 0 auto;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .email-signup-form__spacing {
+      padding-top: var(--email-signup-form-padding-top-mobile, var(--email-signup-form-padding-top, 0px));
+      padding-bottom: var(--email-signup-form-padding-bottom-mobile, var(--email-signup-form-padding-bottom, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.email_signup_form",
+  "class": "section-email-signup-form",
+  "enabled_on": { "templates": ["*"] },
+  "blocks": [
+    { "type": "header" },
+    { "type": "email-signup" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" },
+        { "value": "full_width_no_padding", "label": "t:options.section_width.full_width_no_padding" }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.customize_mobile_alignment",
+      "default": false
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment_mobile",
+      "label": "t:labels.mobile_alignment",
+      "default": "center",
+      "visible_if": "{{ section.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "select",
+      "id": "form_layout",
+      "label": "t:general.layout",
+      "options": [
+        { "value": "horizontal", "label": "t:options.direction.horizontal" },
+        { "value": "vertical", "label": "t:options.direction.vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "select",
+      "id": "form_position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "content_gap",
+      "label": "t:labels.content_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_gap",
+      "label": "t:labels.customize_mobile_layout",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "content_gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ section.settings.customize_mobile_gap }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "t:labels.background"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:labels.background_image"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.email_signup_form",
+      "category": "t:general.forms",
+      "settings": {
+        "section_width": "page_width",
+        "alignment": "center",
+        "customize_mobile_alignment": false,
+        "alignment_mobile": "center",
+        "form_layout": "horizontal",
+        "form_position": "center",
+        "content_gap": 40,
+        "content_gap_mobile": 40,
+        "customize_mobile_gap": false,
+        "color_scheme": "scheme-1",
+        "padding_top": 32,
+        "padding_bottom": 32,
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "header",
+          "id": "header",
+          "static": true,
+          "settings": {
+            "width": "fill",
+            "alignment": "center",
+            "customize_mobile_alignment": false,
+            "gap_desktop": 8,
+            "gap_mobile": 8
+          },
+          "blocks": [
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Main Heading Placeholder</p>",
+                "heading_size": "md",
+                "html_tag": "h2"
+              }
+            },
+            {
+              "type": "text",
+              "settings": {
+                "text": "<p>This is placeholder text for a short paragraph that explains the purpose of this section. It gives users a clear reason to subscribe or take action.</p>"
+              }
+            }
+          ]
+        },
+        {
+          "type": "email-signup",
+          "id": "email-signup",
+          "static": true,
+          "settings": {
+            "form_layout": "horizontal",
+            "input_placeholder": "Name",
+            "button_label": "Submit",
+            "button_style": "primary",
+            "show_icon": false,
+            "gap_desktop": 12,
+            "gap_mobile": 12,
+            "width_desktop": "fill",
+            "limit_width_desktop": true,
+            "max_width_desktop": 500,
+            "width_mobile": "fill",
+            "limit_width_mobile": false,
+            "vertical_on_mobile": false
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

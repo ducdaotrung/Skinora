@@ -1,0 +1,588 @@
+{% doc %}
+  Renders article details inside Blog Card.
+
+  The parent Blog Card supplies the current article through `closest.article`.
+{% enddoc %}
+
+{% liquid
+  assign blog_card_meta_article = closest.article | default: article
+  assign blog_card_meta_is_placeholder = false
+  if blog_card_meta_article == blank or request.design_mode
+    assign blog_card_meta_is_placeholder = true
+  endif
+  assign blog_card_meta_size = block.settings.size | default: 'xs'
+  unless blog_card_meta_size == 'xs' or blog_card_meta_size == 'sm' or blog_card_meta_size == 'md' or blog_card_meta_size == 'lg' or blog_card_meta_size == 'xl' or blog_card_meta_size == 'xxl'
+    assign blog_card_meta_size = 'xs'
+  endunless
+
+  assign blog_card_meta_color = block.settings.text_color
+  if blog_card_meta_color == blank
+    case block.settings.color
+      when 'heading'
+        assign blog_card_meta_color = 'var(--heading-color)'
+      when 'text'
+        assign blog_card_meta_color = 'var(--text-color)'
+    endcase
+  endif
+
+  assign blog_card_meta_author_display_type = block.settings.author_display_type | default: 'text'
+  unless blog_card_meta_author_display_type == 'text' or blog_card_meta_author_display_type == 'icon'
+    assign blog_card_meta_author_display_type = 'text'
+  endunless
+  assign blog_card_meta_author_prefix = block.settings.author_prefix | strip
+  assign blog_card_meta_author_icon = block.settings.author_icon | default: 'user'
+  unless blog_card_meta_author_icon == 'user' or blog_card_meta_author_icon == 'users' or blog_card_meta_author_icon == 'document-text'
+    assign blog_card_meta_author_icon = 'user'
+  endunless
+
+  assign blog_card_meta_date_icon = block.settings.date_icon | default: 'calendar'
+  unless blog_card_meta_date_icon == 'calendar' or blog_card_meta_date_icon == 'calendar-days' or blog_card_meta_date_icon == 'clock'
+    assign blog_card_meta_date_icon = 'calendar'
+  endunless
+
+  assign blog_card_meta_date_format = block.settings.date_format | default: 'long'
+  case blog_card_meta_date_format
+    when 'long'
+      assign blog_card_meta_date_format = '%B %d, %Y'
+    when 'medium'
+      assign blog_card_meta_date_format = '%b %d, %Y'
+    when 'numeric'
+      assign blog_card_meta_date_format = '%m/%d/%Y'
+    when 'iso'
+      assign blog_card_meta_date_format = '%Y-%m-%d'
+    else
+      assign blog_card_meta_date_format = '%B %d, %Y'
+  endcase
+
+  assign blog_card_meta_comment_icon = block.settings.comment_icon | default: 'comment'
+  unless blog_card_meta_comment_icon == 'comment' or blog_card_meta_comment_icon == 'chat-bubble' or blog_card_meta_comment_icon == 'chat-bubble-left-right'
+    assign blog_card_meta_comment_icon = 'comment'
+  endunless
+
+  assign blog_card_meta_separator_icon = block.settings.separator_icon | default: 'vertical-rule'
+  unless blog_card_meta_separator_icon == 'vertical-rule' or blog_card_meta_separator_icon == 'minus' or blog_card_meta_separator_icon == 'dot' or blog_card_meta_separator_icon == 'bullet' or blog_card_meta_separator_icon == 'slash' or blog_card_meta_separator_icon == 'none'
+    assign blog_card_meta_separator_icon = 'vertical-rule'
+  endunless
+
+  assign blog_card_meta_layout = block.settings.layout | default: 'horizontal'
+  unless blog_card_meta_layout == 'horizontal' or blog_card_meta_layout == 'vertical'
+    assign blog_card_meta_layout = 'horizontal'
+  endunless
+
+  assign blog_card_meta_details_order = block.settings.details_order | default: 'date_author_comment'
+  unless blog_card_meta_details_order == 'author_date_comment' or blog_card_meta_details_order == 'author_comment_date' or blog_card_meta_details_order == 'date_author_comment' or blog_card_meta_details_order == 'date_comment_author' or blog_card_meta_details_order == 'comment_author_date' or blog_card_meta_details_order == 'comment_date_author'
+    assign blog_card_meta_details_order = 'date_author_comment'
+  endunless
+  assign blog_card_meta_details_order_parts = blog_card_meta_details_order | split: '_'
+
+  assign blog_card_meta_show_author = false
+  if block.settings.show_author and blog_card_meta_article.author != blank
+    assign blog_card_meta_show_author = true
+  elsif block.settings.show_author and blog_card_meta_is_placeholder
+    assign blog_card_meta_show_author = true
+  endif
+
+  assign blog_card_meta_show_date = false
+  if block.settings.show_date and blog_card_meta_article.published_at != blank
+    assign blog_card_meta_show_date = true
+  elsif block.settings.show_date and blog_card_meta_is_placeholder
+    assign blog_card_meta_show_date = true
+  endif
+
+  assign blog_card_meta_show_comment_count = false
+  if block.settings.show_comment_count and blog_card_meta_article.comments_count != blank
+    assign blog_card_meta_show_comment_count = true
+  elsif block.settings.show_comment_count and blog_card_meta_is_placeholder
+    assign blog_card_meta_show_comment_count = true
+  endif
+
+  assign blog_card_meta_gap = block.settings.gap | default: 12 | plus: 0
+  if blog_card_meta_gap < 0 or blog_card_meta_gap > 100
+    assign blog_card_meta_gap = 12
+  endif
+  assign blog_card_meta_icon_size = block.settings.icon_size | default: 18 | plus: 0
+  if blog_card_meta_icon_size < 8 or blog_card_meta_icon_size > 48
+    assign blog_card_meta_icon_size = 18
+  endif
+  assign blog_card_meta_icon_gap = block.settings.icon_gap | default: 6 | plus: 0
+  if blog_card_meta_icon_gap < 0 or blog_card_meta_icon_gap > 40
+    assign blog_card_meta_icon_gap = 6
+  endif
+
+  assign blog_card_meta_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign blog_card_meta_padding_bottom = block.settings.padding_bottom | default: 4 | plus: 0
+  assign blog_card_meta_padding_top_mobile = block.settings.padding_top_mobile | default: blog_card_meta_padding_top | plus: 0
+  assign blog_card_meta_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: blog_card_meta_padding_bottom | plus: 0
+%}
+
+{% capture blog_card_meta_style %}
+  --blog-card-meta-gap: {{ blog_card_meta_gap }}px;
+  --blog-card-meta-icon-size: {{ blog_card_meta_icon_size }}px;
+  --blog-card-meta-icon-gap: {{ blog_card_meta_icon_gap }}px;
+  {% if blog_card_meta_padding_top != 0 %}--blog-card-meta-padding-top: {{ blog_card_meta_padding_top }}px;{% endif %}
+  {% if blog_card_meta_padding_bottom != 0 %}--blog-card-meta-padding-bottom: {{ blog_card_meta_padding_bottom }}px;{% endif %}
+  {% if blog_card_meta_color != blank %}--blog-card-meta-color: {{ blog_card_meta_color | escape }};{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if blog_card_meta_padding_top_mobile != blog_card_meta_padding_top %}--blog-card-meta-padding-top-mobile: {{ blog_card_meta_padding_top_mobile }}px;{% endif %}
+    {% if blog_card_meta_padding_bottom_mobile != blog_card_meta_padding_bottom %}--blog-card-meta-padding-bottom-mobile: {{ blog_card_meta_padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign blog_card_meta_style = blog_card_meta_style | strip %}
+
+{% if blog_card_meta_show_date or blog_card_meta_show_author or blog_card_meta_show_comment_count %}
+  <div
+    class="blog-card-meta blog-card-meta--{{ blog_card_meta_layout }} body-{{ blog_card_meta_size }}"
+    {% if blog_card_meta_style != blank %}style="{{ blog_card_meta_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    {% assign blog_card_meta_rendered_details = 0 %}
+    {% for blog_card_meta_detail in blog_card_meta_details_order_parts %}
+      {% liquid
+        assign blog_card_meta_detail_visible = false
+        if blog_card_meta_detail == 'author' and blog_card_meta_show_author
+          assign blog_card_meta_detail_visible = true
+        elsif blog_card_meta_detail == 'date' and blog_card_meta_show_date
+          assign blog_card_meta_detail_visible = true
+        elsif blog_card_meta_detail == 'comment' and blog_card_meta_show_comment_count
+          assign blog_card_meta_detail_visible = true
+        endif
+      %}
+      {% if blog_card_meta_detail_visible %}
+        <span class="blog-card-meta__item">
+          {% if blog_card_meta_rendered_details > 0 and blog_card_meta_layout == 'horizontal' and blog_card_meta_separator_icon != 'none' %}
+            <span class="blog-card-meta__separator" aria-hidden="true">
+              {% case blog_card_meta_separator_icon %}
+                {% when 'vertical-rule', 'minus' %}
+                  {% render 'icon', icon: blog_card_meta_separator_icon, bare: true, class: 'blog-card-meta__icon blog-card-meta__separator-icon' %}
+                {% when 'dot' %}<span class="blog-card-meta__separator-text">·</span>
+                {% when 'bullet' %}<span class="blog-card-meta__separator-text">•</span>
+                {% when 'slash' %}<span class="blog-card-meta__separator-text">/</span>
+              {% endcase %}
+            </span>
+          {% endif %}
+
+          {% case blog_card_meta_detail %}
+            {% when 'author' %}
+              <span class="blog-card-meta__detail blog-card-meta__detail--author">
+                {% if blog_card_meta_author_display_type == 'icon' %}
+                  {% render 'icon', icon: blog_card_meta_author_icon, bare: true, class: 'blog-card-meta__icon' %}
+                {% elsif blog_card_meta_author_prefix != blank %}
+                  <span class="blog-card-meta__author-prefix">{{ blog_card_meta_author_prefix | escape }}</span>
+                {% endif %}
+                <span>{% if blog_card_meta_article.author != blank %}{{ blog_card_meta_article.author | escape }}{% else %}Author name{% endif %}</span>
+              </span>
+            {% when 'date' %}
+              <span class="blog-card-meta__detail blog-card-meta__detail--date">
+                {% if block.settings.show_date_icon %}
+                  {% render 'icon', icon: blog_card_meta_date_icon, bare: true, class: 'blog-card-meta__icon' %}
+                {% endif %}
+                {% if blog_card_meta_article.published_at != blank %}
+                  <time datetime="{{ blog_card_meta_article.published_at | date: '%Y-%m-%d' }}">{{ blog_card_meta_article.published_at | date: blog_card_meta_date_format }}</time>
+                {% elsif blog_card_meta_is_placeholder %}
+                  <span>February 03, 2026</span>
+                {% endif %}
+              </span>
+            {% when 'comment' %}
+              <span class="blog-card-meta__detail blog-card-meta__detail--comment">
+                {% if block.settings.show_comment_icon %}
+                  {% render 'icon', icon: blog_card_meta_comment_icon, bare: true, class: 'blog-card-meta__icon' %}
+                {% endif %}
+                <span>{{ blog_card_meta_article.comments_count | default: 0 }} comments</span>
+              </span>
+          {% endcase %}
+        </span>
+
+        {% assign blog_card_meta_rendered_details = blog_card_meta_rendered_details | plus: 1 %}
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .blog-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: var(--blog-card-align-flex, flex-start);
+    gap: var(--blog-card-meta-gap, 12px);
+    width: 100%;
+    padding-top: var(--blog-card-meta-padding-top, 0px);
+    padding-bottom: var(--blog-card-meta-padding-bottom, 4px);
+    color: var(--blog-card-meta-color, var(--text-color));
+    text-align: inherit;
+  }
+
+  .blog-card-meta--vertical {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: var(--blog-card-align-flex, flex-start);
+  }
+
+  .blog-card-meta__item,
+  .blog-card-meta__detail,
+  .blog-card-meta__separator {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .blog-card-meta__item {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .blog-card-meta__detail,
+  .blog-card-meta__separator {
+    flex: 0 0 auto;
+  }
+
+  .blog-card-meta__detail {
+    gap: var(--blog-card-meta-icon-gap, 6px);
+  }
+
+  .blog-card-meta__separator {
+    margin-inline-start: calc(var(--blog-card-meta-gap, 12px) * -0.5);
+  }
+
+  .blog-card-meta__detail--author {
+    gap: 0;
+  }
+
+  .blog-card-meta__author-prefix {
+    margin-inline-end: 0.25em;
+  }
+
+  .blog-card-meta__icon {
+    display: inline-flex;
+    flex: 0 0 var(--blog-card-meta-icon-size, 18px);
+    width: var(--blog-card-meta-icon-size, 18px);
+    height: var(--blog-card-meta-icon-size, 18px);
+  }
+
+  .blog-card-meta__separator-icon {
+    color: currentColor;
+  }
+
+  .blog-card-meta__separator-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--blog-card-meta-icon-size, 18px);
+    line-height: 1;
+  }
+
+  @media (max-width: 767.98px) {
+    .blog-card-meta {
+      padding-top: var(--blog-card-meta-padding-top-mobile, var(--blog-card-meta-padding-top, 0px));
+      padding-bottom: var(--blog-card-meta-padding-bottom-mobile, var(--blog-card-meta-padding-bottom, 4px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Meta",
+  "tag": null,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Show author",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comment_count",
+      "label": "Show comment count",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "details_order",
+      "label": "Details order",
+      "options": [
+        { "value": "author_date_comment", "label": "Author, Date, Comment" },
+        { "value": "author_comment_date", "label": "Author, Comment, Date" },
+        { "value": "date_author_comment", "label": "Date, Author, Comment" },
+        { "value": "date_comment_author", "label": "Date, Comment, Author" },
+        { "value": "comment_author_date", "label": "Comment, Author, Date" },
+        { "value": "comment_date_author", "label": "Comment, Date, Author" }
+      ],
+      "default": "date_author_comment"
+    },
+    {
+      "type": "header",
+      "content": "Author",
+      "visible_if": "{{ block.settings.show_author }}"
+    },
+    {
+      "type": "select",
+      "id": "author_display_type",
+      "label": "Display type",
+      "options": [
+        { "value": "text", "label": "Text" },
+        { "value": "icon", "label": "Icon" }
+      ],
+      "default": "text",
+      "visible_if": "{{ block.settings.show_author }}"
+    },
+    {
+      "type": "text",
+      "id": "author_prefix",
+      "label": "Author prefix",
+      "default": "by",
+      "visible_if": "{{ block.settings.show_author and block.settings.author_display_type == 'text' }}"
+    },
+    {
+      "type": "select",
+      "id": "author_icon",
+      "label": "Choose icon",
+      "options": [
+        { "value": "user", "label": "User" },
+        { "value": "users", "label": "Users" },
+        { "value": "document-text", "label": "Article" }
+      ],
+      "default": "user",
+      "visible_if": "{{ block.settings.show_author and block.settings.author_display_type == 'icon' }}"
+    },
+    {
+      "type": "header",
+      "content": "Date",
+      "visible_if": "{{ block.settings.show_date }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date_icon",
+      "label": "Show icon",
+      "default": true,
+      "visible_if": "{{ block.settings.show_date }}"
+    },
+    {
+      "type": "select",
+      "id": "date_icon",
+      "label": "Choose icon",
+      "options": [
+        { "value": "calendar", "label": "Calendar" },
+        { "value": "calendar-days", "label": "Calendar with days" },
+        { "value": "clock", "label": "Clock" }
+      ],
+      "default": "calendar",
+      "visible_if": "{{ block.settings.show_date and block.settings.show_date_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "date_format",
+      "label": "Date format",
+      "options": [
+        { "value": "long", "label": "December 01, 2000" },
+        { "value": "medium", "label": "Dec 01, 2000" },
+        { "value": "numeric", "label": "12/01/2000" },
+        { "value": "iso", "label": "2000-12-01" }
+      ],
+      "default": "long",
+      "visible_if": "{{ block.settings.show_date }}"
+    },
+    {
+      "type": "header",
+      "content": "Comment",
+      "visible_if": "{{ block.settings.show_comment_count }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comment_icon",
+      "label": "Show icon",
+      "default": true,
+      "visible_if": "{{ block.settings.show_comment_count }}"
+    },
+    {
+      "type": "select",
+      "id": "comment_icon",
+      "label": "Choose icon",
+      "options": [
+        { "value": "comment", "label": "Comment bubble" },
+        { "value": "chat-bubble", "label": "Chat bubble" },
+        { "value": "chat-bubble-left-right", "label": "Conversation bubbles" }
+      ],
+      "default": "comment",
+      "visible_if": "{{ block.settings.show_comment_count and block.settings.show_comment_icon }}"
+    },
+    {
+      "type": "header",
+      "content": "Separator",
+      "visible_if": "{{ block.settings.layout == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "separator_icon",
+      "label": "Choose icon",
+      "options": [
+        { "value": "vertical-rule", "label": "Vertical rule" },
+        { "value": "minus", "label": "Horizontal rule" },
+        { "value": "dot", "label": "Middle dot" },
+        { "value": "bullet", "label": "Bullet" },
+        { "value": "slash", "label": "Slash" },
+        { "value": "none", "label": "Space only" }
+      ],
+      "default": "vertical-rule",
+      "visible_if": "{{ block.settings.layout == 'horizontal' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "size",
+      "label": "Size",
+      "options": [
+        { "value": "xs", "label": "Extra small" },
+        { "value": "sm", "label": "Small" },
+        { "value": "md", "label": "Medium" },
+        { "value": "lg", "label": "Large" },
+        { "value": "xl", "label": "Extra large" },
+        { "value": "xxl", "label": "2X large" }
+      ],
+      "default": "xs"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_color",
+      "label": "t:labels.text_color"
+    },
+    {
+      "type": "header",
+      "content": "Details style"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal" },
+        { "value": "vertical", "label": "Vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon size",
+      "min": 8,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "icon_gap",
+      "label": "Icon gap",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 6
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 4,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Meta",
+      "category": "Blog",
+      "settings": {
+        "show_date": true,
+        "show_author": true,
+        "show_comment_count": false,
+        "details_order": "date_author_comment",
+        "author_display_type": "text",
+        "author_prefix": "by",
+        "author_icon": "user",
+        "show_date_icon": true,
+        "date_icon": "calendar",
+        "date_format": "long",
+        "show_comment_icon": true,
+        "comment_icon": "comment",
+        "separator_icon": "vertical-rule",
+        "layout": "horizontal",
+        "gap": 12,
+        "icon_size": 18,
+        "icon_gap": 6,
+        "size": "xs",
+        "text_color": "",
+        "padding_top": 0,
+        "padding_bottom": 4,
+        "customize_mobile_padding": false,
+        "padding_top_mobile": 0,
+        "padding_bottom_mobile": 4
+      }
+    }
+  ]
+}
+{% endschema %}

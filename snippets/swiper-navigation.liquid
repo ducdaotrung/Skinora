@@ -1,0 +1,112 @@
+{% doc %}
+  Renders the shared Swiper previous/next controls. Carousel parents provide
+  the data attributes used by the shared control binder and can add a
+  component-specific class for layout or theme styling.
+
+  @param {boolean} [show] - Whether to render the controls
+  @param {string} [position] - inside or outside
+  @param {string} [style] - primary, secondary, outline, or icon_only
+  @param {string} [icon] - chevron, arrow, or long_arrow
+  @param {string} [behavior] - show_on_hover or always
+  @param {string} [wrapper_class] - Additional wrapper classes
+  @param {string} [wrapper_attributes] - Additional wrapper attributes
+  @param {string} [button_class] - Additional button classes
+  @param {string} [previous_attribute] - Attributes for the previous button
+  @param {string} [next_attribute] - Attributes for the next button
+  @param {string} [previous_label] - Accessible previous label
+  @param {string} [next_label] - Accessible next label
+  @param {string} [center_style] - Inline custom properties for vertical centering
+  @param {boolean} [centered] - Whether controls overlay the carousel viewport
+{% enddoc %}
+
+{% liquid
+  assign swiper_navigation_show = true
+  if show == false or show == 'false'
+    assign swiper_navigation_show = false
+  endif
+
+  assign swiper_navigation_position = position | default: 'inside'
+  unless swiper_navigation_position == 'inside' or swiper_navigation_position == 'outside'
+    assign swiper_navigation_position = 'inside'
+  endunless
+
+  assign swiper_navigation_style = style | default: 'secondary'
+  if swiper_navigation_style == 'tertiary'
+    assign swiper_navigation_style = 'icon_only'
+  endif
+  unless swiper_navigation_style == 'primary' or swiper_navigation_style == 'secondary' or swiper_navigation_style == 'outline' or swiper_navigation_style == 'icon_only'
+    assign swiper_navigation_style = 'secondary'
+  endunless
+
+  assign swiper_navigation_button_variant = swiper_navigation_style
+  assign swiper_navigation_button_modifier = blank
+  if swiper_navigation_style == 'icon_only'
+    assign swiper_navigation_button_variant = 'tertiary'
+    assign swiper_navigation_button_modifier = 'swiper-nav-button--icon-only'
+  elsif swiper_navigation_style == 'outline'
+    assign swiper_navigation_button_variant = 'tertiary'
+    assign swiper_navigation_button_modifier = 'swiper-nav-button--outline'
+  endif
+
+  assign swiper_navigation_icon = icon | default: 'chevron'
+  unless swiper_navigation_icon == 'chevron' or swiper_navigation_icon == 'arrow' or swiper_navigation_icon == 'long_arrow'
+    assign swiper_navigation_icon = 'chevron'
+  endunless
+
+  assign swiper_navigation_behavior = behavior | default: 'show_on_hover'
+  unless swiper_navigation_behavior == 'show_on_hover' or swiper_navigation_behavior == 'always'
+    assign swiper_navigation_behavior = 'show_on_hover'
+  endunless
+
+  assign swiper_navigation_previous_attribute = previous_attribute | default: 'data-swiper-previous'
+  assign swiper_navigation_next_attribute = next_attribute | default: 'data-swiper-next'
+  if previous_label == blank
+    assign swiper_navigation_previous_label = 'collection_tabs.previous' | t
+  else
+    assign swiper_navigation_previous_label = previous_label
+  endif
+  if next_label == blank
+    assign swiper_navigation_next_label = 'collection_tabs.next' | t
+  else
+    assign swiper_navigation_next_label = next_label
+  endif
+
+  assign swiper_navigation_centered = true
+  if centered == false or centered == 'false'
+    assign swiper_navigation_centered = false
+  endif
+
+  assign swiper_navigation_class = 'swiper-carousel__navigation--' | append: swiper_navigation_behavior
+  if swiper_navigation_centered
+    assign swiper_navigation_class = 'swiper-carousel__navigation--centered swiper-carousel__navigation--' | append: swiper_navigation_position | append: ' ' | append: swiper_navigation_class
+  endif
+  if wrapper_class != blank
+    assign swiper_navigation_class = swiper_navigation_class | append: ' ' | append: wrapper_class
+  endif
+%}
+
+{% if swiper_navigation_show %}
+  <div
+    class="{{ swiper_navigation_class }}"
+    data-swiper-navigation
+    {% if wrapper_attributes != blank %}{{ wrapper_attributes }}{% endif %}
+    {% if center_style != blank %}style="{{ center_style }}"{% endif %}
+  >
+    <button
+      class="btn btn-{{ swiper_navigation_button_variant }} btn--{{ swiper_navigation_button_variant }} btn--icon{% if swiper_navigation_button_modifier != blank %} {{ swiper_navigation_button_modifier }}{% endif %} swiper-nav-button swiper-nav-button--prev{% if button_class != blank %} {{ button_class }}{% endif %}"
+      type="button"
+      {{ swiper_navigation_previous_attribute }}
+      aria-label="{{ swiper_navigation_previous_label | escape }}"
+    >
+      {% render 'carousel-navigation-icon', icon: swiper_navigation_icon, direction: 'previous' %}
+    </button>
+    <button
+      class="btn btn-{{ swiper_navigation_button_variant }} btn--{{ swiper_navigation_button_variant }} btn--icon{% if swiper_navigation_button_modifier != blank %} {{ swiper_navigation_button_modifier }}{% endif %} swiper-nav-button swiper-nav-button--next{% if button_class != blank %} {{ button_class }}{% endif %}"
+      type="button"
+      {{ swiper_navigation_next_attribute }}
+      aria-label="{{ swiper_navigation_next_label | escape }}"
+    >
+      {% render 'carousel-navigation-icon', icon: swiper_navigation_icon, direction: 'next' %}
+    </button>
+  </div>
+{% endif %}

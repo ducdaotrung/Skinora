@@ -1,0 +1,96 @@
+{% liquid
+  assign group_alignment = block.settings.alignment | default: 'center'
+  assign group_gap = block.settings.gap | default: 8 | plus: 0
+  assign group_gap_mobile = block.settings.gap_mobile | default: group_gap | plus: 0
+  assign group_alignment_mobile = group_alignment
+  if block.settings.customize_mobile_alignment
+    assign group_alignment_mobile = block.settings.alignment_mobile | default: group_alignment
+  endif
+%}
+
+<div class="gallery-header-group" style="--gallery-header-align: {{ group_alignment }}; --gallery-header-align-mobile: {{ group_alignment_mobile }}; --gallery-header-gap: {{ group_gap }}px; --gallery-header-gap-mobile: {{ group_gap_mobile }}px;" {{ block.shopify_attributes }}>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .gallery-header-group { display: flex; flex-direction: column; align-items: var(--gallery-header-align, center); width: 100%; gap: var(--gallery-header-gap, 8px); text-align: var(--gallery-header-align, center); }
+  @media (max-width: 767.98px) { .gallery-header-group { align-items: var(--gallery-header-align-mobile, var(--gallery-header-align, center)); gap: var(--gallery-header-gap-mobile, var(--gallery-header-gap, 8px)); text-align: var(--gallery-header-align-mobile, var(--gallery-header-align, center)); } }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Group",
+  "tag": null,
+  "blocks": [
+    { "type": "blog-card" },
+    { "type": "blog-card-button" },
+    { "type": "blog-card-description" },
+    { "type": "blog-card-meta" },
+    { "type": "blog-card-tag" },
+    { "type": "blog-card-title" },
+    { "type": "blog-list" },
+    { "type": "button" },
+    { "type": "buttons" },
+    { "type": "carousel" },
+    { "type": "collection-card-button" },
+    { "type": "collection-card-description" },
+    { "type": "collection-card-title" },
+    { "type": "collection-tab" },
+    { "type": "contact-field" },
+    { "type": "contact-form" },
+    { "type": "countdown-timer" },
+    { "type": "divider" },
+    { "type": "editorial-text" },
+    { "type": "email-signup" },
+    { "type": "eyebrow" },
+    { "type": "faq_accordion" },
+    { "type": "faq_answer_text" },
+    { "type": "grid" },
+    { "type": "group" },
+    { "type": "header" },
+    { "type": "heading" },
+    { "type": "icon" },
+    { "type": "image" },
+    { "type": "image-card" },
+    { "type": "image-comparison" },
+    { "type": "localization" },
+    { "type": "logo" },
+    { "type": "marquee" },
+    { "type": "marquee-item" },
+    { "type": "menu" },
+    { "type": "pagination" },
+    { "type": "payment-icons" },
+    { "type": "policy-links" },
+    { "type": "press-item" },
+    { "type": "product-accordion" },
+    { "type": "product-badges" },
+    { "type": "product-buy-buttons" },
+    { "type": "product-card" },
+    { "type": "product-description" },
+    { "type": "product-inventory" },
+    { "type": "product-list" },
+    { "type": "product-price" },
+    { "type": "product-title" },
+    { "type": "product-variant-picker" },
+    { "type": "row" },
+    { "type": "scroll-to" },
+    { "type": "shop-the-look-product" },
+    { "type": "shop-the-look-products" },
+    { "type": "slide" },
+    { "type": "spacer" },
+    { "type": "tab-layout" },
+    { "type": "tabs-view-all-button" },
+    { "type": "testimonial-item" },
+    { "type": "text" },
+    { "type": "video" }
+  ],
+  "settings": [
+    { "type": "select", "id": "alignment", "label": "Alignment", "options": [{ "value": "left", "label": "Left" }, { "value": "center", "label": "Center" }, { "value": "right", "label": "Right" }], "default": "center" },
+    { "type": "range", "id": "gap", "label": "Gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8 },
+    { "type": "checkbox", "id": "customize_mobile_alignment", "label": "Customize mobile alignment", "default": false },
+    { "type": "select", "id": "alignment_mobile", "label": "Mobile alignment", "options": [{ "value": "left", "label": "Left" }, { "value": "center", "label": "Center" }, { "value": "right", "label": "Right" }], "default": "center", "visible_if": "{{ block.settings.customize_mobile_alignment }}" },
+    { "type": "range", "id": "gap_mobile", "label": "Mobile gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 8 }
+  ],
+  "presets": [{ "name": "Gallery header", "category": "Gallery" }]
+}
+{% endschema %}

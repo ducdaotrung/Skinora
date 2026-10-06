@@ -1,0 +1,41 @@
+{% doc %}
+  Curated complementary products inside Product details. Product selection is
+  explicit so this remains useful without Search & Discovery configuration.
+{% enddoc %}
+
+{% liquid
+  assign recommendation_products = block.settings.products
+  assign recommendation_limit = block.settings.products_to_show | default: 4 | plus: 0
+%}
+
+{% if recommendation_products.count > 0 or request.design_mode %}
+  <product-recommendations class="product-recommendations" data-product-recommendations {{ block.shopify_attributes }}>
+    <div class="product-recommendations__header">
+      {% if block.settings.heading != blank %}<h2 class="product-recommendations__heading">{{ block.settings.heading | escape }}</h2>{% endif %}
+      <div class="product-recommendations__controls" aria-label="Product recommendations">
+        <button type="button" data-product-recommendations-previous aria-label="Previous products">{% render 'icon', icon: 'chevron-left', bare: true %}</button>
+        <button type="button" data-product-recommendations-next aria-label="Next products">{% render 'icon', icon: 'chevron-right', bare: true %}</button>
+      </div>
+    </div>
+    <div class="product-recommendations__track scrollbar scrollbar--horizontal scrollbar--hidden" data-product-recommendations-track>
+      {% for recommendation in recommendation_products limit: recommendation_limit %}
+        <div class="product-recommendations__item">{% render 'product-card', product: recommendation %}</div>
+      {% else %}
+        {% for index in (1..2) %}<div class="product-recommendations__item">{% render 'product-card', product: blank, placeholder: true %}</div>{% endfor %}
+      {% endfor %}
+    </div>
+  </product-recommendations>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Product recommendations",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Complete the look" },
+    { "type": "product_list", "id": "products", "label": "Products", "limit": 12 },
+    { "type": "range", "id": "products_to_show", "label": "Product count", "min": 2, "max": 12, "step": 1, "default": 4 }
+  ],
+  "presets": [{ "name": "Product recommendations" }]
+}
+{% endschema %}

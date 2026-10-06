@@ -1,0 +1,548 @@
+{% liquid
+  assign testimonials_horizontal_custom_alignment = 'start'
+  case section.settings.alignment
+    when 'center'
+      assign testimonials_horizontal_custom_alignment = 'center'
+    when 'right'
+      assign testimonials_horizontal_custom_alignment = 'end'
+  endcase
+
+  assign testimonials_horizontal_custom_alignment_mobile = testimonials_horizontal_custom_alignment
+  if section.settings.customize_mobile_alignment
+    assign testimonials_horizontal_custom_alignment_mobile = 'start'
+    case section.settings.alignment_mobile
+      when 'center'
+        assign testimonials_horizontal_custom_alignment_mobile = 'center'
+      when 'right'
+        assign testimonials_horizontal_custom_alignment_mobile = 'end'
+    endcase
+  endif
+
+  assign testimonials_horizontal_custom_gap_desktop = section.settings.gap_desktop | default: 36 | plus: 0
+  assign testimonials_horizontal_custom_gap_mobile = section.settings.gap_mobile | default: 36 | plus: 0
+
+  if testimonials_horizontal_custom_gap_desktop < 0 or testimonials_horizontal_custom_gap_desktop > 100
+    assign testimonials_horizontal_custom_gap_desktop = 36
+  endif
+  if testimonials_horizontal_custom_gap_mobile < 0 or testimonials_horizontal_custom_gap_mobile > 100
+    assign testimonials_horizontal_custom_gap_mobile = 36
+  endif
+
+  assign testimonials_horizontal_custom_section_width = section.settings.section_width | default: 'page_width'
+  unless testimonials_horizontal_custom_section_width == 'page_width' or testimonials_horizontal_custom_section_width == 'full_width' or testimonials_horizontal_custom_section_width == 'full_width_no_padding'
+    assign testimonials_horizontal_custom_section_width = 'page_width'
+  endunless
+
+  assign testimonials_horizontal_custom_container_width = 'page-width'
+  assign testimonials_horizontal_custom_container_no_padding = false
+  case testimonials_horizontal_custom_section_width
+    when 'full_width'
+      assign testimonials_horizontal_custom_container_width = 'full-width'
+    when 'full_width_no_padding'
+      assign testimonials_horizontal_custom_container_width = 'full-width'
+      assign testimonials_horizontal_custom_container_no_padding = true
+  endcase
+
+  assign testimonials_horizontal_custom_scheme = section.settings.color_scheme | default: settings.default_color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign testimonials_horizontal_custom_scheme = section.settings.color_scheme.id
+  endif
+  assign testimonials_horizontal_custom_scheme = testimonials_horizontal_custom_scheme | default: 'scheme-1' | handleize
+
+  assign testimonials_horizontal_custom_padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign testimonials_horizontal_custom_padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign testimonials_horizontal_custom_padding_top_mobile = section.settings.padding_top_mobile | default: testimonials_horizontal_custom_padding_top | plus: 0
+  assign testimonials_horizontal_custom_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: testimonials_horizontal_custom_padding_bottom | plus: 0
+%}
+
+{% capture testimonials_horizontal_custom_style %}
+  {% if testimonials_horizontal_custom_alignment != 'start' %}--flex-align: {{ testimonials_horizontal_custom_alignment }};{% endif %}
+  {% if section.settings.customize_mobile_alignment and testimonials_horizontal_custom_alignment_mobile != testimonials_horizontal_custom_alignment %}--flex-align-mobile: {{ testimonials_horizontal_custom_alignment_mobile }};{% endif %}
+  {% if testimonials_horizontal_custom_padding_top != 0 %}--section-padding-top: {{ testimonials_horizontal_custom_padding_top }}px;{% endif %}
+  {% if testimonials_horizontal_custom_padding_bottom != 0 %}--section-padding-bottom: {{ testimonials_horizontal_custom_padding_bottom }}px;{% endif %}
+  {% if section.settings.customize_mobile_padding %}
+    {% if testimonials_horizontal_custom_padding_top_mobile != testimonials_horizontal_custom_padding_top %}--section-padding-top-mobile: {{ testimonials_horizontal_custom_padding_top_mobile }}px;{% endif %}
+    {% if testimonials_horizontal_custom_padding_bottom_mobile != testimonials_horizontal_custom_padding_bottom %}--section-padding-bottom-mobile: {{ testimonials_horizontal_custom_padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign testimonials_horizontal_custom_style = testimonials_horizontal_custom_style | strip %}
+
+{% capture testimonials_horizontal_custom_content_style %}
+  {% render 'layout-flow-style',
+    direction: 'column',
+    wrap: 'nowrap',
+    align_items: 'var(--flex-align, flex-start)',
+    align_items_mobile: 'var(--flex-align-mobile, var(--flex-align, flex-start))',
+    gap: testimonials_horizontal_custom_gap_desktop,
+    gap_mobile: testimonials_horizontal_custom_gap_mobile
+  %}
+{% endcapture %}
+{% assign testimonials_horizontal_custom_content_style = testimonials_horizontal_custom_content_style | strip %}
+
+{% if section.blocks.size > 0 or request.design_mode %}
+  <div class="testimonials-horizontal-custom testimonials-horizontal-custom--{{ testimonials_horizontal_custom_section_width }}">
+    <div
+      class="section-spacing testimonials-horizontal-custom__spacing color-scheme section-color-scope {{ testimonials_horizontal_custom_scheme }}{% if testimonials_horizontal_custom_container_no_padding %} testimonials-horizontal-custom__spacing--no-padding{% endif %}"
+      {% if testimonials_horizontal_custom_style != blank %}style="{{ testimonials_horizontal_custom_style }}"{% endif %}
+    >
+      <div class="container {{ testimonials_horizontal_custom_container_width }} testimonials-horizontal-custom__container{% if testimonials_horizontal_custom_container_no_padding %} testimonials-horizontal-custom__container--no-padding{% endif %}">
+        <div
+          class="testimonials-horizontal-custom__content layout-flow layout-flow--responsive align-content"
+          {% if testimonials_horizontal_custom_content_style != blank %}style="{{ testimonials_horizontal_custom_content_style }}"{% endif %}
+        >
+          {% content_for 'blocks' %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .testimonials-horizontal-custom {
+    width: 100%;
+    min-width: 0;
+    --testimonials-horizontal-custom-media-radius: var(--media-radius, var(--radius-square));
+  }
+
+  .testimonials-horizontal-custom__spacing {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding-top: var(--section-padding-top, 0px);
+    padding-bottom: var(--section-padding-bottom, 0px);
+    background-color: var(--background-color);
+  }
+
+  .testimonials-horizontal-custom__spacing--no-padding,
+  .testimonials-horizontal-custom__spacing .container.testimonials-horizontal-custom__container--no-padding {
+    padding-inline: 0;
+  }
+
+  .testimonials-horizontal-custom__container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .testimonials-horizontal-custom__content,
+  .testimonials-horizontal-custom__content > * {
+    min-width: 0;
+  }
+
+  .testimonials-horizontal-custom .carousel-block {
+    max-width: 100%;
+  }
+
+  /* Use the global Theme Settings radius for all media surfaces in this section. */
+  .testimonials-horizontal-custom .image-block__media,
+  .testimonials-horizontal-custom .video-block__media,
+  .testimonials-horizontal-custom .image-compare__viewport,
+  .testimonials-horizontal-custom .image-card,
+  .testimonials-horizontal-custom .promo-card,
+  .testimonials-horizontal-custom .scrolling-card,
+  .testimonials-horizontal-custom .press-quotes__pagination-media,
+  .testimonials-horizontal-custom .collection-background-item__media,
+  .testimonials-horizontal-custom .collection-thumbnail__media,
+  .testimonials-horizontal-custom .collections-with-tabs__media {
+    border-radius: var(--testimonials-horizontal-custom-media-radius);
+  }
+
+  .testimonials-horizontal-custom .group--radius-square,
+  .testimonials-horizontal-custom .carousel-slide-layout--radius-square,
+  .testimonials-horizontal-custom .marquee-item--radius-square {
+    --group-radius: var(--testimonials-horizontal-custom-media-radius);
+  }
+
+  .testimonials-horizontal-custom .testimonial-item--radius-square {
+    --testimonial-radius: var(--testimonials-horizontal-custom-media-radius);
+  }
+
+  @media (max-width: 767.98px) {
+    .testimonials-horizontal-custom__spacing {
+      padding-top: var(--section-padding-top-mobile, var(--section-padding-top, 0px));
+      padding-bottom: var(--section-padding-bottom-mobile, var(--section-padding-bottom, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.testimonials_horizontal_custom",
+  "class": "section-testimonials-horizontal-custom",
+  "enabled_on": { "templates": ["*"] },
+  "blocks": [
+    { "type": "@theme" },
+    { "type": "@app" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" },
+        { "value": "full_width_no_padding", "label": "t:options.section_width.full_width_no_padding" }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.customize_mobile_alignment",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "t:labels.alignment_mobile",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "center",
+      "visible_if": "{{ section.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.testimonials_horizontal_custom_preset",
+      "category": "Trust & social proof",
+      "settings": {
+        "section_width": "page_width",
+        "alignment": "center",
+        "customize_mobile_alignment": false,
+        "alignment_mobile": "center",
+        "gap_desktop": 40,
+        "gap_mobile": 32,
+        "color_scheme": "scheme-1",
+        "padding_top": 16,
+        "padding_bottom": 16,
+        "customize_mobile_padding": false,
+        "padding_top_mobile": 16,
+        "padding_bottom_mobile": 16
+      },
+      "blocks": [
+        {
+          "type": "header",
+          "settings": {
+            "width": "fit",
+            "customize_mobile_size": false,
+            "alignment": "center",
+            "customize_mobile_alignment": false,
+            "alignment_mobile": "center",
+            "gap_desktop": 8,
+            "gap_mobile": 8,
+            "customize_mobile_padding": false
+          },
+          "blocks": [
+            {
+              "type": "eyebrow",
+              "settings": {
+                "text": "<p>SECTION TAG</p>"
+              }
+            },
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Main Heading Placeholder</p>",
+                "heading_size": "md",
+                "html_tag": "h2"
+              }
+            }
+          ]
+        },
+        {
+          "type": "carousel",
+          "settings": {
+            "columns_desktop": "3",
+            "columns_mobile": "1",
+            "gap_desktop": 56,
+            "gap_mobile": 24,
+            "width": "fill",
+            "show_navigation_on_desktop": false,
+            "show_pagination_on_desktop": false,
+            "show_pagination_on_mobile": false,
+            "autoplay": false,
+            "loop": false,
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "customize_mobile_padding": false
+          },
+          "blocks": [
+            {
+              "type": "slide",
+              "settings": {
+                "direction": "vertical",
+                "alignment": "center",
+                "gap_desktop": 24,
+                "gap_mobile": 12,
+                "height": "fill",
+                "appearance_type": "inherit",
+                "border_type": "none",
+                "corner_radius": "square",
+                "shadow": "none",
+                "customize_mobile_padding": false
+              },
+              "blocks": [
+                {
+                  "type": "image",
+                  "settings": {
+                    "image_ratio_desktop": "custom",
+                    "image_ratio_custom_width_desktop": 2,
+                    "image_ratio_custom_height_desktop": 1,
+                    "image_ratio_mobile": "custom",
+                    "image_ratio_custom_width_mobile": 2,
+                    "image_ratio_custom_height_mobile": 1,
+                    "width_desktop": "custom",
+                    "width_custom_desktop": 40,
+                    "width_mobile": "custom",
+                    "width_custom_mobile": 40,
+                    "limit_width_desktop": false,
+                    "limit_width_mobile": false,
+                    "corner_radius": "square"
+                  }
+                },
+                {
+                  "type": "heading",
+                  "settings": {
+                    "text": "<p>Main Heading</p>",
+                    "heading_size": "xs",
+                    "html_tag": "h3",
+                    "width": "fill",
+                    "customize_mobile_size": false,
+                    "width_mobile": "fill"
+                  }
+                },
+                {
+                  "type": "text",
+                  "settings": {
+                    "text": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, nisi quis viverra ornare.</p>",
+                    "text_size": "xs",
+                    "width": "fill",
+                    "customize_mobile_size": false,
+                    "width_mobile": "fill"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "slide",
+              "settings": {
+                "direction": "vertical",
+                "alignment": "center",
+                "gap_desktop": 24,
+                "gap_mobile": 12,
+                "height": "fill",
+                "appearance_type": "inherit",
+                "border_type": "none",
+                "corner_radius": "square",
+                "shadow": "none",
+                "customize_mobile_padding": false
+              },
+              "blocks": [
+                {
+                  "type": "image",
+                  "settings": {
+                    "image_ratio_desktop": "custom",
+                    "image_ratio_custom_width_desktop": 2,
+                    "image_ratio_custom_height_desktop": 1,
+                    "image_ratio_mobile": "custom",
+                    "image_ratio_custom_width_mobile": 2,
+                    "image_ratio_custom_height_mobile": 1,
+                    "width_desktop": "custom",
+                    "width_custom_desktop": 40,
+                    "width_mobile": "custom",
+                    "width_custom_mobile": 40,
+                    "limit_width_desktop": false,
+                    "limit_width_mobile": false,
+                    "corner_radius": "square"
+                  }
+                },
+                {
+                  "type": "heading",
+                  "settings": {
+                    "text": "<p>Main Heading</p>",
+                    "heading_size": "xs",
+                    "html_tag": "h3",
+                    "width": "fill",
+                    "customize_mobile_size": false,
+                    "width_mobile": "fill"
+                  }
+                },
+                {
+                  "type": "text",
+                  "settings": {
+                    "text": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, nisi quis viverra ornare.</p>",
+                    "text_size": "xs",
+                    "width": "fill",
+                    "customize_mobile_size": false,
+                    "width_mobile": "fill"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "slide",
+              "settings": {
+                "direction": "vertical",
+                "alignment": "center",
+                "gap_desktop": 24,
+                "gap_mobile": 12,
+                "height": "fill",
+                "appearance_type": "inherit",
+                "border_type": "none",
+                "corner_radius": "square",
+                "shadow": "none",
+                "customize_mobile_padding": false
+              },
+              "blocks": [
+                {
+                  "type": "image",
+                  "settings": {
+                    "image_ratio_desktop": "custom",
+                    "image_ratio_custom_width_desktop": 2,
+                    "image_ratio_custom_height_desktop": 1,
+                    "image_ratio_mobile": "custom",
+                    "image_ratio_custom_width_mobile": 2,
+                    "image_ratio_custom_height_mobile": 1,
+                    "width_desktop": "custom",
+                    "width_custom_desktop": 40,
+                    "width_mobile": "custom",
+                    "width_custom_mobile": 40,
+                    "limit_width_desktop": false,
+                    "limit_width_mobile": false,
+                    "corner_radius": "square"
+                  }
+                },
+                {
+                  "type": "heading",
+                  "settings": {
+                    "text": "<p>Main Heading</p>",
+                    "heading_size": "xs",
+                    "html_tag": "h3",
+                    "width": "fill",
+                    "customize_mobile_size": false,
+                    "width_mobile": "fill"
+                  }
+                },
+                {
+                  "type": "text",
+                  "settings": {
+                    "text": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, nisi quis viverra ornare.</p>",
+                    "text_size": "xs",
+                    "width": "fill",
+                    "customize_mobile_size": false,
+                    "width_mobile": "fill"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

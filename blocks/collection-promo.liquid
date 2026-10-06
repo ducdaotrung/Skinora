@@ -1,0 +1,614 @@
+{% doc %}
+  Repeatable editorial card in the collection product grid.
+  Content fields and media controls stay on this block so each promo card can be
+  added, removed, reordered and edited independently in the Theme Editor.
+{% enddoc %}
+{% liquid
+  assign promo_scheme = block.settings.color_scheme.id | default: block.settings.color_scheme | default: 'scheme-1'
+  assign promo_position = block.settings.position | default: 5 | plus: 0
+  assign promo_columns_desktop = block.settings.columns_desktop | default: '2'
+  assign promo_columns_mobile = block.settings.columns_mobile | default: '2'
+  assign promo_alignment = block.settings.content_alignment | default: 'center'
+  assign promo_position_y = block.settings.content_position | default: 'center'
+  assign promo_media_type = block.settings.media_type | default: 'image'
+  assign promo_text_size = block.settings.text_size | default: 'md'
+  assign promo_heading_size = block.settings.heading_size | default: 'xl'
+  assign promo_heading_scale = promo_heading_size
+  assign promo_heading_level = 2
+  case promo_heading_size
+    when 'h1'
+      assign promo_heading_scale = 'display'
+    when 'h2'
+      assign promo_heading_scale = 'xl'
+    when 'h3'
+      assign promo_heading_scale = 'lg'
+    when 'h4'
+      assign promo_heading_scale = 'md'
+    when 'h5'
+      assign promo_heading_scale = 'sm'
+    when 'h6'
+      assign promo_heading_scale = 'xs'
+  endcase
+
+  unless promo_text_size == 'xs' or promo_text_size == 'sm' or promo_text_size == 'md' or promo_text_size == 'lg' or promo_text_size == 'xl'
+    assign promo_text_size = 'md'
+  endunless
+
+  assign promo_alignment_items = 'center'
+  assign promo_alignment_text = 'center'
+  assign promo_justify = 'center'
+  case promo_alignment
+    when 'left'
+      assign promo_alignment_items = 'flex-start'
+      assign promo_alignment_text = 'left'
+    when 'right'
+      assign promo_alignment_items = 'flex-end'
+      assign promo_alignment_text = 'right'
+  endcase
+  case promo_position_y
+    when 'top'
+      assign promo_justify = 'flex-start'
+    when 'bottom'
+      assign promo_justify = 'flex-end'
+  endcase
+
+  assign promo_padding_top = block.settings.padding_top | default: block.settings.padding_top_bottom | default: 40
+  assign promo_padding_bottom = block.settings.padding_bottom | default: block.settings.padding_top_bottom | default: 40
+  assign promo_padding_left = block.settings.padding_left | default: block.settings.padding_left_right | default: 28
+  assign promo_padding_right = block.settings.padding_right | default: block.settings.padding_left_right | default: 28
+  assign promo_padding_top_mobile = promo_padding_top
+  assign promo_padding_bottom_mobile = promo_padding_bottom
+  assign promo_padding_left_mobile = promo_padding_left
+  assign promo_padding_right_mobile = promo_padding_right
+  if block.settings.customize_mobile_padding
+    assign promo_padding_top_mobile = block.settings.padding_top_mobile | default: block.settings.padding_top_bottom_mobile | default: 24
+    assign promo_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: block.settings.padding_top_bottom_mobile | default: 24
+    assign promo_padding_left_mobile = block.settings.padding_left_mobile | default: block.settings.padding_left_right_mobile | default: 16
+    assign promo_padding_right_mobile = block.settings.padding_right_mobile | default: block.settings.padding_left_right_mobile | default: 16
+  endif
+
+  assign promo_button_style = block.settings.button_style | default: 'primary'
+  assign promo_button_variant = 'primary'
+  case promo_button_style
+    when 'secondary', 'outline', 'subtle'
+      assign promo_button_variant = 'secondary'
+    when 'text', 'tertiary'
+      assign promo_button_variant = 'tertiary'
+    when 'primary'
+      assign promo_button_variant = 'primary'
+    else
+      assign promo_button_style = 'primary'
+      assign promo_button_variant = 'primary'
+  endcase
+
+  assign promo_button_height = 'var(--button-height)'
+  assign promo_button_height_mobile = 'var(--button-height-mobile)'
+  case block.settings.button_height
+    when 'extra_small'
+      assign promo_button_height = '36px'
+      assign promo_button_height_mobile = '36px'
+    when 'small'
+      assign promo_button_height = '40px'
+      assign promo_button_height_mobile = '40px'
+    when 'medium'
+      assign promo_button_height = '48px'
+      assign promo_button_height_mobile = '48px'
+    when 'large'
+      assign promo_button_height = '56px'
+      assign promo_button_height_mobile = '56px'
+    when 'extra_large'
+      assign promo_button_height = '64px'
+      assign promo_button_height_mobile = '64px'
+  endcase
+
+  assign promo_button_class = 'main-collection__promotion-button main-collection__promotion-button--' | append: promo_button_style
+  assign promo_icon = blank
+  if block.settings.show_icon
+    assign promo_icon = block.settings.icon | default: 'arrow'
+  endif
+
+  assign promo_subheading_text = block.settings.subheading | strip_html | strip
+  assign promo_heading_text = block.settings.heading | strip_html | strip
+  assign promo_body_text = block.settings.text | strip_html | strip
+%}
+<li
+  class="main-collection__promotion color-scheme section-color-scope {{ promo_scheme }}"
+  style="order:{{ promo_position | times: 10 | minus: 5 }};--promo-span:{{ promo_columns_desktop }};--promo-span-mobile:{{ promo_columns_mobile }};--promo-overlay:1;--promo-overlay-color:{{ block.settings.overlay_color | default: '#00000033' }};--promo-content-gap:{{ block.settings.content_gap | default: 12 }}px;--promo-button-spacing:{{ block.settings.button_spacing | default: 24 }}px;--promo-padding-top:{{ promo_padding_top }}px;--promo-padding-bottom:{{ promo_padding_bottom }}px;--promo-padding-left:{{ promo_padding_left }}px;--promo-padding-right:{{ promo_padding_right }}px;--promo-padding-top-mobile:{{ promo_padding_top_mobile }}px;--promo-padding-bottom-mobile:{{ promo_padding_bottom_mobile }}px;--promo-padding-left-mobile:{{ promo_padding_left_mobile }}px;--promo-padding-right-mobile:{{ promo_padding_right_mobile }}px;--promo-alignment-items:{{ promo_alignment_items }};--promo-alignment-text:{{ promo_alignment_text }};--promo-position:{{ promo_justify }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="main-collection__promotion-card">
+    <div class="main-collection__promotion-media">
+      {% if promo_media_type == 'video' and block.settings.video != blank %}
+        {{ block.settings.video | video_tag: autoplay: true, loop: true, muted: true, controls: false, class: 'main-collection__promotion-image', preload: 'metadata' }}
+      {% elsif block.settings.image != blank %}
+        <picture>
+          {% if block.settings.mobile_image != blank %}
+            <source media="(max-width: 767.98px)" srcset="{{ block.settings.mobile_image | image_url: width: 900 }}">
+          {% endif %}
+          {{ block.settings.image | image_url: width: 1600 | image_tag: widths: '400, 800, 1200, 1600', sizes: '(min-width: 1024px) 50vw, 100vw', loading: 'lazy', class: 'main-collection__promotion-image' }}
+        </picture>
+      {% else %}
+        {{ 'collection-1' | placeholder_svg_tag: 'main-collection__promotion-image' }}
+      {% endif %}
+    </div>
+    {% if block.settings.show_overlay %}
+      <span class="main-collection__promotion-overlay" aria-hidden="true"></span>
+    {% endif %}
+    {% if block.settings.card_link != blank %}
+      <a
+        class="main-collection__promotion-hit-area"
+        href="{{ block.settings.card_link | escape }}"
+        aria-label="{{ 'collection.promo_link' | t | escape }}"
+        {% if block.settings.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+      ></a>
+    {% endif %}
+    <div class="main-collection__promotion-content">
+      {% if promo_subheading_text != blank %}
+        <div class="main-collection__promotion-subheading eyebrow-text body-text body-sm">{{ block.settings.subheading }}</div>
+      {% endif %}
+      {% if promo_heading_text != blank %}
+        <div class="main-collection__promotion-heading heading-text heading-{{ promo_heading_scale }}" role="heading" aria-level="{{ promo_heading_level }}"{% if promo_heading_scale == 'custom' %} style="font-size:{{ block.settings.custom_heading_size }}px"{% endif %}>{{ block.settings.heading }}</div>
+      {% endif %}
+      {% if promo_body_text != blank %}
+        <div class="main-collection__promotion-text body-text body-{{ promo_text_size }}">{{ block.settings.text }}</div>
+      {% endif %}
+      {% if block.settings.button_label != blank %}
+        <div
+          class="main-collection__promotion-cta{% if block.settings.button_full_width %} main-collection__promotion-cta--full-width{% endif %}"
+          style="--promo-button-height:{{ promo_button_height }};--promo-button-height-mobile:{{ promo_button_height_mobile }}"
+        >
+          {% render 'theme-button',
+            label: block.settings.button_label,
+            url: block.settings.card_link,
+            open_in_new_tab: block.settings.open_in_new_tab,
+            variant: promo_button_variant,
+            icon: promo_icon,
+            icon_position: block.settings.icon_position,
+            class: promo_button_class
+          %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</li>
+
+{% stylesheet %}
+  .main-collection__promotion-subheading,
+  .main-collection__promotion-heading,
+  .main-collection__promotion-text {
+    width: 100%;
+    margin: 0;
+  }
+
+  .main-collection__promotion-subheading :where(p),
+  .main-collection__promotion-heading :where(p),
+  .main-collection__promotion-text :where(p) {
+    margin: 0;
+  }
+
+  .main-collection__promotion-cta {
+    position: relative;
+    z-index: 3;
+    width: fit-content;
+    max-width: 100%;
+    margin-top: var(--promo-button-spacing, 24px);
+    pointer-events: auto;
+  }
+
+  .main-collection__promotion-cta .main-collection__promotion-button {
+    min-height: var(--promo-button-height, var(--button-height));
+  }
+
+  .main-collection__promotion-cta--full-width {
+    width: 100%;
+  }
+
+  .main-collection__promotion-cta--full-width .main-collection__promotion-button {
+    width: 100%;
+  }
+
+  .main-collection__promotion-button--outline {
+    --button-background: transparent;
+    --button-foreground: var(--button-secondary-text);
+    --button-border: var(--button-secondary-border);
+  }
+
+  .main-collection__promotion-button--subtle {
+    --button-background: color-mix(in srgb, var(--button-secondary-background) 40%, transparent);
+    --button-foreground: var(--button-secondary-text);
+    --button-border: transparent;
+    --button-hover-background: var(--button-secondary-background);
+  }
+
+  @media (max-width: 767.98px) {
+    .main-collection__promotion-cta {
+      margin-top: var(--promo-button-spacing, 16px);
+    }
+
+    .main-collection__promotion-cta .main-collection__promotion-button {
+      min-height: var(--promo-button-height-mobile, var(--button-height-mobile));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Promo card",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "range",
+      "id": "position",
+      "label": "Card position",
+      "min": 1,
+      "max": 40,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Desktop columns",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Mobile columns",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    { "type": "url", "id": "card_link", "label": "Card link" },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "Open link in new tab",
+      "default": false
+    },
+    { "type": "header", "content": "Media" },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Media type",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "visible_if": "{{ block.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile image",
+      "visible_if": "{{ block.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Video",
+      "visible_if": "{{ block.settings.media_type == 'video' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "Overlay",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "alpha": true,
+      "default": "#00000033",
+      "visible_if": "{{ block.settings.show_overlay }}"
+    },
+
+    { "type": "header", "content": "Content" },
+    {
+      "type": "richtext",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "<p>[ Save 20% off ]</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Curate Your Set</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p></p>"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "content_position",
+      "label": "Position",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "center"
+    },
+    { "type": "header", "content": "Typography" },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        {
+          "value": "display",
+          "label": "t:options.heading_size.display"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.heading_size.xl"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.heading_size.lg"
+        },
+        {
+          "value": "md",
+          "label": "t:options.heading_size.md"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.heading_size.sm"
+        },
+        {
+          "value": "xs",
+          "label": "t:options.heading_size.xs"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.heading_size.custom"
+        }
+      ],
+      "default": "xl"
+    },
+{
+  "type": "range",
+  "id": "custom_heading_size",
+  "label": "Custom size",
+  "min": 10,
+  "max": 100,
+  "step": 1,
+  "unit": "px",
+  "default": 24,
+  "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+},
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Text size",
+      "options": [
+        { "value": "xs", "label": "Extra small" },
+        { "value": "sm", "label": "Small" },
+        { "value": "md", "label": "Medium" },
+        { "value": "lg", "label": "Large" },
+        { "value": "xl", "label": "Extra large" }
+      ],
+      "default": "md"
+    },
+    { "type": "header", "content": "Button" },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Label",
+      "default": "Curate now"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:labels.style",
+      "options": [
+        {
+          "value": "primary",
+          "label": "t:options.button_variant.primary"
+        },
+        {
+          "value": "secondary",
+          "label": "t:options.button_variant.secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "t:options.button_variant.tertiary"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show icon",
+      "default": false
+    },
+{
+  "type": "select",
+  "id": "icon_position",
+  "label": "t:labels.icon_position",
+  "options": [
+    {
+      "value": "before",
+      "label": "Left"
+    },
+    {
+      "value": "after",
+      "label": "Right"
+    }
+  ],
+  "default": "after",
+  "visible_if": "{{ block.settings.show_icon }}"
+},
+    {
+      "type": "select",
+      "id": "icon",
+      "label": "t:labels.icon",
+      "options": [
+        {
+          "value": "arrow_right",
+          "label": "Arrow right"
+        },
+        {
+          "value": "long_arrow_right",
+          "label": "Long arrow right"
+        },
+        {
+          "value": "chevron_right",
+          "label": "Chevron"
+        },
+        {
+          "value": "arrow_up_right",
+          "label": "Arrow up right"
+        },
+        {
+          "value": "circle_arrow",
+          "label": "Circle arrow"
+        },
+        {
+          "value": "circle_chevron",
+          "label": "Circle chevron"
+        },
+        {
+          "value": "long_arrow_up",
+          "label": "Long arrow up"
+        },
+        {
+          "value": "double_chevron",
+          "label": "Double chevron"
+        },
+        {
+          "value": "arrow_outline",
+          "label": "Arrow outline"
+        },
+        {
+          "value": "square_chevron",
+          "label": "Square chevron"
+        },
+        {
+          "value": "plus",
+          "label": "Plus"
+        }
+      ],
+      "default": "arrow_right",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "button_height",
+      "label": "Height",
+      "options": [
+        { "value": "inherit", "label": "Inherit" },
+        { "value": "extra_small", "label": "Extra small" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" },
+        { "value": "extra_large", "label": "Extra large" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_full_width",
+      "label": "Full width",
+      "default": false
+    },
+    { "type": "header", "content": "Gap" },
+    {
+      "type": "range",
+      "id": "content_gap",
+      "label": "Content gap",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "default": 12,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "button_spacing",
+      "label": "Button spacing",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "default": 24,
+      "unit": "px"
+    },
+    { "type": "header", "content": "Appearance" },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    { "type": "header", "content": "t:general.padding" },
+    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 40 },
+    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 40 },
+    { "type": "range", "id": "padding_left", "label": "t:labels.left_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 28 },
+    { "type": "range", "id": "padding_right", "label": "t:labels.right_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 28 },
+    { "type": "checkbox", "id": "customize_mobile_padding", "label": "t:labels.customize_mobile_padding", "default": false },
+    { "type": "range", "id": "padding_top_mobile", "label": "t:labels.mobile_top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 24, "visible_if": "{{ block.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_bottom_mobile", "label": "t:labels.mobile_bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 24, "visible_if": "{{ block.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_left_mobile", "label": "t:labels.mobile_left_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16, "visible_if": "{{ block.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_right_mobile", "label": "t:labels.mobile_right_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16, "visible_if": "{{ block.settings.customize_mobile_padding }}" }
+  ],
+  "presets": [
+    {
+      "name": "Promo card",
+      "settings": {
+        "position": 5,
+        "columns_desktop": "2",
+        "columns_mobile": "2",
+        "media_type": "image",
+        "show_overlay": true,
+        "overlay_color": "#00000033",
+        "subheading": "<p>[ Save 20% off ]</p>",
+        "heading": "<p>Curate Your Set</p>",
+        "heading_size": "xl",
+        "text_size": "md",
+        "button_label": "Curate now",
+        "button_style": "primary",
+        "color_scheme": "scheme-1",
+        "padding_top": 40,
+        "padding_bottom": 40,
+        "padding_left": 28,
+        "padding_right": 28,
+        "customize_mobile_padding": false,
+        "padding_top_mobile": 24,
+        "padding_bottom_mobile": 24,
+        "padding_left_mobile": 16,
+        "padding_right_mobile": 16
+      }
+    }
+  ]
+}
+{% endschema %}

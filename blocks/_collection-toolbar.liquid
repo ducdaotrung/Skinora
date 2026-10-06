@@ -1,0 +1,43 @@
+{% doc %}
+  Fixed collection toolbar. Its root is the Theme Editor selection surface for
+  the filter, count, sort, and column controls.
+{% enddoc %}
+{% liquid
+  assign toolbar_height = 'var(--button-height)'
+  case block.settings.button_height
+    when 'small'
+      assign toolbar_height = '36px'
+    when 'medium'
+      assign toolbar_height = '48px'
+    when 'large'
+      assign toolbar_height = '56px'
+  endcase
+%}
+<div class="main-collection__toolbar{% if block.settings.sticky_on_mobile %} main-collection__toolbar--sticky-mobile{% endif %}" style="--collection-toolbar-gap:{{ block.settings.gap }}px;--collection-toolbar-button-height:{{ toolbar_height }};--collection-toolbar-padding-top:{{ block.settings.padding_top }}px;--collection-toolbar-padding-bottom:{{ block.settings.padding_bottom }}px;{% if block.settings.customize_mobile_padding %}--collection-toolbar-padding-top-mobile:{{ block.settings.padding_top_mobile }}px;--collection-toolbar-padding-bottom-mobile:{{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+  {% content_for 'block', type: '_collection-filter', id: 'filter' %}
+  {% content_for 'block', type: '_collection-count', id: 'count' %}
+  {% content_for 'block', type: '_collection-sort', id: 'sort' %}
+  {% content_for 'block', type: '_collection-columns', id: 'columns' %}
+</div>
+{% schema %}
+{
+  "name": "Filter and sort",
+  "tag": null,
+  "settings": [
+    { "type": "range", "id": "gap", "label": "Gap", "min": 0, "max": 100, "step": 2, "unit": "px", "default": 30 },
+    { "type": "select", "id": "button_height", "label": "Button height", "options": [
+      { "value": "inherit", "label": "Inherit" },
+      { "value": "small", "label": "Small" },
+      { "value": "medium", "label": "Medium" },
+      { "value": "large", "label": "Large" }
+    ], "default": "inherit" },
+    { "type": "checkbox", "id": "sticky_on_mobile", "label": "Sticky on mobile", "default": false },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding_top", "label": "Top", "min": 0, "max": 100, "step": 2, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom", "min": 0, "max": 100, "step": 2, "unit": "px", "default": 0 },
+    { "type": "checkbox", "id": "customize_mobile_padding", "label": "Customize for mobile", "default": false },
+    { "type": "range", "id": "padding_top_mobile", "label": "Top (mobile)", "min": 0, "max": 100, "step": 2, "unit": "px", "default": 12, "visible_if": "{{ block.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_bottom_mobile", "label": "Bottom (mobile)", "min": 0, "max": 100, "step": 2, "unit": "px", "default": 12, "visible_if": "{{ block.settings.customize_mobile_padding }}" }
+  ]
+}
+{% endschema %}

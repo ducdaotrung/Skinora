@@ -1,0 +1,38 @@
+{% doc %}
+  Feature label with a desktop tooltip and a shared mobile overlay.
+  @param {string} label - Feature label
+  @param {string} tooltip - Tooltip content
+  @param {string} tooltip_id - Unique desktop tooltip identifier
+  @param {string} dialog_id - Unique mobile overlay identifier
+{% enddoc %}
+{% capture tooltip_content %}{{ tooltip | escape }}{% endcapture %}
+<comparison-table-tooltip class="comparison-table__tooltip-wrap">
+  <button
+    class="comparison-table__trigger comparison-table__trigger--desktop"
+    type="button"
+    aria-describedby="{{ tooltip_id }}"
+  >
+    <span class="comparison-table__label">{{ label | escape }}<span class="comparison-table__info">{% render 'icon', icon: 'information-circle', bare: true, class: 'comparison-table__info-icon' %}<span class="comparison-table__tooltip" id="{{ tooltip_id }}" role="tooltip">{{ tooltip | escape }}</span></span></span>
+  </button>
+  <button
+    class="comparison-table__trigger comparison-table__trigger--mobile"
+    type="button"
+    aria-label="{{ 'comparison_table.more_information' | t: feature: label | escape }}"
+    aria-haspopup="dialog"
+    aria-controls="{{ dialog_id }}"
+    aria-expanded="false"
+    data-comparison-table-tooltip-trigger
+  >
+    <span class="comparison-table__label">{{ label | escape }}<span class="comparison-table__info">{% render 'icon', icon: 'information-circle', bare: true, class: 'comparison-table__info-icon' %}</span></span>
+  </button>
+  {% render 'component-overlay',
+    id: dialog_id,
+    label: label,
+    content: tooltip_content,
+    desktop_layout: 'popup',
+    mobile_layout: 'bottom_sheet',
+    width: 400,
+    append_to_body: true,
+    attributes: 'data-comparison-table-tooltip-dialog'
+  %}
+</comparison-table-tooltip>

@@ -1,0 +1,587 @@
+{% liquid
+  assign image_comparison_split_section_width = section.settings.section_width | default: 'page_width'
+  unless image_comparison_split_section_width == 'page_width' or image_comparison_split_section_width == 'full_width' or image_comparison_split_section_width == 'full_width_no_padding'
+    assign image_comparison_split_section_width = 'page_width'
+  endunless
+
+  assign image_comparison_split_container_width = 'page-width'
+  assign image_comparison_split_container_no_padding = false
+  case image_comparison_split_section_width
+    when 'full_width'
+      assign image_comparison_split_container_width = 'full-width'
+    when 'full_width_no_padding'
+      assign image_comparison_split_container_width = 'full-width'
+      assign image_comparison_split_container_no_padding = true
+  endcase
+
+  assign image_comparison_split_direction = section.settings.direction | default: 'horizontal'
+  unless image_comparison_split_direction == 'horizontal' or image_comparison_split_direction == 'vertical'
+    assign image_comparison_split_direction = 'horizontal'
+  endunless
+
+  assign image_comparison_split_position = section.settings.position | default: 'center'
+  unless image_comparison_split_position == 'top' or image_comparison_split_position == 'center' or image_comparison_split_position == 'bottom'
+    assign image_comparison_split_position = 'center'
+  endunless
+
+  assign image_comparison_split_horizontal_alignment = section.settings.horizontal_alignment | default: 'space-between'
+  unless image_comparison_split_horizontal_alignment == 'left' or image_comparison_split_horizontal_alignment == 'center' or image_comparison_split_horizontal_alignment == 'right' or image_comparison_split_horizontal_alignment == 'space-between'
+    assign image_comparison_split_horizontal_alignment = 'space-between'
+  endunless
+
+  assign image_comparison_split_alignment = section.settings.alignment | default: 'left'
+  unless image_comparison_split_alignment == 'left' or image_comparison_split_alignment == 'center' or image_comparison_split_alignment == 'right'
+    assign image_comparison_split_alignment = 'left'
+  endunless
+
+  assign image_comparison_split_alignment_mobile = section.settings.alignment_mobile | default: 'left'
+  unless image_comparison_split_alignment_mobile == 'left' or image_comparison_split_alignment_mobile == 'center' or image_comparison_split_alignment_mobile == 'right'
+    assign image_comparison_split_alignment_mobile = 'left'
+  endunless
+
+  assign image_comparison_split_content_align = 'start'
+  assign image_comparison_split_content_justify = 'flex-start'
+  if image_comparison_split_direction == 'horizontal'
+    case image_comparison_split_position
+      when 'center'
+        assign image_comparison_split_content_align = 'center'
+      when 'bottom'
+        assign image_comparison_split_content_align = 'end'
+    endcase
+
+    case image_comparison_split_horizontal_alignment
+      when 'center'
+        assign image_comparison_split_content_justify = 'center'
+      when 'right'
+        assign image_comparison_split_content_justify = 'flex-end'
+      when 'space-between'
+        assign image_comparison_split_content_justify = 'space-between'
+    endcase
+  else
+    case image_comparison_split_alignment
+      when 'center'
+        assign image_comparison_split_content_align = 'center'
+      when 'right'
+        assign image_comparison_split_content_align = 'end'
+    endcase
+  endif
+
+  assign image_comparison_split_content_align_mobile = image_comparison_split_content_align
+  if image_comparison_split_direction == 'vertical' or section.settings.customize_mobile_alignment
+    assign image_comparison_split_content_align_mobile = 'start'
+    case image_comparison_split_alignment_mobile
+      when 'center'
+        assign image_comparison_split_content_align_mobile = 'center'
+      when 'right'
+        assign image_comparison_split_content_align_mobile = 'end'
+    endcase
+  endif
+
+  assign image_comparison_split_mobile_vertical = false
+  if image_comparison_split_direction == 'horizontal' and section.settings.customize_mobile_alignment
+    assign image_comparison_split_mobile_vertical = true
+  endif
+
+  assign image_comparison_split_gap_desktop = section.settings.gap_desktop | default: 40 | plus: 0
+  if image_comparison_split_gap_desktop < 0 or image_comparison_split_gap_desktop > 100
+    assign image_comparison_split_gap_desktop = 40
+  endif
+  assign image_comparison_split_gap_mobile = section.settings.gap_mobile | default: 32 | plus: 0
+  if image_comparison_split_gap_mobile < 0 or image_comparison_split_gap_mobile > 100
+    assign image_comparison_split_gap_mobile = 32
+  endif
+
+  assign image_comparison_split_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign image_comparison_split_scheme = section.settings.color_scheme.id
+  endif
+  assign image_comparison_split_scheme = image_comparison_split_scheme | default: 'scheme-1' | handleize
+
+  assign image_comparison_split_padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign image_comparison_split_padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign image_comparison_split_padding_top_mobile = section.settings.padding_top_mobile | default: image_comparison_split_padding_top | plus: 0
+  assign image_comparison_split_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: image_comparison_split_padding_bottom | plus: 0
+
+  assign image_comparison_split_sticky_content = false
+  if image_comparison_split_direction == 'horizontal' and section.settings.enable_sticky_content
+    assign image_comparison_split_sticky_content = true
+  endif
+
+  assign image_comparison_split_content_class = 'image-comparison-split-custom__content image-comparison-split-custom__content--direction-' | append: image_comparison_split_direction
+  if image_comparison_split_mobile_vertical
+    assign image_comparison_split_content_class = image_comparison_split_content_class | append: ' image-comparison-split-custom__content--mobile-vertical'
+  endif
+  if image_comparison_split_sticky_content
+    assign image_comparison_split_content_class = image_comparison_split_content_class | append: ' image-comparison-split-custom__content--sticky'
+  endif
+%}
+
+{% capture image_comparison_split_style %}
+  --image-comparison-split-custom-gap-desktop: {{ image_comparison_split_gap_desktop }}px;
+  --image-comparison-split-custom-gap-mobile: {{ image_comparison_split_gap_mobile }}px;
+  --image-comparison-split-custom-content-align: {{ image_comparison_split_content_align }};
+  --image-comparison-split-custom-content-justify: {{ image_comparison_split_content_justify }};
+  --image-comparison-split-custom-content-align-mobile: {{ image_comparison_split_content_align_mobile }};
+  {% if image_comparison_split_padding_top != 0 %}--section-padding-top: {{ image_comparison_split_padding_top }}px;{% endif %}
+  {% if image_comparison_split_padding_bottom != 0 %}--section-padding-bottom: {{ image_comparison_split_padding_bottom }}px;{% endif %}
+  {% if section.settings.customize_mobile_padding %}
+    {% if image_comparison_split_padding_top_mobile != image_comparison_split_padding_top %}--section-padding-top-mobile: {{ image_comparison_split_padding_top_mobile }}px;{% endif %}
+    {% if image_comparison_split_padding_bottom_mobile != image_comparison_split_padding_bottom %}--section-padding-bottom-mobile: {{ image_comparison_split_padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign image_comparison_split_style = image_comparison_split_style | strip | replace: '\n', ' ' %}
+
+{% if section.blocks.size > 0 or request.design_mode %}
+  <div class="image-comparison-split-custom">
+    <div
+      class="section-spacing image-comparison-split-custom__spacing color-scheme section-color-scope {{ image_comparison_split_scheme }}{% if image_comparison_split_container_no_padding %} image-comparison-split-custom__spacing--no-padding{% endif %}"
+      {% if image_comparison_split_style != blank %}style="{{ image_comparison_split_style }}"{% endif %}
+    >
+      <div class="container {{ image_comparison_split_container_width }} image-comparison-split-custom__container{% if image_comparison_split_container_no_padding %} image-comparison-split-custom__container--no-padding{% endif %}">
+        <div
+          class="{{ image_comparison_split_content_class }}"
+          {% if image_comparison_split_style != blank %}style="{{ image_comparison_split_style }}"{% endif %}
+        >
+          {% content_for 'blocks' %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .image-comparison-split-custom {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .image-comparison-split-custom__spacing {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .image-comparison-split-custom__container,
+  .image-comparison-split-custom__content,
+  .image-comparison-split-custom__content > * {
+    min-width: 0;
+  }
+
+  .image-comparison-split-custom__container {
+    position: relative;
+  }
+
+  .image-comparison-split-custom__spacing--no-padding,
+  .image-comparison-split-custom__spacing .container.image-comparison-split-custom__container--no-padding {
+    padding-inline: 0;
+  }
+
+  .image-comparison-split-custom__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--image-comparison-split-custom-gap-desktop, 40px);
+    align-items: var(--image-comparison-split-custom-content-align, start);
+  }
+
+  .image-comparison-split-custom__content--direction-horizontal {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: var(--image-comparison-split-custom-content-align, center);
+    justify-content: var(--image-comparison-split-custom-content-justify, space-between);
+  }
+
+  .image-comparison-split-custom__content--direction-horizontal > .group,
+  .image-comparison-split-custom__content--direction-horizontal > .image-compare-block {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .image-comparison-split-custom__content--direction-horizontal > .group {
+    grid-column: 1;
+    align-self: stretch;
+  }
+
+  .image-comparison-split-custom__content--direction-horizontal > .image-compare-block {
+    grid-column: 2;
+    align-self: var(--image-comparison-split-custom-content-align, center);
+  }
+
+  @media (min-width: 768px) {
+    .image-comparison-split-custom .image-comparison-split-custom__content--sticky > * {
+      position: sticky;
+      top: calc(var(--header-height, 0px) + var(--layout-grid-gap, 1rem));
+    }
+
+    .image-comparison-split-custom .image-comparison-split-custom__content--sticky > .group {
+      position: sticky;
+      height: fit-content;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .image-comparison-split-custom__content {
+      gap: var(--image-comparison-split-custom-gap-mobile, var(--image-comparison-split-custom-gap-desktop, 40px));
+    }
+
+    .image-comparison-split-custom__content--direction-horizontal.image-comparison-split-custom__content--mobile-vertical {
+      display: flex;
+      flex-direction: column;
+      align-items: var(--image-comparison-split-custom-content-align-mobile, start);
+    }
+
+    .image-comparison-split-custom__content--direction-horizontal > .group,
+    .image-comparison-split-custom__content--direction-horizontal > .image-compare-block {
+      width: 100%;
+      max-width: 100%;
+    }
+
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.image_comparison_split_custom",
+  "class": "section-image-comparison-split-custom",
+  "enabled_on": { "templates": ["*"] },
+  "max_blocks": 50,
+  "blocks": [
+    { "type": "carousel" },
+    { "type": "header" },
+    { "type": "heading" },
+    { "type": "editorial-text" },
+    { "type": "eyebrow" },
+    { "type": "text" },
+    { "type": "image" },
+    { "type": "image-comparison" },
+    { "type": "image-card" },
+    { "type": "video" },
+    { "type": "button" },
+    { "type": "buttons" },
+    { "type": "icon" },
+    { "type": "divider" },
+    { "type": "spacer" },
+    { "type": "group" },
+    { "type": "marquee" },
+    { "type": "row" },
+    { "type": "grid" },
+    { "type": "email-signup" },
+    { "type": "contact-form" },
+    { "type": "product-list" },
+    { "type": "countdown-timer" },
+    { "type": "@app" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" },
+        { "value": "full_width_no_padding", "label": "t:options.section_width.full_width_no_padding" }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "t:labels.direction",
+      "options": [
+        { "value": "horizontal", "label": "t:options.direction.horizontal" },
+        { "value": "vertical", "label": "t:options.direction.vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "top", "label": "t:options.position.top" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "bottom", "label": "t:options.position.bottom" }
+      ],
+      "default": "center",
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "horizontal_alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" },
+        { "value": "space-between", "label": "t:options.alignment.space_between" }
+      ],
+      "default": "space-between",
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.vertical_on_mobile",
+      "default": true,
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ section.settings.direction == 'vertical' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "t:labels.alignment_mobile",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ section.settings.direction == 'vertical' or section.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_content",
+      "label": "Enable sticky content",
+      "default": false,
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.image_comparison_split_custom",
+      "category": "t:general.media",
+      "settings": {
+        "section_width": "page_width",
+        "direction": "horizontal",
+        "position": "center",
+        "horizontal_alignment": "space-between",
+        "customize_mobile_alignment": true,
+        "alignment": "left",
+        "alignment_mobile": "left",
+        "enable_sticky_content": false,
+        "gap_desktop": 40,
+        "gap_mobile": 32,
+        "color_scheme": "scheme-1",
+        "padding_top": 50,
+        "padding_bottom": 50,
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "position": "top",
+            "horizontal_alignment": "left",
+            "customize_mobile_alignment": false,
+            "alignment": "left",
+            "alignment_mobile": "left",
+            "gap_desktop": 24,
+            "gap_mobile": 20,
+            "width": "fill",
+            "width_mobile": "fill",
+            "height": "fill",
+            "appearance_type": "scheme",
+            "color_scheme": "scheme-2",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none",
+            "backdrop_blur": 0,
+            "padding_top": 64,
+            "padding_bottom": 64,
+            "padding_left": 64,
+            "padding_right": 64,
+            "customize_mobile_padding": true,
+            "padding_top_mobile": 32,
+            "padding_bottom_mobile": 32,
+            "padding_left_mobile": 24,
+            "padding_right_mobile": 24
+          },
+          "blocks": [
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Image comparison</p>",
+                "heading_size": "xl",
+                "html_tag": "h2"
+              }
+            },
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>90%</p>",
+                "heading_size": "lg",
+                "html_tag": "h3"
+              }
+            },
+            {
+              "type": "text",
+              "settings": {
+                "text": "<p>Add a brief statement or metric description here to highlight key outcomes and achievements.</p>",
+                "text_size": "md",
+                "width": "fill"
+              }
+            },
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>95%</p>",
+                "heading_size": "lg",
+                "html_tag": "h3"
+              }
+            },
+            {
+              "type": "text",
+              "settings": {
+                "text": "<p>Add a brief statement or metric description here to highlight key outcomes and achievements.</p>",
+                "text_size": "md",
+                "width": "fill"
+              }
+            },
+            {
+              "type": "divider"
+            },
+            {
+              "type": "text",
+              "settings": {
+                "text": "<p><em>Provide additional notes</em></p>",
+                "text_size": "sm",
+                "width": "fill"
+              }
+            }
+          ]
+        },
+        {
+          "type": "image-comparison",
+          "settings": {
+            "comparison_style": "slider",
+            "initial_position": 50,
+            "handle_icon": "bars",
+            "direction": "horizontal",
+            "image_ratio_desktop": "square",
+            "image_ratio_mobile": "square",
+            "show_image_first_mobile": false,
+            "separate_images": false,
+            "width_desktop": "fill",
+            "limit_width": false,
+            "before_label": "<p>Before</p>",
+            "after_label": "<p>After</p>",
+            "font": "body",
+            "font_size": "md",
+            "letter_spacing": "normal",
+            "show_text_background": true,
+            "corner_radius": "inherit",
+            "custom_corner_radius": 0,
+            "handle_icon_color": "#262626",
+            "handle_background": "#FFFFFF",
+            "text_color": "#FFFFFF",
+            "text_background": "#000000",
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "customize_mobile_padding": false
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

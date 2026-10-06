@@ -1,0 +1,131 @@
+{% doc %}
+  Renders the collection breadcrumb inside the collection banner.
+  The current collection title and ancestor links come from Shopify routes.
+{% enddoc %}
+{% liquid
+  assign breadcrumb_size = block.settings.text_size | default: 'sm'
+  unless breadcrumb_size == 'xs' or breadcrumb_size == 'sm' or breadcrumb_size == 'md' or breadcrumb_size == 'lg' or breadcrumb_size == 'xl'
+    assign breadcrumb_size = 'sm'
+  endunless
+%}
+<nav
+  class="collection-banner__breadcrumb body-{{ breadcrumb_size }}{% if block.settings.customize_mobile_padding %} collection-banner__breadcrumb--custom-mobile-padding{% endif %}"
+  aria-label="{{ 'breadcrumbs.navigation_label' | t }}"
+  style="--breadcrumb-padding-top:{{ block.settings.padding_top | default: 0 }}px;--breadcrumb-padding-bottom:{{ block.settings.padding_bottom | default: 0 }}px;--breadcrumb-padding-top-mobile:{{ block.settings.padding_top_mobile | default: 0 }}px;--breadcrumb-padding-bottom-mobile:{{ block.settings.padding_bottom_mobile | default: 0 }}px"
+  {{ block.shopify_attributes }}
+>
+  {% if block.settings.show_home_link %}
+    <a href="{{ routes.root_url }}">{{ block.settings.home_label | escape }}</a>
+    <span aria-hidden="true">{{ block.settings.separator }}</span>
+  {% endif %}
+  {% if block.settings.show_collections_link %}
+    <a href="{{ routes.all_products_collection_url }}">{{ block.settings.collections_label | escape }}</a>
+    <span aria-hidden="true">{{ block.settings.separator }}</span>
+  {% endif %}
+  <span aria-current="page">{{ collection.title | escape }}</span>
+</nav>
+{% schema %}
+{
+  "name": "Breadcrumbs",
+  "tag": null,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_home_link",
+      "label": "Show home link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "home_label",
+      "label": "Home label",
+      "default": "Home"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collections_link",
+      "label": "Show collections link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "collections_label",
+      "label": "Collections label",
+      "default": "Shop"
+    },
+    {
+      "type": "select",
+      "id": "separator",
+      "label": "Style",
+      "options": [
+        { "value": "·", "label": "Dot" },
+        { "value": "/", "label": "Slash" },
+        { "value": "›", "label": "Chevron" },
+        { "value": "|", "label": "Pipe" }
+      ],
+      "default": "·"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Text size",
+      "options": [
+        { "value": "xs", "label": "Extra small" },
+        { "value": "sm", "label": "Small" },
+        { "value": "md", "label": "Medium" },
+        { "value": "lg", "label": "Large" },
+        { "value": "xl", "label": "Extra large" }
+      ],
+      "default": "sm"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "Customize for mobile",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Mobile top padding",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Mobile bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ]
+}
+{% endschema %}

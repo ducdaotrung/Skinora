@@ -1,0 +1,868 @@
+{% doc %}
+  Renders a layout group that composes theme blocks in a horizontal or
+  vertical flow. The group owns its local layout, surface, border, overlay,
+  and spacing without changing the typography contract of its children.
+
+  @example
+  {% content_for 'block', type: 'group', id: 'group' %}
+{% enddoc %}
+
+{% liquid
+  assign group_direction = block.settings.direction | default: block.settings.layout_direction | default: 'vertical'
+  unless group_direction == 'horizontal' or group_direction == 'vertical' or group_direction == 'group--horizontal' or group_direction == 'group--vertical'
+    assign group_direction = 'vertical'
+  endunless
+  if group_direction == 'group--horizontal'
+    assign group_direction = 'horizontal'
+  elsif group_direction == 'group--vertical'
+    assign group_direction = 'vertical'
+  endif
+
+  assign group_alignment_source = block.settings.alignment | default: 'left'
+  if group_direction == 'horizontal'
+    assign group_alignment_source = block.settings.horizontal_alignment | default: group_alignment_source
+  endif
+
+  assign group_alignment = 'start'
+  assign group_justify = 'flex-start'
+  case group_alignment_source
+    when 'center'
+      assign group_alignment = 'center'
+      assign group_justify = 'center'
+    when 'right', 'end', 'flex-end'
+      assign group_alignment = 'end'
+      assign group_justify = 'flex-end'
+    when 'space-between'
+      assign group_justify = 'space-between'
+    else
+      assign group_alignment = 'start'
+  endcase
+
+  assign group_position_name = block.settings.position | default: 'top'
+  case group_position_name
+    when 'center'
+      assign group_position_name = 'center'
+    when 'bottom', 'flex-end'
+      assign group_position_name = 'bottom'
+    else
+      assign group_position_name = 'top'
+  endcase
+
+  assign group_vertical_on_mobile = false
+  if group_direction == 'horizontal' and block.settings.customize_mobile_alignment
+    assign group_vertical_on_mobile = true
+  endif
+
+  assign group_alignment_mobile = group_alignment
+  assign group_justify_mobile = group_justify
+  if group_vertical_on_mobile
+    case block.settings.alignment_mobile
+      when 'center'
+        assign group_alignment_mobile = 'center'
+        assign group_justify_mobile = 'center'
+      when 'right', 'end', 'flex-end'
+        assign group_alignment_mobile = 'end'
+        assign group_justify_mobile = 'flex-end'
+      when 'left', 'start'
+        assign group_alignment_mobile = 'start'
+        assign group_justify_mobile = 'flex-start'
+      when 'space-between'
+        assign group_alignment_mobile = 'start'
+        assign group_justify_mobile = 'space-between'
+      else
+        assign group_alignment_mobile = group_alignment
+        assign group_justify_mobile = group_justify
+    endcase
+  endif
+
+  assign group_width_mode = block.settings.width | default: 'fit'
+  unless group_width_mode == 'fit' or group_width_mode == 'fill' or group_width_mode == 'custom'
+    assign group_width_mode = 'fit'
+  endunless
+  assign group_width = 'fit-content'
+  if group_width_mode == 'fill' or group_width_mode == 'custom'
+    assign group_width = '100%'
+  endif
+  assign group_max_width = block.settings.max_width | default: 640 | plus: 0
+  if group_max_width < 320 or group_max_width > 1200
+    assign group_max_width = 640
+  endif
+
+  assign group_width_mobile_mode = group_width_mode
+  assign group_width_mobile = group_width
+  assign group_max_width_mobile = group_max_width
+  if block.settings.customize_mobile_size
+    assign group_width_mobile_mode = block.settings.width_mobile | default: group_width_mode
+    unless group_width_mobile_mode == 'fit' or group_width_mobile_mode == 'fill' or group_width_mobile_mode == 'custom'
+      assign group_width_mobile_mode = group_width_mode
+    endunless
+    assign group_width_mobile = 'fit-content'
+    if group_width_mobile_mode == 'fill' or group_width_mobile_mode == 'custom'
+      assign group_width_mobile = '100%'
+    endif
+    assign group_max_width_mobile = block.settings.max_width_mobile | default: 480 | plus: 0
+    if group_max_width_mobile < 240 or group_max_width_mobile > 800
+      assign group_max_width_mobile = 480
+    endif
+  endif
+  assign group_size_max_width = blank
+  if group_width_mode == 'custom'
+    assign group_size_max_width = group_max_width | append: 'px'
+  endif
+  assign group_size_width_mobile = blank
+  assign group_size_max_width_mobile = blank
+  if block.settings.customize_mobile_size
+    assign group_size_width_mobile = group_width_mobile
+    if group_width_mobile_mode == 'custom'
+      assign group_size_max_width_mobile = group_max_width_mobile | append: 'px'
+    elsif group_width_mode == 'custom'
+      assign group_size_max_width_mobile = '100%'
+    endif
+  endif
+
+  assign group_height_mode = block.settings.height | default: 'fit'
+  unless group_height_mode == 'fit' or group_height_mode == 'fill'
+    assign group_height_mode = 'fit'
+  endunless
+
+  assign group_gap_desktop = block.settings.gap_desktop | default: 16 | plus: 0
+  if group_gap_desktop < 0 or group_gap_desktop > 100
+    assign group_gap_desktop = 16
+  endif
+  assign group_gap_mobile = block.settings.gap_mobile | default: 12 | plus: 0
+  if group_gap_mobile < 0 or group_gap_mobile > 100
+    assign group_gap_mobile = 12
+  endif
+
+  assign group_border_type = block.settings.border_type | default: 'none'
+  unless group_border_type == 'none' or group_border_type == 'solid' or group_border_type == 'dashed' or group_border_type == 'dotted' or group_border_type == 'double'
+    assign group_border_type = 'none'
+  endunless
+
+  assign group_radius = block.settings.corner_radius | default: 'square'
+  unless group_radius == 'square' or group_radius == 'slightly_rounded' or group_radius == 'rounded' or group_radius == 'pill'
+    assign group_radius = 'square'
+  endunless
+
+  assign group_shadow = block.settings.shadow | default: 'none'
+  unless group_shadow == 'none' or group_shadow == 'small' or group_shadow == 'medium' or group_shadow == 'large'
+    assign group_shadow = 'none'
+  endunless
+
+  assign group_backdrop_blur = block.settings.backdrop_blur | default: 0 | plus: 0
+  if group_backdrop_blur < 0 or group_backdrop_blur > 40
+    assign group_backdrop_blur = 0
+  endif
+
+  assign padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+
+  if padding_top < 0 or padding_top > 100
+    assign padding_top = 0
+  endif
+  if padding_bottom < 0 or padding_bottom > 100
+    assign padding_bottom = 0
+  endif
+  if padding_left < 0 or padding_left > 100
+    assign padding_left = 0
+  endif
+  if padding_right < 0 or padding_right > 100
+    assign padding_right = 0
+  endif
+  if padding_top_mobile < 0 or padding_top_mobile > 100
+    assign padding_top_mobile = 0
+  endif
+  if padding_bottom_mobile < 0 or padding_bottom_mobile > 100
+    assign padding_bottom_mobile = 0
+  endif
+  if padding_left_mobile < 0 or padding_left_mobile > 100
+    assign padding_left_mobile = 0
+  endif
+  if padding_right_mobile < 0 or padding_right_mobile > 100
+    assign padding_right_mobile = 0
+  endif
+
+  assign group_appearance_type = block.settings.appearance_type | default: 'inherit'
+  unless group_appearance_type == 'inherit' or group_appearance_type == 'scheme'
+    assign group_appearance_type = 'inherit'
+  endunless
+  assign group_scheme = blank
+  if group_appearance_type == 'scheme'
+    assign group_scheme = block.settings.color_scheme | default: 'scheme-1'
+    if block.settings.color_scheme.id != blank
+      assign group_scheme = block.settings.color_scheme.id
+    endif
+    assign group_scheme = group_scheme | default: 'scheme-1' | handleize
+  endif
+
+  assign group_class = 'marquee-item-layout size-style marquee-item-layout--' | append: group_direction
+  assign group_class = group_class | append: ' marquee-item-layout--align-' | append: group_alignment
+  assign group_class = group_class | append: ' marquee-item-layout--position-' | append: group_position_name
+  assign group_class = group_class | append: ' marquee-item-layout--width-' | append: group_width_mode
+  assign group_class = group_class | append: ' marquee-item-layout--height-' | append: group_height_mode
+  assign group_class = group_class | append: ' marquee-item-layout--radius-' | append: group_radius
+  assign group_class = group_class | append: ' marquee-item-layout--shadow-' | append: group_shadow
+  assign group_class = group_class | append: ' marquee-item-layout--border-' | append: group_border_type
+  assign group_class = group_class | append: ' section-color-scope'
+  if group_appearance_type == 'scheme'
+    assign group_class = group_class | append: ' color-scheme ' | append: group_scheme
+  endif
+  if group_vertical_on_mobile
+    assign group_class = group_class | append: ' marquee-item-layout--mobile-vertical'
+  endif
+  if group_backdrop_blur > 0
+    assign group_class = group_class | append: ' backdrop-blur'
+  else
+    assign group_class = group_class | append: ' motion-block'
+  endif
+%}
+
+{% capture group_style %}
+  {% render 'size-style',
+    width: group_width,
+    max_width: group_size_max_width,
+    width_mobile: group_size_width_mobile,
+    max_width_mobile: group_size_max_width_mobile
+  %}
+  {% if group_justify == 'space-between' %}--group-justify: {{ group_justify }};{% endif %}
+  {% if group_vertical_on_mobile and group_alignment_mobile != group_alignment %}--group-align-mobile: {{ group_alignment_mobile }};{% endif %}
+  {% if group_vertical_on_mobile and group_justify_mobile != group_justify %}--group-justify-mobile: {{ group_justify_mobile }};{% endif %}
+  {% if group_gap_desktop != 16 %}--group-gap-desktop: {{ group_gap_desktop }}px;{% endif %}
+  {% if group_gap_mobile != 12 %}--group-gap-mobile: {{ group_gap_mobile }}px;{% endif %}
+  {% if block.settings.border_color != blank %}--group-border-color: {{ block.settings.border_color | escape }};{% endif %}
+  {% if padding_top != 0 %}--group-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 0 %}--group-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if padding_left != 0 %}--group-padding-left: {{ padding_left }}px;{% endif %}
+  {% if padding_right != 0 %}--group-padding-right: {{ padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--group-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--group-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+    {% if padding_left_mobile != padding_left %}--group-padding-left-mobile: {{ padding_left_mobile }}px;{% endif %}
+    {% if padding_right_mobile != padding_right %}--group-padding-right-mobile: {{ padding_right_mobile }}px;{% endif %}
+  {% endif %}
+  {% if group_appearance_type == 'scheme' %}
+    {% if block.settings.background_color != blank %}--group-background-color: {{ block.settings.background_color | escape }};{% endif %}
+    {% if block.settings.background_image != blank %}--group-background-image: url('{{ block.settings.background_image | image_url: width: 2400 }}');{% endif %}
+  {% endif %}
+  {% if block.settings.overlay_color != blank %}--group-overlay-color: rgb({{ block.settings.overlay_color.rgba }});{% endif %}
+  {% if group_backdrop_blur > 0 %}--backdrop-blur: {{ group_backdrop_blur }}px;{% endif %}
+{% endcapture %}
+{% assign group_style = group_style | strip %}
+
+<div
+  class="{{ group_class }}"
+  {% if group_style != blank %}style="{{ group_style }}"{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .marquee-item-layout {
+    /* Keep layout overrides local when groups are nested inside other groups. */
+    --group-height: initial;
+    --group-gap-desktop: initial;
+    --group-gap-mobile: initial;
+    --group-padding-top: initial;
+    --group-padding-right: initial;
+    --group-padding-bottom: initial;
+    --group-padding-left: initial;
+    --group-padding-top-mobile: initial;
+    --group-padding-right-mobile: initial;
+    --group-padding-bottom-mobile: initial;
+    --group-padding-left-mobile: initial;
+    --group-background-color: initial;
+    --group-background-image: initial;
+    --group-border-color: var(--border-color);
+    --group-overlay-color: transparent;
+    --backdrop-blur: 0px;
+    --group-align: start;
+    --group-align-mobile: var(--group-align);
+    --group-justify: flex-start;
+    --group-justify-mobile: var(--group-justify);
+    --group-position: flex-start;
+    --flex-align: var(--group-align);
+    --flex-align-mobile: var(--group-align-mobile);
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: var(--group-align);
+    justify-content: var(--group-position);
+    gap: var(--group-gap-desktop, 16px);
+    height: var(--group-height, fit-content);
+    min-width: 0;
+    padding-top: var(--group-padding-top, 0px);
+    padding-right: var(--group-padding-right, 0px);
+    padding-bottom: var(--group-padding-bottom, 0px);
+    padding-left: var(--group-padding-left, 0px);
+    border: 0 solid var(--group-border-color, var(--border-color));
+    border-radius: var(--group-radius, var(--radius-square));
+    background-color: var(--group-background-color, var(--background-color));
+    background-image:
+      linear-gradient(var(--group-overlay-color), var(--group-overlay-color)),
+      var(--group-background-image, none);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: var(--body-color);
+    text-align: var(--group-align);
+    box-shadow: none;
+    position: relative;
+    isolation: isolate;
+  }
+
+  .marquee-item-layout.backdrop-blur {
+    isolation: auto;
+  }
+
+  .marquee-item-layout--horizontal {
+    flex-direction: row;
+    align-items: var(--group-position);
+    justify-content: var(--group-justify);
+  }
+
+  .marquee-item-layout--horizontal > .marquee-item-layout--width-fill {
+    flex: 1 1 0%;
+  }
+
+  .marquee-item-layout--align-start {
+    --group-align: start;
+    --group-justify: flex-start;
+  }
+
+  .marquee-item-layout--align-center {
+    --group-align: center;
+    --group-justify: center;
+  }
+
+  .marquee-item-layout--align-end {
+    --group-align: end;
+    --group-justify: flex-end;
+  }
+
+  .marquee-item-layout--position-top {
+    --group-position: flex-start;
+  }
+
+  .marquee-item-layout--position-center {
+    --group-position: center;
+  }
+
+  .marquee-item-layout--position-bottom {
+    --group-position: flex-end;
+  }
+
+  .marquee-item-layout--height-fill {
+    --group-height: 100%;
+  }
+
+  .marquee-item-layout--radius-square {
+    --group-radius: var(--radius-square);
+  }
+
+  .marquee-item-layout--radius-slightly_rounded {
+    --group-radius: var(--radius-slight);
+  }
+
+  .marquee-item-layout--radius-rounded {
+    --group-radius: var(--radius-rounded);
+  }
+
+  .marquee-item-layout--radius-pill {
+    --group-radius: var(--radius-pill);
+  }
+
+  .marquee-item-layout--border-solid,
+  .marquee-item-layout--border-dashed,
+  .marquee-item-layout--border-dotted,
+  .marquee-item-layout--border-double {
+    border-width: var(--shape-border-width, 1px);
+  }
+
+  .marquee-item-layout--border-solid {
+    border-style: solid;
+  }
+
+  .marquee-item-layout--border-dashed {
+    border-style: dashed;
+  }
+
+  .marquee-item-layout--border-dotted {
+    border-style: dotted;
+  }
+
+  .marquee-item-layout--border-double {
+    border-style: double;
+  }
+
+  .marquee-item-layout--shadow-small {
+    box-shadow: 0 0.25rem 0.75rem color-mix(in srgb, var(--shadow-color) 12%, transparent);
+  }
+
+  .marquee-item-layout--shadow-medium {
+    box-shadow: 0 0.5rem 1.25rem color-mix(in srgb, var(--shadow-color) 18%, transparent);
+  }
+
+  .marquee-item-layout--shadow-large {
+    box-shadow: 0 1rem 2rem color-mix(in srgb, var(--shadow-color) 24%, transparent);
+  }
+
+  .marquee-item-layout > * {
+    min-width: 0;
+  }
+
+  @media (max-width: 767.98px) {
+    .marquee-item-layout {
+      --flex-align: var(--group-align-mobile, var(--group-align));
+      gap: var(--group-gap-mobile, 12px);
+      padding-top: var(--group-padding-top-mobile, var(--group-padding-top, 0px));
+      padding-right: var(--group-padding-right-mobile, var(--group-padding-right, 0px));
+      padding-bottom: var(--group-padding-bottom-mobile, var(--group-padding-bottom, 0px));
+      padding-left: var(--group-padding-left-mobile, var(--group-padding-left, 0px));
+    }
+
+    .marquee-item-layout--vertical {
+      align-items: var(--group-align-mobile, var(--group-align));
+      justify-content: var(--group-position, flex-start);
+      text-align: var(--group-align-mobile, var(--group-align));
+    }
+
+    .marquee-item-layout--horizontal {
+      align-items: var(--group-position, flex-start);
+      justify-content: var(--group-justify-mobile, var(--group-justify));
+      text-align: var(--group-align-mobile, var(--group-align));
+    }
+
+    .marquee-item-layout--horizontal.marquee-item-layout--mobile-vertical {
+      flex-direction: column;
+      align-items: var(--group-align-mobile, var(--group-align));
+      justify-content: var(--group-justify-mobile, flex-start);
+      text-align: var(--group-align-mobile, var(--group-align));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.item",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "button"
+    },
+    {
+      "type": "buttons"
+    },
+    {
+      "type": "collection-card-button"
+    },
+    {
+      "type": "collection-card-description"
+    },
+    {
+      "type": "collection-card-title"
+    },
+    {
+      "type": "countdown-timer"
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "editorial-text"
+    },
+    {
+      "type": "eyebrow"
+    },
+    {
+      "type": "header"
+    },
+    {
+      "type": "heading"
+    },
+    {
+      "type": "icon"
+    },
+    {
+      "type": "image"
+    },
+    {
+      "type": "scroll-to"
+    },
+    {
+      "type": "text"
+    },
+    {
+      "type": "video"
+    }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "t:labels.direction",
+      "options": [
+        {
+          "value": "horizontal",
+          "label": "t:options.direction.horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "t:options.direction.vertical"
+        }
+      ],
+      "default": "vertical"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:labels.position",
+      "options": [
+        {
+          "value": "top",
+          "label": "t:options.position.top"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.position.bottom"
+        }
+      ],
+      "default": "top",
+      "visible_if": "{{ block.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "horizontal_alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" },
+        { "value": "space-between", "label": "t:options.alignment.space_between" }
+      ],
+      "default": "left",
+      "visible_if": "{{ block.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.vertical_on_mobile",
+      "default": false,
+      "visible_if": "{{ block.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "t:labels.alignment_mobile",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        },
+        {
+          "value": "space-between",
+          "label": "t:options.alignment.space_between"
+        }
+      ],
+      "default": "left",
+      "visible_if": "{{ block.settings.direction == 'horizontal' and block.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "default": "left",
+      "visible_if": "{{ block.settings.direction == 'vertical' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "t:general.border"
+    },
+    {
+      "type": "select",
+      "id": "border_type",
+      "label": "t:labels.type",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.border_type.none"
+        },
+        {
+          "value": "solid",
+          "label": "t:options.border_type.solid"
+        },
+        {
+          "value": "dashed",
+          "label": "t:options.border_type.dashed"
+        },
+        {
+          "value": "dotted",
+          "label": "t:options.border_type.dotted"
+        },
+        {
+          "value": "double",
+          "label": "t:options.border_type.double"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "border_color",
+      "label": "t:labels.border_color_picker",
+      "visible_if": "{{ block.settings.border_type != 'none' }}"
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "t:labels.corner_radius",
+      "options": [
+        {
+          "value": "square",
+          "label": "t:options.radius_preset.square"
+        },
+        {
+          "value": "slightly_rounded",
+          "label": "t:options.radius_preset.slightly_rounded"
+        },
+        {
+          "value": "rounded",
+          "label": "t:options.radius_preset.rounded"
+        },
+        {
+          "value": "pill",
+          "label": "t:options.radius_preset.pill"
+        }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "t:labels.shadow",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.overlay_shadow.none"
+        },
+        {
+          "value": "small",
+          "label": "t:options.overlay_shadow.small"
+        },
+        {
+          "value": "medium",
+          "label": "t:options.overlay_shadow.medium"
+        },
+        {
+          "value": "large",
+          "label": "t:options.overlay_shadow.large"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "t:general.overlay"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "t:labels.overlay_color",
+      "alpha": true
+    },
+
+    {
+      "type": "range",
+      "id": "backdrop_blur",
+      "label": "t:labels.backdrop_blur",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.item",
+      "category": "t:general.layout",
+      "settings": {
+        "direction": "horizontal",
+        "position": "center",
+        "horizontal_alignment": "left",
+        "alignment": "left",
+        "customize_mobile_alignment": false,
+        "alignment_mobile": "left",
+        "gap_desktop": 24,
+        "gap_mobile": 16,
+        "border_type": "none",
+        "corner_radius": "square",
+        "shadow": "none",
+        "backdrop_blur": 0,
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "heading",
+          "settings": {
+            "text": "<p>Diamond statement</p>",
+            "heading_size": "md",
+            "html_tag": "div"
+          }
+        },
+        {
+          "type": "image",
+          "settings": {
+            "image_ratio_desktop": "custom",
+            "image_ratio_custom_width_desktop": 2,
+            "image_ratio_custom_height_desktop": 1,
+            "width_desktop": "fill",
+            "corner_radius": "square"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

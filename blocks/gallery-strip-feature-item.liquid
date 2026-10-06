@@ -1,0 +1,97 @@
+{% liquid
+  assign image = block.settings.image
+  assign mobile_image = block.settings.mobile_image
+  assign alt_text = block.settings.alt_text
+  assign link = block.settings.link
+  assign open_in_new_tab = block.settings.open_in_new_tab
+  assign show_overlay = block.settings.show_overlay | default: 'always'
+  unless show_overlay == 'always' or show_overlay == 'hover'
+    assign show_overlay = 'always'
+  endunless
+  assign overlay_background = block.settings.overlay_background | default: '#00000061'
+%}
+
+<div class="gallery-strip-item gallery-strip-feature-item gallery-strip-feature-item--overlay-{{ show_overlay }}" style="--gallery-strip-feature-overlay-background: {{ overlay_background | escape }}; --gallery-strip-feature-overlay-opacity: 1;" {{ block.shopify_attributes }}>
+  {% render 'image',
+    image: image,
+    mobile_image: mobile_image,
+    url: link,
+    open_in_new_tab: open_in_new_tab,
+    alt: alt_text,
+    class: 'gallery-strip-item__image',
+    width: 1600,
+    widths: '320, 480, 640, 800, 1200, 1600',
+    sizes: '20vw'
+  %}
+  <div class="gallery-strip-feature-item__overlay" aria-hidden="true"></div>
+  <div class="gallery-strip-item__content">
+    {% content_for 'blocks' %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .gallery-strip-feature-item .gallery-strip-item__content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: var(--gallery-strip-overlay-color, #fff);
+    pointer-events: none;
+  }
+
+  .gallery-strip-feature-item .gallery-strip-item__content > * {
+    pointer-events: auto;
+  }
+
+  .gallery-strip-feature-item__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: color-mix(in srgb, var(--gallery-strip-feature-overlay-background, #000) calc(var(--gallery-strip-feature-overlay-opacity, 0.38) * 100%), transparent);
+    opacity: 1;
+    transition: opacity 280ms ease;
+  }
+
+  .gallery-strip-feature-item--overlay-hover .gallery-strip-feature-item__overlay {
+    opacity: 0;
+  }
+
+  .gallery-strip-feature-item--overlay-hover:hover .gallery-strip-feature-item__overlay,
+  .gallery-strip-feature-item--overlay-hover:focus-within .gallery-strip-feature-item__overlay {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery-strip-feature-item__overlay {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Strip feature",
+  "tag": null,
+  "blocks": [{ "type": "gallery-strip-overlay-group" }],
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "image_picker", "id": "mobile_image", "label": "Mobile image" },
+    { "type": "text", "id": "alt_text", "label": "Alt text" },
+    { "type": "url", "id": "link", "label": "Link" },
+    { "type": "checkbox", "id": "open_in_new_tab", "label": "Open link in new tab", "default": false },
+    { "type": "header", "content": "Overlay" },
+    { "type": "select", "id": "show_overlay", "label": "Show overlay", "options": [{ "value": "always", "label": "Always" }, { "value": "hover", "label": "On hover" }], "default": "always" },
+    {
+      "type": "color",
+      "id": "overlay_background",
+      "label": "Overlay background",
+      "alpha": true,
+      "default": "#00000061"
+    }
+  ],
+  "presets": [{ "name": "Strip feature", "category": "Gallery", "blocks": [{ "type": "gallery-strip-overlay-group" }] }]
+}
+{% endschema %}

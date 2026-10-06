@@ -1,0 +1,289 @@
+{% liquid
+  assign search_type = block.settings.type | default: 'text'
+  unless search_type == 'icon' or search_type == 'text' or search_type == 'icon_with_text' or search_type == 'search_bar'
+    assign search_type = 'text'
+  endunless
+
+  assign search_label = block.settings.label | default: 'Search'
+
+  assign search_font = block.settings.font | default: 'accent'
+  unless search_font == 'body' or search_font == 'heading' or search_font == 'accent'
+    assign search_font = 'accent'
+  endunless
+
+  assign search_font_size = block.settings.font_size | default: 'md'
+  unless search_font_size == 'sm' or search_font_size == 'md' or search_font_size == 'lg' or search_font_size == 'xl' or search_font_size == 'xxl'
+    assign search_font_size = 'md'
+  endunless
+
+  assign search_letter_spacing = block.settings.letter_spacing | default: 'relaxed'
+  unless search_letter_spacing == 'tight' or search_letter_spacing == 'normal' or search_letter_spacing == 'relaxed'
+    assign search_letter_spacing = 'relaxed'
+  endunless
+
+  assign search_typography_class = 'body-text body-' | append: search_font_size | append: ' font-' | append: search_font | append: ' tracking-' | append: search_letter_spacing | append: ' text-case-original'
+  assign search_class = 'header-search header-search--type-' | append: search_type | append: ' ' | append: search_typography_class
+  if search_type == 'icon'
+    assign search_class = search_class | append: ' header-action--type-icon'
+  endif
+%}
+
+{% if search_type == 'search_bar' %}
+  <form
+    class="{{ search_class }}"
+    action="{{ routes.search_url }}"
+    method="get"
+    role="search"
+    {{ block.shopify_attributes }}
+  >
+    <label class="visually-hidden" for="HeaderSearch-{{ section.id }}-{{ block.id }}">{{ search_label | escape }}</label>
+    <input
+      id="HeaderSearch-{{ section.id }}-{{ block.id }}"
+      class="header-search__input form__control form__control--input"
+      type="search"
+      name="q"
+      value="{{ search.terms | escape }}"
+      placeholder="{{ search_label | escape }}"
+      autocomplete="off"
+    >
+    <button class="btn btn--unstyled header-search__submit" type="submit" aria-label="{{ search_label | escape }}">
+      <span class="icon" aria-hidden="true">
+        {% render 'icon', icon: 'magnifying-glass', bare: true %}
+      </span>
+    </button>
+  </form>
+  <button
+    class="header-search header-search--mobile-icon header-action--type-icon"
+    type="button"
+    aria-label="{{ search_label | escape }}"
+    aria-haspopup="dialog"
+    aria-controls="SearchOverlay"
+    data-search-overlay-open
+  >
+    <span class="icon" aria-hidden="true">
+      {% render 'icon', icon: 'magnifying-glass', bare: true %}
+    </span>
+  </button>
+{% else %}
+  <button
+    class="{{ search_class }}"
+    type="button"
+    aria-label="{{ search_label | escape }}"
+    aria-haspopup="dialog"
+    aria-controls="SearchOverlay"
+    data-search-overlay-open
+    {{ block.shopify_attributes }}
+  >
+    <span class="icon" aria-hidden="true">
+      {% render 'icon', icon: 'magnifying-glass', bare: true %}
+    </span>
+    {% unless search_type == 'icon' %}<span class="header-action__label {{ search_typography_class }}">{{ search_label | escape }}</span>{% endunless %}
+  </button>
+{% endif %}
+
+{% stylesheet %}
+  .header-search {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 0;
+    min-height: var(--button-height);
+    color: var(--body-color);
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  button.header-search {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .header-search .icon {
+    display: inline-flex;
+    width: var(--header-icon-size, var(--icon-size-medium));
+    height: var(--header-icon-size, var(--icon-size-medium));
+    flex: 0 0 auto;
+  }
+
+  .header-search .icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .header-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: var(--input-height);
+    padding: 0 0.75rem;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+
+  .header-search__input::placeholder {
+    color: currentColor;
+    opacity: 0.65;
+  }
+
+  .header-search--type-search_bar {
+    width: min(100%, 22rem);
+    min-height: var(--input-height);
+    justify-content: stretch;
+    border: var(--input-border-width) solid var(--input-border-color);
+    border-radius: var(--input-radius);
+    background: var(--input-background-color);
+  }
+
+  .header-search--type-search_bar input.header-search__input.form__control--input {
+    border: 0;
+    box-shadow: none;
+    outline: 0;
+  }
+
+  .header-search__input::-webkit-search-cancel-button,
+  .header-search__input::-ms-clear {
+    display: none;
+  }
+
+  .header-search__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .header-search__submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--button-height);
+    min-width: var(--button-height);
+    min-height: var(--button-height);
+  }
+
+  .header-top .header-search--mobile-icon {
+    display: none;
+  }
+
+  /* Keep the centered logo clear of a full search field on compact desktop
+     layouts as well as tablet/mobile. */
+  @media (max-width: 1399.98px) {
+    .header-top .header-search--type-search_bar {
+      display: none;
+    }
+
+    .header-top .header-search--mobile-icon {
+      display: inline-flex;
+    }
+  }
+
+  @media (max-width: 991.98px) {
+    .header-search,
+    .header-search__input,
+    .header-search__submit {
+      min-height: var(--button-height-mobile);
+    }
+
+    .header-search--type-search_bar,
+    .header-search--type-search_bar .header-search__input {
+      min-height: var(--input-height-mobile);
+    }
+
+    .header-search--type-text .header-action__label {
+      position: static;
+      width: auto;
+      height: auto;
+      padding: 0;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: nowrap;
+    }
+
+    .header-search__submit {
+      width: var(--button-height-mobile);
+      min-width: var(--button-height-mobile);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header_search",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "Desktop type",
+      "options": [
+        { "value": "icon", "label": "Icon" },
+        { "value": "text", "label": "Text" },
+        { "value": "icon_with_text", "label": "Icon with text" },
+        { "value": "search_bar", "label": "Search bar" }
+      ],
+      "default": "search_bar"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Label",
+      "default": "Search"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "Font",
+      "options": [
+        { "value": "body", "label": "Body" },
+        { "value": "heading", "label": "Heading" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "accent"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "Font size",
+      "options": [
+        { "value": "sm", "label": "Small" },
+        { "value": "md", "label": "Medium" },
+        { "value": "lg", "label": "Large" },
+        { "value": "xl", "label": "Extra large" },
+        { "value": "xxl", "label": "Double extra large" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        { "value": "tight", "label": "t:options.letter_spacing.tight" },
+        { "value": "normal", "label": "t:options.letter_spacing.normal" },
+        { "value": "relaxed", "label": "t:options.letter_spacing.relaxed" }
+      ],
+      "default": "relaxed"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.header_search",
+      "category": "t:general.header"
+    }
+  ]
+}
+{% endschema %}

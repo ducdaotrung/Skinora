@@ -1,0 +1,107 @@
+{% liquid
+  assign item_heading_tag = 'h4'
+  assign item_heading_text = block.settings.heading | strip_html
+  assign item_image_alt = block.settings.image_alt | default: block.settings.image.alt
+%}
+
+<div class="image-text-card-grid-item carousel-slide swiper-slide" {{ block.shopify_attributes }}>
+  <article class="image-text-card-grid-item__card" data-image-text-card>
+    <div class="image-text-card-grid-item__visual" data-image-text-card-visual>
+      <div class="image-text-card-grid-item__face image-text-card-grid-item__face--image">
+        {% if block.settings.image != blank %}
+          {{ block.settings.image | image_url: width: 1200 | image_tag: loading: 'lazy', alt: item_image_alt, widths: '320, 480, 640, 960, 1200', sizes: '(max-width: 767px) 84vw, 25vw' }}
+        {% else %}
+          {{ 'image' | placeholder_svg_tag: 'image-text-card-grid-item__placeholder' }}
+        {% endif %}
+      </div>
+      <div class="image-text-card-grid-item__face image-text-card-grid-item__face--content scrollbar scrollbar--both" data-image-text-card-content aria-hidden="true">
+        <div class="image-text-card-grid-item__content">{{ block.settings.content }}</div>
+      </div>
+    </div>
+    <div class="image-text-card-grid-item__footer">
+      <{{ item_heading_tag }} class="image-text-card-grid-item__heading">{{ item_heading_text | escape }}</{{ item_heading_tag }}>
+      <button class="image-text-card-grid-item__toggle" type="button" aria-expanded="false" aria-label="Show card details" data-image-text-card-toggle>
+        <span class="image-text-card-grid-item__icon image-text-card-grid-item__icon--closed image-text-card-grid-item__icon--plus">{% render 'icon', icon: 'plus', width: 24 %}</span>
+        <span class="image-text-card-grid-item__icon image-text-card-grid-item__icon--open image-text-card-grid-item__icon--plus">{% render 'icon', icon: 'x-mark', width: 24 %}</span>
+        <span class="image-text-card-grid-item__icon image-text-card-grid-item__icon--closed image-text-card-grid-item__icon--arrow">{% render 'icon', icon: 'arrow', width: 24 %}</span>
+        <span class="image-text-card-grid-item__icon image-text-card-grid-item__icon--open image-text-card-grid-item__icon--arrow">{% render 'icon', icon: 'x-mark', width: 24 %}</span>
+        <span class="image-text-card-grid-item__icon image-text-card-grid-item__icon--closed image-text-card-grid-item__icon--chevron">{% render 'icon', icon: 'chevron', width: 24 %}</span>
+        <span class="image-text-card-grid-item__icon image-text-card-grid-item__icon--open image-text-card-grid-item__icon--chevron">{% render 'icon', icon: 'x-mark', width: 24 %}</span>
+      </button>
+    </div>
+  </article>
+</div>
+
+{% stylesheet %}
+  .image-text-card-grid-item { min-width: 0; }
+  .image-text-card-grid-item__card { min-width: 0; border: var(--image-text-card-border-thickness, 0px) var(--image-text-card-border-style, none) var(--image-text-card-border-color, var(--border-color)); border-radius: var(--image-text-card-radius, 0px); overflow: hidden; }
+  .image-text-card-grid-item__visual {
+    position: relative;
+    aspect-ratio: var(--image-text-card-ratio, 6 / 7);
+    max-width: var(--image-text-card-max-width, none);
+    overflow: hidden;
+    background: color-mix(in srgb, var(--background-color) 88%, var(--text-color));
+  }
+  .image-text-card-grid-item__face { position: absolute; inset: 0; transition: opacity 420ms ease, transform 520ms cubic-bezier(.2,.7,.2,1); }
+  .image-text-card-grid-item__face--image { opacity: 1; transform: scale(1); }
+  .image-text-card-grid-item__face--content { display: grid; place-items: center; padding: 1.25rem; opacity: 0; transform: scale(1.04); pointer-events: none; background: var(--background-color); color: var(--body-color); }
+  .image-text-card-grid-item__visual.is-open .image-text-card-grid-item__face--image { opacity: 0; transform: scale(.96); }
+  .image-text-card-grid-item__visual.is-open .image-text-card-grid-item__face--content { opacity: 1; transform: scale(1); pointer-events: auto; }
+  .image-text-card-grid-item__face img,
+  .image-text-card-grid-item__placeholder { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .image-text-card-grid-item__content { width: 100%; font-size: var(--image-text-card-content-size, 14px); color: var(--image-text-card-content-color, currentColor); }
+  .image-text-card-grid-item__content :where(p, ul, ol) { margin: 0 0 .75em; }
+  .image-text-card-grid-item__content :where(p:last-child, ul:last-child, ol:last-child) { margin-bottom: 0; }
+  .image-text-card-grid-item__content hr { margin: 1rem 0; border: 0; border-top: 1px solid currentColor; opacity: .25; }
+  .image-text-card-grid-item__footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 16px; }
+  .image-text-card-grid-item__heading { flex: 1 1 auto; min-width: 0; margin: 0; font-size: var(--image-text-card-typo-size, 14px); font-weight: 700; text-align: left; color: var(--image-text-card-typo-color, currentColor); }
+  .image-text-card-grid-item__heading :where(p) { margin: 0; }
+  .image-text-card-grid-item__toggle { position: relative; display: inline-grid; place-items: center; flex: 0 0 auto; box-sizing: content-box; width: var(--image-text-card-icon-size, 24px); height: var(--image-text-card-icon-size, 24px); padding: 16px; border: 0; border-radius: 50%; background: var(--body-color); color: var(--background-color); cursor: pointer; }
+  .image-text-card-grid-item__icon { display: grid; width: var(--image-text-card-icon-size, 24px); height: var(--image-text-card-icon-size, 24px); transition: transform 220ms ease, opacity 220ms ease; }
+  .image-text-card-grid-item__icon .icon-renderer,
+  .image-text-card-grid-item__icon .icon-renderer > svg { width: 100% !important; height: 100% !important; max-width: none; }
+  .image-text-card-grid-item__icon--open { position: absolute; inset: 16px; opacity: 0; transform: scale(.8); }
+  .image-text-card-grid-item__icon--arrow,
+  .image-text-card-grid-item__icon--chevron { display: none; }
+  .carousel-block--card-icon-arrow .image-text-card-grid-item__icon--plus,
+  .carousel-block--card-icon-arrow .image-text-card-grid-item__icon--chevron,
+  .carousel-block--card-icon-chevron .image-text-card-grid-item__icon--plus,
+  .carousel-block--card-icon-chevron .image-text-card-grid-item__icon--arrow { display: none; }
+  .carousel-block--card-icon-arrow .image-text-card-grid-item__icon--arrow,
+  .carousel-block--card-icon-chevron .image-text-card-grid-item__icon--chevron { display: grid; }
+  .image-text-card-grid-item__toggle[aria-expanded='true'] .image-text-card-grid-item__icon--closed { opacity: 0; transform: scale(.8); }
+  .image-text-card-grid-item__toggle[aria-expanded='true'] .image-text-card-grid-item__icon--open { opacity: 1; transform: scale(1); }
+  @media (max-width: 767.98px) {
+    .image-text-card-grid-item__visual { aspect-ratio: var(--image-text-card-ratio-mobile, var(--image-text-card-ratio, 6 / 7)); max-width: var(--image-text-card-max-width-mobile, var(--image-text-card-max-width, none)); }
+    .image-text-card-grid-item__content { font-size: var(--image-text-card-content-size-mobile, var(--image-text-card-content-size, 14px)); }
+    .image-text-card-grid-item__heading { font-size: var(--image-text-card-typo-size-mobile, var(--image-text-card-typo-size, 14px)); }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Image text card",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "text", "id": "image_alt", "label": "Image alt text", "info": "Describe the image for screen readers. Leave blank to use the image alt text." },
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    { "type": "richtext", "id": "heading", "label": "Heading", "default": "<p>Main Category</p>" },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    { "type": "richtext", "id": "content", "label": "Content", "default": "<p>Add supporting content for this card.</p>" }
+  ],
+  "presets": [
+    { "name": "Image text card", "category": "Content" }
+  ]
+}
+{% endschema %}

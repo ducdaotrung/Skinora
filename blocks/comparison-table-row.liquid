@@ -1,0 +1,47 @@
+{% doc %}
+  Renders one editable feature row; its nested values render in the matching product columns.
+
+  @param {string} [comparison_table_dom_id] - Section and table namespace for feature, tooltip and dialog IDs
+  @param {number} [comparison_row_index] - One-based row position within the feature column
+{% enddoc %}
+
+{% render 'comparison-table-row-content', block: block, comparison_table_dom_id: comparison_table_dom_id, comparison_row_index: comparison_row_index %}
+
+{% schema %}
+{
+  "name": "Comparison row",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "comparison-table-row-value"
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Feature label",
+      "default": "Feature"
+    },
+    {
+      "type": "textarea",
+      "id": "tooltip",
+      "label": "Tooltip"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Comparison row",
+      "blocks": [
+        {
+          "type": "comparison-table-row-value",
+          "settings": {
+            "column_key": "product-1",
+            "type": "yes"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

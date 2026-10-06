@@ -1,0 +1,71 @@
+{% doc %}
+  Emits the shared layout-flow variables for a group-like horizontal/vertical
+  composition. Callers normalize setting values before rendering this snippet.
+
+  @param {string} [direction] - horizontal or vertical
+  @param {string} [wrap] - Flex wrapping for the default breakpoint
+  @param {string} [position] - top, center, bottom or space-between
+  @param {string} [alignment] - start, center or end
+  @param {string} [horizontal_alignment] - flex-start, center, flex-end or space-between
+  @param {boolean} [mobile_vertical] - whether the horizontal flow stacks on mobile
+  @param {string} [mobile_alignment] - start, center or end
+  @param {string} [mobile_justify] - flex-start, center, flex-end or space-between
+  @param {number} [gap] - Gap in pixels for the default breakpoint
+  @param {number} [gap_mobile] - Gap in pixels below the mobile breakpoint
+  @param {string} [gap_value] - CSS gap value for the default breakpoint
+  @param {string} [gap_mobile_value] - CSS gap value below the mobile breakpoint
+{% enddoc %}
+
+{% liquid
+  assign layout_flow_direction = direction | default: 'vertical'
+  assign layout_flow_wrap = 'nowrap'
+  if wrap == 'wrap'
+    assign layout_flow_wrap = 'wrap'
+  endif
+  assign layout_flow_position = position | default: 'top'
+  assign layout_flow_alignment = alignment | default: 'start'
+  assign layout_flow_horizontal_alignment = horizontal_alignment | default: 'flex-start'
+  assign layout_flow_mobile_alignment = mobile_alignment
+  assign layout_flow_mobile_justify = mobile_justify | default: 'flex-start'
+%}
+
+--layout-flow-wrap: {{ layout_flow_wrap }};
+{% if gap_value != blank %}--layout-flow-gap: {{ gap_value }};{% elsif gap != blank %}--layout-flow-gap: {{ gap }}px;{% endif %}
+{% if gap_mobile_value != blank %}--layout-flow-gap-mobile: {{ gap_mobile_value }};{% elsif gap_mobile != blank %}--layout-flow-gap-mobile: {{ gap_mobile }}px;{% endif %}
+{% if layout_flow_direction == 'horizontal' %}
+  --layout-flow-direction: row;
+  {% case layout_flow_position %}
+    {% when 'center' %}--layout-flow-align-items: center;
+    {% when 'bottom' %}--layout-flow-align-items: flex-end;
+  {% endcase %}
+  {% unless layout_flow_horizontal_alignment == 'flex-start' %}--layout-flow-justify-content: {{ layout_flow_horizontal_alignment }};{% endunless %}
+
+  {% if mobile_vertical %}
+    --layout-flow-direction-mobile: column;
+    {% case layout_flow_mobile_alignment %}
+      {% when 'center' %}--layout-flow-align-items-mobile: center;
+      {% when 'end' %}--layout-flow-align-items-mobile: flex-end;
+      {% else %}--layout-flow-align-items-mobile: flex-start;
+    {% endcase %}
+    {% unless layout_flow_mobile_justify == 'flex-start' %}--layout-flow-justify-content-mobile: {{ layout_flow_mobile_justify }};{% endunless %}
+  {% else %}
+    --layout-flow-wrap-mobile: nowrap;
+  {% endif %}
+{% else %}
+  {% case layout_flow_alignment %}
+    {% when 'center' %}--layout-flow-align-items: center;
+    {% when 'end' %}--layout-flow-align-items: flex-end;
+  {% endcase %}
+  {% case layout_flow_position %}
+    {% when 'center' %}--layout-flow-justify-content: center;
+    {% when 'bottom' %}--layout-flow-justify-content: flex-end;
+    {% when 'space-between' %}--layout-flow-justify-content: space-between;
+  {% endcase %}
+  {% if layout_flow_mobile_alignment != blank %}
+    {% case layout_flow_mobile_alignment %}
+      {% when 'center' %}--layout-flow-align-items-mobile: center;
+      {% when 'end' %}--layout-flow-align-items-mobile: flex-end;
+      {% else %}--layout-flow-align-items-mobile: flex-start;
+    {% endcase %}
+  {% endif %}
+{% endif %}

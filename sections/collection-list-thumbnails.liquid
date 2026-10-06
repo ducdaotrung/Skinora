@@ -1,0 +1,193 @@
+{% liquid
+  assign section_width = 'page-width'
+  if section.settings.section_width == 'full_width'
+    assign section_width = 'full-width'
+  endif
+  assign layout = section.settings.layout | default: 'carousel'
+  assign carousel_id = 'CollectionThumbnails-' | append: section.id
+  assign previous_label = 'collection_list.previous' | t
+  assign next_label = 'collection_list.next' | t
+  assign justify = 'flex-start'
+  if section.settings.alignment == 'center'
+    assign justify = 'center'
+  elsif section.settings.alignment == 'right'
+    assign justify = 'flex-end'
+  endif
+  assign pagination_type = section.settings.pagination_type | default: 'progress_bar'
+  unless pagination_type == 'progress_bar' or pagination_type == 'bullets'
+    assign pagination_type = 'progress_bar'
+  endunless
+  assign pagination_size = 'var(--swiper-pagination-progressbar-size, 4px)'
+  if pagination_type == 'bullets'
+    assign pagination_size = 'var(--swiper-pagination-bullet-size, 0.5rem)'
+  endif
+  assign show_pagination = false
+  if layout == 'carousel' and section.settings.show_pagination_on_desktop
+    assign show_pagination = true
+  endif
+  assign pagination_padding_desktop = section.settings.pagination_top_padding_desktop | default: 50 | plus: 0
+  if pagination_padding_desktop < 0 or pagination_padding_desktop > 100
+    assign pagination_padding_desktop = 50
+  endif
+  assign pagination_padding_mobile = section.settings.pagination_top_padding_mobile | default: 24 | plus: 0
+  if pagination_padding_mobile < 0 or pagination_padding_mobile > 100
+    assign pagination_padding_mobile = 24
+  endif
+  assign pagination_limit_width = false
+  if pagination_type == 'progress_bar' and section.settings.pagination_limit_width
+    assign pagination_limit_width = true
+  endif
+  assign pagination_max_width = section.settings.pagination_max_width | default: 260 | plus: 0
+  if pagination_max_width < 100 or pagination_max_width > 600
+    assign pagination_max_width = 260
+  endif
+  assign pagination_class = 'collection-thumbnails__pagination collection-thumbnails__pagination--' | append: pagination_type
+  assign navigation_center_offset = blank
+  if show_pagination
+    assign navigation_center_offset = 'calc((' | append: pagination_padding_desktop | append: 'px + ' | append: pagination_size | append: ') / 2)'
+  endif
+%}
+{% capture pagination_style %}
+  --swiper-pagination-spacing: {{ pagination_padding_desktop }}px;
+  --swiper-pagination-spacing-mobile: {{ pagination_padding_mobile }}px;
+  {% if pagination_limit_width %}--swiper-pagination-width: min(100%, {{ pagination_max_width }}px);{% endif %}
+{% endcapture %}
+{% assign pagination_style = pagination_style | strip %}
+{% capture navigation_center_style %}
+  {% if navigation_center_offset != blank %}--swiper-navigation-center-offset: {{ navigation_center_offset }};{% endif %}
+{% endcapture %}
+{% assign navigation_center_style = navigation_center_style | strip %}
+{% if layout == 'carousel' %}
+  <script type="module" src="{{ 'collection-thumbnails.js' | asset_url }}"></script>
+{% endif %}
+<div class="section-spacing collection-thumbnails color-scheme section-color-scope {{ section.settings.color_scheme | default: 'scheme-1' }}" style="--collection-thumbnails-gap:{{ section.settings.gap_desktop | default: 40 }}px;--collection-thumbnails-gap-mobile:{{ section.settings.gap_mobile | default: 20 }}px;--collection-thumbnail-card-gap:{{ section.settings.card_gap | default: 10 }}px;--collection-thumbnail-image-width:{{ section.settings.image_width_desktop | default: 110 }}px;--collection-thumbnail-image-width-mobile:{{ section.settings.image_width_mobile | default: 85 }}px;--collection-thumbnails-justify:{{ justify }};--collection-thumbnails-padding-top:{{ section.settings.padding_top | default: 50 }}px;--collection-thumbnails-padding-bottom:{{ section.settings.padding_bottom | default: 50 }}px;{% if section.settings.background_color != blank %}--background-color:{{ section.settings.background_color }};{% endif %}{% if section.settings.customize_mobile_padding %}--collection-thumbnails-padding-top-mobile:{{ section.settings.padding_top_mobile }}px;--collection-thumbnails-padding-bottom-mobile:{{ section.settings.padding_bottom_mobile }}px;{% endif %}">
+  {% if section.settings.background_media != 'none' %}<div class="collection-thumbnails__background" aria-hidden="true">{% if section.settings.background_media == 'image' and section.settings.background_image != blank %}{{ section.settings.background_image | image_url: width: 2400 | image_tag: widths: '750, 1100, 1500, 2000, 2400', sizes: '100vw', alt: '' }}{% elsif section.settings.background_media == 'video' and section.settings.background_video != blank %}{{ section.settings.background_video | video_tag: autoplay: true, loop: true, muted: true, controls: false }}{% endif %}</div>{% endif %}
+  <div class="container {{ section_width }} collection-thumbnails__container">
+    {% capture items %}{% content_for 'blocks' %}{% endcapture %}
+    {% if layout == 'carousel' %}
+      <div class="collection-thumbnails__carousel-wrap" data-collection-thumbnails>
+        {% capture attrs %}data-collection-thumbnails-carousel data-layout="carousel" data-swiper-gap-desktop="{{ section.settings.gap_desktop }}" data-swiper-gap-mobile="{{ section.settings.gap_mobile }}" data-swiper-pagination-type="{{ pagination_type }}" data-swiper-previous-selector="[data-ct-prev]" data-swiper-next-selector="[data-ct-next]"{% endcapture %}
+        {% capture pagination %}
+          {% render 'swiper-pagination', show: show_pagination, type: pagination_type, class: pagination_class, style: pagination_style %}
+        {% endcapture %}
+        {% render 'swiper-carousel', id: carousel_id, content: items, root_class: 'collection-thumbnails__carousel', root_attributes: attrs, aria_label: 'Collection thumbnails', pagination: pagination %}
+        {% render 'swiper-navigation', style: section.settings.navigation_style, icon: section.settings.navigation_icon, behavior: section.settings.navigation_behavior, wrapper_class: 'collection-thumbnails__navigation', previous_attribute: 'data-ct-prev', next_attribute: 'data-ct-next', previous_label: previous_label, next_label: next_label, center_style: navigation_center_style %}
+      </div>
+    {% else %}<div class="collection-thumbnails__grid">{{ items }}</div>{% endif %}
+  </div>
+</div>
+{% stylesheet %}
+  .collection-thumbnails {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-top: var(--collection-thumbnails-padding-top);
+    padding-bottom: var(--collection-thumbnails-padding-bottom);
+    background: var(--background-color);
+  }
+
+  .collection-thumbnails__background {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+  }
+
+  .collection-thumbnails__background :is(img, video) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .collection-thumbnails__carousel-wrap {
+    position: relative;
+    min-width: 0;
+  }
+
+  .collection-thumbnails__carousel .swiper-slide { width: auto; }
+
+  .collection-thumbnails__carousel.is-static .swiper-wrapper {
+    justify-content: var(--collection-thumbnails-justify);
+    gap: var(--collection-thumbnails-gap);
+  }
+
+  .collection-thumbnails__carousel.is-static ~ .collection-thumbnails__navigation,
+  .collection-thumbnails__carousel.is-static > .swiper-pagination,
+  .collection-thumbnails__navigation:has(.swiper-button-lock) {
+    display: none;
+  }
+
+  .collection-thumbnails__grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: var(--collection-thumbnails-justify);
+    gap: var(--collection-thumbnails-gap);
+  }
+
+  .collection-thumbnails__navigation {
+    position: absolute;
+    z-index: 2;
+    inset-inline: 0;
+    top: calc(50% - var(--swiper-navigation-center-offset, 0px));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+    opacity: 1;
+    transform: translateY(-50%);
+    transition: opacity var(--motion-duration-standard) var(--motion-ease-standard);
+  }
+
+  .collection-thumbnails__navigation .swiper-nav-button { pointer-events: auto; }
+
+  .collection-thumbnails__pagination--progress_bar {
+    --swiper-pagination-progressbar-bg-color: color-mix(in srgb, var(--body-color) 20%, transparent);
+    --swiper-pagination-color: var(--body-color);
+  }
+
+  .collection-thumbnails__pagination--bullets {
+    --swiper-pagination-bullet-size: 0.5rem;
+    --swiper-pagination-bullet-horizontal-gap: 0;
+    --swiper-pagination-bullet-inactive-color: color-mix(in srgb, var(--body-color) 30%, transparent);
+    --swiper-pagination-bullet-inactive-opacity: 1;
+    --swiper-pagination-color: var(--body-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+    .collection-thumbnails__navigation.swiper-carousel__navigation--show_on_hover {
+      opacity: 0;
+    }
+
+    .collection-thumbnails__carousel-wrap:is(:hover, :focus-within) .collection-thumbnails__navigation.swiper-carousel__navigation--show_on_hover {
+      opacity: 1;
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 1149.98px) {
+    .collection-thumbnails {
+      padding-top: calc(var(--collection-thumbnails-padding-top) * 0.75);
+      padding-bottom: calc(var(--collection-thumbnails-padding-bottom) * 0.75);
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .collection-thumbnails__navigation { display: none; }
+
+    .collection-thumbnails {
+      padding-top: var(--collection-thumbnails-padding-top-mobile, calc(var(--collection-thumbnails-padding-top) * 0.5));
+      padding-bottom: var(--collection-thumbnails-padding-bottom-mobile, calc(var(--collection-thumbnails-padding-bottom) * 0.5));
+    }
+
+    .collection-thumbnails__carousel.is-static .swiper-wrapper,
+    .collection-thumbnails__grid {
+      gap: var(--collection-thumbnails-gap-mobile);
+    }
+  }
+{% endstylesheet %}
+{% schema %}
+{"name":"Collection thumbnails","class":"section-collection-list-thumbnails","enabled_on":{"templates":["*"]},"max_blocks":12,"blocks":[{"type":"collection-thumbnail"}],"settings":[{"type":"header","content":"t:general.layout"},{"type":"select","id":"section_width","label":"t:labels.section_width","options":[{"value":"page_width","label":"t:options.section_width.page_width"},{"value":"full_width","label":"t:options.section_width.full_width"}],"default":"page_width"},{"type":"text_alignment","id":"alignment","label":"t:labels.alignment","default":"left"},{"type":"select","id":"layout","label":"t:general.layout","options":[{"value":"grid","label":"Grid"},{"value":"carousel","label":"Carousel"}],"default":"carousel"},{"type":"header","content":"t:general.gap"},{"type":"range","id":"gap_desktop","label":"t:labels.desktop_gap","min":0,"max":100,"step":1,"unit":"px","default":40},{"type":"range","id":"gap_mobile","label":"t:labels.mobile_gap","min":0,"max":100,"step":1,"unit":"px","default":20},{"type":"header","content":"Collection card"},{"type":"select","id":"card_layout","label":"Layout","options":[{"value":"horizontal","label":"Horizontal"},{"value":"vertical","label":"Vertical"}],"default":"vertical"},{"type":"range","id":"card_gap","label":"Gap","min":0,"max":40,"step":1,"unit":"px","default":10},{"type":"header","content":"Collection image"},{"type":"range","id":"image_width_desktop","label":"Desktop width","min":0,"max":300,"step":3,"unit":"px","default":111},{"type":"range","id":"image_width_mobile","label":"Mobile width","min":40,"max":200,"step":2,"unit":"px","default":84},{"type":"select","id":"image_ratio","label":"Image ratio","options":[{"value":"auto","label":"Original"},{"value":"square","label":"Square (1:1)"},{"value":"portrait","label":"Portrait (2:3)"},{"value":"landscape","label":"Landscape (3:2)"}],"default":"auto"},{"type":"select","id":"image_corner_radius","label":"Corner radius","options":[{"value":"inherit","label":"Inherit"},{"value":"square","label":"Square"},{"value":"rounded","label":"Rounded"},{"value":"full","label":"Full"},{"value":"custom","label":"Custom"}],"default":"full"},{"type":"range","id":"image_corner_radius_custom","label":"Custom corner radius","min":0,"max":100,"step":1,"unit":"px","default":0,"visible_if":"{{ section.settings.image_corner_radius == 'custom' }}"},{"type":"header","content":"Collection title"},{"type":"select","id":"title_font","label":"Font","options":[{"value":"heading","label":"Heading"},{"value":"body","label":"Body"},{"value":"accent","label":"Accent"}],"default":"heading"},{"type":"select","id":"html_tag","label":"t:labels.html_tag","info":"t:info.heading_html_tag","options":[{"value":"div","label":"t:options.html_tag.paragraph"},{"value":"h1","label":"t:options.html_tag.h1"},{"value":"h2","label":"t:options.html_tag.h2"},{"value":"h3","label":"t:options.html_tag.h3"},{"value":"h4","label":"t:options.html_tag.h4"},{"value":"h5","label":"t:options.html_tag.h5"},{"value":"h6","label":"t:options.html_tag.h6"}],"default":"h2"},{"type":"select","id":"heading_size","label":"t:labels.heading_size","options":[{"value":"display","label":"t:options.heading_size.display"},{"value":"xl","label":"t:options.heading_size.xl"},{"value":"lg","label":"t:options.heading_size.lg"},{"value":"md","label":"t:options.heading_size.md"},{"value":"sm","label":"t:options.heading_size.sm"},{"value":"xs","label":"t:options.heading_size.xs"}],"default":"sm"},{"type":"header","content":"Navigation"},{"type":"select","id":"navigation_style","label":"Style","options":[{"value":"primary","label":"Primary"},{"value":"secondary","label":"Secondary"},{"value":"outline","label":"Outline"}],"default":"primary","visible_if":"{{ section.settings.layout == 'carousel' }}"},{"type":"select","id":"navigation_icon","label":"Icon","options":[{"value":"arrow","label":"Arrow"},{"value":"long_arrow","label":"Long arrow"},{"value":"chevron","label":"Chevron"}],"default":"chevron","visible_if":"{{ section.settings.layout == 'carousel' }}"},{"type":"select","id":"navigation_behavior","label":"Behavior","options":[{"value":"show_on_hover","label":"Show on hover"},{"value":"always","label":"Always show"}],"default":"show_on_hover","visible_if":"{{ section.settings.layout == 'carousel' }}"},{"type":"header","content":"t:general.pagination","visible_if":"{{ section.settings.layout == 'carousel' }}"},{"type":"checkbox","id":"show_pagination_on_desktop","label":"t:labels.show_pagination","default":true,"visible_if":"{{ section.settings.layout == 'carousel' }}"},{"type":"select","id":"pagination_type","label":"t:labels.type","options":[{"value":"progress_bar","label":"t:options.collection_pagination.progress_bar"},{"value":"bullets","label":"t:options.collection_pagination.bullets"}],"default":"progress_bar","visible_if":"{{ section.settings.layout == 'carousel' and section.settings.show_pagination_on_desktop }}"},{"type":"range","id":"pagination_top_padding_desktop","label":"t:labels.pagination_desktop_top_padding","min":0,"max":100,"step":1,"unit":"px","default":50,"visible_if":"{{ section.settings.layout == 'carousel' and section.settings.show_pagination_on_desktop }}"},{"type":"range","id":"pagination_top_padding_mobile","label":"t:labels.pagination_mobile_top_padding","min":0,"max":100,"step":1,"unit":"px","default":24,"visible_if":"{{ section.settings.layout == 'carousel' and section.settings.show_pagination_on_desktop }}"},{"type":"checkbox","id":"pagination_limit_width","label":"t:labels.limit_width","default":true,"visible_if":"{{ section.settings.layout == 'carousel' and section.settings.show_pagination_on_desktop and section.settings.pagination_type == 'progress_bar' }}"},{"type":"range","id":"pagination_max_width","label":"t:labels.max_width","min":100,"max":600,"step":10,"unit":"px","default":260,"visible_if":"{{ section.settings.layout == 'carousel' and section.settings.show_pagination_on_desktop and section.settings.pagination_type == 'progress_bar' and section.settings.pagination_limit_width }}"},{"type":"header","content":"t:general.appearance"},{"type":"select","id":"background_media","label":"t:general.media","options":[{"value":"none","label":"t:options.background_media.none"},{"value":"image","label":"t:general.image"},{"value":"video","label":"t:general.video"}],"default":"none"},{"type":"image_picker","id":"background_image","label":"t:labels.background_image","visible_if":"{{ section.settings.background_media == 'image' }}"},{"type":"video","id":"background_video","label":"t:labels.background_video","visible_if":"{{ section.settings.background_media == 'video' }}"},{"type":"color_scheme","id":"color_scheme","label":"t:labels.color_scheme","default":"scheme-1"},{"type":"color","alpha":true,"id":"background_color","label":"t:labels.background_color"},{"type":"header","content":"t:general.padding"},{"type":"range","id":"padding_top","label":"t:labels.top_padding","min":0,"max":100,"step":1,"unit":"px","default":50},{"type":"range","id":"padding_bottom","label":"t:labels.bottom_padding","min":0,"max":100,"step":1,"unit":"px","default":50},{"type":"checkbox","id":"customize_mobile_padding","label":"t:labels.customize_mobile_padding","default":false},{"type":"range","id":"padding_top_mobile","label":"t:labels.mobile_top_padding","min":0,"max":100,"step":1,"unit":"px","default":50,"visible_if":"{{ section.settings.customize_mobile_padding }}"},{"type":"range","id":"padding_bottom_mobile","label":"t:labels.mobile_bottom_padding","min":0,"max":100,"step":1,"unit":"px","default":50,"visible_if":"{{ section.settings.customize_mobile_padding }}"}],"presets":[{"name":"Collection thumbnails","category":"Collections","blocks":[{"type":"collection-thumbnail"},{"type":"collection-thumbnail"},{"type":"collection-thumbnail"},{"type":"collection-thumbnail"},{"type":"collection-thumbnail"},{"type":"collection-thumbnail"}]}]}
+{% endschema %}

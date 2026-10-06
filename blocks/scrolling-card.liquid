@@ -1,0 +1,635 @@
+{% doc %}
+  Renders one sticky scrolling card.
+
+  The card owns its surface, background media, layout, and spacing. Its
+  content stays composable through the shared Group and Image blocks so the
+  same child primitives can be reused by other sections.
+{% enddoc %}
+
+{% liquid
+  assign scrolling_card_direction = block.settings.direction | default: 'horizontal'
+  unless scrolling_card_direction == 'horizontal' or scrolling_card_direction == 'vertical'
+    assign scrolling_card_direction = 'horizontal'
+  endunless
+
+  assign scrolling_card_position = block.settings.position | default: 'top'
+  unless scrolling_card_position == 'top' or scrolling_card_position == 'center' or scrolling_card_position == 'bottom'
+    assign scrolling_card_position = 'top'
+  endunless
+
+  assign scrolling_card_alignment = block.settings.alignment | default: 'left'
+  unless scrolling_card_alignment == 'left' or scrolling_card_alignment == 'center' or scrolling_card_alignment == 'right'
+    assign scrolling_card_alignment = 'left'
+  endunless
+
+  assign scrolling_card_alignment_mobile = block.settings.alignment_mobile | default: 'left'
+  unless scrolling_card_alignment_mobile == 'left' or scrolling_card_alignment_mobile == 'center' or scrolling_card_alignment_mobile == 'right'
+    assign scrolling_card_alignment_mobile = 'left'
+  endunless
+
+  assign scrolling_card_position_value = 'center'
+  if scrolling_card_position == 'top'
+    assign scrolling_card_position_value = 'start'
+  elsif scrolling_card_position == 'bottom'
+    assign scrolling_card_position_value = 'end'
+  endif
+
+  assign scrolling_card_alignment_value = 'flex-start'
+  if scrolling_card_alignment == 'center'
+    assign scrolling_card_alignment_value = 'center'
+  elsif scrolling_card_alignment == 'right'
+    assign scrolling_card_alignment_value = 'flex-end'
+  endif
+
+  assign scrolling_card_alignment_mobile_value = 'flex-start'
+  if scrolling_card_alignment_mobile == 'center'
+    assign scrolling_card_alignment_mobile_value = 'center'
+  elsif scrolling_card_alignment_mobile == 'right'
+    assign scrolling_card_alignment_mobile_value = 'flex-end'
+  endif
+
+  assign scrolling_card_gap_desktop = block.settings.gap_desktop | default: 50 | plus: 0
+  assign scrolling_card_gap_mobile = block.settings.gap_mobile | default: 40 | plus: 0
+  if scrolling_card_gap_desktop < 0 or scrolling_card_gap_desktop > 100
+    assign scrolling_card_gap_desktop = 50
+  endif
+  if scrolling_card_gap_mobile < 0 or scrolling_card_gap_mobile > 100
+    assign scrolling_card_gap_mobile = 40
+  endif
+
+  assign scrolling_card_border_thickness = block.settings.border_thickness | default: 0 | plus: 0
+  if scrolling_card_border_thickness < 0 or scrolling_card_border_thickness > 8
+    assign scrolling_card_border_thickness = 0
+  endif
+
+  assign scrolling_card_radius = 'var(--card-radius)'
+  assign scrolling_card_radius_setting = block.settings.corner_radius | default: 'inherit'
+  case scrolling_card_radius_setting
+    when 'square'
+      assign scrolling_card_radius = 'var(--radius-square)'
+    when 'slightly_rounded'
+      assign scrolling_card_radius = 'var(--radius-slight)'
+    when 'rounded'
+      assign scrolling_card_radius = 'var(--radius-rounded)'
+    when 'pill'
+      assign scrolling_card_radius = 'var(--radius-pill)'
+    else
+      assign scrolling_card_radius_setting = 'inherit'
+  endcase
+
+  assign scrolling_card_shadow = block.settings.shadow | default: 'none'
+  unless scrolling_card_shadow == 'none' or scrolling_card_shadow == 'small' or scrolling_card_shadow == 'medium' or scrolling_card_shadow == 'large'
+    assign scrolling_card_shadow = 'none'
+  endunless
+
+  assign scrolling_card_media = block.settings.background_media | default: 'none'
+  unless scrolling_card_media == 'none' or scrolling_card_media == 'image' or scrolling_card_media == 'video'
+    assign scrolling_card_media = 'none'
+  endunless
+
+  assign scrolling_card_has_background_media = false
+  if scrolling_card_media == 'image'
+    if block.settings.background_image != blank or block.settings.mobile_background_image != blank
+      assign scrolling_card_has_background_media = true
+    endif
+  elsif scrolling_card_media == 'video'
+    if block.settings.background_video != blank or block.settings.mobile_background_video != blank
+      assign scrolling_card_has_background_media = true
+    endif
+  endif
+
+  assign scrolling_card_backdrop_blur = block.settings.backdrop_blur | default: 0 | plus: 0
+  if scrolling_card_backdrop_blur < 0 or scrolling_card_backdrop_blur > 40
+    assign scrolling_card_backdrop_blur = 0
+  endif
+
+  assign scrolling_card_scheme = block.settings.color_scheme | default: 'scheme-1'
+  if block.settings.color_scheme.id != blank
+    assign scrolling_card_scheme = block.settings.color_scheme.id
+  endif
+  assign scrolling_card_scheme = scrolling_card_scheme | default: 'scheme-1' | handleize
+
+  assign scrolling_card_padding_top = block.settings.padding_top | default: 70 | plus: 0
+  assign scrolling_card_padding_bottom = block.settings.padding_bottom | default: 70 | plus: 0
+  assign scrolling_card_padding_left = block.settings.padding_left | default: 50 | plus: 0
+  assign scrolling_card_padding_right = block.settings.padding_right | default: 50 | plus: 0
+  assign scrolling_card_padding_top_mobile = block.settings.padding_top_mobile | default: 40 | plus: 0
+  assign scrolling_card_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 30 | plus: 0
+  assign scrolling_card_padding_left_mobile = block.settings.padding_left_mobile | default: 16 | plus: 0
+  assign scrolling_card_padding_right_mobile = block.settings.padding_right_mobile | default: 16 | plus: 0
+
+  if scrolling_card_padding_top < 0 or scrolling_card_padding_top > 100
+    assign scrolling_card_padding_top = 70
+  endif
+  if scrolling_card_padding_bottom < 0 or scrolling_card_padding_bottom > 100
+    assign scrolling_card_padding_bottom = 70
+  endif
+  if scrolling_card_padding_left < 0 or scrolling_card_padding_left > 100
+    assign scrolling_card_padding_left = 50
+  endif
+  if scrolling_card_padding_right < 0 or scrolling_card_padding_right > 100
+    assign scrolling_card_padding_right = 50
+  endif
+  if scrolling_card_padding_top_mobile < 0 or scrolling_card_padding_top_mobile > 100
+    assign scrolling_card_padding_top_mobile = 40
+  endif
+  if scrolling_card_padding_bottom_mobile < 0 or scrolling_card_padding_bottom_mobile > 100
+    assign scrolling_card_padding_bottom_mobile = 30
+  endif
+  if scrolling_card_padding_left_mobile < 0 or scrolling_card_padding_left_mobile > 100
+    assign scrolling_card_padding_left_mobile = 16
+  endif
+  if scrolling_card_padding_right_mobile < 0 or scrolling_card_padding_right_mobile > 100
+    assign scrolling_card_padding_right_mobile = 16
+  endif
+%}
+
+{% capture scrolling_card_style %}
+  --scrolling-card-position: {{ scrolling_card_position_value }};
+  --scrolling-card-alignment: {{ scrolling_card_alignment_value }};
+  --scrolling-card-alignment-mobile: {{ scrolling_card_alignment_mobile_value }};
+  --scrolling-card-gap-desktop: {{ scrolling_card_gap_desktop }}px;
+  --scrolling-card-gap-mobile: {{ scrolling_card_gap_mobile }}px;
+  --scrolling-card-border-width: {{ scrolling_card_border_thickness }}px;
+  --scrolling-card-radius: {{ scrolling_card_radius }};
+  --scrolling-card-padding-top: {{ scrolling_card_padding_top }}px;
+  --scrolling-card-padding-bottom: {{ scrolling_card_padding_bottom }}px;
+  --scrolling-card-padding-left: {{ scrolling_card_padding_left }}px;
+  --scrolling-card-padding-right: {{ scrolling_card_padding_right }}px;
+  {% if block.settings.customize_mobile_padding %}
+    --scrolling-card-padding-top-mobile: {{ scrolling_card_padding_top_mobile }}px;
+    --scrolling-card-padding-bottom-mobile: {{ scrolling_card_padding_bottom_mobile }}px;
+    --scrolling-card-padding-left-mobile: {{ scrolling_card_padding_left_mobile }}px;
+    --scrolling-card-padding-right-mobile: {{ scrolling_card_padding_right_mobile }}px;
+  {% endif %}
+  {% if block.settings.show_overlay and block.settings.overlay_color != blank %}
+    --scrolling-card-overlay-color: {{ block.settings.overlay_color | escape }};
+  {% endif %}
+  --scrolling-card-backdrop-blur: {{ scrolling_card_backdrop_blur }}px;
+{% endcapture %}
+
+<article
+  class="scrolling-card scrolling-card--{{ scrolling_card_direction }} scrolling-card--position-{{ scrolling_card_position }} scrolling-card--align-{{ scrolling_card_alignment }} scrolling-card--radius-{{ scrolling_card_radius_setting }} scrolling-card--shadow-{{ scrolling_card_shadow }}{% if block.settings.vertical_on_mobile and scrolling_card_direction == 'horizontal' %} scrolling-card--vertical-mobile{% endif %}{% if scrolling_card_has_background_media %} scrolling-card--has-background-media{% endif %}{% if block.settings.show_overlay %} scrolling-card--has-overlay{% endif %} color-scheme section-color-scope {{ scrolling_card_scheme }}"
+  style="{{ scrolling_card_style | strip }}"
+  {{ block.shopify_attributes }}
+>
+  {% if scrolling_card_has_background_media %}
+    <div class="scrolling-card__background" aria-hidden="true">
+      {% render 'media-background',
+        media_type: scrolling_card_media,
+        image: block.settings.background_image,
+        mobile_image: block.settings.mobile_background_image,
+        video: block.settings.background_video,
+        mobile_video: block.settings.mobile_background_video,
+        sizes: '100vw',
+        aria_hidden: true
+      %}
+    </div>
+  {% endif %}
+
+  {% if block.settings.show_overlay %}
+    <div class="scrolling-card__overlay" aria-hidden="true"></div>
+  {% endif %}
+
+  {% content_for 'blocks' %}
+</article>
+
+{% stylesheet %}
+  .scrolling-card {
+    position: sticky;
+    top: calc(var(--header-sticky-height, 0px) + 1.6rem + var(--scrolling-card-offset-top, 0px));
+    z-index: 1;
+    display: flex;
+    align-items: var(--scrolling-card-position, center);
+    justify-content: var(--scrolling-card-alignment, flex-start);
+    width: 100%;
+    min-width: 0;
+    gap: var(--scrolling-card-gap-desktop, 50px);
+    padding: var(--scrolling-card-padding-top, 70px) var(--scrolling-card-padding-right, 50px) var(--scrolling-card-padding-bottom, 70px) var(--scrolling-card-padding-left, 50px);
+    overflow: hidden;
+    border: var(--scrolling-card-border-width, 0px) solid var(--border-color);
+    border-radius: var(--scrolling-card-radius, var(--card-radius));
+    background: var(--background-color);
+    isolation: isolate;
+    transform: translateZ(0) scale(1);
+    transform-origin: top center;
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+
+  .scrolling-card--vertical {
+    flex-direction: column;
+    align-items: var(--scrolling-card-alignment, flex-start);
+    justify-content: var(--scrolling-card-position, center);
+  }
+
+  .scrolling-card--align-left { --scrolling-card-alignment: flex-start; }
+  .scrolling-card--align-center { --scrolling-card-alignment: center; }
+  .scrolling-card--align-right { --scrolling-card-alignment: flex-end; }
+  .scrolling-card--shadow-small { box-shadow: 0 0.25rem 0.75rem color-mix(in srgb, var(--shadow-color) 12%, transparent); }
+  .scrolling-card--shadow-medium { box-shadow: 0 0.5rem 1.25rem color-mix(in srgb, var(--shadow-color) 18%, transparent); }
+  .scrolling-card--shadow-large { box-shadow: 0 1rem 2rem color-mix(in srgb, var(--shadow-color) 24%, transparent); }
+
+  .scrolling-card__background,
+  .scrolling-card__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .scrolling-card__background { overflow: hidden; }
+  .scrolling-card__background .background-media { border-radius: inherit; }
+  .scrolling-card__overlay {
+    background: var(--scrolling-card-overlay-color, transparent);
+    backdrop-filter: blur(var(--scrolling-card-backdrop-blur, 0px));
+  }
+
+  .scrolling-card > .group,
+  .scrolling-card > .image-block {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 0%;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .scrolling-card > .group { align-self: var(--scrolling-card-position, center); }
+  .scrolling-card > .image-block { align-self: var(--scrolling-card-position, center); }
+  .scrolling-card > .image-block .image-block__media { border-radius: inherit; }
+  .scrolling-card > .group > .block-spacer { flex: 1 1 auto; min-height: 0; }
+
+  .scrolling-card--radius-inherit { --scrolling-card-radius: var(--card-radius); }
+  .scrolling-card--radius-square { --scrolling-card-radius: var(--radius-square); }
+  .scrolling-card--radius-slightly_rounded { --scrolling-card-radius: var(--radius-slight); }
+  .scrolling-card--radius-rounded { --scrolling-card-radius: var(--radius-rounded); }
+  .scrolling-card--radius-pill { --scrolling-card-radius: var(--radius-pill); }
+
+  @media (max-width: 767.98px) {
+    .scrolling-card {
+      gap: var(--scrolling-card-gap-mobile, var(--scrolling-card-gap-desktop, 50px));
+      padding: var(--scrolling-card-padding-top-mobile, var(--scrolling-card-padding-top, 70px)) var(--scrolling-card-padding-right-mobile, var(--scrolling-card-padding-right, 50px)) var(--scrolling-card-padding-bottom-mobile, var(--scrolling-card-padding-bottom, 70px)) var(--scrolling-card-padding-left-mobile, var(--scrolling-card-padding-left, 50px));
+    }
+
+    .scrolling-card--vertical-mobile {
+      flex-direction: column;
+      align-items: var(--scrolling-card-alignment-mobile, flex-start);
+      justify-content: var(--scrolling-card-position, center);
+    }
+
+    .scrolling-card--vertical-mobile > .group,
+    .scrolling-card--vertical-mobile > .image-block {
+      flex: 0 1 auto;
+    }
+
+    [data-scrolling-cards][data-sticky-mobile='false'] .scrolling-card {
+      position: relative;
+      top: auto;
+      transform: none;
+      will-change: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scrolling-card { transform: none !important; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Card",
+  "tag": null,
+  "blocks": [
+    { "type": "group" },
+    { "type": "image" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "Direction",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal" },
+        { "value": "vertical", "label": "Vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Position",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ],
+      "default": "top"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "vertical_on_mobile",
+      "label": "Vertical on mobile",
+      "default": true,
+      "visible_if": "{{ block.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "Alignment (mobile)",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ block.settings.direction == 'vertical' or block.settings.vertical_on_mobile }}"
+    },
+    {
+      "type": "header",
+      "content": "Gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "Desktop",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "range",
+      "id": "border_thickness",
+      "label": "Border thickness",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "Corner radius",
+      "options": [
+        { "value": "inherit", "label": "Inherit" },
+        { "value": "square", "label": "Square" },
+        { "value": "slightly_rounded", "label": "Slightly rounded" },
+        { "value": "rounded", "label": "Rounded" },
+        { "value": "pill", "label": "Pill" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "Shadow",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "select",
+      "id": "background_media",
+      "label": "Media",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Image",
+      "visible_if": "{{ block.settings.background_media == 'image' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_background_image",
+      "label": "Mobile image (optional)",
+      "visible_if": "{{ block.settings.background_media == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "Video",
+      "visible_if": "{{ block.settings.background_media == 'video' }}"
+    },
+    {
+      "type": "video",
+      "id": "mobile_background_video",
+      "label": "Mobile video (optional)",
+      "visible_if": "{{ block.settings.background_media == 'video' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "Overlay",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "alpha": true,
+      "default": "#16070080",
+      "visible_if": "{{ block.settings.show_overlay }}"
+    },
+    {
+      "type": "range",
+      "id": "backdrop_blur",
+      "label": "Backdrop blur",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.show_overlay }}"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "Left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "Right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "Custom for mobile",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Top (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Bottom (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 30,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "Left (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "Right (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Card",
+      "blocks": [
+        {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "width": "fill",
+            "height": "fill",
+            "gap_desktop": 16,
+            "gap_mobile": 12,
+            "appearance_type": "inherit",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none"
+          },
+          "blocks": [
+            { "type": "eyebrow", "settings": { "text": "<p>Subheading</p>", "show_background": true, "corner_radius": "pill" } },
+            { "type": "spacer", "settings": { "unit_desktop": "pixel", "size_desktop_px": 80, "show_on_mobile": true, "unit_mobile": "pixel", "size_mobile_px": 40 } },
+            { "type": "heading", "settings": { "text": "<p>Heading</p>", "heading_size": "lg", "html_tag": "h3", "width": "fit" } },
+            { "type": "text", "settings": { "text": "<p>Use this text to share information about your brand, describe products, or highlight announcements. You can also promote special offers or communicate important messages to customers.</p>", "text_size": "sm", "width": "custom", "max_width": 500 } }
+          ]
+        },
+        {
+          "type": "image",
+          "settings": {
+            "image_ratio_desktop": "landscape",
+            "image_ratio_mobile": "landscape",
+            "width_desktop": "fill",
+            "width_mobile": "fill",
+            "corner_radius": "square"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

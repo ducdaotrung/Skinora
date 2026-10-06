@@ -1,0 +1,164 @@
+{% doc %}
+  Shared Collection card render kernel; callers own fixed versus dynamic child
+  composition and supply the current collection explicitly. The caller block
+  remains the selectable/card-settings owner.
+  @param {object} block - Card Theme Block with canonical settings and editor attributes
+  @param {object} [card_collection] - Collection supplied by the list owner
+  @param {string} card_content - Rendered title/description/button child roles
+  @param {boolean} [placeholder] - Deliberate skeleton state
+  @param {string} [image_loading] - Parent's eager/lazy media decision
+  @param {string} [image_sizes] - Parent's layout-aware image sizes
+  @param {number} [placeholder_index] - Collection placeholder variant1–6
+{% enddoc %}
+{% liquid
+  assign collection_card_collection = card_collection
+  assign collection_card_image = collection_card_collection.featured_image | default: collection_card_collection.image
+  assign collection_card_scheme = block.settings.color_scheme | default: 'scheme-1'
+  if block.settings.color_scheme.id != blank
+    assign collection_card_scheme = block.settings.color_scheme.id
+  endif
+  assign collection_card_scheme = collection_card_scheme | default: 'scheme-1' | handleize
+  assign collection_card_placement = block.settings.placement | default: 'below_image'
+  assign collection_card_radius = 'var(--card-radius)'
+  case block.settings.corner_radius
+    when 'square'
+      assign collection_card_radius = 'var(--radius-square)'
+    when 'rounded'
+      assign collection_card_radius = 'var(--radius-rounded)'
+  endcase
+
+  assign collection_card_shadow = 'none'
+  case block.settings.shadow
+    when 'small'
+      assign collection_card_shadow = '0 2px 8px rgb(0 0 0 / 0.12)'
+    when 'medium'
+      assign collection_card_shadow = '0 8px 24px rgb(0 0 0 / 0.16)'
+  endcase
+
+  assign collection_card_ratio_setting = block.settings.ratio | default: 'auto'
+  if collection_card_ratio_setting == 'original'
+    assign collection_card_ratio_setting = 'auto'
+  endif
+  unless collection_card_ratio_setting == 'auto' or collection_card_ratio_setting == 'square' or collection_card_ratio_setting == 'portrait' or collection_card_ratio_setting == 'landscape' or collection_card_ratio_setting == 'landscape_3_2' or collection_card_ratio_setting == 'portrait_2_3' or collection_card_ratio_setting == 'wide' or collection_card_ratio_setting == 'custom'
+    assign collection_card_ratio_setting = 'auto'
+  endunless
+  assign collection_card_ratio = 'auto'
+  case collection_card_ratio_setting
+    when 'square'
+      assign collection_card_ratio = '1'
+    when 'portrait'
+      assign collection_card_ratio = '0.8'
+    when 'landscape'
+      assign collection_card_ratio = '1.3333'
+    when 'landscape_3_2'
+      assign collection_card_ratio = '1.5'
+    when 'portrait_2_3'
+      assign collection_card_ratio = '0.6667'
+    when 'wide'
+      assign collection_card_ratio = '1.7778'
+    when 'custom'
+      assign collection_card_ratio = block.settings.ratio_custom | default: 1 | plus: 0
+      if collection_card_ratio < 0.3 or collection_card_ratio > 3
+        assign collection_card_ratio = 1
+      endif
+  endcase
+  assign collection_card_gap_desktop = block.settings.gap_desktop | default: 4 | plus: 0
+  assign collection_card_gap_mobile = block.settings.gap_mobile | default: collection_card_gap_desktop | plus: 0
+  if collection_card_gap_desktop < 0 or collection_card_gap_desktop > 40
+    assign collection_card_gap_desktop = 4
+  endif
+  if collection_card_gap_mobile < 0 or collection_card_gap_mobile > 40
+    assign collection_card_gap_mobile = collection_card_gap_desktop
+  endif
+  assign collection_card_padding_top = block.settings.padding_top | default: 16 | plus: 0
+  assign collection_card_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign collection_card_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign collection_card_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign collection_card_padding_top_mobile = block.settings.padding_top_mobile | default: collection_card_padding_top | plus: 0
+  assign collection_card_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: collection_card_padding_bottom | plus: 0
+  assign collection_card_padding_left_mobile = block.settings.padding_left_mobile | default: collection_card_padding_left | plus: 0
+  assign collection_card_padding_right_mobile = block.settings.padding_right_mobile | default: collection_card_padding_right | plus: 0
+
+  if collection_card_padding_top < 0 or collection_card_padding_top > 100
+    assign collection_card_padding_top = 16
+  endif
+  if collection_card_padding_bottom < 0 or collection_card_padding_bottom > 100
+    assign collection_card_padding_bottom = 0
+  endif
+  if collection_card_padding_left < 0 or collection_card_padding_left > 100
+    assign collection_card_padding_left = 0
+  endif
+  if collection_card_padding_right < 0 or collection_card_padding_right > 100
+    assign collection_card_padding_right = 0
+  endif
+  if collection_card_padding_top_mobile < 0 or collection_card_padding_top_mobile > 100
+    assign collection_card_padding_top_mobile = collection_card_padding_top
+  endif
+  if collection_card_padding_bottom_mobile < 0 or collection_card_padding_bottom_mobile > 100
+    assign collection_card_padding_bottom_mobile = collection_card_padding_bottom
+  endif
+  if collection_card_padding_left_mobile < 0 or collection_card_padding_left_mobile > 100
+    assign collection_card_padding_left_mobile = collection_card_padding_left
+  endif
+  if collection_card_padding_right_mobile < 0 or collection_card_padding_right_mobile > 100
+    assign collection_card_padding_right_mobile = collection_card_padding_right
+  endif
+
+  assign collection_card_image_loading = image_loading
+  assign collection_card_image_sizes = image_sizes
+  assign collection_card_placeholder = placeholder_index | default: 1 | prepend: 'collection-'
+
+  assign collection_card_is_placeholder = false
+  if placeholder
+    assign collection_card_is_placeholder = true
+  endif
+%}
+
+{% capture collection_card_padding_style %}
+  {% if collection_card_gap_desktop != 4 %}--card-content-gap: {{ collection_card_gap_desktop }}px;{% endif %}
+  {% if collection_card_gap_mobile != collection_card_gap_desktop %}--card-content-gap-mobile: {{ collection_card_gap_mobile }}px;{% endif %}
+  {% if collection_card_padding_top != 16 %}--card-padding-top: {{ collection_card_padding_top }}px;{% endif %}
+  {% if collection_card_padding_bottom != 0 %}--card-padding-bottom: {{ collection_card_padding_bottom }}px;{% endif %}
+  {% if collection_card_padding_left != 0 %}--card-padding-left: {{ collection_card_padding_left }}px;{% endif %}
+  {% if collection_card_padding_right != 0 %}--card-padding-right: {{ collection_card_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if collection_card_padding_top_mobile != collection_card_padding_top %}--card-padding-top-mobile: {{ collection_card_padding_top_mobile }}px;{% endif %}
+    {% if collection_card_padding_bottom_mobile != collection_card_padding_bottom %}--card-padding-bottom-mobile: {{ collection_card_padding_bottom_mobile }}px;{% endif %}
+    {% if collection_card_padding_left_mobile != collection_card_padding_left %}--card-padding-left-mobile: {{ collection_card_padding_left_mobile }}px;{% endif %}
+    {% if collection_card_padding_right_mobile != collection_card_padding_right %}--card-padding-right-mobile: {{ collection_card_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign collection_card_padding_style = collection_card_padding_style | strip %}
+
+<article
+  class="collection-card-kernel collection-card-kernel--{{ collection_card_placement }} collection-card-kernel--{{ collection_card_ratio_setting }}{% if collection_card_is_placeholder %} collection-card-kernel--placeholder{% else %} collection-card-kernel--linked{% endif %}{% if request.design_mode %} collection-card-kernel--design-mode{% endif %}{% if block.settings.color_type == 'color_scheme' %} color-scheme section-color-scope {{ collection_card_scheme }}{% endif %}"
+  data-collection-card
+  style="--card-border:{{ block.settings.border_thickness | default: 0 }}px;--card-align:{{ block.settings.alignment | default: 'left' }};--collection-card-radius:{{ collection_card_radius }};--collection-card-shadow:{{ collection_card_shadow }};--collection-card-ratio:{{ collection_card_ratio }};{% if collection_card_padding_style != blank %}{{ collection_card_padding_style }}{% endif %}"
+  {{ block.shopify_attributes }}
+>
+  <div class="collection-card-kernel__media{% if collection_card_image == blank %} placeholder-image{% endif %}">
+    {% if collection_card_image != blank %}
+      {% if collection_card_image_sizes != blank %}
+        {{ collection_card_image | image_url: width: 1200 | image_tag: alt: collection_card_collection.title, loading: collection_card_image_loading, sizes: collection_card_image_sizes, widths: '240, 360, 480, 640, 800, 1000, 1200' }}
+      {% else %}
+        {{ collection_card_image | image_url: width: 1200 | image_tag: alt: collection_card_collection.title }}
+      {% endif %}
+    {% else %}
+      {{ collection_card_placeholder | placeholder_svg_tag }}
+    {% endif %}
+  </div>
+
+  {% if collection_card_is_placeholder == false and collection_card_collection != blank and collection_card_collection.url != blank %}
+    <a
+      class="collection-card-kernel__link"
+      href="{{ collection_card_collection.url | escape }}"
+      aria-label="{{ collection_card_collection.title | escape }}"
+    ></a>
+  {% else %}
+    <span class="collection-card-kernel__link" role="link" aria-disabled="true"></span>
+  {% endif %}
+
+  <div class="collection-card-kernel__content">
+    {{ card_content }}
+  </div>
+</article>

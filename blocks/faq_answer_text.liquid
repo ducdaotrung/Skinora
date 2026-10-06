@@ -1,0 +1,38 @@
+{% if block.settings.text != blank or request.design_mode %}
+  <div class="faq-answer-text" {{ block.shopify_attributes }}>
+    {% if block.settings.text != blank %}
+      {{ block.settings.text }}
+    {% else %}
+      <p>Write the answer to this question here.</p>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .faq-answer-text {
+    display: block;
+    width: 100%;
+    color: var(--body-color);
+    text-align: var(--text-align-default, inherit);
+    overflow-wrap: anywhere;
+  }
+
+  .faq-answer-text a { color: inherit; }
+  .faq-answer-text :where(ul, ol) { padding-inline-start: 1.5em; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Text",
+  "tag": null,
+  "settings": [
+    { "type": "richtext", "id": "text", "label": "Text" }
+  ],
+  "presets": [
+    {
+      "name": "Text",
+      "category": "Content"
+    }
+  ]
+}
+{% endschema %}

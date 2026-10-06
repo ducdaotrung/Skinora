@@ -1,0 +1,184 @@
+{% doc %}
+  Renders links to the store policies configured in Shopify.
+
+  The block owns the policy-link list and its local gap and text color.
+  Shopify owns the policy resources and their localized titles.
+
+  @example
+  {% content_for 'block', type: 'policy-links', id: 'policy-links' %}
+{% enddoc %}
+
+{% liquid
+  assign policy_links_gap_desktop = block.settings.gap_desktop | default: 25 | plus: 0
+  if policy_links_gap_desktop < 0 or policy_links_gap_desktop > 100
+    assign policy_links_gap_desktop = 25
+  endif
+
+  assign policy_links_gap_mobile = block.settings.gap_mobile | default: 12 | plus: 0
+  if policy_links_gap_mobile < 0 or policy_links_gap_mobile > 100
+    assign policy_links_gap_mobile = 12
+  endif
+
+  assign policy_links_text_size = block.settings.text_size | default: 'md'
+  unless policy_links_text_size == 'xs' or policy_links_text_size == 'sm' or policy_links_text_size == 'md' or policy_links_text_size == 'lg' or policy_links_text_size == 'xl' or policy_links_text_size == 'xxl'
+    assign policy_links_text_size = 'md'
+  endunless
+
+  assign policy_links_count = 0
+  for policy in shop.policies
+    if policy != blank and policy.url != blank and policy.title != blank
+      assign policy_links_count = policy_links_count | plus: 1
+    endif
+  endfor
+
+  assign policy_links_class = 'policy-links-block body-text body-' | append: policy_links_text_size
+%}
+
+{% capture policy_links_style %}
+  {% if block.settings.text_color != blank %}--policy-links-text-color: {{ block.settings.text_color | escape }};{% endif %}
+{% endcapture %}
+{% assign policy_links_style = policy_links_style | strip %}
+
+{% capture policy_links_list_style %}
+  {% render 'layout-flow-style',
+    direction: 'row',
+    wrap: 'wrap',
+    align_items: 'center',
+    gap: policy_links_gap_desktop,
+    gap_mobile: policy_links_gap_mobile
+  %}
+{% endcapture %}
+{% assign policy_links_list_style = policy_links_list_style | strip %}
+
+{% if policy_links_count > 0 or request.design_mode %}
+  <nav
+    class="{{ policy_links_class }}"
+    style="{{ policy_links_style }}"
+    aria-label="{{ 'accessibility.policy_links' | t | escape }}"
+    {{ block.shopify_attributes }}
+  >
+    {% if policy_links_count > 0 %}
+      <ul
+        class="policy-links-block__list layout-flow layout-flow--responsive"
+        style="{{ policy_links_list_style }}"
+        role="list"
+      >
+        {% for policy in shop.policies %}
+          {% if policy != blank and policy.url != blank and policy.title != blank %}
+            <li class="policy-links-block__item">
+              <a class="policy-links-block__link link-underline" data-underline="persistent" href="{{ policy.url | escape }}">{{ policy.title | escape }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="policy-links-block__empty">{{ 'policies.no_policies' | t }}</p>
+    {% endif %}
+  </nav>
+{% endif %}
+
+{% stylesheet %}
+  .policy-links-block {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    color: var(--policy-links-text-color, var(--body-color));
+  }
+
+  .policy-links-block__list {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .policy-links-block__item {
+    min-width: 0;
+  }
+
+  .policy-links-block__link {
+    display: inline-block;
+    max-width: 100%;
+    color: inherit;
+    overflow-wrap: anywhere;
+  }
+
+  .policy-links-block__empty {
+    margin: 0;
+    color: inherit;
+  }
+
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.policy_links",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:info.policy_links"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 25
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "t:labels.text_size",
+      "options": [
+        { "value": "xs", "label": "t:options.text_size.xs" },
+        { "value": "sm", "label": "t:options.text_size.sm" },
+        { "value": "md", "label": "t:options.text_size.md" },
+        { "value": "lg", "label": "t:options.text_size.lg" },
+        { "value": "xl", "label": "t:options.text_size.xl" },
+        { "value": "xxl", "label": "t:options.text_size.xxl" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_color",
+      "label": "t:labels.text_color"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.policy_links",
+      "category": "t:general.navigation",
+      "settings": {
+        "gap_desktop": 25,
+        "gap_mobile": 12,
+        "text_size": "md"
+      }
+    }
+  ]
+}
+{% endschema %}

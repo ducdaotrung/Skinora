@@ -1,0 +1,196 @@
+{% liquid
+  assign band_image = block.settings.image
+  assign band_image_alt = block.settings.image_alt | default: band_image.alt
+  assign band_heading_tag = section.settings.heading_tag | default: 'h2'
+  unless band_heading_tag == 'div' or band_heading_tag == 'h1' or band_heading_tag == 'h2' or band_heading_tag == 'h3' or band_heading_tag == 'h4' or band_heading_tag == 'h5' or band_heading_tag == 'h6'
+    assign band_heading_tag = 'h2'
+  endunless
+  assign band_heading_size = section.settings.heading_size | default: 'lg'
+  assign band_heading_size_mobile = section.settings.heading_size_mobile | default: band_heading_size
+  unless band_heading_size == 'display' or band_heading_size == 'xl' or band_heading_size == 'lg' or band_heading_size == 'md' or band_heading_size == 'sm' or band_heading_size == 'xs'
+    assign band_heading_size = 'lg'
+  endunless
+  assign band_text_size = section.settings.text_size | default: 'md'
+  assign band_text_size_mobile = section.settings.text_size_mobile | default: band_text_size
+  unless band_text_size == 'xs' or band_text_size == 'sm' or band_text_size == 'md' or band_text_size == 'lg' or band_text_size == 'xl' or band_text_size == 'xxl'
+    assign band_text_size = 'md'
+  endunless
+  assign band_button_style = section.settings.button_style | default: 'tertiary'
+  unless band_button_style == 'primary' or band_button_style == 'secondary' or band_button_style == 'tertiary'
+    assign band_button_style = 'tertiary'
+  endunless
+  assign band_button_icon = blank
+  if section.settings.button_show_icon
+    assign band_button_icon = section.settings.button_icon | default: 'arrow'
+  endif
+%}
+
+<div id="images-with-text-scroll-{{ block.id }}" class="images-with-text-scroll__item" data-stacked-band {{ block.shopify_attributes }}>
+  {% if band_image != blank %}
+    {{ band_image | image_url: width: 1600 | image_tag: widths: '210, 420, 440, 575, 630, 880, 1200, 1600', sizes: '(max-width: 699px) 210px, (max-width: 999px) 440px, 575px', alt: band_image_alt, class: 'images-with-text-scroll__image' }}
+  {% else %}
+    {{ 'lifestyle-1' | placeholder_svg_tag: 'images-with-text-scroll__image placeholder-image' }}
+  {% endif %}
+
+  <div
+    class="images-with-text-scroll__text"
+    data-stacked-band-content
+    style="--images-with-text-scroll-gap: {{ block.settings.gap_desktop | default: 16 }}px; --images-with-text-scroll-gap-mobile: {{ block.settings.gap_mobile | default: 12 }}px; --images-with-text-scroll-heading-size-mobile: var(--font-heading-{{ band_heading_size_mobile }}); --images-with-text-scroll-text-size-mobile: var(--font-body-{{ band_text_size_mobile }});{% if section.settings.heading_color != blank %}--images-with-text-scroll-heading-color: {{ section.settings.heading_color | escape }};{% endif %}{% if section.settings.text_color != blank %}--images-with-text-scroll-text-color: {{ section.settings.text_color | escape }};{% endif %}"
+  >
+    {% if block.settings.tag != blank %}
+      <div class="images-with-text-scroll__tag body-{{ band_text_size }}">{{ block.settings.tag }}</div>
+    {% endif %}
+
+    {% if block.settings.heading != blank %}
+      <{{ band_heading_tag }} class="images-with-text-scroll__heading heading-{{ band_heading_size }}">{{ block.settings.heading | strip_html }}</{{ band_heading_tag }}>
+    {% endif %}
+
+    {% if block.settings.text != blank %}
+      <div class="images-with-text-scroll__description body-{{ band_text_size }}">{{ block.settings.text }}</div>
+    {% endif %}
+
+    {% if block.settings.button_label != blank %}
+      {% render 'theme-button',
+        label: block.settings.button_label,
+        url: block.settings.button_link,
+        open_in_new_tab: section.settings.button_open_in_new_tab,
+        variant: band_button_style,
+        icon: band_button_icon,
+        icon_position: 'after',
+        icon_size: 'inherit'
+      %}
+    {% endif %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .images-with-text-scroll__item {
+    display: contents;
+  }
+
+  .images-with-text-scroll__item:not(:first-child) > .images-with-text-scroll__image {
+    opacity: 0;
+  }
+
+  .images-with-text-scroll__image {
+    grid-area: 1 / 1;
+    align-self: center;
+    width: var(--image-width, min(56vw, 27.5rem));
+    max-width: var(--images-with-text-scroll-image-max-width, 100%);
+    height: var(--image-height, auto);
+    object-fit: contain;
+    object-position: center;
+    position: sticky;
+    inset-block-start: calc(var(--content-padding, 0px) + var(--sticky-area-height, 0px));
+    opacity: 0;
+    transition: opacity 300ms ease;
+  }
+
+  .images-with-text-scroll__item.is-selected > .images-with-text-scroll__image {
+    opacity: 1;
+  }
+
+  .images-with-text-scroll__text {
+    grid-area: auto / 2;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--images-with-text-scroll-gap, 16px);
+    width: 100%;
+    min-width: 0;
+    max-width: 375px;
+    margin-inline: auto;
+    text-align: center;
+    color: var(--images-with-text-scroll-text-color, inherit);
+  }
+
+  .images-with-text-scroll__tag,
+  .images-with-text-scroll__description {
+    color: var(--images-with-text-scroll-text-color, inherit);
+  }
+
+  .images-with-text-scroll__heading {
+    width: 100%;
+    margin: 0;
+    color: var(--images-with-text-scroll-heading-color, inherit);
+  }
+
+  .images-with-text-scroll__description p,
+  .images-with-text-scroll__tag p {
+    margin: 0;
+  }
+
+  @media (max-width: 999px) {
+    .images-with-text-scroll__heading {
+      font-size: var(--images-with-text-scroll-heading-size-mobile, inherit);
+    }
+
+    .images-with-text-scroll__tag,
+    .images-with-text-scroll__description {
+      font-size: var(--images-with-text-scroll-text-size-mobile, inherit);
+    }
+
+    .images-with-text-scroll__image {
+      position: relative;
+      inset-block-start: auto;
+      justify-self: center;
+      width: var(--image-width, min(100%, 27.5rem));
+      max-width: var(--images-with-text-scroll-mobile-image-max-width, 100%);
+      height: auto;
+      aspect-ratio: var(--images-with-text-scroll-mobile-image-ratio, var(--images-with-text-scroll-master-image-ratio, 1));
+      opacity: 1 !important;
+    }
+
+    .images-with-text-scroll__text {
+      grid-area: auto;
+      min-width: 0;
+      gap: var(--images-with-text-scroll-gap-mobile, var(--images-with-text-scroll-gap, 16px));
+      padding-block: 2rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .images-with-text-scroll__image {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Image text band",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "Image" },
+    { "type": "image_picker", "id": "image", "label": "t:general.image" },
+    { "type": "text", "id": "image_alt", "label": "t:labels.alt_text" },
+    { "type": "header", "content": "Gap" },
+    { "type": "range", "id": "gap_desktop", "label": "t:labels.desktop_gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 16 },
+    { "type": "range", "id": "gap_mobile", "label": "t:labels.mobile_gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 12 },
+    { "type": "header", "content": "Content" },
+    { "type": "richtext", "id": "tag", "label": "Tag" },
+    { "type": "richtext", "id": "heading", "label": "t:labels.heading" },
+    { "type": "richtext", "id": "text", "label": "t:labels.text" },
+    { "type": "header", "content": "Button" },
+    { "type": "text", "id": "button_label", "label": "t:labels.button_label" },
+    { "type": "url", "id": "button_link", "label": "t:labels.link" }
+  ],
+  "presets": [
+    {
+      "name": "Image text band",
+      "category": "Text",
+      "settings": {
+        "image_alt": "",
+        "gap_desktop": 16,
+        "gap_mobile": 12,
+        "tag": "<p>#2</p>",
+        "heading": "<p>Our commitments</p>",
+        "text": "<p>At Léo et Violette, from day one we have made responsibility part of our values. Towards you, and also towards the environment through the way we produce our collections.</p>",
+        "button_label": "Learn more",
+        "button_link": ""
+      }
+    }
+  ]
+}
+{% endschema %}

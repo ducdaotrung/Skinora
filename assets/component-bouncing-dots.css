@@ -1,0 +1,47 @@
+.btn--loading .bouncing-dots,
+.product-card__action .bouncing-dots {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transform: translate(-50%, -50%);
+}
+
+.product-card__action .bouncing-dots[hidden],
+.product-card__action .bouncing-dots.hidden {
+  display: none;
+}
+
+.btn--loading .bouncing-dots span,
+.product-card__action .bouncing-dots span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  background-color: currentColor;
+  border-radius: 50%;
+  animation: dots-bounce 1s infinite var(--animation-easing, ease-in-out);
+}
+
+.btn--loading .bouncing-dots span:nth-child(2),
+.product-card__action .bouncing-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.btn--loading .bouncing-dots span:nth-child(3),
+.product-card__action .bouncing-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes dots-bounce {
+  0%, 40%, 60%, 80%, 100% { transform: scale(0.6); }
+  20% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn--loading .bouncing-dots span,
+  .product-card__action .bouncing-dots span {
+    animation: none;
+    transform: scale(0.8);
+  }
+}

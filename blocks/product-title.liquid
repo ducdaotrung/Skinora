@@ -1,0 +1,274 @@
+{% doc %}
+  Renders the current product title. Typography uses the shared visual heading
+  roles (`display`, `xl`, `lg`, `md`, `sm`, `xs`, `custom`) while the HTML tag
+  remains an independent semantic choice. The product template owns the block
+  order and heading hierarchy.
+{% enddoc %}
+
+{% liquid
+  assign product_title = closest.product | default: product
+
+  assign title_size = block.settings.heading_size | default: block.settings.size | default: block.settings.title_size | default: 'xl'
+  unless title_size == 'display' or title_size == 'xl' or title_size == 'lg' or title_size == 'md' or title_size == 'sm' or title_size == 'xs' or title_size == 'custom' or title_size == 'heading_1' or title_size == 'heading_2' or title_size == 'heading_3' or title_size == 'heading_4' or title_size == 'heading_5' or title_size == 'heading_6'
+    assign title_size = 'xl'
+  endunless
+  case title_size
+    when 'heading_1', 'display'
+      assign title_size = 'display'
+    when 'heading_2', 'xl'
+      assign title_size = 'xl'
+    when 'heading_3', 'lg'
+      assign title_size = 'lg'
+    when 'heading_4', 'md'
+      assign title_size = 'md'
+    when 'heading_5', 'sm'
+      assign title_size = 'sm'
+    when 'heading_6', 'xs'
+      assign title_size = 'xs'
+  endcase
+
+  assign title_custom_size = block.settings.custom_heading_size | default: 24 | plus: 0
+  if title_custom_size < 10 or title_custom_size > 100
+    assign title_custom_size = 24
+  endif
+
+  assign title_tag = block.settings.html_tag | default: 'h1'
+  unless title_tag == 'div' or title_tag == 'h1' or title_tag == 'h2' or title_tag == 'h3' or title_tag == 'h4' or title_tag == 'h5' or title_tag == 'h6'
+    assign title_tag = 'h1'
+  endunless
+
+  assign title_case = block.settings.text_case | default: 'original'
+  unless title_case == 'original' or title_case == 'capitalize' or title_case == 'uppercase'
+    assign title_case = 'original'
+  endunless
+
+  assign title_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign title_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign title_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign title_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign title_padding_top_mobile = block.settings.padding_top_mobile | default: title_padding_top | plus: 0
+  assign title_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: title_padding_bottom | plus: 0
+  assign title_padding_left_mobile = block.settings.padding_left_mobile | default: title_padding_left | plus: 0
+  assign title_padding_right_mobile = block.settings.padding_right_mobile | default: title_padding_right | plus: 0
+
+  if title_padding_top < 0 or title_padding_top > 100
+    assign title_padding_top = 0
+  endif
+  if title_padding_bottom < 0 or title_padding_bottom > 100
+    assign title_padding_bottom = 0
+  endif
+  if title_padding_left < 0 or title_padding_left > 100
+    assign title_padding_left = 0
+  endif
+  if title_padding_right < 0 or title_padding_right > 100
+    assign title_padding_right = 0
+  endif
+  if title_padding_top_mobile < 0 or title_padding_top_mobile > 100
+    assign title_padding_top_mobile = title_padding_top
+  endif
+  if title_padding_bottom_mobile < 0 or title_padding_bottom_mobile > 100
+    assign title_padding_bottom_mobile = title_padding_bottom
+  endif
+  if title_padding_left_mobile < 0 or title_padding_left_mobile > 100
+    assign title_padding_left_mobile = title_padding_left
+  endif
+  if title_padding_right_mobile < 0 or title_padding_right_mobile > 100
+    assign title_padding_right_mobile = title_padding_right
+  endif
+
+  assign title_class = 'product-title heading-text heading-' | append: title_size
+  assign title_class = title_class | append: ' product-title--case-' | append: title_case
+%}
+
+{% capture title_style %}
+  {% if title_size == 'custom' %}--product-title-custom-size: {{ title_custom_size }}px;{% endif %}
+  {% if title_padding_top != 0 %}--product-title-padding-top: {{ title_padding_top }}px;{% endif %}
+  {% if title_padding_bottom != 0 %}--product-title-padding-bottom: {{ title_padding_bottom }}px;{% endif %}
+  {% if title_padding_left != 0 %}--product-title-padding-left: {{ title_padding_left }}px;{% endif %}
+  {% if title_padding_right != 0 %}--product-title-padding-right: {{ title_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if title_padding_top_mobile != title_padding_top %}--product-title-padding-top-mobile: {{ title_padding_top_mobile }}px;{% endif %}
+    {% if title_padding_bottom_mobile != title_padding_bottom %}--product-title-padding-bottom-mobile: {{ title_padding_bottom_mobile }}px;{% endif %}
+    {% if title_padding_left_mobile != title_padding_left %}--product-title-padding-left-mobile: {{ title_padding_left_mobile }}px;{% endif %}
+    {% if title_padding_right_mobile != title_padding_right %}--product-title-padding-right-mobile: {{ title_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign title_style = title_style | strip %}
+
+<{{ title_tag }} class="{{ title_class }}"{% if title_style != blank %} style="{{ title_style }}"{% endif %} {{ block.shopify_attributes }}>
+  {% if product_title != blank %}
+    {{ product_title.title | escape }}
+  {% else %}
+    {{ 'products.product_title' | t }}
+  {% endif %}
+</{{ title_tag }}>
+
+{% stylesheet %}
+  .product-title.heading-custom { font-size: var(--product-title-custom-size, var(--font-heading-custom)); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.product_title",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
+        { "value": "xl", "label": "t:options.heading_size.xl" },
+        { "value": "lg", "label": "t:options.heading_size.lg" },
+        { "value": "md", "label": "t:options.heading_size.md" },
+        { "value": "sm", "label": "t:options.heading_size.sm" },
+        { "value": "xs", "label": "t:options.heading_size.xs" },
+        { "value": "custom", "label": "t:options.heading_size.custom" }
+      ],
+      "default": "xl"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "html_tag",
+      "label": "t:labels.html_tag",
+      "info": "t:info.heading_html_tag",
+      "options": [
+        { "value": "div", "label": "t:options.html_tag.paragraph" },
+        { "value": "h1", "label": "t:options.html_tag.h1" },
+        { "value": "h2", "label": "t:options.html_tag.h2" },
+        { "value": "h3", "label": "t:options.html_tag.h3" },
+        { "value": "h4", "label": "t:options.html_tag.h4" },
+        { "value": "h5", "label": "t:options.html_tag.h5" },
+        { "value": "h6", "label": "t:options.html_tag.h6" }
+      ],
+      "default": "h1"
+    },
+    {
+      "type": "select",
+      "id": "text_case",
+      "label": "t:labels.text_case",
+      "options": [
+        { "value": "original", "label": "t:options.text_case.original" },
+        { "value": "capitalize", "label": "t:options.text_case.capitalize" },
+        { "value": "uppercase", "label": "t:options.text_case.uppercase" }
+      ],
+      "default": "original"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.product_title",
+      "category": "t:general.product"
+    }
+  ]
+}
+{% endschema %}

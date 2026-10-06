@@ -1,0 +1,1278 @@
+{% liquid
+  assign country_selector_label = 'localization.country_label' | t
+  assign language_selector_label = 'localization.language_label' | t
+  assign localization_id_prefix = 'MobileHeaderLocalization-' | append: section.id | append: '-' | append: block.id
+  assign country_dialog_id = localization_id_prefix | append: '-country'
+  assign language_dialog_id = localization_id_prefix | append: '-language'
+
+  assign dropdown_trigger = block.settings.dropdown_trigger | default: 'hover'
+  unless dropdown_trigger == 'hover' or dropdown_trigger == 'click'
+    assign dropdown_trigger = 'hover'
+  endunless
+
+  assign menu_font = block.settings.font | default: 'accent'
+  unless menu_font == 'body' or menu_font == 'heading' or menu_font == 'accent'
+    assign menu_font = 'accent'
+  endunless
+
+  assign menu_font_size = block.settings.font_size | default: 'md'
+  unless menu_font_size == 'xs' or menu_font_size == 'sm' or menu_font_size == 'md' or menu_font_size == 'lg' or menu_font_size == 'xl' or menu_font_size == 'xxl'
+    assign menu_font_size = 'md'
+  endunless
+
+  assign menu_letter_spacing = block.settings.letter_spacing | default: 'normal'
+  unless menu_letter_spacing == 'tight' or menu_letter_spacing == 'normal' or menu_letter_spacing == 'relaxed'
+    assign menu_letter_spacing = 'normal'
+  endunless
+
+  assign menu_text_case = block.settings.text_case | default: 'original'
+  unless menu_text_case == 'original' or menu_text_case == 'uppercase'
+    assign menu_text_case = 'original'
+  endunless
+
+  assign submenu_font = block.settings.submenu_font | default: 'body'
+  unless submenu_font == 'body' or submenu_font == 'heading' or submenu_font == 'accent'
+    assign submenu_font = 'body'
+  endunless
+
+  assign submenu_font_size = block.settings.submenu_font_size | default: 'md'
+  unless submenu_font_size == 'sm' or submenu_font_size == 'md' or submenu_font_size == 'lg' or submenu_font_size == 'xl' or submenu_font_size == 'xxl'
+    assign submenu_font_size = 'md'
+  endunless
+
+  assign submenu_text_case = block.settings.submenu_text_case | default: 'original'
+  unless submenu_text_case == 'original' or submenu_text_case == 'uppercase'
+    assign submenu_text_case = 'original'
+  endunless
+
+  assign submenu_text_color = block.settings.submenu_text_color | default: 'var(--body-color)'
+  if submenu_text_color == 'heading'
+    assign submenu_text_color = 'var(--heading-color)'
+  elsif submenu_text_color == 'body'
+    assign submenu_text_color = 'var(--body-color)'
+  endif
+
+  assign menu_text_color = block.settings.text_color | default: 'var(--body-color)'
+  if menu_text_color == 'heading'
+    assign menu_text_color = 'var(--heading-color)'
+  elsif menu_text_color == 'body'
+    assign menu_text_color = 'var(--body-color)'
+  endif
+
+  assign menu_gap = block.settings.gap | default: 24 | plus: 0
+  if menu_gap < 0 or menu_gap > 80
+    assign menu_gap = 24
+  endif
+
+  assign menu_typography_class = 'body-text body-' | append: menu_font_size | append: ' font-' | append: menu_font | append: ' tracking-' | append: menu_letter_spacing | append: ' text-case-' | append: menu_text_case
+  assign submenu_typography_class = 'body-text body-' | append: submenu_font_size | append: ' font-' | append: submenu_font | append: ' tracking-' | append: menu_letter_spacing | append: ' text-case-' | append: submenu_text_case
+  assign menu_class = 'header-menu header-menu--trigger-' | append: dropdown_trigger
+  assign mobile_drawer_class = 'header__mobile-drawer'
+  assign mobile_drawer_scheme = settings.overlay_color_scheme | default: settings.color_schemes.first.id
+  if settings.overlay_color_scheme.id != blank
+    assign mobile_drawer_scheme = settings.overlay_color_scheme.id
+  endif
+  assign mobile_drawer_scheme = mobile_drawer_scheme | default: 'scheme-1' | handleize
+  assign header_menu = block.settings.menu
+  assign has_header_menu = false
+  if block.settings.menu != blank and block.settings.menu.links != blank
+    assign has_header_menu = true
+  endif
+%}
+
+{% capture menu_style %}
+  {% if menu_gap != 24 %}--header-menu-gap: {{ menu_gap }}px;{% endif %}
+  --header-menu-color: {{ menu_text_color }};
+  --header-submenu-color: {{ submenu_text_color }};
+{% endcapture %}
+{% assign menu_style = menu_style | strip %}
+
+  <nav
+    class="{{ menu_class }} {{ menu_typography_class }} scrollbar scrollbar--hidden scrollbar--vertical-until-desktop"
+    id="HeaderMenu-{{ section.id }}"
+    aria-label="{{ 'accessibility.menu' | t }}"
+    data-dropdown-trigger="{{ dropdown_trigger }}"
+    {% if menu_style != blank %}style="{{ menu_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    <button
+      class="header-menu__backdrop"
+      type="button"
+      aria-label="Close menu"
+      aria-hidden="true"
+      data-header-mega-menu-backdrop
+    ></button>
+    {% if has_header_menu %}
+      <ul class="header-menu__list" role="list">
+          {% for link in header_menu.links %}
+            <li class="header-menu__item{% if link.links != blank %} header-menu__item--has-children{% endif %}" data-menu-title="{{ link.title | handleize }}">
+              {% if link.links != blank %}
+                <details class="header-menu__details" data-header-submenu-trigger="{{ dropdown_trigger }}">
+                  <summary class="header-menu__summary link-underline-trigger" aria-haspopup="true">
+                    <span class="header-menu__top-link-label link-underline">{{ link.title | escape }}</span>
+                    {% if block.settings.show_dropdown_icon %}
+                      {% render 'icon', icon: 'chevron-down', class: 'header-menu__dropdown-icon' %}
+                    {% endif %}
+                  </summary>
+                  <ul class="header-menu__submenu {{ submenu_typography_class }}" role="list">
+                    {% for child_link in link.links %}
+                      <li class="header-menu__submenu-item">
+                        {% if child_link.links != blank and child_link.url == '#' %}
+                          <span class="header-menu__link header-menu__link--has-tertiary" aria-label="{{ child_link.title | escape }}"><span class="header-menu__link-label">{{ child_link.title | escape }}</span>{% render 'icon', icon: 'chevron-right', class: 'header-menu__tertiary-arrow' %}</span>
+                        {% else %}
+                          <a class="header-menu__link link-underline-trigger{% if child_link.links != blank %} header-menu__link--has-tertiary{% endif %}" href="{{ child_link.url }}"><span class="header-menu__link-label link-underline">{{ child_link.title | escape }}</span>{% if child_link.links != blank %}{% render 'icon', icon: 'chevron-right', class: 'header-menu__tertiary-arrow' %}{% endif %}</a>
+                        {% endif %}
+                        {% if child_link.links != blank %}
+                          <ul class="header-menu__tertiary {{ submenu_typography_class }}" role="list">
+                            {% for grandchild_link in child_link.links %}
+                              <li><a class="header-menu__tertiary-link link-underline-trigger" href="{{ grandchild_link.url }}"><span class="header-menu__tertiary-link-label link-underline">{{ grandchild_link.title | escape }}</span></a></li>
+                            {% endfor %}
+                          </ul>
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </details>
+              {% else %}
+                <a class="header-menu__link link-underline-trigger" href="{{ link.url }}"><span class="header-menu__top-link-label link-underline">{{ link.title | escape }}</span></a>
+              {% endif %}
+            </li>
+          {% endfor %}
+      </ul>
+      <div class="header-menu__mega-config" aria-hidden="true">{% content_for 'blocks' %}</div>
+    {% else %}
+      <span class="header-menu__placeholder">{{ 'accessibility.menu' | t }}</span>
+    {% endif %}
+  </nav>
+
+  <aside class="component-overlay section-color-scope {{ mobile_drawer_scheme }} {{ mobile_drawer_class }} {{ menu_typography_class }}" id="HeaderMobileDrawer-{{ section.id }}" aria-label="{{ 'accessibility.menu' | t }}" aria-labelledby="HeaderMobileDrawerHeading-{{ section.id }}" aria-hidden="true" aria-modal="true" role="dialog" data-component-overlay data-drawer-side="left" data-desktop-layout="drawer" data-mobile-layout="drawer" data-state="closed" scroll-lock hidden data-header-mobile-drawer{% if menu_style != blank %} style="{{ menu_style | strip }}"{% endif %}>
+    <button class="component-overlay__backdrop backdrop-blur header__mobile-drawer-backdrop" type="button" tabindex="-1" aria-label="Close menu" data-component-overlay-backdrop data-header-menu-backdrop></button>
+    <div class="component-overlay__panel header__mobile-drawer-surface">
+      <header class="component-overlay__header header__mobile-drawer-header">
+        <span class="header__mobile-drawer-title heading-text heading-sm" id="HeaderMobileDrawerHeading-{{ section.id }}">{{ shop.name | escape }}</span>
+        <button class="overlay-close component-overlay__close header__mobile-drawer-close" type="button" aria-label="Close menu" aria-controls="HeaderMobileDrawer-{{ section.id }}" data-overlay-close data-header-menu-toggle>{% render 'icon', icon: 'x-mark', bare: true, class: 'overlay-close__icon' %}</button>
+        <button class="header__mobile-drawer-back heading-text heading-sm" type="button" hidden data-header-menu-back>
+          {% render 'icon', icon: 'chevron-left', class: 'header__mobile-drawer-back-icon' %}<span data-header-menu-back-label data-header-menu-back-default-label="{{ 'accessibility.menu' | t }}">{{ 'accessibility.menu' | t }}</span>
+        </button>
+      </header>
+      <div class="header__mobile-drawer-scroll scrollbar scrollbar--vertical scrollbar--hidden">
+        {% if has_header_menu %}
+          <ul class="header__mobile-drawer-list" role="list">
+            {% for link in header_menu.links %}
+              <li class="header__mobile-drawer-item{% if link.links != blank %} header__mobile-drawer-item--has-children{% endif %}" data-menu-title="{{ link.title | handleize }}">
+                {% if link.links != blank %}
+                  <details class="header__mobile-drawer-details" data-mobile-drawer-details>
+                    <summary><span>{{ link.title | escape }}</span>{% render 'icon', icon: 'chevron-right', class: 'header__mobile-drawer-chevron' %}</summary>
+                    <div class="header__mobile-drawer-submenu scrollbar scrollbar--vertical {{ submenu_typography_class }}">
+                      <div class="header__mobile-drawer-mega-featured-slot" data-mobile-mega-featured-slot="{{ link.title | handleize }}"></div>
+                      <ul role="list">
+                        {% for child_link in link.links %}
+                          <li class="header__mobile-drawer-submenu-item{% if child_link.links != blank %} header__mobile-drawer-submenu-item--has-children{% endif %}">
+                            {% if child_link.links != blank %}
+                              <details class="header__mobile-drawer-submenu-details" data-mobile-drawer-submenu-details>
+                                <summary>
+                                  <span>{{ child_link.title | escape }}</span>
+                                  {% render 'icon', icon: 'chevron-right', class: 'header__mobile-drawer-chevron' %}
+                                </summary>
+                                <div class="header__mobile-drawer-tertiary-panel scrollbar scrollbar--vertical">
+                                  <ul class="header__mobile-drawer-tertiary" role="list">
+                                    {% for grandchild_link in child_link.links %}
+                                      <li><a href="{{ grandchild_link.url }}">{{ grandchild_link.title | escape }}</a></li>
+                                    {% endfor %}
+                                  </ul>
+                                </div>
+                              </details>
+                            {% else %}
+                              <a href="{{ child_link.url }}">{{ child_link.title | escape }}</a>
+                            {% endif %}
+                          </li>
+                        {% endfor %}
+                      </ul>
+                      <div class="header__mobile-drawer-mega-slot" data-mobile-mega-slot="{{ link.title | handleize }}"></div>
+                    </div>
+                  </details>
+                {% else %}
+                  <a class="header__mobile-drawer-link" href="{{ link.url }}">{{ link.title | escape }}</a>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <span class="header__mobile-drawer-placeholder">{{ 'accessibility.menu' | t }}</span>
+        {% endif %}
+      </div>
+      <footer class="header__mobile-drawer-footer">
+        {% if shop.customer_accounts_enabled %}
+          <shopify-account class="header__mobile-drawer-account body-text" menu="customer-account-main-menu">
+            <span slot="signed-out-avatar" class="header__mobile-drawer-account-avatar">
+              <span>{{ 'customers.login.submit' | t }}</span>
+            </span>
+          </shopify-account>
+        {% else %}
+          <a class="header__mobile-drawer-account btn btn--primary body-text" href="{{ routes.account_login_url }}">{{ 'customers.login.submit' | t }}</a>
+        {% endif %}
+
+        {% if localization.available_countries.size > 1 or localization.available_languages.size > 0 %}
+          <div class="header__mobile-drawer-localization header-localization">
+            {% if localization.available_countries.size > 1 %}
+              <details class="header-localization__details" data-header-submenu-trigger="click" data-localization-dialog-id="{{ country_dialog_id }}">
+                <summary class="header-localization__summary" aria-controls="{{ country_dialog_id }}" aria-expanded="false">
+                  <span class="header-localization__country">
+                    {{ localization.country | image_url: width: 24 | image_tag: class: 'header-localization__flag', alt: '' }}
+                    <span>{{ localization.country.currency.iso_code }} {{ localization.country.currency.symbol }}</span>
+                  </span>
+                  {% render 'icon', icon: 'chevron-down', class: 'header-localization__icon' %}
+                </summary>
+                <div class="header-localization__panel header-localization__desktop-panel">
+                  {% form 'localization', class: 'header-localization__form' %}
+                    <input type="hidden" name="return_to" value="{{ request.path }}">
+                    <div class="header-localization__country-list">
+                      {% for country in localization.available_countries %}
+                        <button class="header-localization__country-option{% if country.iso_code == localization.country.iso_code %} is-selected{% endif %}" type="submit" name="country_code" value="{{ country.iso_code }}">
+                          {{ country | image_url: width: 24 | image_tag: class: 'header-localization__flag', alt: '' }}
+                          <span class="header-localization__country-name">{{ country.name }}</span><span class="header-localization__country-currency">{{ country.currency.iso_code }} {{ country.currency.symbol }}</span>
+                        </button>
+                      {% endfor %}
+                    </div>
+                  {% endform %}
+                </div>
+                {% render 'localization-overlay', id: country_dialog_id, selector_type: 'country', localization: localization, label: country_selector_label, show_country_flag: true %}
+              </details>
+            {% endif %}
+            {% if localization.language != blank %}
+              <details class="header-localization__details header-localization__details--language" data-header-submenu-trigger="click" data-localization-dialog-id="{{ language_dialog_id }}">
+                <summary class="header-localization__summary" aria-controls="{{ language_dialog_id }}" aria-expanded="false"><span class="header-localization__language">{{ localization.language.endonym_name }}</span>{% render 'icon', icon: 'chevron-down', class: 'header-localization__icon' %}</summary>
+                <div class="header-localization__panel header-localization__desktop-panel">
+                  {% form 'localization', class: 'header-localization__form' %}
+                    <input type="hidden" name="return_to" value="{{ request.path }}">
+                    <div class="header-localization__language-list">{% for language in localization.available_languages %}<button class="header-localization__language-option{% if language.iso_code == localization.language.iso_code %} is-selected{% endif %}" type="submit" name="language_code" value="{{ language.iso_code }}">{{ language.endonym_name }}</button>{% endfor %}</div>
+                  {% endform %}
+                </div>
+                {% render 'localization-overlay', id: language_dialog_id, selector_type: 'language', localization: localization, label: language_selector_label %}
+              </details>
+            {% endif %}
+          </div>
+        {% endif %}
+      </footer>
+    </div>
+  </aside>
+
+{% stylesheet %}
+  .header-menu {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    min-width: 0;
+    margin-inline-end: auto;
+    color: var(--header-menu-color, var(--body-color));
+  }
+
+  .header-menu__list,
+  .header-menu__submenu {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .header-menu__list {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--header-menu-gap, 26px);
+  }
+
+  .header-menu__item {
+    position: relative;
+  }
+
+  .header-menu__link,
+  .header-menu__summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    min-height: var(--button-height);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .header-menu__summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  @keyframes header-surface-enter {
+    from {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes header-surface-exit {
+    from {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      visibility: visible;
+      transform: translateY(-0.5rem);
+    }
+  }
+
+  @keyframes header-tertiary-enter {
+    from {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(0);
+    }
+  }
+
+  .header-menu__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .header-menu__item--highlight > .header-menu__details > .header-menu__summary {
+    color: var(--header-menu-highlight-color, currentColor);
+  }
+
+  .header-menu__dropdown-icon {
+    --icon-width: calc(var(--icon-size-small) - 2px);
+    width: var(--icon-width);
+    height: var(--icon-width);
+    flex: 0 0 auto;
+    transition: transform var(--motion-duration-standard) var(--motion-ease-standard);
+  }
+
+  .header-menu__details[open]:not(.is-submenu-closing) > .header-menu__summary .header-menu__dropdown-icon,
+  .header-menu--trigger-hover .header-menu__details:not(.is-submenu-closing):hover .header-menu__dropdown-icon,
+  .header-menu--trigger-hover .header-menu__details:not(.is-submenu-closing):focus-within .header-menu__dropdown-icon {
+    transform: rotate(180deg);
+  }
+
+  .header-menu__details.is-submenu-closing > .header-menu__summary .header-menu__dropdown-icon {
+    transition-duration: var(--motion-duration-slow);
+  }
+
+  .header-menu__submenu {
+    position: absolute;
+    z-index: var(--z-drawer, 200);
+    inset-block-start: calc(100% + var(--header-submenu-offset, 0px));
+    inset-inline-start: 0;
+    display: flex;
+    width: 150px;
+    padding: 10px 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 0;
+    border-radius: var(--drawer-radius);
+    background: var(--background-color);
+    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    color: var(--header-submenu-color, var(--header-menu-color, var(--body-color)));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-0.5rem);
+    transition:
+      opacity var(--motion-duration-slow) var(--motion-ease-standard),
+      transform var(--motion-duration-slow) var(--motion-ease-standard),
+      visibility 0s linear var(--motion-duration-slow),
+      background-color var(--motion-duration-slow) var(--motion-ease-standard),
+      border-color var(--motion-duration-slow) var(--motion-ease-standard),
+      color var(--motion-duration-slow) var(--motion-ease-standard),
+      box-shadow var(--motion-duration-slow) var(--motion-ease-standard);
+  }
+
+  .header-menu__details[open]:not(.is-submenu-closing) > .header-menu__submenu,
+  .header-menu--trigger-hover .header-menu__item:hover > .header-menu__details:not(.is-submenu-closing) > .header-menu__submenu,
+  .header-menu--trigger-hover .header-menu__item:focus-within > .header-menu__details:not(.is-submenu-closing) > .header-menu__submenu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  .header-menu__details[open]:not(.is-submenu-closing) > .header-menu__submenu,
+  .header-menu--trigger-hover .header-menu__item:hover > .header-menu__details:not(.is-submenu-closing) > .header-menu__submenu,
+  .header-menu--trigger-hover .header-menu__item:focus-within > .header-menu__details:not(.is-submenu-closing) > .header-menu__submenu {
+    animation: header-surface-enter var(--motion-duration-slow) var(--motion-ease-standard) both;
+  }
+
+  .header-menu__details.is-submenu-closing > .header-menu__submenu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: none;
+    transform: translateY(0);
+    animation: header-surface-exit var(--motion-duration-slow) var(--motion-ease-standard) both;
+  }
+
+  .header-menu__details:is([open], .is-submenu-closing)::after {
+    position: absolute;
+    inset-block-start: 100%;
+    inset-inline-start: 0;
+    width: 150px;
+    height: var(--header-submenu-offset, 0px);
+    content: '';
+  }
+
+  .header-mega-menu {
+    position: absolute;
+    z-index: var(--z-drawer, 200);
+    inset-block-start: calc(100% + var(--header-submenu-offset, 0px));
+    inset-inline-start: calc(var(--header-mega-inline-offset, 0px) * -1);
+    width: 100vw;
+    padding-block: 1.5rem;
+    padding-inline: 0;
+    border-radius: var(--drawer-radius);
+    background: var(--background-color);
+    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    color: var(--body-color);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-0.5rem);
+    transition:
+      opacity var(--motion-duration-slow) var(--motion-ease-standard),
+      transform var(--motion-duration-slow) var(--motion-ease-standard),
+      visibility 0s linear var(--motion-duration-slow),
+      background-color var(--motion-duration-slow) var(--motion-ease-standard),
+      border-color var(--motion-duration-slow) var(--motion-ease-standard),
+      color var(--motion-duration-slow) var(--motion-ease-standard),
+      box-shadow var(--motion-duration-slow) var(--motion-ease-standard);
+  }
+
+  .header-menu__details--mega[open]:not(.is-submenu-closing) > .header-mega-menu,
+  .header-menu--trigger-hover .header-menu__item:hover > .header-menu__details--mega:not(.is-submenu-closing) > .header-mega-menu,
+  .header-menu--trigger-hover .header-menu__item:focus-within > .header-menu__details--mega:not(.is-submenu-closing) > .header-mega-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  .header-menu__details--mega[open]:not(.is-submenu-closing) > .header-mega-menu,
+  .header-menu--trigger-hover .header-menu__item:hover > .header-menu__details--mega:not(.is-submenu-closing) > .header-mega-menu,
+  .header-menu--trigger-hover .header-menu__item:focus-within > .header-menu__details--mega:not(.is-submenu-closing) > .header-mega-menu {
+    animation: header-surface-enter var(--motion-duration-slow) var(--motion-ease-standard) both;
+  }
+
+  .header-menu__details--mega.is-submenu-closing > .header-mega-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: none;
+    transform: translateY(0);
+    animation: header-surface-exit var(--motion-duration-slow) var(--motion-ease-standard) both;
+  }
+
+  .header-menu__details--mega > .header-menu__submenu { display: none; }
+
+  .header-mega-menu__layout {
+    display: grid;
+    grid-template-columns: minmax(0, calc(100% - var(--mega-banner-width, 40%) - var(--mega-menu-gap, 1.5rem))) minmax(0, var(--mega-banner-width, 40%));
+    gap: var(--mega-menu-gap, 1.5rem);
+    align-items: start;
+  }
+
+  .header-mega-menu--vertical .header-mega-menu__layout { grid-template-columns: 1fr; }
+
+  .header-mega-menu__content { min-width: 0; }
+  .header-mega-menu__content--with-featured { display: grid; grid-template-columns: minmax(10rem, 0.35fr) minmax(0, 1fr); gap: 2rem; }
+  .header-mega-menu__featured { display: grid; align-content: start; gap: 0.65rem; margin: 0; padding: 0; list-style: none; }
+  .header-mega-menu__featured a { color: inherit; text-decoration: none; }
+
+  .header-mega-menu__navigation .header-menu__submenu {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(var(--mega-menu-columns, 2), minmax(0, 1fr));
+    gap: 0.25rem 2rem;
+    width: auto;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  .header-mega-menu__navigation .header-menu__link--has-tertiary {
+    text-decoration: none;
+  }
+
+  .header-mega-menu__navigation .header-menu__link--has-tertiary .link-underline::after {
+    display: none;
+  }
+
+  .header-mega-menu--submenu-limited .header-mega-menu__navigation .header-menu__submenu { max-width: var(--mega-menu-max-width); }
+
+  .header-mega-menu__navigation .header-menu__submenu-item > .header-menu__link {
+    min-height: 1.5rem;
+    padding-inline: 0;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .header-mega-menu__navigation .header-menu__tertiary {
+    position: static;
+    width: auto;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+    margin-block-start: 0.5rem;
+  }
+
+  .header-mega-menu__navigation .header-menu__tertiary-link {
+    padding-inline: 0;
+  }
+
+  .header-mega-menu__banners { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; align-items: start; }
+  .header-mega-menu__banners--single { grid-template-columns: minmax(0, 1fr); }
+  .header-mega-menu__banner { color: inherit; text-decoration: none; }
+  .header-mega-menu__banner-image { display: block; width: 100%; aspect-ratio: 1 / 1.1; object-fit: cover; }
+  .header-mega-menu__banner-title { display: block; margin-block-start: 0.75rem; }
+  .header-mega-menu__banner-text { display: block; margin-block-start: 0.35rem; }
+  .header-mega-menu__banner-label { display: inline-block; margin-block-start: 0.65rem; }
+
+  .header-menu__submenu .header-menu__link {
+    width: 100%;
+    min-height: 2.5rem;
+    padding-inline: 0.5rem;
+  }
+
+  .header-menu__tertiary {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: 0;
+    inset-inline-start: 100%;
+    display: grid;
+    gap: 0.35rem;
+    width: 250px;
+    margin: 0;
+    padding: 0.75rem;
+    border: 0;
+    background: var(--background-color);
+    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    list-style: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-0.5rem);
+    transition:
+      opacity var(--motion-duration-slow) var(--motion-ease-standard),
+      transform var(--motion-duration-slow) var(--motion-ease-standard),
+      visibility 0s linear var(--motion-duration-slow);
+  }
+
+  .header-menu__details:not(.header-menu__details--mega) .header-menu__submenu-item {
+    position: relative;
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .header-menu__details:not(.header-menu__details--mega) .header-menu__submenu-item:is(:hover, :focus-within) > .header-menu__tertiary {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+    transition-delay: 0s;
+    animation: header-tertiary-enter var(--motion-duration-slow) var(--motion-ease-standard) both;
+  }
+
+  .header-menu__link--has-tertiary {
+    justify-content: space-between;
+  }
+
+  .header-menu__tertiary-arrow {
+    --icon-width: calc(var(--icon-size-small) - 2px);
+    width: var(--icon-width);
+    height: var(--icon-width);
+    flex: 0 0 auto;
+  }
+
+  .header-mega-menu__navigation .header-menu__tertiary-arrow {
+    display: none;
+  }
+
+  .header-menu__tertiary-link {
+    display: block;
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .header-menu__placeholder {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--button-height);
+    color: var(--body-color);
+  }
+
+  .header-menu__mobile-header,
+  .header-menu__mobile-back {
+    display: none;
+  }
+
+  .header-menu__backdrop {
+    display: none;
+  }
+
+  @media (min-width: 992px) {
+    .header-menu__backdrop {
+      position: absolute;
+      z-index: calc(var(--z-drawer, 200) - 1);
+      inset-block-start: 100%;
+      inset-inline-start: 50%;
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      padding: 0;
+      border: 0;
+      background-color: var(--overlay-backdrop-color);
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(-50%);
+      transition:
+        background-color var(--motion-duration-slow) var(--motion-ease-standard),
+        opacity var(--motion-duration-slow) var(--motion-ease-standard),
+        -webkit-backdrop-filter var(--motion-duration-slow) var(--motion-ease-standard),
+        backdrop-filter var(--motion-duration-slow) var(--motion-ease-standard),
+        visibility 0s linear var(--motion-duration-slow);
+    }
+
+    .header--mega-menu-open .header-menu__backdrop {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      -webkit-backdrop-filter: blur(var(--overlay-backdrop-blur));
+      backdrop-filter: blur(var(--overlay-backdrop-blur));
+      transition-delay: 0s;
+    }
+  }
+
+  .header-menu__drawer,
+  .header-menu__mobile-scroll {
+    display: contents;
+  }
+
+  @media (max-width: 991.98px) {
+    /* The same drawer handles the mobile and tablet navigation. */
+    .header-menu {
+      display: none !important;
+    }
+
+    .header__mobile-drawer.component-overlay {
+      /* Shared typography and moved mega-menu content use the overlay palette. */
+      --background-color: var(--overlay-background-color);
+      --body-color: var(--overlay-text-color);
+      --heading-color: var(--overlay-text-color);
+      --border-color: var(--overlay-border-color);
+    }
+
+    .header__mobile-drawer {
+      position: fixed;
+      z-index: var(--z-modal, 1000);
+      inset: 0;
+      display: block;
+      visibility: hidden;
+      pointer-events: none;
+      transition: visibility 0s linear var(--overlay-exit-duration, var(--motion-duration-standard));
+    }
+
+    .header__mobile-drawer[data-state='closing'],
+    .header__mobile-drawer:is([data-state='opening'], [data-state='open']) {
+      visibility: visible;
+    }
+
+    .header__mobile-drawer:is([data-state='opening'], [data-state='open']) {
+      pointer-events: auto;
+      transition-delay: 0s;
+    }
+
+    .header__mobile-drawer[data-state='closing'] {
+      pointer-events: none;
+      transition-delay: 0s;
+    }
+
+    .header__mobile-drawer-backdrop {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      background-color: transparent;
+      transition:
+        background-color var(--overlay-backdrop-duration, var(--motion-duration-standard)) var(--overlay-backdrop-ease, var(--motion-ease-standard)),
+        opacity var(--overlay-backdrop-duration, var(--motion-duration-standard)) var(--overlay-backdrop-ease, var(--motion-ease-standard)),
+        -webkit-backdrop-filter var(--overlay-backdrop-duration, var(--motion-duration-standard)) var(--overlay-backdrop-ease, var(--motion-ease-standard)),
+        backdrop-filter var(--overlay-backdrop-duration, var(--motion-duration-standard)) var(--overlay-backdrop-ease, var(--motion-ease-standard));
+    }
+
+    .header-top--menu-open .header__mobile-drawer-backdrop {
+      background-color: var(--overlay-backdrop-color);
+    }
+
+    .header__mobile-drawer-surface {
+      position: relative;
+      display: flex;
+      width: 100%;
+      height: 100dvh;
+      min-height: 100dvh;
+      overflow: hidden;
+      border-radius: var(--drawer-radius);
+      background: var(--overlay-background-color);
+      flex-direction: column;
+    }
+
+    .header__mobile-drawer.component-overlay[data-mobile-layout='drawer'] .header__mobile-drawer-surface {
+      --overlay-rest-transform: translateX(-100%);
+      inset: 0 auto 0 0;
+      width: 100%;
+      max-width: 100vw;
+      height: 100dvh;
+      max-height: 100dvh;
+      margin: 0;
+      border: var(--overlay-popover-border-width) solid var(--overlay-border-color);
+      border-radius: 0 var(--drawer-radius) var(--drawer-radius) 0;
+      background: var(--overlay-background-color);
+      color: var(--overlay-text-color);
+      transform: var(--overlay-rest-transform);
+      transition: transform var(--overlay-motion-duration, var(--motion-duration-standard)) var(--overlay-motion-ease, var(--motion-ease-standard));
+    }
+
+    .header__mobile-drawer.component-overlay[data-state='open'] .header__mobile-drawer-surface {
+      transform: none;
+    }
+
+    .header__mobile-drawer.component-overlay[data-state='closing'] .header__mobile-drawer-surface {
+      opacity: 1;
+      transform: var(--overlay-rest-transform);
+      transition-duration: var(--overlay-exit-duration, var(--motion-duration-standard));
+      transition-timing-function: var(--overlay-exit-ease, var(--motion-ease-standard));
+    }
+
+    .header__mobile-drawer-header {
+      position: sticky;
+      z-index: 2;
+      top: 0;
+      display: flex;
+      min-height: 5rem;
+      align-items: center;
+      justify-content: space-between;
+      padding-inline: var(--page-margin-mobile);
+      padding-block: var(--header-top-padding-top-mobile, var(--header-top-padding-top, 12px)) var(--header-top-padding-bottom-mobile, var(--header-top-padding-bottom, 12px));
+      border-bottom: 1px solid var(--overlay-border-color);
+      background: var(--overlay-background-color);
+    }
+
+  .header__mobile-drawer-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .header__mobile-drawer-close {
+      flex: 0 0 auto;
+      margin-inline-start: auto;
+    }
+
+    .header__mobile-drawer-back {
+      position: absolute;
+      inset-inline-start: var(--page-margin-mobile);
+      display: inline-flex;
+      min-height: 2.5rem;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--overlay-text-color);
+    }
+
+    .header__mobile-drawer-back[hidden],
+    .header__mobile-drawer--submenu-active .header__mobile-drawer-title {
+      display: none;
+    }
+
+    .header__mobile-drawer-back-icon,
+    .header__mobile-drawer-chevron {
+      --icon-width: calc(var(--icon-size-small) - 2px);
+      width: var(--icon-width);
+      height: var(--icon-width);
+      flex: 0 0 auto;
+    }
+
+    .header__mobile-drawer-scroll,
+    .header__mobile-drawer-submenu,
+    .header__mobile-drawer-tertiary-panel {
+      overscroll-behavior: contain;
+    }
+
+    .header__mobile-drawer-scroll {
+      position: relative;
+      min-height: 0;
+      flex: 1 1 auto;
+      padding: 1rem var(--page-margin-mobile) 8rem;
+    }
+
+    .header__mobile-drawer--submenu-active .header__mobile-drawer-scroll {
+      padding-bottom: 1rem;
+    }
+
+    .header__mobile-drawer-list,
+    .header__mobile-drawer-submenu > ul,
+    .header__mobile-drawer-tertiary {
+      display: grid;
+      gap: 0;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .header__mobile-drawer-list > .header__mobile-drawer-item {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--overlay-border-color);
+    }
+
+    .header__mobile-drawer-link,
+    .header__mobile-drawer-details > summary,
+    .header__mobile-drawer-submenu-details > summary {
+      display: flex;
+      min-height: 2.9rem;
+      align-items: center;
+      justify-content: space-between;
+      color: inherit;
+      text-decoration: none;
+      text-transform: inherit;
+    }
+
+    .header__mobile-drawer-details > summary {
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .header__mobile-drawer-details > summary::-webkit-details-marker,
+    .header__mobile-drawer-submenu-details > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .header__mobile-drawer-submenu {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      display: block;
+      padding: 1rem var(--page-margin-mobile);
+      background: var(--overlay-background-color);
+      color: var(--overlay-text-color);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(100%);
+      transition:
+        transform var(--motion-duration-standard) var(--motion-ease-standard),
+        opacity var(--motion-duration-fast) var(--motion-ease-standard);
+    }
+
+    .header__mobile-drawer--submenu-active .header__mobile-drawer-item.is-mobile-submenu-active > .header__mobile-drawer-details > .header__mobile-drawer-submenu {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .header__mobile-drawer-submenu a:not(.btn) {
+      color: inherit;
+      text-transform: inherit;
+      text-decoration: none;
+    }
+
+    .header__mobile-drawer-submenu > ul > li {
+      padding: 10px 0;
+      border: 0;
+    }
+
+    .header__mobile-drawer-submenu > ul > .header__mobile-drawer-submenu-item--has-children {
+      margin-block-start: 0.75rem;
+      border-block-end: 1px solid var(--overlay-border-color);
+    }
+
+    .header__mobile-drawer-submenu > ul > li > a:not(.btn),
+    .header__mobile-drawer-submenu-details > summary {
+      display: flex;
+      width: 100%;
+      min-height: 2.9rem;
+      align-items: center;
+      padding: 0;
+    }
+
+    .header__mobile-drawer-submenu-details > summary {
+      cursor: pointer;
+      justify-content: space-between;
+      list-style: none;
+    }
+
+    .header__mobile-drawer-tertiary {
+      gap: 0.5rem;
+    }
+
+    .header__mobile-drawer-tertiary-panel {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      display: block;
+      padding: 1rem var(--page-margin-mobile);
+      background: var(--overlay-background-color);
+      color: var(--overlay-text-color);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(100%);
+      transition:
+        transform var(--motion-duration-standard) var(--motion-ease-standard),
+        opacity var(--motion-duration-fast) var(--motion-ease-standard);
+    }
+
+    .header__mobile-drawer-submenu-details.is-mobile-submenu-active > .header__mobile-drawer-tertiary-panel {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .header__mobile-drawer-tertiary > li > a:not(.btn) {
+      display: flex;
+      min-height: 2.9rem;
+      align-items: center;
+      padding: 0;
+    }
+
+    .header__mobile-drawer-mega-slot:empty {
+      display: none;
+    }
+
+    .header__mobile-drawer-mega-featured-slot:empty {
+      display: none;
+    }
+
+    .header__mobile-drawer-mega-featured-slot .header-mega-menu__featured {
+      margin-block-end: 1rem;
+    }
+
+    .header__mobile-drawer-mega-slot .header-mega-menu {
+      position: static;
+      display: block;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: inherit;
+      opacity: 1;
+      pointer-events: auto;
+      transform: none;
+      visibility: visible;
+    }
+
+    .header__mobile-drawer-mega-slot .header-mega-menu__container {
+      padding-inline: 0;
+    }
+
+    .header__mobile-drawer-mega-slot .header-mega-menu__layout,
+    .header__mobile-drawer-mega-slot .header-mega-menu__content {
+      display: block;
+    }
+
+    .header__mobile-drawer-mega-slot .header-mega-menu__navigation {
+      display: none;
+    }
+
+    .header__mobile-drawer-mega-slot .header-mega-menu__banners {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+      margin-block-start: 1.25rem;
+      overflow: visible;
+    }
+
+    .header__mobile-drawer-mega-slot .header-mega-menu__banner {
+      min-width: 0;
+    }
+
+    .header__mobile-drawer-placeholder {
+      display: inline-flex;
+      min-height: var(--button-height-mobile);
+      align-items: center;
+    }
+
+    .header__mobile-drawer-footer {
+      display: grid;
+      gap: 1.5rem;
+      padding: 0.75rem var(--page-margin-mobile) max(0.75rem, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--overlay-border-color);
+      background: var(--overlay-background-color);
+    }
+
+    .header__mobile-drawer-account {
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    shopify-account.header__mobile-drawer-account::part(signed-out-avatar) {
+      display: flex;
+      width: 100%;
+      max-width: none;
+      min-height: var(--button-height);
+      box-sizing: border-box;
+      align-self: stretch;
+      margin: 0;
+      align-items: center;
+      justify-content: center;
+      padding: 0 var(--button-padding-inline-mobile);
+      border: var(--button-primary-border-width) solid var(--button-primary-border);
+      border-radius: var(--button-radius);
+      background: var(--button-primary-background);
+      color: var(--button-primary-text);
+      text-align: center;
+      text-decoration: none;
+    }
+
+    shopify-account.header__mobile-drawer-account:hover::part(signed-out-avatar) {
+      border-color: var(--button-primary-hover-border);
+      background: var(--button-primary-hover-background);
+      color: var(--button-primary-hover-text);
+      transform: translateY(var(--motion-distance-hover));
+    }
+
+    shopify-account.header__mobile-drawer-account::part(signed-out-avatar) {
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+    }
+
+    shopify-account.header__mobile-drawer-account {
+      --shopify-account-radius-base: var(--drawer-radius);
+      --shopify-account-radius-dialog: var(--drawer-radius);
+      --shopify-account-radius-button: var(--button-radius);
+      --shopify-account-radius-button-small: var(--overlay-close-radius);
+      --shopify-account-radius-input: var(--input-radius);
+      display: block;
+      color: var(--button-primary-text);
+    }
+
+    .header__mobile-drawer-account-avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header__mobile-drawer-localization {
+      display: flex;
+      min-height: 3rem;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      color: var(--overlay-text-color);
+    }
+
+    .header__mobile-drawer-localization .header-localization__summary {
+      min-height: 3rem;
+    }
+
+    .header__mobile-drawer .header-localization__details {
+      position: static;
+    }
+
+    .header__mobile-drawer .header-localization__desktop-panel {
+      display: none !important;
+    }
+
+    .header__mobile-drawer--submenu-active .header__mobile-drawer-footer {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header-menu__dropdown-icon,
+    .header-menu__details.is-submenu-closing > .header-menu__summary .header-menu__dropdown-icon,
+    .header-menu__submenu,
+    .header-mega-menu,
+    .header-menu__tertiary {
+      transition-duration: 0.01ms;
+      transition-delay: 0s;
+      animation: none;
+    }
+  }
+
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header_menu",
+  "tag": null,
+  "blocks": [{ "type": "_mega-menu-banners" }],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "t:labels.menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:labels.gap",
+      "min": 8,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dropdown_icon",
+      "label": "t:labels.show_dropdown_icon",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "dropdown_trigger",
+      "label": "t:labels.dropdown_trigger",
+      "options": [
+        { "value": "click", "label": "t:options.dropdown_trigger.click" },
+        { "value": "hover", "label": "t:options.dropdown_trigger.hover" }
+      ],
+      "default": "hover"
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:labels.font",
+      "options": [
+        { "value": "body", "label": "t:options.menu_font.body" },
+        { "value": "heading", "label": "t:options.menu_font.heading" },
+        { "value": "accent", "label": "t:options.menu_font.accent" }
+      ],
+      "default": "accent"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:labels.font_size",
+      "options": [
+        { "value": "xs", "label": "t:options.menu_font_size.extra_small" },
+        { "value": "sm", "label": "t:options.menu_font_size.small" },
+        { "value": "md", "label": "t:options.menu_font_size.medium" },
+        { "value": "lg", "label": "t:options.menu_font_size.large" },
+        { "value": "xl", "label": "t:options.menu_font_size.extra_large" },
+        { "value": "xxl", "label": "t:options.menu_font_size.double_extra_large" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        { "value": "tight", "label": "t:options.letter_spacing.tight" },
+        { "value": "normal", "label": "t:options.letter_spacing.normal" },
+        { "value": "relaxed", "label": "t:options.letter_spacing.relaxed" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "select",
+      "id": "text_case",
+      "label": "t:labels.text_case",
+      "options": [
+        { "value": "original", "label": "t:options.text_case.original" },
+        { "value": "uppercase", "label": "t:options.text_case.uppercase" }
+      ],
+      "default": "original"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_color",
+      "label": "t:labels.text_color"
+    },
+    {
+      "type": "header",
+      "content": "Submenu typography"
+    },
+    {
+      "type": "select",
+      "id": "submenu_font",
+      "label": "Font",
+      "options": [
+        { "value": "body", "label": "Body" },
+        { "value": "heading", "label": "Heading" },
+        { "value": "accent", "label": "Accent" }
+      ],
+      "default": "body"
+    },
+    {
+      "type": "select",
+      "id": "submenu_font_size",
+      "label": "Font size",
+      "options": [
+        { "value": "sm", "label": "Small" },
+        { "value": "md", "label": "Medium" },
+        { "value": "lg", "label": "Large" },
+        { "value": "xl", "label": "Extra large" },
+        { "value": "xxl", "label": "Double extra large" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "submenu_text_case",
+      "label": "Text case",
+      "options": [
+        { "value": "original", "label": "Original" },
+        { "value": "uppercase", "label": "Uppercase" }
+      ],
+      "default": "original"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "submenu_text_color",
+      "label": "t:labels.text_color"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.header_menu",
+      "category": "t:general.header"
+    }
+  ]
+}
+{% endschema %}

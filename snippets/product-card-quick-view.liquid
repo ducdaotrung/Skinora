@@ -1,0 +1,57 @@
+{% doc %}
+  Renders the reusable Product Card quick-view action.
+
+  The component owns the positioned action wrapper and delegates link/button
+  markup and visual treatment to the shared theme-button snippet.
+
+  @param {string} url - Product destination
+  @param {string} label - Visible button label
+  @param {string} [product_title] - Product title used for the accessible name
+  @param {string} [motion_speed] - Motion token: fast, standard, or slow
+
+  @example
+  {% render 'product-card-quick-view', url: product.url, label: 'Quick view', product_title: product.title %}
+{% enddoc %}
+
+{% liquid
+  assign quick_view_motion_speed = motion_speed | default: 'standard'
+  case quick_view_motion_speed
+    when 'fast', 'slow'
+    when 'standard'
+    else
+      assign quick_view_motion_speed = 'standard'
+  endcase
+
+  assign quick_view_accessible_label = label
+  if product_title != blank
+    assign quick_view_accessible_label = label | append: ': ' | append: product_title
+  endif
+
+  capture quick_view_trigger_attributes
+    echo 'data-product-card-quick-view '
+    echo 'data-product-card-quick-view-url="'
+    echo url | escape
+    echo '" aria-haspopup="dialog" aria-expanded="false"'
+  endcapture
+  assign quick_view_trigger_attributes = quick_view_trigger_attributes | strip_newlines | strip
+%}
+
+<div
+  class="product-card__action product-card__quick-view product-card__action--motion-{{ quick_view_motion_speed }}"
+  data-product-card-quick-view-wrapper
+>
+  {% render 'theme-button',
+    label: label,
+    url: url,
+    variant: 'secondary',
+    aria_label: quick_view_accessible_label,
+    icon: 'eye',
+    icon_size: 'custom',
+    icon_width: 18,
+    icon_only: true,
+    loading_dots: true,
+    motion_speed: quick_view_motion_speed,
+    attributes: quick_view_trigger_attributes,
+    class: 'product-card__quick-view-button btn--icon'
+  %}
+</div>

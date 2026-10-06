@@ -1,0 +1,236 @@
+/* Product content composition for the shared overlay shell. */
+.product-card__media .product-card__quick-add[data-quick-add-loading='true'] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.product-card__quick-add-button[data-quick-add-loading='true'] {
+  pointer-events: none;
+  background: var(--button-primary-background, var(--button-background, var(--background-color)));
+  color: var(--button-primary-text, var(--button-text, var(--body-color)));
+  transform: translateY(0);
+}
+
+.product-card__quick-add-button[data-quick-add-loading='true'] .btn__label {
+  visibility: hidden;
+}
+
+.product-card__quick-add-button[aria-busy='true'] .btn__label {
+  visibility: hidden;
+}
+
+.quick-add__body {
+  display: flex;
+  min-height: 0;
+  padding: var(--overlay-inset);
+}
+
+.quick-add__content {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex-direction: column;
+  color: var(--body-color);
+}
+
+.quick-add__layout {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  gap: var(--quick-add-gap-desktop, 20px);
+}
+
+.quick-add__layout[hidden],
+.quick-add__loading[hidden],
+.quick-add__error[hidden] {
+  display: none;
+}
+
+.quick-add__media,
+.quick-add__details {
+  min-width: 0;
+}
+
+.quick-add__media {
+  overflow: hidden;
+}
+
+.quick-add__media:has([data-overlay-media-empty]) {
+  display: none;
+}
+
+.quick-add__layout:has([data-overlay-media-empty]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.quick-add__details {
+  min-height: 0;
+  padding: 0;
+  scrollbar-gutter: stable;
+}
+
+.quick-add__details > .product-details {
+  max-width: none;
+  position: static;
+}
+
+.quick-add--media-top .quick-add__layout {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.quick-add--media-top .quick-add__details {
+  padding: 0;
+}
+
+.quick-add--media-top .quick-add__media {
+  max-height: min(48dvh, 34rem);
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  /* Quick Add uses a compact media strip, not the product-page gallery. */
+  .quick-add--media-top .product-media-gallery--overlay-quick-add-strip .product-media-gallery__layout {
+    display: block;
+  }
+
+  .quick-add--media-top .product-media-gallery--overlay-quick-add-strip .media-gallery__carousel {
+    overflow: hidden;
+  }
+
+  .quick-add--media-top .product-media-gallery--overlay-quick-add-strip .product-media-gallery__main {
+    overflow: hidden;
+    overflow-y: hidden;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .quick-add--media-top .product-media-gallery--overlay-quick-add-strip .product-media-gallery__main:active {
+    cursor: grabbing;
+  }
+
+  .quick-add--media-top .product-media-gallery--overlay-quick-add-strip .product-media-gallery__main > .swiper-wrapper {
+    display: flex !important;
+    gap: 0;
+  }
+
+  .quick-add--media-top .product-media-gallery--overlay-quick-add-strip .product-media-gallery__slide {
+    width: calc((100% - (var(--overlay-media-slides-per-view, 4) - 1) * var(--product-media-gap, 12px)) / var(--overlay-media-slides-per-view, 4)) !important;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+
+  .quick-add--media-top .product-media-gallery--overlay-quick-add-strip .product-media-gallery__slide img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+
+  .quick-add--media-top .product-media-gallery--overlay-quick-add-strip .product-media-gallery__pagination,
+  .quick-add--media-top .product-media-gallery--overlay-quick-add-strip .media-thumbnails__carousel {
+    display: none;
+  }
+
+}
+
+.quick-add--media-left .quick-add__layout {
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+  align-items: stretch;
+}
+
+.quick-add--media-left .quick-add__media {
+  min-height: 0;
+}
+
+.quick-add--media-left .quick-add__details {
+  max-height: min(78dvh, 48rem);
+}
+
+.quick-add__loading,
+.quick-add__error {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 32px 24px;
+  background: var(--background-color);
+  color: var(--body-color);
+  text-align: center;
+}
+
+.quick-add__error p {
+  max-width: 30ch;
+  margin: 0;
+}
+
+.quick-add__spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: quick-add-spin 700ms linear infinite;
+}
+
+@keyframes quick-add-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (min-width: 768px) {
+  .component-overlay[data-desktop-layout='drawer'] .quick-add__content {
+    height: 100%;
+  }
+
+  .component-overlay[data-desktop-layout='drawer'] .quick-add__layout {
+    height: 100%;
+  }
+
+  .component-overlay[data-desktop-layout='drawer'] .quick-add--media-left .quick-add__layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+}
+
+@media (max-width: 767.98px) {
+  .quick-add__body {
+    padding-bottom: max(var(--overlay-inset), env(safe-area-inset-bottom, 0px));
+  }
+
+  .quick-add__layout {
+    gap: var(--quick-add-gap-mobile, 20px);
+  }
+
+  .quick-add__details {
+    padding: 0;
+    overflow: visible;
+  }
+
+  .quick-add--media-top .quick-add__details {
+    padding: 0;
+  }
+
+  .quick-add--media-top .quick-add__media {
+    max-height: none;
+  }
+
+  .quick-add--media-left .quick-add__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .quick-add--media-left .quick-add__details {
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-add__spinner {
+    animation: none;
+  }
+}

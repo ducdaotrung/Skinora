@@ -1,0 +1,444 @@
+{% liquid
+  assign stacked_bands_first_image = section.blocks.first.settings.image
+  assign stacked_bands_auto_ratio = stacked_bands_first_image.aspect_ratio | default: 1 | plus: 0
+  assign stacked_bands_desktop_ratio_setting = section.settings.image_ratio | default: 'auto'
+  assign stacked_bands_desktop_ratio = stacked_bands_auto_ratio
+  case stacked_bands_desktop_ratio_setting
+    when 'square'
+      assign stacked_bands_desktop_ratio = 1
+    when 'portrait'
+      assign stacked_bands_desktop_ratio = 0.8
+    when 'landscape'
+      assign stacked_bands_desktop_ratio = 1.3333
+    when 'wide'
+      assign stacked_bands_desktop_ratio = 1.7778
+    when 'custom'
+      assign stacked_bands_desktop_ratio_width = section.settings.custom_image_ratio_width | default: 16 | times: 1.0
+      assign stacked_bands_desktop_ratio_height = section.settings.custom_image_ratio_height | default: 9 | times: 1.0
+      assign stacked_bands_desktop_ratio = stacked_bands_desktop_ratio_width | divided_by: stacked_bands_desktop_ratio_height
+  endcase
+  assign stacked_bands_mobile_ratio = stacked_bands_desktop_ratio
+  if section.settings.customize_mobile_image
+    assign stacked_bands_mobile_ratio_setting = section.settings.image_ratio_mobile | default: stacked_bands_desktop_ratio_setting
+    case stacked_bands_mobile_ratio_setting
+      when 'square'
+        assign stacked_bands_mobile_ratio = 1
+      when 'portrait'
+        assign stacked_bands_mobile_ratio = 0.8
+      when 'landscape'
+        assign stacked_bands_mobile_ratio = 1.3333
+      when 'wide'
+        assign stacked_bands_mobile_ratio = 1.7778
+      when 'custom'
+        assign stacked_bands_mobile_ratio_width = section.settings.custom_image_ratio_width_mobile | default: section.settings.custom_image_ratio_width | default: 16 | times: 1.0
+        assign stacked_bands_mobile_ratio_height = section.settings.custom_image_ratio_height_mobile | default: section.settings.custom_image_ratio_height | default: 9 | times: 1.0
+        assign stacked_bands_mobile_ratio = stacked_bands_mobile_ratio_width | divided_by: stacked_bands_mobile_ratio_height
+      else
+        assign stacked_bands_mobile_ratio = stacked_bands_auto_ratio
+    endcase
+  endif
+  assign stacked_bands_image_max_width = section.settings.image_max_width | default: 100 | plus: 0
+  assign stacked_bands_image_max_width_mobile = stacked_bands_image_max_width
+  if section.settings.customize_mobile_image
+    assign stacked_bands_image_max_width_mobile = section.settings.image_max_width_mobile | default: stacked_bands_image_max_width | plus: 0
+  endif
+  assign stacked_bands_width = section.settings.section_width | default: 'page_width'
+  assign stacked_bands_container = 'page-width'
+  if stacked_bands_width == 'full_width'
+    assign stacked_bands_container = 'full-width'
+  endif
+  assign stacked_bands_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign stacked_bands_scheme = section.settings.color_scheme.id
+  endif
+  assign stacked_bands_heading_size = section.settings.heading_size | default: 'lg'
+  assign stacked_bands_heading_size_mobile = section.settings.heading_size_mobile | default: stacked_bands_heading_size
+  assign stacked_bands_heading_tag = section.settings.heading_tag | default: 'h2'
+  assign stacked_bands_text_size = section.settings.text_size | default: 'md'
+  assign stacked_bands_text_size_mobile = section.settings.text_size_mobile | default: stacked_bands_text_size
+  assign stacked_bands_button_style = section.settings.button_style | default: 'tertiary'
+  assign stacked_bands_padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign stacked_bands_padding_right = section.settings.padding_right | default: 0 | plus: 0
+  assign stacked_bands_padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign stacked_bands_padding_left = section.settings.padding_left | default: 0 | plus: 0
+  assign stacked_bands_padding_top_mobile = 20
+  assign stacked_bands_padding_right_mobile = 20
+  assign stacked_bands_padding_bottom_mobile = 20
+  assign stacked_bands_padding_left_mobile = 20
+  if section.settings.customize_mobile_padding
+    assign stacked_bands_padding_top_mobile = section.settings.padding_top_mobile | default: 20 | plus: 0
+    assign stacked_bands_padding_right_mobile = section.settings.padding_right_mobile | default: 20 | plus: 0
+    assign stacked_bands_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: 20 | plus: 0
+    assign stacked_bands_padding_left_mobile = section.settings.padding_left_mobile | default: 20 | plus: 0
+  endif
+%}
+
+<script type="module" src="{{ 'image-text-stacked-bands.js' | asset_url }}"></script>
+
+<div class="images-with-text-scroll color-scheme section-color-scope {{ stacked_bands_scheme }} images-with-text-scroll--{{ stacked_bands_width }}">
+  <div class="section-spacing images-with-text-scroll__spacing images-with-text-scroll__spacing--custom-mobile-padding" style="--images-with-text-scroll-padding-top: {{ stacked_bands_padding_top }}px; --images-with-text-scroll-padding-right: {{ stacked_bands_padding_right }}px; --images-with-text-scroll-padding-bottom: {{ stacked_bands_padding_bottom }}px; --images-with-text-scroll-padding-left: {{ stacked_bands_padding_left }}px; --images-with-text-scroll-padding-top-mobile: {{ stacked_bands_padding_top_mobile }}px; --images-with-text-scroll-padding-right-mobile: {{ stacked_bands_padding_right_mobile }}px; --images-with-text-scroll-padding-bottom-mobile: {{ stacked_bands_padding_bottom_mobile }}px; --images-with-text-scroll-padding-left-mobile: {{ stacked_bands_padding_left_mobile }}px; --images-with-text-scroll-heading-size: {{ stacked_bands_heading_size }}; --images-with-text-scroll-heading-size-mobile: {{ stacked_bands_heading_size_mobile }}; --images-with-text-scroll-heading-tag: {{ stacked_bands_heading_tag }}; --images-with-text-scroll-text-size: {{ stacked_bands_text_size }}; --images-with-text-scroll-text-size-mobile: {{ stacked_bands_text_size_mobile }}; --images-with-text-scroll-button-style: {{ stacked_bands_button_style }};">
+    <div class="images-with-text-scroll__container container scrollbar scrollbar--horizontal-mobile scrollbar--hidden {{ stacked_bands_container }}" data-images-with-text-scroll data-autoplay-enabled="{% if section.settings.mobile_autoplay %}true{% else %}false{% endif %}" data-autoplay-seconds="{{ section.settings.mobile_autoplay_speed | default: 4 }}" style="--images-with-text-scroll-master-image-ratio: {{ stacked_bands_desktop_ratio }}; --images-with-text-scroll-mobile-image-ratio: {{ stacked_bands_mobile_ratio }}; --images-with-text-scroll-image-max-width: {{ stacked_bands_image_max_width }}%; --images-with-text-scroll-mobile-image-max-width: {{ stacked_bands_image_max_width_mobile }}%;">
+      {% content_for 'blocks' %}
+    </div>
+    {% if section.blocks.size > 1 %}
+      <div class="images-with-text-scroll__dots" data-images-with-text-scroll-dots>
+        {% for block in section.blocks %}
+          <a href="#images-with-text-scroll-{{ block.id }}" class="images-with-text-scroll__dot{% if forloop.first %} is-active{% endif %}" data-images-with-text-scroll-dot="{{ forloop.index0 }}" aria-label="Go to item {{ forloop.index }}" aria-current="{% if forloop.first %}true{% else %}false{% endif %}"></a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .images-with-text-scroll {
+    width: 100%;
+    min-width: 0;
+    align-items: start;
+    display: grid;
+    position: relative;
+  }
+
+  .images-with-text-scroll__spacing,
+  .images-with-text-scroll__container {
+    grid-area: 1 / -1;
+  }
+
+  .images-with-text-scroll__spacing {
+    --sticky-area-height: calc(var(--announcement-bar-is-sticky, 0) * var(--announcement-bar-height, 0px) + var(--header-is-sticky, 0) * var(--header-height, 0px));
+    background: var(--background-color);
+    padding: var(--images-with-text-scroll-padding-top, 0px) var(--images-with-text-scroll-padding-right, 0px) var(--images-with-text-scroll-padding-bottom, 0px) var(--images-with-text-scroll-padding-left, 0px);
+  }
+
+  .images-with-text-scroll__container {
+    --image-width: min(50vw - var(--page-margin-current), 575px);
+    --image-height: min(var(--image-width), calc(var(--image-width) / var(--images-with-text-scroll-master-image-ratio, 1)));
+    --content-padding: calc((100svh - var(--image-height) - var(--sticky-area-height, 0px)) / 2);
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    align-items: center;
+    row-gap: 3rem;
+    padding-block: var(--content-padding);
+    min-width: 0;
+    min-height: calc(100svh - var(--sticky-area-height, 0px));
+  }
+
+  .images-with-text-scroll__spacing {
+    --images-with-text-scroll-heading-size: lg;
+    --images-with-text-scroll-text-size: md;
+  }
+
+  @media (max-width: 999px) {
+    .images-with-text-scroll__spacing {
+      min-height: 0;
+      padding: var(--images-with-text-scroll-padding-top, 0px) var(--images-with-text-scroll-padding-right, 0px) var(--images-with-text-scroll-padding-bottom, 0px) var(--images-with-text-scroll-padding-left, 0px);
+    }
+
+    .images-with-text-scroll__spacing--custom-mobile-padding {
+      padding: var(--images-with-text-scroll-padding-top-mobile, var(--images-with-text-scroll-padding-top, 0px)) var(--images-with-text-scroll-padding-right-mobile, var(--images-with-text-scroll-padding-right, 0px)) var(--images-with-text-scroll-padding-bottom-mobile, var(--images-with-text-scroll-padding-bottom, 0px)) var(--images-with-text-scroll-padding-left-mobile, var(--images-with-text-scroll-padding-left, 0px));
+    }
+
+    .images-with-text-scroll__container {
+      --image-width: min(100%, 27.5rem);
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: flex-start;
+      gap: 16px;
+      min-height: 0;
+      padding: 0;
+      clip-path: inset(0);
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      touch-action: pan-x;
+    }
+
+    .images-with-text-scroll__container > .images-with-text-scroll__item {
+      display: grid !important;
+      flex: 0 0 100%;
+      min-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0;
+      grid-template-columns: 1fr;
+      gap: 0;
+      align-items: center;
+      align-content: start;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+
+    .images-with-text-scroll__dots {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding-top: 1rem;
+    }
+
+    .images-with-text-scroll__dot {
+      display: block;
+      width: 0.5rem;
+      height: 0.5rem;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: var(--border-color);
+      opacity: 0.5;
+      cursor: pointer;
+    }
+
+    .images-with-text-scroll__dot:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 3px;
+    }
+
+    .images-with-text-scroll__dot.is-active,
+    .images-with-text-scroll__dot[aria-current='true'] {
+      background: var(--body-color);
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .images-with-text-scroll__container {
+      padding-block: 0;
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .images-with-text-scroll__dots {
+      display: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Image text stacked bands",
+  "class": "section-image-text-stacked-bands",
+  "enabled_on": { "templates": ["*"] },
+  "blocks": [
+    { "type": "image-text-stacked-band" }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" }
+      ],
+      "default": "page_width"
+    },
+    { "type": "header", "content": "Image" },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "auto", "label": "Auto" },
+        { "value": "square", "label": "Square - 1:1" },
+        { "value": "portrait", "label": "Portrait - 4:5" },
+        { "value": "landscape", "label": "Landscape - 4:3" },
+        { "value": "wide", "label": "Wide - 16:9" },
+        { "value": "custom", "label": "Custom" }
+      ],
+      "default": "auto"
+    },
+    { "type": "number", "id": "custom_image_ratio_width", "label": "Width", "default": 16, "visible_if": "{{ section.settings.image_ratio == 'custom' }}" },
+    { "type": "number", "id": "custom_image_ratio_height", "label": "Height", "info": "Numbers only. Width 16 + Height 9 = 16:9.", "default": 9, "visible_if": "{{ section.settings.image_ratio == 'custom' }}" },
+    { "type": "range", "id": "image_max_width", "label": "Desktop max width", "min": 20, "max": 100, "step": 5, "unit": "%", "default": 100 },
+    { "type": "checkbox", "id": "customize_mobile_image", "label": "Customize for mobile", "default": false },
+    {
+      "type": "select",
+      "id": "image_ratio_mobile",
+      "label": "Mobile image ratio",
+      "options": [
+        { "value": "auto", "label": "Auto" },
+        { "value": "square", "label": "Square - 1:1" },
+        { "value": "portrait", "label": "Portrait - 4:5" },
+        { "value": "landscape", "label": "Landscape - 4:3" },
+        { "value": "wide", "label": "Wide - 16:9" },
+        { "value": "custom", "label": "Custom" }
+      ],
+      "default": "auto",
+      "visible_if": "{{ section.settings.customize_mobile_image }}"
+    },
+    { "type": "number", "id": "custom_image_ratio_width_mobile", "label": "Mobile width", "default": 16, "visible_if": "{{ section.settings.customize_mobile_image and section.settings.image_ratio_mobile == 'custom' }}" },
+    { "type": "number", "id": "custom_image_ratio_height_mobile", "label": "Mobile height", "info": "Numbers only. Width 16 + Height 9 = 16:9.", "default": 9, "visible_if": "{{ section.settings.customize_mobile_image and section.settings.image_ratio_mobile == 'custom' }}" },
+    { "type": "range", "id": "image_max_width_mobile", "label": "Mobile max width", "min": 20, "max": 100, "step": 5, "unit": "%", "default": 100, "visible_if": "{{ section.settings.customize_mobile_image }}" },
+    { "type": "header", "content": "Mobile slider" },
+    { "type": "checkbox", "id": "mobile_autoplay", "label": "Enable autoplay", "default": true },
+    { "type": "range", "id": "mobile_autoplay_speed", "label": "Speed", "min": 2, "max": 15, "step": 1, "unit": "s", "default": 4, "visible_if": "{{ section.settings.mobile_autoplay }}" },
+    { "type": "header", "content": "Typography" },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size (desktop)",
+      "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
+        { "value": "xl", "label": "t:options.heading_size.xl" },
+        { "value": "lg", "label": "t:options.heading_size.lg" },
+        { "value": "md", "label": "t:options.heading_size.md" },
+        { "value": "sm", "label": "t:options.heading_size.sm" },
+        { "value": "xs", "label": "t:options.heading_size.xs" }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "select",
+      "id": "heading_size_mobile",
+      "label": "Heading size (mobile)",
+      "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
+        { "value": "xl", "label": "t:options.heading_size.xl" },
+        { "value": "lg", "label": "t:options.heading_size.lg" },
+        { "value": "md", "label": "t:options.heading_size.md" },
+        { "value": "sm", "label": "t:options.heading_size.sm" },
+        { "value": "xs", "label": "t:options.heading_size.xs" }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "t:labels.html_tag",
+      "options": [
+        { "value": "div", "label": "t:options.html_tag.paragraph" },
+        { "value": "h1", "label": "t:options.html_tag.h1" },
+        { "value": "h2", "label": "t:options.html_tag.h2" },
+        { "value": "h3", "label": "t:options.html_tag.h3" },
+        { "value": "h4", "label": "t:options.html_tag.h4" },
+        { "value": "h5", "label": "t:options.html_tag.h5" },
+        { "value": "h6", "label": "t:options.html_tag.h6" }
+      ],
+      "default": "h2"
+    },
+    { "type": "color", "alpha": true, "id": "heading_color", "label": "Heading color" },
+    { "type": "header", "content": "Content" },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Font size (desktop)",
+      "options": [
+        { "value": "xs", "label": "t:options.text_size.xs" },
+        { "value": "sm", "label": "t:options.text_size.sm" },
+        { "value": "md", "label": "t:options.text_size.md" },
+        { "value": "lg", "label": "t:options.text_size.lg" },
+        { "value": "xl", "label": "t:options.text_size.xl" },
+        { "value": "xxl", "label": "t:options.text_size.xxl" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "text_size_mobile",
+      "label": "Font size (mobile)",
+      "options": [
+        { "value": "xs", "label": "t:options.text_size.xs" },
+        { "value": "sm", "label": "t:options.text_size.sm" },
+        { "value": "md", "label": "t:options.text_size.md" },
+        { "value": "lg", "label": "t:options.text_size.lg" },
+        { "value": "xl", "label": "t:options.text_size.xl" },
+        { "value": "xxl", "label": "t:options.text_size.xxl" }
+      ],
+      "default": "md"
+    },
+    { "type": "color", "alpha": true, "id": "text_color", "label": "Content text color" },
+    { "type": "header", "content": "Button" },
+    { "type": "checkbox", "id": "button_open_in_new_tab", "label": "t:labels.open_in_new_tab", "default": false },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" },
+        { "value": "tertiary", "label": "t:options.button_variant.tertiary" }
+      ],
+      "default": "tertiary"
+    },
+    { "type": "checkbox", "id": "button_show_icon", "label": "t:labels.show_icon", "default": false },
+    {
+      "type": "select",
+      "id": "button_icon",
+      "label": "t:labels.icon",
+      "options": [
+        { "value": "arrow", "label": "t:options.button_icon.arrow" },
+        { "value": "cart", "label": "t:options.button_icon.cart" }
+      ],
+      "default": "arrow",
+      "visible_if": "{{ section.settings.button_show_icon }}"
+    },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding_right", "label": "t:labels.right_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding_left", "label": "t:labels.left_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "checkbox", "id": "customize_mobile_padding", "label": "t:labels.customize_mobile_padding", "default": false },
+    { "type": "range", "id": "padding_top_mobile", "label": "t:labels.mobile_top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 20, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_right_mobile", "label": "t:labels.mobile_right_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 20, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_bottom_mobile", "label": "t:labels.mobile_bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 20, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_left_mobile", "label": "t:labels.mobile_left_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 20, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "header", "content": "Color" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "t:labels.color_scheme", "default": "scheme-1" }
+  ],
+  "presets": [
+    {
+      "name": "Image text stacked bands",
+      "category": "Text",
+      "settings": {
+        "section_width": "page_width",
+        "image_ratio": "auto",
+        "custom_image_ratio_width": 16,
+        "custom_image_ratio_height": 9,
+        "image_max_width": 100,
+        "customize_mobile_image": false,
+        "image_ratio_mobile": "auto",
+        "custom_image_ratio_width_mobile": 16,
+        "custom_image_ratio_height_mobile": 9,
+        "image_max_width_mobile": 100,
+        "mobile_autoplay": true,
+        "mobile_autoplay_speed": 4,
+        "heading_size": "lg",
+        "heading_size_mobile": "lg",
+        "heading_tag": "h2",
+        "heading_color": "",
+        "text_size": "md",
+        "text_size_mobile": "md",
+        "text_color": "",
+        "button_open_in_new_tab": false,
+        "button_style": "tertiary",
+        "button_show_icon": false,
+        "button_icon": "arrow",
+        "padding_top": 0,
+        "padding_right": 0,
+        "padding_bottom": 0,
+        "padding_left": 0,
+        "customize_mobile_padding": false,
+        "padding_top_mobile": 20,
+        "padding_right_mobile": 20,
+        "padding_bottom_mobile": 20,
+        "padding_left_mobile": 20,
+        "color_scheme": "scheme-1"
+      },
+      "blocks": [
+        {
+          "type": "image-text-stacked-band",
+          "settings": { "image_alt": "", "gap_desktop": 16, "gap_mobile": 12, "tag": "<p>#1</p>", "heading": "<p>The design</p>", "text": "<p>Every piece begins with a thoughtful design process, shaped around the way you live and move through the world.</p>", "button_label": "Learn more", "button_link": "" }
+        },
+        {
+          "type": "image-text-stacked-band",
+          "settings": { "image_alt": "", "gap_desktop": 16, "gap_mobile": 12, "tag": "<p>#2</p>", "heading": "<p>Our commitments</p>", "text": "<p>From design to distribution, we take the greatest care with our products and the values they reflect.</p>", "button_label": "Learn more", "button_link": "" }
+        },
+        {
+          "type": "image-text-stacked-band",
+          "settings": { "image_alt": "", "gap_desktop": 16, "gap_mobile": 12, "tag": "<p>#3</p>", "heading": "<p>Made to last</p>", "text": "<p>Timeless forms, considered materials, and quality made for everyday use.</p>", "button_label": "Learn more", "button_link": "" }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

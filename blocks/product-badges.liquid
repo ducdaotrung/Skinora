@@ -1,0 +1,232 @@
+{% doc %}
+  Renders the current product's status and configured badges using the shared
+  product badge primitive. Status visibility is local to this block; badge
+  styling and configured collection/tag rules come from Badges theme settings.
+{% enddoc %}
+
+{% liquid
+  assign badges_product = closest.product | default: product
+  assign badges_sale_type = settings.badge_sale_type | default: 'text'
+  assign show_sale_badge = true
+  assign show_sold_out_badge = true
+  assign show_manual_badges = true
+  if block.settings.show_sale_badge == false
+    assign show_sale_badge = false
+  endif
+  if block.settings.show_sold_out_badge == false
+    assign show_sold_out_badge = false
+  endif
+  if block.settings.show_manual_badges == false
+    assign show_manual_badges = false
+  endif
+
+  assign badges_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign badges_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign badges_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign badges_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign badges_padding_top_mobile = block.settings.padding_top_mobile | default: badges_padding_top | plus: 0
+  assign badges_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: badges_padding_bottom | plus: 0
+  assign badges_padding_left_mobile = block.settings.padding_left_mobile | default: badges_padding_left | plus: 0
+  assign badges_padding_right_mobile = block.settings.padding_right_mobile | default: badges_padding_right | plus: 0
+  if badges_padding_top < 0 or badges_padding_top > 100
+    assign badges_padding_top = 0
+  endif
+  if badges_padding_bottom < 0 or badges_padding_bottom > 100
+    assign badges_padding_bottom = 0
+  endif
+  if badges_padding_left < 0 or badges_padding_left > 100
+    assign badges_padding_left = 0
+  endif
+  if badges_padding_right < 0 or badges_padding_right > 100
+    assign badges_padding_right = 0
+  endif
+  if badges_padding_top_mobile < 0 or badges_padding_top_mobile > 100
+    assign badges_padding_top_mobile = badges_padding_top
+  endif
+  if badges_padding_bottom_mobile < 0 or badges_padding_bottom_mobile > 100
+    assign badges_padding_bottom_mobile = badges_padding_bottom
+  endif
+  if badges_padding_left_mobile < 0 or badges_padding_left_mobile > 100
+    assign badges_padding_left_mobile = badges_padding_left
+  endif
+  if badges_padding_right_mobile < 0 or badges_padding_right_mobile > 100
+    assign badges_padding_right_mobile = badges_padding_right
+  endif
+%}
+
+{% capture badges_style %}
+  {% if badges_padding_top != 0 %}--product-badges-padding-top: {{ badges_padding_top }}px;{% endif %}
+  {% if badges_padding_bottom != 0 %}--product-badges-padding-bottom: {{ badges_padding_bottom }}px;{% endif %}
+  {% if badges_padding_left != 0 %}--product-badges-padding-left: {{ badges_padding_left }}px;{% endif %}
+  {% if badges_padding_right != 0 %}--product-badges-padding-right: {{ badges_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if badges_padding_top_mobile != badges_padding_top %}--product-badges-padding-top-mobile: {{ badges_padding_top_mobile }}px;{% endif %}
+    {% if badges_padding_bottom_mobile != badges_padding_bottom %}--product-badges-padding-bottom-mobile: {{ badges_padding_bottom_mobile }}px;{% endif %}
+    {% if badges_padding_left_mobile != badges_padding_left %}--product-badges-padding-left-mobile: {{ badges_padding_left_mobile }}px;{% endif %}
+    {% if badges_padding_right_mobile != badges_padding_right %}--product-badges-padding-right-mobile: {{ badges_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign badges_style = badges_style | strip %}
+
+{% capture badges_markup %}
+  {% render 'product-badges',
+    product: badges_product,
+    show_sale_badge: show_sale_badge,
+    show_sold_out_badge: show_sold_out_badge,
+    show_manual_badges: show_manual_badges,
+    context: 'product-page',
+    sale_badge_type: badges_sale_type
+  %}
+{% endcapture %}
+{% assign badges_markup = badges_markup | strip %}
+
+{% if badges_markup != blank %}
+  <div
+    class="product-badges-block"
+    data-product-badges-block
+    data-badges-empty="{% if badges_markup == blank %}true{% else %}false{% endif %}"
+    {% if badges_style != blank %}style="{{ badges_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    {{ badges_markup }}
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "t:general.badges",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.badge_visibility"
+    },
+    {
+      "type": "paragraph",
+      "content": "t:info.product_badges_theme_settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "t:labels.display_sale_badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sold_out_badge",
+      "label": "t:labels.display_sold_out_badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_manual_badges",
+      "label": "t:labels.display_manual_badges",
+      "default": true
+    },
+    {
+      "type": "paragraph",
+      "content": "t:info.product_badges_manual_rules"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.badges",
+      "category": "t:general.product"
+    }
+  ]
+}
+{% endschema %}

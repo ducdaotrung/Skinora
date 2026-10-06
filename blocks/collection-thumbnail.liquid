@@ -1,0 +1,28 @@
+{% liquid
+assign collection = block.settings.collection
+assign title = block.settings.custom_title | default: collection.title | default: 'Collection title'
+assign url = block.settings.custom_link | default: collection.url
+assign image = block.settings.image | default: collection.image
+assign radius = section.settings.image_corner_radius | default: 'full'
+assign radius_value = 'var(--image-corner-radius)'
+if radius == 'square' or radius == 'custom'
+ assign radius_value = section.settings.image_corner_radius_custom | default: 0 | append: 'px'
+elsif radius == 'full'
+ assign radius_value = '50%'
+endif
+assign size = section.settings.heading_size | default: 'heading_5'
+if size == 'heading_4'
+ assign size = 'md'
+elsif size == 'heading_6'
+ assign size = 'xs'
+else
+ assign size = 'sm'
+endif
+%}
+<div class="collection-thumbnail{% if section.settings.layout == 'carousel' %} swiper-slide{% endif %}" {{ block.shopify_attributes }}>{% if url != blank %}<a class="collection-thumbnail__link collection-thumbnail__link--{{ section.settings.card_layout | default: 'vertical' }}" href="{{ url }}">{% else %}<div class="collection-thumbnail__link collection-thumbnail__link--{{ section.settings.card_layout | default: 'vertical' }}">{% endif %}<div class="media collection-thumbnail__media collection-thumbnail__media--{{ section.settings.image_ratio | default: 'auto' }}{% if block.settings.custom_image_type == 'color' %} collection-thumbnail__media--color{% endif %}{% if block.settings.custom_image_type == 'color' or image == blank %} placeholder-image{% endif %}" style="--collection-thumbnail-radius:{{ radius_value }};--collection-thumbnail-color:{{ block.settings.image_color }}">{% if block.settings.custom_image_type == 'color' %}{{ 'collection-1' | placeholder_svg_tag }}{% elsif image != blank %}{{ image | image_url: width: 800 | image_tag: widths: '85, 110, 170, 220, 330, 440, 660, 800', sizes: '(max-width: 767.98px) var(--collection-thumbnail-image-width-mobile), var(--collection-thumbnail-image-width)', alt: title }}{% else %}{{ 'collection-1' | placeholder_svg_tag }}{% endif %}</div><{{ section.settings.html_tag | default: 'h2' }} class="collection-thumbnail__title collection-thumbnail__title--{{ section.settings.title_font | default: 'heading' }} heading-text heading-{{ section.settings.heading_size | default: 'sm' }}">{{ title | escape }}</{{ section.settings.html_tag | default: 'h2' }}>{% if url != blank %}</a>{% else %}</div>{% endif %}</div>
+{% stylesheet %}
+.collection-thumbnail{flex:0 0 auto;min-width:0}.collection-thumbnail__link{display:flex;align-items:center;gap:var(--collection-thumbnail-card-gap);width:fit-content;max-width:100%;color:inherit;text-decoration:none}.collection-thumbnail__link--vertical{flex-direction:column;text-align:center}.collection-thumbnail__media{width:var(--collection-thumbnail-image-width);overflow:hidden;flex:0 0 auto;border-radius:var(--collection-thumbnail-radius);background:var(--placeholder-background-color)}.collection-thumbnail__media svg{fill:var(--placeholder-fill-color)} .collection-thumbnail__media--color{--placeholder-background-color:var(--collection-thumbnail-color);background:var(--placeholder-background-color)}.collection-thumbnail__media--square{aspect-ratio:1}.collection-thumbnail__media--portrait{aspect-ratio:2/3}.collection-thumbnail__media--landscape{aspect-ratio:3/2}.collection-thumbnail__media :is(img,svg){display:block;width:100%;height:100%;object-fit:cover}.collection-thumbnail__media--auto :is(img,svg){height:auto}.collection-thumbnail__title{margin:0;overflow-wrap:anywhere}.collection-thumbnail__title--heading{font-family:var(--font-heading-family);font-style:var(--font-heading-style);font-weight:var(--font-heading-weight)}.collection-thumbnail__title--body{font-family:var(--font-body-family);font-style:var(--font-body-style);font-weight:var(--font-body-weight)}.collection-thumbnail__title--accent{font-family:var(--font-accent-family);font-style:var(--font-accent-style);font-weight:var(--font-accent-weight)}.collection-thumbnail__title--md{font-size:var(--font-heading-md);line-height:var(--font-heading-md-line-height)}.collection-thumbnail__title--sm{font-size:var(--font-heading-sm);line-height:var(--font-heading-sm-line-height)}.collection-thumbnail__title--xs{font-size:var(--font-heading-xs);line-height:var(--font-heading-xs-line-height)}.collection-thumbnail__link:focus-visible{outline:2px solid currentColor;outline-offset:4px}@media(max-width:767.98px){.collection-thumbnail__media{width:var(--collection-thumbnail-image-width-mobile)}}
+{% endstylesheet %}
+{% schema %}
+{"name":"Collection","tag":null,"settings":[{"type":"collection","id":"collection","label":"Collection"},{"type":"text","id":"custom_title","label":"Custom title"},{"type":"url","id":"custom_link","label":"Custom link"},{"type":"header","content":"Custom image"},{"type":"select","id":"custom_image_type","label":"Type","options":[{"value":"image","label":"Image"},{"value":"color","label":"Color"}],"default":"image"},{"type":"image_picker","id":"image","label":"Image","visible_if":"{{ block.settings.custom_image_type == 'image' }}"},{"type":"color","alpha":true,"id":"image_color","label":"Color","default":"#f1f1f1","visible_if":"{{ block.settings.custom_image_type == 'color' }}"}],"presets":[{"name":"Collection"}]}
+{% endschema %}

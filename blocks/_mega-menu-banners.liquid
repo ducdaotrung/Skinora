@@ -1,0 +1,74 @@
+{% liquid
+  assign mega_menu_trigger = block.settings.menu_item | strip | handleize
+  assign mega_columns = block.settings.submenu_columns | default: 4
+  assign mega_gap = block.settings.gap | default: 12
+  assign mega_max_width = block.settings.max_width | default: 850
+  assign mega_banner_width = block.settings.banner_width | default: 40
+  assign mega_container_width = 'page-width'
+  if section.settings.section_width == 'full_width'
+    assign mega_container_width = 'full-width'
+  endif
+  assign mega_font = block.settings.font | default: 'accent'
+  unless mega_font == 'body' or mega_font == 'heading' or mega_font == 'accent'
+    assign mega_font = 'accent'
+  endunless
+  assign mega_font_size = block.settings.font_size | default: 'xl'
+  unless mega_font_size == 'xs' or mega_font_size == 'sm' or mega_font_size == 'md' or mega_font_size == 'lg' or mega_font_size == 'xl' or mega_font_size == 'xxl'
+    assign mega_font_size = 'xl'
+  endunless
+  assign mega_letter_spacing = block.settings.letter_spacing | default: 'normal'
+  unless mega_letter_spacing == 'tight' or mega_letter_spacing == 'normal' or mega_letter_spacing == 'relaxed'
+    assign mega_letter_spacing = 'normal'
+  endunless
+  assign mega_typography_class = 'body-text body-' | append: mega_font_size | append: ' font-' | append: mega_font | append: ' tracking-' | append: mega_letter_spacing | append: ' text-case-original'
+%}
+<div class="header-mega-menu header-mega-menu--{{ block.settings.layout | default: 'horizontal' }}{% if block.settings.highlight_menu_item %} header-mega-menu--highlight{% endif %}{% if block.settings.limit_width %} header-mega-menu--submenu-limited{% endif %}" data-header-mega-menu data-mega-menu-trigger="{{ mega_menu_trigger }}" hidden style="--mega-menu-columns: {{ mega_columns }}; --mega-menu-gap: {{ mega_gap }}px; --mega-menu-max-width: {{ mega_max_width }}px; --mega-banner-width: {{ mega_banner_width }}%; --mega-menu-highlight-color: {{ block.settings.highlight_color | default: '#000000' }};" {{ block.shopify_attributes }}>
+  <div class="container {{ mega_container_width }} header-mega-menu__container">
+    <div class="header-mega-menu__layout">
+      <div class="header-mega-menu__content {{ mega_typography_class }}{% if block.settings.collections != blank %} header-mega-menu__content--with-featured{% endif %}">
+        {% if block.settings.collections != blank %}
+          <ul class="header-mega-menu__featured {{ mega_typography_class }}" role="list">
+            {% for collection in block.settings.collections %}
+              <li><a class="link-underline" href="{{ collection.url }}">{{ collection.title | escape }}</a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        <div class="header-mega-menu__navigation" data-mega-menu-navigation></div>
+      </div>
+      <div class="header-mega-menu__banners scrollbar{% if block.blocks.size == 1 %} header-mega-menu__banners--single{% endif %}">{% content_for 'blocks' %}</div>
+    </div>
+  </div>
+</div>
+{% stylesheet %}
+  @media (max-width: 767.98px) {
+    .header-top--menu-open .header-mega-menu__container.container.page-width {
+      padding-inline: 0;
+    }
+  }
+{% endstylesheet %}
+{% schema %}
+{
+  "name":"Mega menu: Banners",
+  "tag":null,
+  "blocks":[{"type":"_mega-menu-banner"}],
+  "settings":[
+    {"type":"text","id":"menu_item","label":"Menu item name","info":"Enter the name of the menu item to apply the mega menu banners.","default":"Collections"},
+    {"type":"checkbox","id":"highlight_menu_item","label":"Highlight menu item","default":false},
+    {"type":"color","alpha":true,"id":"highlight_color","label":"Highlight color","default":"#000000","visible_if":"{{ block.settings.highlight_menu_item }}"},
+    {"type":"header","content":"Banner"},
+    {"type":"range","id":"banner_width","label":"Width","min":20,"max":100,"step":1,"unit":"%","default":40},
+    {"type":"range","id":"gap","label":"Gap","min":0,"max":48,"step":1,"unit":"px","default":12},
+    {"type":"select","id":"layout","label":"Layout","options":[{"value":"horizontal","label":"Horizontal"},{"value":"vertical","label":"Vertical"}],"default":"horizontal"},
+    {"type":"header","content":"Submenu"},
+    {"type":"select","id":"submenu_columns","label":"Columns","options":[{"value":"2","label":"2"},{"value":"3","label":"3"},{"value":"4","label":"4"},{"value":"5","label":"5"},{"value":"6","label":"6"}],"default":"4"},
+    {"type":"checkbox","id":"limit_width","label":"Limit width","default":true},
+    {"type":"range","id":"max_width","label":"Max width","min":400,"max":1400,"step":10,"unit":"px","default":850},
+    {"type":"header","content":"Featured collections"},
+    {"type":"collection_list","id":"collections","label":"Collections","limit":6},
+    {"type":"select","id":"font","label":"Font","options":[{"value":"body","label":"Body"},{"value":"heading","label":"Heading"},{"value":"accent","label":"Accent"}],"default":"accent"},
+    {"type":"select","id":"font_size","label":"t:labels.font_size","options":[{"value":"xs","label":"t:options.menu_font_size.extra_small"},{"value":"sm","label":"t:options.menu_font_size.small"},{"value":"md","label":"t:options.menu_font_size.medium"},{"value":"lg","label":"t:options.menu_font_size.large"},{"value":"xl","label":"t:options.menu_font_size.extra_large"},{"value":"xxl","label":"t:options.menu_font_size.double_extra_large"}],"default":"xl"},
+    {"type":"select","id":"letter_spacing","label":"t:labels.letter_spacing","options":[{"value":"tight","label":"t:options.letter_spacing.tight"},{"value":"normal","label":"t:options.letter_spacing.normal"},{"value":"relaxed","label":"t:options.letter_spacing.relaxed"}],"default":"normal"}
+  ],
+  "presets":[{"name":"Mega menu: Banners","category":"Header"}]
+}
+{% endschema %}

@@ -1,0 +1,50 @@
+{% doc %}
+  Normalizes an overlay media ratio setting and returns a compact
+  `setting|ratio` pair for the caller to split.
+
+  @param {string} [setting] - Ratio preset: auto, square, portrait,
+    landscape, wide, or custom
+  @param {string} [fallback] - Preset used when the setting is invalid
+  @param {number} [custom_width] - Custom ratio width
+  @param {number} [custom_height] - Custom ratio height
+  @param {string} [fallback_ratio] - Ratio value used for invalid custom input
+{% enddoc %}
+
+{% liquid
+  assign overlay_ratio_setting = setting | default: fallback | default: 'auto'
+  assign overlay_ratio_fallback = fallback | default: 'auto'
+  unless overlay_ratio_setting == 'auto' or overlay_ratio_setting == 'square' or overlay_ratio_setting == 'portrait' or overlay_ratio_setting == 'landscape' or overlay_ratio_setting == 'wide' or overlay_ratio_setting == 'custom'
+    assign overlay_ratio_setting = overlay_ratio_fallback
+  endunless
+
+  assign overlay_ratio = fallback_ratio | default: 'auto'
+  case overlay_ratio_setting
+    when 'auto'
+      assign overlay_ratio = 'auto'
+    when 'square'
+      assign overlay_ratio = '1'
+    when 'portrait'
+      assign overlay_ratio = '0.8'
+    when 'landscape'
+      assign overlay_ratio = '1.3333'
+    when 'wide'
+      assign overlay_ratio = '1.7778'
+    when 'custom'
+      assign overlay_ratio_width = custom_width | default: 1 | plus: 0
+      assign overlay_ratio_height = custom_height | default: 1 | plus: 0
+      if overlay_ratio_width < 1 or overlay_ratio_width > 100
+        assign overlay_ratio_width = 1
+      endif
+      if overlay_ratio_height < 1 or overlay_ratio_height > 100
+        assign overlay_ratio_height = 1
+      endif
+      assign overlay_ratio = overlay_ratio_width | times: 1.0 | divided_by: overlay_ratio_height
+      if overlay_ratio < 0.25 or overlay_ratio > 3
+        assign overlay_ratio = fallback_ratio | default: '1'
+      endif
+  endcase
+
+  echo overlay_ratio_setting
+  echo '|'
+  echo overlay_ratio
+%}

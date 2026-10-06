@@ -1,0 +1,248 @@
+{% doc %}
+  Renders a horizontal divider block for separating content groups.
+
+  The block uses the current scheme border token by default. Style, thickness,
+  color, width, alignment and responsive spacing are local presentation
+  controls; the divider never uses a character or image as its line.
+
+  @example
+  {% content_for 'block', type: 'divider', id: 'divider' %}
+{% enddoc %}
+
+{% liquid
+  assign divider_style = block.settings.style | default: 'solid'
+  unless divider_style == 'solid' or divider_style == 'dashed' or divider_style == 'dotted'
+    assign divider_style = 'solid'
+  endunless
+
+  assign divider_thickness = 1
+  case block.settings.thickness
+    when 'medium'
+      assign divider_thickness = 2
+    when 'custom'
+      assign divider_thickness = block.settings.custom_thickness | default: 1 | plus: 0
+  endcase
+  if divider_thickness < 1 or divider_thickness > 10
+    assign divider_thickness = 1
+  endif
+
+  assign divider_color = 'var(--border-color)'
+  case block.settings.color
+    when 'muted'
+      assign divider_color = 'color-mix(in srgb, var(--border-color) 60%, transparent)'
+    when 'custom'
+      if block.settings.custom_color != blank
+        assign divider_color = block.settings.custom_color | escape
+      endif
+  endcase
+
+  assign divider_width_mode = block.settings.width | default: 'full'
+  unless divider_width_mode == 'full' or divider_width_mode == 'content' or divider_width_mode == 'custom'
+    assign divider_width_mode = 'full'
+  endunless
+
+  assign divider_width = '100%'
+  assign divider_max_width = '100%'
+  assign divider_custom_width = block.settings.custom_width | default: 50 | plus: 0
+  if divider_custom_width < 5 or divider_custom_width > 100
+    assign divider_custom_width = 50
+  endif
+  if divider_width_mode == 'content'
+    assign divider_max_width = 'var(--page-width, 100%)'
+  elsif divider_width_mode == 'custom'
+    assign divider_width = divider_custom_width | append: '%'
+  endif
+
+  assign divider_alignment = 'flex-start'
+  case block.settings.alignment
+    when 'center'
+      assign divider_alignment = 'center'
+    when 'right'
+      assign divider_alignment = 'flex-end'
+  endcase
+
+  assign divider_spacing_desktop = block.settings.desktop_spacing | default: 24 | plus: 0
+  assign divider_spacing_mobile = block.settings.mobile_spacing | default: 16 | plus: 0
+  if divider_spacing_desktop < 0 or divider_spacing_desktop > 100
+    assign divider_spacing_desktop = 24
+  endif
+  if divider_spacing_mobile < 0 or divider_spacing_mobile > 100
+    assign divider_spacing_mobile = 16
+  endif
+
+  assign divider_class = 'block-divider block-divider--style-' | append: divider_style | append: ' block-divider--width-' | append: divider_width_mode
+%}
+
+{% capture divider_style_attribute %}
+  {% if divider_style != 'solid' %}--divider-border-style: {{ divider_style }};{% endif %}
+  {% if divider_thickness != 1 %}--divider-thickness: {{ divider_thickness }}px;{% endif %}
+  {% if block.settings.color != blank and block.settings.color != 'scheme' %}--divider-color: {{ divider_color }};{% endif %}
+  {% if divider_width_mode == 'content' %}--divider-max-width: {{ divider_max_width }};{% elsif divider_width_mode == 'custom' %}--divider-width: {{ divider_width }};{% endif %}
+  {% if divider_alignment != 'flex-start' %}--divider-alignment: {{ divider_alignment }};{% endif %}
+  {% if divider_spacing_desktop != 24 %}--divider-spacing: {{ divider_spacing_desktop }}px;{% endif %}
+  --divider-spacing-mobile: {{ divider_spacing_mobile }}px;
+{% endcapture %}
+{% assign divider_style_attribute = divider_style_attribute | strip %}
+
+<hr
+  class="{{ divider_class }}"
+  {% if divider_style_attribute != blank %}style="{{ divider_style_attribute }}"{% endif %}
+  role="separator"
+  {{ block.shopify_attributes }}
+>
+
+{% stylesheet %}
+  .block-divider {
+    display: block;
+    align-self: var(--divider-alignment, flex-start);
+    width: var(--divider-width, 100%);
+    max-width: var(--divider-max-width, 100%);
+    min-width: 0;
+    height: 0;
+    margin-block: var(--divider-spacing, 24px);
+    border: 0;
+    border-block-start: var(--divider-thickness, 1px) var(--divider-border-style, solid)
+      var(--divider-color, var(--border-color));
+  }
+
+  @media (max-width: 767.98px) {
+    .block-divider {
+      margin-block: var(--divider-spacing-mobile, var(--divider-spacing, 24px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.divider",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "solid", "label": "t:options.divider_style.solid" },
+        { "value": "dashed", "label": "t:options.divider_style.dashed" },
+        { "value": "dotted", "label": "t:options.divider_style.dotted" }
+      ],
+      "default": "solid"
+    },
+    {
+      "type": "select",
+      "id": "thickness",
+      "label": "t:labels.thickness",
+      "options": [
+        { "value": "thin", "label": "t:options.divider_thickness.thin" },
+        { "value": "medium", "label": "t:options.divider_thickness.medium" },
+        { "value": "custom", "label": "t:options.divider_thickness.custom" }
+      ],
+      "default": "thin"
+    },
+    {
+      "type": "range",
+      "id": "custom_thickness",
+      "label": "t:labels.custom_thickness",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "default": 1,
+      "visible_if": "{{ block.settings.thickness == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "color",
+      "label": "t:labels.color",
+      "options": [
+        { "value": "scheme", "label": "t:options.divider_color.scheme" },
+        { "value": "muted", "label": "t:options.divider_color.muted" },
+        { "value": "custom", "label": "t:options.divider_color.custom" }
+      ],
+      "default": "scheme"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "custom_color",
+      "label": "t:labels.custom_color",
+      "visible_if": "{{ block.settings.color == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.width",
+      "options": [
+        { "value": "full", "label": "t:options.divider_width.full" },
+        { "value": "content", "label": "t:options.divider_width.content" },
+        { "value": "custom", "label": "t:options.divider_width.custom" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "custom_width",
+      "label": "t:labels.custom_width",
+      "min": 5,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "t:general.spacing"
+    },
+    {
+      "type": "range",
+      "id": "desktop_spacing",
+      "label": "t:labels.desktop_spacing",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "mobile_spacing",
+      "label": "t:labels.mobile_spacing",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.divider",
+      "category": "t:general.basic",
+      "settings": {
+        "style": "solid",
+        "thickness": "thin",
+        "color": "scheme",
+        "width": "full",
+        "alignment": "left",
+        "desktop_spacing": 24,
+        "mobile_spacing": 16
+      }
+    }
+  ]
+}
+{% endschema %}

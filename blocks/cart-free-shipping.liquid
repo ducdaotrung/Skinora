@@ -1,0 +1,169 @@
+{% liquid
+assign threshold = block.settings.threshold | at_least: 1 | times: 100
+assign remaining = threshold | minus: cart.items_subtotal_price | at_least: 0
+assign progress = cart.items_subtotal_price | times: 100.0 | divided_by: threshold | at_most: 100
+assign amount = remaining | money_with_currency
+assign pending_message = block.settings.pending_message | replace: '{amount}', amount
+%}
+{% if cart.requires_shipping and cart.item_count > 0 %}
+<div class="cart-page__shipping cart-block body-text body-{{ block.settings.text_size }}" style="text-align: {{ block.settings.alignment }}; color: var(--{% if block.settings.text_color == 'heading' %}heading{% else %}body{% endif %}-color); --cart-gap: {{ block.settings.gap_desktop }}px; --cart-gap-mobile: {{ block.settings.gap_mobile }}px; --cart-pad-top: {{ block.settings.padding_top | default: 0 }}px; --cart-pad-bottom: {{ block.settings.padding_bottom | default: 0 }}px;{% if block.settings.customize_mobile_padding %} --cart-pad-top-mobile: {{ block.settings.padding_top_mobile }}px; --cart-pad-bottom-mobile: {{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+<p>{% if remaining == 0 %}{{ block.settings.success_message | escape }}{% else %}{{ pending_message | escape }}{% endif %}</p>
+<progress value="{{ progress }}" max="100" aria-label="{{ 'cart.free_shipping_progress' | t }}"></progress>
+{% if block.settings.show_amount_range %}<div class="cart-page__amount-range body-sm"><span>{{ 0 | money }}</span><span>{{ threshold | money }}</span></div>{% endif %}
+</div>
+{% endif %}
+
+
+{% schema %}
+{
+  "name": "Free shipping progress",
+  "tag": null,
+  "settings": [
+    {
+      "type": "number",
+      "id": "threshold",
+      "label": "Free shipping amount",
+      "default": 100
+    },
+    {
+      "type": "text",
+      "id": "pending_message",
+      "label": "Pending message",
+      "default": "You are {amount} away from free shipping!"
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Success message",
+      "default": "You've earned free shipping!"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_amount_range",
+      "label": "Show amount range",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "XS"
+        },
+        {
+          "value": "sm",
+          "label": "SM"
+        },
+        {
+          "value": "md",
+          "label": "MD"
+        },
+        {
+          "value": "lg",
+          "label": "LG"
+        },
+        {
+          "value": "xl",
+          "label": "XL"
+        }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "Customize for mobile",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Top (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Bottom (mobile)",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "text",
+      "options": [
+        {
+          "value": "heading",
+          "label": "Heading"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Free shipping progress"
+    }
+  ]
+}
+{% endschema %}

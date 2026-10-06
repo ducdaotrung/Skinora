@@ -1,0 +1,32 @@
+{% doc %}
+  Renders one editable feature row; its nested values render in the matching product columns.
+
+  @param {object} block - Theme Block supplying merchant settings and editor attributes
+
+  @param {string} comparison_table_dom_id - Section and table namespace for feature, tooltip and dialog IDs
+  @param {number} comparison_row_index - One-based row position within the feature column
+{% enddoc %}
+
+{% liquid
+  assign comparison_table_dom_id = comparison_table_dom_id | default: '__TABLE_NAMESPACE__'
+  assign comparison_row_index = comparison_row_index | default: '__ROW_INDEX__'
+  assign feature_label = block.settings.label | strip
+  assign feature_tooltip = block.settings.tooltip | strip
+  assign feature_label_id = 'comparison-feature-' | append: comparison_table_dom_id | append: '-' | append: block.id
+  assign feature_tooltip_id = feature_label_id | append: '-tooltip'
+  assign feature_dialog_id = feature_label_id | append: '-dialog'
+%}
+<div class="comparison-table__row" role="row" aria-rowindex="__ARIA_ROW_INDEX__" data-comparison-table-row="{{ comparison_row_index }}" data-comparison-table-feature-label="{{ feature_label | escape }}" {{ block.shopify_attributes }}>
+  <div class="comparison-table__cell comparison-table__cell--feature" role="rowheader" id="{{ feature_label_id }}">
+    {% if feature_tooltip != blank %}
+      {% render 'tooltip', label: feature_label, tooltip: feature_tooltip, tooltip_id: feature_tooltip_id, dialog_id: feature_dialog_id %}
+    {% else %}
+      <span class="comparison-table__label">{{ feature_label | escape }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- comparison-feature-end -->
+{% for comparison_value in block.blocks %}
+  {% render comparison_value %}
+{% endfor %}

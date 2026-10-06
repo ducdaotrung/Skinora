@@ -1,0 +1,23 @@
+{% doc %}
+  Renders the decorative outline icon for a collection grid column choice.
+
+  @param {number} columns - Number of columns, from 1 through 5
+{% enddoc %}
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="var(--icon-stroke-width)" focusable="false" aria-hidden="true">
+  {% case columns %}
+    {% when 1 %}
+      <rect x="4" y="4" width="16" height="16" rx="1.5" />
+    {% when 2 %}
+      <rect x="3.5" y="4" width="17" height="16" rx="1.5" />
+      <path d="M12 4v16" />
+    {% when 3 %}
+      <rect x="3" y="4" width="18" height="16" rx="1.5" />
+      <path d="M9 4v16M15 4v16" />
+    {% when 4 %}
+      <rect x="3" y="4" width="18" height="16" rx="1.5" />
+      <path d="M7.5 4v16M12 4v16M16.5 4v16" />
+    {% when 5 %}
+      <rect x="3" y="4" width="18" height="16" rx="1.5" />
+      <path d="M6.6 4v16M10.2 4v16M13.8 4v16M17.4 4v16" />
+  {% endcase %}
+</svg>

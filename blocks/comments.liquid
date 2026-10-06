@@ -1,0 +1,276 @@
+{% capture normalized_heading_size %}{% render 'heading-size-token', size: block.settings.heading_size, fallback: 'lg' %}{% endcapture %}
+{% assign normalized_heading_size = normalized_heading_size | strip %}
+{% doc %}
+  Renders the article comments list and comment form when comments are enabled.
+{% enddoc %}
+
+{% assign article_comments_anchor = 'comments-' | append: section.id | append: '-' | append: block.id %}
+{% assign comments_heading_tag = block.settings.html_heading_tag | default: 'h2' %}
+<div class="article-comments article-comments--{{ block.settings.width | default: 'default' }}" style="--article-comments-padding-top: {{ block.settings.padding_top }}px; --article-comments-padding-bottom: {{ block.settings.padding_bottom }}px; --article-comments-padding-top-mobile: {% if block.settings.custom_mobile_padding %}{{ block.settings.padding_top_mobile }}{% else %}{{ block.settings.padding_top }}{% endif %}px; --article-comments-padding-bottom-mobile: {% if block.settings.custom_mobile_padding %}{{ block.settings.padding_bottom_mobile }}{% else %}{{ block.settings.padding_bottom }}{% endif %}px;" {{ block.shopify_attributes }}>
+  {% if blog.comments_enabled? %}
+    <div class="article-comments__container">
+      <{{ comments_heading_tag }} class="article-comments__title heading-text heading-{{ normalized_heading_size }}"{% if normalized_heading_size == 'custom' %} style="font-size: {{ block.settings.custom_heading_size }}px;"{% endif %}>{{ 'blog.comment_form_title' | t }}</{{ comments_heading_tag }}>
+    {% paginate article.comments by 10 %}
+      <div id="{{ article_comments_anchor }}" class="article-comments__list">
+        {% for comment in article.comments %}
+          <article class="article-comment">
+            <p class="article-comment__author">{{ comment.author | escape }}</p>
+            <p class="article-comment__date">{{ comment.created_at | time_tag: format: 'date' }}</p>
+            <div class="article-comment__content">{{ comment.content }}</div>
+          </article>
+        {% endfor %}
+      </div>
+      {{ paginate | default_pagination: anchor: article_comments_anchor }}
+    {% endpaginate %}
+    {% form 'new_comment', article, class: 'article-comments__native-form' %}
+      {% if form.errors %}<div class="article-comments__error" role="alert">{{ form.errors | default_errors }}</div>{% endif %}
+      {% if form.posted_successfully? %}<p role="status">{% if blog.moderated? %}{{ 'blog.comment_success_moderated' | t }}{% else %}{{ 'blog.comment_success' | t }}{% endif %}</p>{% endif %}
+      <div class="article-comments__form">
+        {% liquid
+          assign comment_author_id = 'comment-author-' | append: section.id | append: '-' | append: block.id
+          assign comment_email_id = 'comment-email-' | append: section.id | append: '-' | append: block.id
+          assign comment_body_id = 'comment-body-' | append: section.id | append: '-' | append: block.id
+          assign comment_author_label = 'blog.comment_form_name' | t
+          assign comment_email_label = 'blog.comment_form_email' | t
+          assign comment_body_label = 'blog.comment_form_body' | t
+        %}
+        {% render 'form-field', id: comment_author_id, name: 'comment[author]', label: comment_author_label, value: form.author, placeholder: block.settings.name_placeholder, autocomplete: 'name', required: true, hide_label: true, class: 'article-comments__field' %}
+        {% render 'form-field', id: comment_email_id, name: 'comment[email]', label: comment_email_label, type: 'email', value: form.email, placeholder: block.settings.email_placeholder, autocomplete: 'email', required: true, hide_label: true, class: 'article-comments__field' %}
+        {% render 'form-field', id: comment_body_id, name: 'comment[body]', label: comment_body_label, control: 'textarea', value: form.body, placeholder: block.settings.comment_placeholder, required: true, hide_label: true, class: 'article-comments__field article-comments__field--body' %}
+        {% if blog.moderated? %}<p class="article-comments__note">{{ 'blog.comment_moderation_notice' | t }}</p>{% endif %}
+        <button class="btn btn--primary" type="submit">{{ 'blog.comment_form_submit' | t }}</button>
+      </div>
+      {% endform %}
+    </div>
+  {% elsif request.design_mode %}
+    <p class="article-comments__empty">{{ 'blog.comments_disabled' | t }}</p>
+  {% endif %}
+</div>
+
+{% stylesheet %}
+  .article-comments { width: 100%; margin-inline: auto; padding-top: var(--article-comments-padding-top, 80px); padding-bottom: var(--article-comments-padding-bottom, 80px); background: var(--color-background, #fff); }
+  .article-comments__container { display: flex; flex-direction: column; align-items: center; gap: 40px; width: 100%; min-height: 283px; margin-inline: auto; }
+  .article-comments--default .article-comments__container { width: 100%; }
+  .article-comments--page .article-comments__container { width: min(calc(100% - 32px), var(--page-width, 1600px)); }
+  .article-comments--full .article-comments__container { width: calc(100% - 32px); max-width: none; }
+  .article-comments--full .article-comments__native-form { width: 100%; }
+  .article-comments__title { width: 100%; margin: 0; text-align: center; }
+  .article-comments__list { display: grid; gap: 1.5rem; width: 100%; }
+  .article-comment { padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+  .article-comment p { margin: 0; }
+  .article-comment__author { font-weight: 600; }
+  .article-comment__date { color: var(--body-color); font-size: var(--font-body-sm); }
+  .article-comment__content { margin-top: 0.75rem; }
+  .article-comments__native-form { width: 100%; max-width: 100%; margin: 0; }
+  .article-comments__form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 20px; width: 100%; }
+  .article-comments__field { display: grid; gap: 8px; }
+  .article-comments__field--body { grid-column: 1 / -1; }
+  .article-comments__form textarea { min-height: 148px; resize: vertical; }
+  .article-comments__note { grid-column: 1 / -1; margin: 0; color: var(--body-color); font-size: var(--font-body-sm); text-align: left; }
+  .article-comments__form .btn { grid-column: 1 / -1; justify-self: center; }
+  @media (max-width: 767.98px) {
+    .article-comments { width: 100%; margin-inline: 0; padding-top: var(--article-comments-padding-top-mobile, var(--article-comments-padding-top, 80px)); padding-bottom: var(--article-comments-padding-bottom-mobile, var(--article-comments-padding-bottom, 80px)); }
+    .article-comments__container { gap: 24px; width: 100%; max-width: 100%; box-sizing: border-box; }
+    .article-comments__native-form { width: 100%; min-width: 0; }
+    .article-comments__form { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 16px; }
+    .article-comments__field { min-width: 0; }
+    .article-comments__field--body { grid-column: 1 / -1; }
+    .article-comments__form .btn { grid-column: 1 / -1; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Comments",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Width",
+      "options": [
+        {
+          "value": "default",
+          "label": "Default"
+        },
+        {
+          "value": "page",
+          "label": "Page"
+        },
+        {
+          "value": "full",
+          "label": "Full"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        {
+          "value": "display",
+          "label": "t:options.heading_size.display"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.heading_size.xl"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.heading_size.lg"
+        },
+        {
+          "value": "md",
+          "label": "t:options.heading_size.md"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.heading_size.sm"
+        },
+        {
+          "value": "xs",
+          "label": "t:options.heading_size.xs"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.heading_size.custom"
+        }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "html_heading_tag",
+      "label": "t:labels.html_tag",
+      "options": [
+        {
+          "value": "p",
+          "label": "t:options.html_tag.paragraph"
+        },
+        {
+          "value": "h1",
+          "label": "t:options.html_tag.h1"
+        },
+        {
+          "value": "h2",
+          "label": "t:options.html_tag.h2"
+        },
+        {
+          "value": "h3",
+          "label": "t:options.html_tag.h3"
+        },
+        {
+          "value": "h4",
+          "label": "t:options.html_tag.h4"
+        },
+        {
+          "value": "h5",
+          "label": "t:options.html_tag.h5"
+        },
+        {
+          "value": "h6",
+          "label": "t:options.html_tag.h6"
+        }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "header",
+      "content": "Form fields"
+    },
+    {
+      "type": "text",
+      "id": "name_placeholder",
+      "label": "Name placeholder",
+      "default": "Name"
+    },
+    {
+      "type": "text",
+      "id": "email_placeholder",
+      "label": "Email placeholder",
+      "default": "Email"
+    },
+    {
+      "type": "text",
+      "id": "comment_placeholder",
+      "label": "Comment placeholder",
+      "default": "Comment"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "custom_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.custom_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.custom_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Comments",
+      "category": "Blog"
+    }
+  ]
+}
+{% endschema %}

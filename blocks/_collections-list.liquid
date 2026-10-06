@@ -1,0 +1,202 @@
+{% doc %}
+  Fixed resource grid for the list-collections page. A blank collection picker
+  paginates all Shopify collections; a selected list preserves its saved order.
+  Collection card and Pagination are fixed editable children. Each child
+  receives its explicit resource/paginate context because Theme Blocks isolate
+  their Liquid scope. The owning section supplies the shell and heading.
+{% enddoc %}
+{% liquid
+  assign collections_per_page = block.settings.collections_per_page | default: 12 | at_least: 8 | at_most: 60
+  assign collections_columns = block.settings.columns_desktop | default: 3 | plus: 0 | at_least: 2 | at_most: 6
+  assign collections_columns_mobile = block.settings.columns_mobile | default: 1 | plus: 0 | at_least: 1 | at_most: 2
+%}
+{% liquid
+  assign collections_page_width = settings.max_page_width | default: 1600 | remove: 'px' | plus: 0
+  assign collections_margin_desktop = settings.layout_desktop_margin | default: 48
+  assign collections_margin_tablet = settings.layout_tablet_margin | default: 30
+  assign collections_margin_mobile = settings.layout_mobile_margin | default: 16
+  assign collections_gaps_desktop = collections_columns | minus: 1 | times: block.settings.column_gap_desktop
+  assign collections_gaps_mobile = collections_columns_mobile | minus: 1 | times: block.settings.column_gap_mobile
+  assign collections_space_desktop = collections_margin_desktop | times: 2 | plus: collections_gaps_desktop
+  assign collections_space_tablet = collections_margin_tablet | times: 2 | plus: collections_gaps_desktop
+  assign collections_space_mobile = collections_margin_mobile | times: 2 | plus: collections_gaps_mobile
+%}
+{% capture collections_image_sizes %}(max-width: 767.98px) calc((100vw - {{ collections_space_mobile }}px) / {{ collections_columns_mobile }}), (max-width: 1149.98px) calc((100vw - {{ collections_space_tablet }}px) / {{ collections_columns }}), {% if section.settings.section_width != 'full_width' %}(min-width: {{ collections_page_width }}px) calc(({{ collections_page_width }}px - {{ collections_space_desktop }}px) / {{ collections_columns }}), {% endif %}calc((100vw - {{ collections_space_desktop }}px) / {{ collections_columns }}){% endcapture %}
+{% comment %}Shopify requires direct paginateable drops: assigning collections to an alias loses native pagination eligibility.{% endcomment %}
+{% if block.settings.custom_collections == blank %}
+{% paginate collections by collections_per_page %}
+<div class="collections-page-list" style="--collections-columns: {{ collections_columns }}; --collections-columns-mobile: {{ collections_columns_mobile }}; --collections-column-gap: {{ block.settings.column_gap_desktop }}px; --collections-row-gap: {{ block.settings.row_gap_desktop }}px; --collections-column-gap-mobile: {{ block.settings.column_gap_mobile }}px; --collections-row-gap-mobile: {{ block.settings.row_gap_mobile }}px;" {{ block.shopify_attributes }}>
+  <div class="collections-page-list__grid">
+    {% for collection_item in collections %}
+      {% liquid
+        assign card_loading = 'lazy'
+        if forloop.index <= collections_columns
+          assign card_loading = 'eager'
+        endif
+        assign card_placeholder_index = forloop.index0 | modulo: 6 | plus: 1
+      %}
+      <div class="collections-page-list__item">
+        {% content_for 'block', type: '_collections-page-card', id: 'collection-card', closest.collection: collection_item, image_loading: card_loading, image_sizes: collections_image_sizes, placeholder_index: card_placeholder_index %}
+      </div>
+    {% else %}
+      <p class="collections-page-list__empty body-text body-md" role="status">{{ 'collections.empty' | t }}</p>
+    {% endfor %}
+  </div>
+  {% assign collections_page_count = paginate.pages %}
+  {% capture collections_page_links %}{% render 'pagination-pages', paginate: paginate, block: block %}{% endcapture %}
+  {% content_for 'block', type: 'pagination', id: 'pagination', native_page_count: collections_page_count, native_page_links: collections_page_links %}
+</div>
+{% endpaginate %}
+{% else %}
+{% paginate block.settings.custom_collections by collections_per_page %}
+<div class="collections-page-list" style="--collections-columns: {{ collections_columns }}; --collections-columns-mobile: {{ collections_columns_mobile }}; --collections-column-gap: {{ block.settings.column_gap_desktop }}px; --collections-row-gap: {{ block.settings.row_gap_desktop }}px; --collections-column-gap-mobile: {{ block.settings.column_gap_mobile }}px; --collections-row-gap-mobile: {{ block.settings.row_gap_mobile }}px;" {{ block.shopify_attributes }}>
+  <div class="collections-page-list__grid">
+    {% for collection_item in block.settings.custom_collections %}
+      {% liquid
+        assign card_loading = 'lazy'
+        if forloop.index <= collections_columns
+          assign card_loading = 'eager'
+        endif
+        assign card_placeholder_index = forloop.index0 | modulo: 6 | plus: 1
+      %}
+      <div class="collections-page-list__item">
+        {% content_for 'block', type: '_collections-page-card', id: 'collection-card', closest.collection: collection_item, image_loading: card_loading, image_sizes: collections_image_sizes, placeholder_index: card_placeholder_index %}
+      </div>
+    {% else %}
+      <p class="collections-page-list__empty body-text body-md" role="status">{{ 'collections.empty' | t }}</p>
+    {% endfor %}
+  </div>
+  {% assign collections_page_count = paginate.pages %}
+  {% capture collections_page_links %}{% render 'pagination-pages', paginate: paginate, block: block %}{% endcapture %}
+  {% content_for 'block', type: 'pagination', id: 'pagination', native_page_count: collections_page_count, native_page_links: collections_page_links %}
+</div>
+{% endpaginate %}
+{% endif %}
+{% stylesheet %}
+  .collections-page-list { min-width: 0; }
+  .collections-page-list__grid { display: grid; grid-template-columns: repeat(var(--collections-columns, 3), minmax(0, 1fr)); gap: var(--collections-row-gap, 30px) var(--collections-column-gap, 12px); }
+  .collections-page-list__item { min-width: 0; }
+  .collections-page-list__empty { grid-column: 1 / -1; }
+  @media (max-width: 767.98px) {
+    .collections-page-list__grid { grid-template-columns: repeat(var(--collections-columns-mobile, 1), minmax(0, 1fr)); gap: var(--collections-row-gap-mobile, 28px) var(--collections-column-gap-mobile, 8px); }
+  }
+{% endstylesheet %}
+{% schema %}
+{
+  "name": "Collection list",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "_collections-page-card"
+    },
+    {
+      "type": "pagination"
+    }
+  ],
+  "settings": [
+    {
+      "type": "range",
+      "id": "collections_per_page",
+      "label": "Collections per page",
+      "min": 8,
+      "max": 60,
+      "step": 1,
+      "default": 12
+    },
+    {
+      "type": "collection_list",
+      "id": "custom_collections",
+      "label": "Custom collections",
+      "info": "Leave blank to show all collections."
+    },
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Desktop columns",
+      "options": [
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        },
+        {
+          "value": "6",
+          "label": "6"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Mobile columns",
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "type": "range",
+      "id": "column_gap_desktop",
+      "label": "Desktop column gap",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "row_gap_desktop",
+      "label": "Desktop row gap",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "column_gap_mobile",
+      "label": "Mobile column gap",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "row_gap_mobile",
+      "label": "Mobile row gap",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 28
+    }
+  ]
+}
+{% endschema %}

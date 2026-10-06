@@ -1,0 +1,58 @@
+{% liquid
+  assign item_collection = block.settings.collection
+  assign item_title = block.settings.custom_title | default: item_collection.title | default: 'Collection title'
+  assign item_image = block.settings.custom_image | default: item_collection.featured_image | default: item_collection.image
+  assign item_scheme = blank
+  if block.settings.color_type == 'color_scheme'
+    assign item_scheme = block.settings.color_scheme.id | default: block.settings.color_scheme | default: 'scheme-1' | handleize
+  endif
+  assign item_id = block.id
+  assign item_title_tag = section.settings.title_tag | default: 'div'
+  assign item_title_size = section.settings.title_size | default: 'heading_2'
+  assign item_title_size = item_title_size | replace: 'heading_1', 'display' | replace: 'heading_2', 'xl' | replace: 'heading_3', 'lg' | replace: 'heading_4', 'md'
+  assign image_ratio = section.settings.image_ratio | default: 'auto'
+  if image_ratio == 'auto'
+    if item_image != blank and item_image.aspect_ratio > 0
+      assign image_ratio = item_image.aspect_ratio
+    else
+      assign image_ratio = 1
+    endif
+  endif
+%}
+<div class="collections-with-tabs__tab-row" {{ block.shopify_attributes }}>
+  <button id="CollectionsWithTabsTab-{{ item_id }}" class="collections-with-tabs__tab" type="button" role="tab" aria-controls="CollectionsWithTabsPanel-{{ item_id }}" aria-selected="false" tabindex="-1" data-collections-with-tabs-tab data-collections-with-tabs-id="{{ item_id }}">
+    <span class="collections-with-tabs__tab-content">
+      <{{ item_title_tag }} class="collections-with-tabs__tab-title collections-with-tabs__tab-title--{{ item_title_size }}">{{ item_title | escape }}</{{ item_title_tag }}>
+      {% if section.settings.show_product_count and item_collection != blank %}<sup class="collections-with-tabs__tab-count">{{ item_collection.products_count }}</sup>{% endif %}
+    </span>
+  </button>
+  {% if item_collection != blank %}<a class="btn btn--secondary btn--icon collections-with-tabs__tab-action" href="{{ item_collection.url }}" aria-label="View {{ item_title | escape }}">↗</a>{% endif %}
+</div>
+<div id="CollectionsWithTabsPanel-{{ item_id }}" class="collections-with-tabs__panel" role="tabpanel" aria-labelledby="CollectionsWithTabsTab-{{ item_id }}" hidden data-collections-with-tabs-panel data-collections-with-tabs-color-scheme="{{ item_scheme }}" data-collections-with-tabs-background="{% if block.settings.custom_background %}{{ block.settings.background_color | escape }}{% endif %}" data-collections-with-tabs-id="{{ item_id }}">
+    <div class="media collections-with-tabs__media" style="--collections-with-tabs-panel-ratio: {{ image_ratio }}">
+      <div class="media__inner{% if item_image == blank %} placeholder-image{% endif %}">
+        {% if item_image != blank %}
+          {{ item_image | image_url: width: 1600 | image_tag: widths: '480, 720, 960, 1200, 1600', sizes: '(max-width: 767px) 100vw, 50vw', alt: item_title, loading: 'lazy' }}
+        {% else %}
+          {{ 'collection-1' | placeholder_svg_tag: 'collections-with-tabs__placeholder' }}
+        {% endif %}
+      </div>
+      {% if section.settings.show_featured_products and item_collection != blank %}
+        <div class="collections-with-tabs__featured" aria-label="Featured products">
+          <span class="collections-with-tabs__featured-more" aria-hidden="true">+</span>
+          {% for product in item_collection.products limit: section.settings.products_to_show %}
+            <a class="media collections-with-tabs__featured-product{% if product.featured_image == blank %} placeholder-image{% endif %}" href="{{ product.url }}" aria-label="{{ product.title | escape }}">
+              {% if product.featured_image != blank %}
+                {{ product.featured_image | image_url: width: 160 | image_tag: widths: '80, 160', sizes: '40px', alt: product.title, loading: 'lazy' }}
+              {% else %}
+                {{ 'product-1' | placeholder_svg_tag }}
+              {% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+</div>
+{% schema %}
+{"name":"Collection","tag":null,"settings":[{"type":"collection","id":"collection","label":"Collection"},{"type":"text","id":"custom_title","label":"Custom title"},{"type":"image_picker","id":"custom_image","label":"Custom image"},{"type":"header","content":"Color"},{"type":"select","id":"color_type","label":"Color type","options":[{"value":"inherit","label":"Inherit"},{"value":"color_scheme","label":"Color scheme"}],"default":"inherit"},{"type":"color_scheme","id":"color_scheme","label":"Color scheme","default":"scheme-1","visible_if":"{{ block.settings.color_type == 'color_scheme' }}"},{"type":"checkbox","id":"custom_background","label":"Custom background","default":false},{"type":"color","alpha":true,"id":"background_color","label":"Background color","default":"#f1f1f1","visible_if":"{{ block.settings.custom_background }}"}],"presets":[{"name":"Collection"}]}
+{% endschema %}

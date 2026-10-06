@@ -1,0 +1,116 @@
+{% liquid
+  assign tag = block.settings.tag
+  assign social_network = block.settings.social_network | default: 'instagram'
+  assign social_url = block.settings.social_url
+  if social_url == blank
+    assign social_setting_key = 'social_' | append: social_network
+    assign social_url = settings[social_setting_key]
+  endif
+  assign show_overlay = block.settings.show_overlay | default: 'always'
+  unless show_overlay == 'always' or show_overlay == 'hover'
+    assign show_overlay = 'always'
+  endunless
+  assign social_background = block.settings.social_background | default: '#FFFFFF'
+  assign social_color = block.settings.social_color | default: '#6A372F'
+  assign overlay_background = block.settings.overlay_background | default: '#00000061'
+  assign tag_font_size = block.settings.tag_font_size | default: 'md'
+  assign customize_mobile_tag_font_size = block.settings.customize_mobile_tag_font_size
+  assign tag_font_size_mobile = block.settings.tag_font_size_mobile | default: tag_font_size
+  assign tag_font_size_token = 'var(--font-body-md)'
+  case tag_font_size
+    when 'xs'
+      assign tag_font_size_token = 'var(--font-body-xs)'
+    when 'sm'
+      assign tag_font_size_token = 'var(--font-body-sm)'
+    when 'lg'
+      assign tag_font_size_token = 'var(--font-body-lg)'
+    when 'custom'
+      assign tag_font_size_token = block.settings.tag_font_size_custom | default: 16 | append: 'px'
+  endcase
+  assign tag_font_size_mobile_token = tag_font_size_token
+  if customize_mobile_tag_font_size
+    case tag_font_size_mobile
+      when 'xs'
+        assign tag_font_size_mobile_token = 'var(--font-body-xs)'
+      when 'sm'
+        assign tag_font_size_mobile_token = 'var(--font-body-sm)'
+      when 'md'
+        assign tag_font_size_mobile_token = 'var(--font-body-md)'
+      when 'lg'
+        assign tag_font_size_mobile_token = 'var(--font-body-lg)'
+      when 'custom'
+        assign tag_font_size_mobile_token = block.settings.tag_font_size_custom_mobile | default: 14 | append: 'px'
+    endcase
+  endif
+%}
+
+<div class="gallery-image gallery-image--overlay-{{ show_overlay }}" style="--gallery-social-background: {{ social_background | escape }}; --gallery-social-color: {{ social_color | escape }}; --gallery-overlay-background: {{ overlay_background | escape }}; --gallery-overlay-opacity: 1; --gallery-tag-font-size: {{ tag_font_size_token }}; --gallery-tag-font-size-mobile: {{ tag_font_size_mobile_token }};" {{ block.shopify_attributes }}>
+  {% render 'image', image: block.settings.image, mobile_image: block.settings.mobile_image, alt: block.settings.alt_text, class: 'gallery-image__media', width: 1600, widths: '400, 600, 800, 1200, 1600', sizes: '(min-width: 768px) 25vw, 50vw' %}
+  <div class="gallery-image__overlay">
+    {% unless social_network == 'none' %}
+      {% if social_url != blank %}<a class="gallery-image__button" href="{{ social_url | escape }}" target="_blank" rel="noopener noreferrer" aria-label="{{ tag | default: social_network | escape }}">{% else %}<span class="gallery-image__button">{% endif %}
+        {% case social_network %}
+        {% when 'facebook' %}<svg class="gallery-image__icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.5 1.6-1.5h1.7V4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10H8v3h2.6v8h2.9Z"/></svg>
+        {% when 'x' %}<svg class="gallery-image__icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 4h4.2l3.1 4.3L16 4h2.7l-5.1 5.8L19 20h-4.2l-3.5-4.9L7.1 20H4.4l5.4-6.4L5 4Zm3.1 2 7.7 12h1.1L9.2 6H8.1Z"/></svg>
+        {% when 'tiktok' %}<svg class="gallery-image__icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 4h2.4c.2 1.5 1.1 2.8 2.6 3.5v2.5a7 7 0 0 1-2.6-1V15a5 5 0 1 1-5-5h.5v2.6a2.5 2.5 0 1 0 1.9 2.4V4Z"/></svg>
+        {% when 'youtube' %}<svg class="gallery-image__icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 8.1a2.5 2.5 0 0 0-1.8-1.8C17.6 6 12 6 12 6s-5.6 0-7.2.3A2.5 2.5 0 0 0 3 8.1 26 26 0 0 0 2.7 12c0 1.3.1 2.7.3 3.9a2.5 2.5 0 0 0 1.8 1.8c1.6.3 7.2.3 7.2.3s5.6 0 7.2-.3a2.5 2.5 0 0 0 1.8-1.8c.2-1.2.3-2.6.3-3.9s-.1-2.7-.3-3.9ZM10 15.5v-7l6 3.5-6 3.5Z"/></svg>
+        {% when 'pinterest' %}<svg class="gallery-image__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><path fill="var(--gallery-social-background, #fff)" d="M12.4 6.4c-2.7 0-4.3 1.8-4.3 3.8 0 1.1.4 2.1 1.1 2.5.1.1.2.1.2-.1l.3-1.1c0-.1 0-.2-.1-.3-.2-.3-.4-.8-.4-1.3 0-1.2.9-2.3 2.8-2.3 1.5 0 2.5.9 2.5 2.2 0 1.6-.7 2.9-1.8 2.9-.6 0-1.1-.5-.9-1.1.2-.7.6-1.5.6-2 0-.5-.3-.9-.8-.9-.6 0-1 .6-1 1.4 0 .5.2.8.2.8l-.8 3.3c-.2 1-.3 2.1-.1 3 .1.1.1.1.2 0 .3-.4.8-1.5 1-2.4l.3-1.1c.3.6 1 .9 1.7.9 2.2 0 3.7-2 3.7-4.8 0-2.1-1.8-3.7-4.4-3.7Z"/></svg>
+        {% when 'linkedin' %}<svg class="gallery-image__icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 8.5A1.5 1.5 0 1 1 5 5.5a1.5 1.5 0 0 1 0 3ZM3.7 10h2.6v8H3.7v-8Zm4.2 0h2.5v1.1h.1c.3-.6 1.2-1.4 2.6-1.4 2.8 0 3.3 1.8 3.3 4.1V18h-2.6v-3.7c0-.9 0-2.1-1.3-2.1s-1.5 1-1.5 2V18H7.9v-8Z"/></svg>
+        {% else %}<svg class="gallery-image__icon" viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="4.25" stroke="currentColor" stroke-width="1.5"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor"/></svg>
+        {% endcase %}
+      {% if social_url != blank %}</a>{% else %}</span>{% endif %}
+    {% endunless %}
+    {% if tag != blank %}<span class="gallery-image__tag">{{ tag | escape }}</span>{% endif %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .gallery-image { position: relative; min-width: 0; overflow: hidden; aspect-ratio: 1; background: var(--color-foreground-alpha-10, rgb(0 0 0 / 0.08)); }
+  .gallery-image__media, .gallery-image__media > picture, .gallery-image__media > img, .gallery-image__media .image__placeholder { display: block; width: 100%; height: 100%; }
+  .gallery-image__media img { object-fit: cover; transition: transform 400ms ease; }
+  .gallery-image__overlay { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem; color: var(--color-background, #fff); background: color-mix(in srgb, var(--gallery-overlay-background) calc(var(--gallery-overlay-opacity) * 100%), transparent); opacity: 1; transform: scale(1); transition: opacity 280ms ease, transform 280ms ease; }
+  .gallery-image--overlay-hover .gallery-image__overlay { opacity: 0; transform: scale(1.04); }
+  .gallery-image--overlay-hover:hover .gallery-image__overlay, .gallery-image--overlay-hover:focus-within .gallery-image__overlay { opacity: 1; transform: scale(1); }
+  .gallery-image:hover .gallery-image__media img { transform: scale(1.03); }
+  .gallery-image__icon { width: 20px; height: 20px; }
+  .gallery-image__button { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; color: var(--gallery-social-color, #6A372F); background: var(--gallery-social-background, #fff); text-decoration: none; border: 0; border-radius: 50%; transition: background-color 180ms ease, color 180ms ease, transform 180ms ease; }
+  .gallery-image__button:hover, .gallery-image__button:focus-visible { color: var(--gallery-social-color, #6A372F); background: var(--gallery-social-background, #fff); transform: translateY(-2px); }
+  .gallery-image__tag { font: var(--font-body--style, inherit); font-size: var(--gallery-tag-font-size, var(--font-body-md)); line-height: 1.2; }
+  .gallery-image__icon--letter { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-weight: 700; font-size: 0.9rem; line-height: 1; }
+  @media (max-width: 767.98px) { .gallery-image__tag { font-size: var(--gallery-tag-font-size-mobile, var(--gallery-tag-font-size, var(--font-body-md))); } }
+  @media (prefers-reduced-motion: reduce) { .gallery-image__overlay, .gallery-image__media img { transition: none; } }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Gallery image",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "Image" },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "image_picker", "id": "mobile_image", "label": "Mobile image" },
+    { "type": "text", "id": "alt_text", "label": "Alt text" },
+    { "type": "header", "content": "Social" },
+    { "type": "text", "id": "tag", "label": "Social tag", "default": "@pam_sam" },
+    { "type": "select", "id": "tag_font_size", "label": "Font size", "options": [{ "value": "xs", "label": "Extra small" }, { "value": "sm", "label": "Small" }, { "value": "md", "label": "Medium" }, { "value": "lg", "label": "Large" }, { "value": "custom", "label": "Custom" }], "default": "md" },
+    { "type": "range", "id": "tag_font_size_custom", "label": "Custom font size", "min": 10, "max": 80, "step": 1, "unit": "px", "default": 16, "visible_if": "{{ block.settings.tag_font_size == 'custom' }}" },
+    { "type": "checkbox", "id": "customize_mobile_tag_font_size", "label": "Customize mobile font size", "default": false },
+    { "type": "select", "id": "tag_font_size_mobile", "label": "Mobile font size", "options": [{ "value": "xs", "label": "Extra small" }, { "value": "sm", "label": "Small" }, { "value": "md", "label": "Medium" }, { "value": "lg", "label": "Large" }, { "value": "custom", "label": "Custom" }], "default": "md", "visible_if": "{{ block.settings.customize_mobile_tag_font_size }}" },
+    { "type": "range", "id": "tag_font_size_custom_mobile", "label": "Custom mobile font size", "min": 10, "max": 80, "step": 1, "unit": "px", "default": 14, "visible_if": "{{ block.settings.customize_mobile_tag_font_size and block.settings.tag_font_size_mobile == 'custom' }}" },
+    { "type": "select", "id": "social_network", "label": "Social network", "options": [{ "value": "none", "label": "None" }, { "value": "instagram", "label": "Instagram" }, { "value": "facebook", "label": "Facebook" }, { "value": "x", "label": "X" }, { "value": "tiktok", "label": "TikTok" }, { "value": "youtube", "label": "YouTube" }, { "value": "pinterest", "label": "Pinterest" }, { "value": "linkedin", "label": "LinkedIn" }], "default": "instagram" },
+    { "type": "url", "id": "social_url", "label": "Social link", "info": "Leave blank to use the selected social network URL from Theme settings." },
+    { "type": "color", "alpha": true, "id": "social_background", "label": "Button background", "default": "#FFFFFF" },
+    { "type": "color", "alpha": true, "id": "social_color", "label": "Button color", "default": "#6A372F" },
+    { "type": "header", "content": "Overlay" },
+    { "type": "select", "id": "show_overlay", "label": "Show social overlay", "options": [{ "value": "always", "label": "Always" }, { "value": "hover", "label": "On hover" }], "default": "always" },
+    {
+      "type": "color",
+      "id": "overlay_background",
+      "label": "Overlay background",
+      "alpha": true,
+      "default": "#00000061"
+    }
+  ],
+  "presets": [{ "name": "Gallery image", "category": "Gallery" }]
+}
+{% endschema %}

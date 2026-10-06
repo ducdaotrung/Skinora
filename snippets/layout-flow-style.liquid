@@ -1,0 +1,28 @@
+{% doc %}
+  Emits the custom properties consumed by the shared `layout-flow` primitive.
+  Callers normalize setting values before passing them to this snippet.
+
+  @param {string} [direction] - Flex direction for the default breakpoint
+  @param {string} [wrap] - Flex wrapping for the default breakpoint
+  @param {string} [align_items] - Cross-axis alignment for the default breakpoint
+  @param {string} [justify_content] - Main-axis alignment for the default breakpoint
+  @param {number} [gap] - Gap in pixels for the default breakpoint
+  @param {string} [gap_value] - CSS gap value for the default breakpoint
+  @param {string} [direction_mobile] - Flex direction below the mobile breakpoint
+  @param {string} [wrap_mobile] - Flex wrapping below the mobile breakpoint
+  @param {string} [align_items_mobile] - Cross-axis alignment below the mobile breakpoint
+  @param {string} [justify_content_mobile] - Main-axis alignment below the mobile breakpoint
+  @param {number} [gap_mobile] - Gap in pixels below the mobile breakpoint
+  @param {string} [gap_mobile_value] - CSS gap value below the mobile breakpoint
+{% enddoc %}
+
+{% if direction != blank %}--layout-flow-direction: {{ direction }};{% endif %}
+{% if wrap == 'wrap' or wrap == 'nowrap' %}--layout-flow-wrap: {{ wrap }};{% endif %}
+{% if align_items != blank %}--layout-flow-align-items: {{ align_items }};{% endif %}
+{% if justify_content != blank %}--layout-flow-justify-content: {{ justify_content }};{% endif %}
+{% if gap_value != blank %}--layout-flow-gap: {{ gap_value }};{% elsif gap != blank %}--layout-flow-gap: {{ gap }}px;{% endif %}
+{% if direction_mobile != blank %}--layout-flow-direction-mobile: {{ direction_mobile }};{% endif %}
+{% if wrap_mobile == 'wrap' or wrap_mobile == 'nowrap' %}--layout-flow-wrap-mobile: {{ wrap_mobile }};{% endif %}
+{% if align_items_mobile != blank %}--layout-flow-align-items-mobile: {{ align_items_mobile }};{% endif %}
+{% if justify_content_mobile != blank %}--layout-flow-justify-content-mobile: {{ justify_content_mobile }};{% endif %}
+{% if gap_mobile_value != blank %}--layout-flow-gap-mobile: {{ gap_mobile_value }};{% elsif gap_mobile != blank %}--layout-flow-gap-mobile: {{ gap_mobile }}px;{% endif %}

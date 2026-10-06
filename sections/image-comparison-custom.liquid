@@ -1,0 +1,436 @@
+{% liquid
+  assign image_comparison_custom_section_width = section.settings.section_width | default: 'full_width_no_padding'
+  unless image_comparison_custom_section_width == 'page_width' or image_comparison_custom_section_width == 'full_width' or image_comparison_custom_section_width == 'full_width_no_padding'
+    assign image_comparison_custom_section_width = 'full_width_no_padding'
+  endunless
+
+  assign image_comparison_custom_container_width = 'page-width'
+  assign image_comparison_custom_container_no_padding = false
+  case image_comparison_custom_section_width
+    when 'full_width'
+      assign image_comparison_custom_container_width = 'full-width'
+    when 'full_width_no_padding'
+      assign image_comparison_custom_container_width = 'full-width'
+      assign image_comparison_custom_container_no_padding = true
+  endcase
+
+  assign image_comparison_custom_direction = section.settings.direction | default: 'vertical'
+  unless image_comparison_custom_direction == 'horizontal' or image_comparison_custom_direction == 'vertical'
+    assign image_comparison_custom_direction = 'vertical'
+  endunless
+
+  assign image_comparison_custom_position = section.settings.position | default: 'center'
+  unless image_comparison_custom_position == 'top' or image_comparison_custom_position == 'center' or image_comparison_custom_position == 'bottom'
+    assign image_comparison_custom_position = 'center'
+  endunless
+
+  assign image_comparison_custom_horizontal_alignment = section.settings.horizontal_alignment | default: 'space-between'
+  unless image_comparison_custom_horizontal_alignment == 'left' or image_comparison_custom_horizontal_alignment == 'center' or image_comparison_custom_horizontal_alignment == 'right' or image_comparison_custom_horizontal_alignment == 'space-between'
+    assign image_comparison_custom_horizontal_alignment = 'space-between'
+  endunless
+
+  assign image_comparison_custom_alignment = section.settings.alignment | default: 'left'
+  unless image_comparison_custom_alignment == 'left' or image_comparison_custom_alignment == 'center' or image_comparison_custom_alignment == 'right'
+    assign image_comparison_custom_alignment = 'left'
+  endunless
+
+  assign image_comparison_custom_alignment_mobile = section.settings.alignment_mobile | default: 'left'
+  unless image_comparison_custom_alignment_mobile == 'left' or image_comparison_custom_alignment_mobile == 'center' or image_comparison_custom_alignment_mobile == 'right'
+    assign image_comparison_custom_alignment_mobile = 'left'
+  endunless
+
+  assign image_comparison_custom_flow_position = 'top'
+  if image_comparison_custom_direction == 'horizontal'
+    assign image_comparison_custom_flow_position = image_comparison_custom_position
+  endif
+
+  assign image_comparison_custom_flow_alignment = 'start'
+  case image_comparison_custom_alignment
+    when 'center'
+      assign image_comparison_custom_flow_alignment = 'center'
+    when 'right'
+      assign image_comparison_custom_flow_alignment = 'end'
+  endcase
+
+  assign image_comparison_custom_flow_horizontal_alignment = 'flex-start'
+  case image_comparison_custom_horizontal_alignment
+    when 'center'
+      assign image_comparison_custom_flow_horizontal_alignment = 'center'
+    when 'right'
+      assign image_comparison_custom_flow_horizontal_alignment = 'flex-end'
+    when 'space-between'
+      assign image_comparison_custom_flow_horizontal_alignment = 'space-between'
+  endcase
+
+  assign image_comparison_custom_flow_mobile_alignment = 'start'
+  case image_comparison_custom_alignment_mobile
+    when 'center'
+      assign image_comparison_custom_flow_mobile_alignment = 'center'
+    when 'right'
+      assign image_comparison_custom_flow_mobile_alignment = 'end'
+  endcase
+
+  assign image_comparison_custom_flow_mobile_justify = 'flex-start'
+  case image_comparison_custom_alignment_mobile
+    when 'center'
+      assign image_comparison_custom_flow_mobile_justify = 'center'
+    when 'right'
+      assign image_comparison_custom_flow_mobile_justify = 'flex-end'
+  endcase
+
+  assign image_comparison_custom_mobile_vertical = false
+  if image_comparison_custom_direction == 'horizontal' and section.settings.customize_mobile_alignment
+    assign image_comparison_custom_mobile_vertical = true
+  endif
+
+  assign image_comparison_custom_gap_desktop = section.settings.gap_desktop | default: 36 | plus: 0
+  if image_comparison_custom_gap_desktop < 0 or image_comparison_custom_gap_desktop > 100
+    assign image_comparison_custom_gap_desktop = 36
+  endif
+  assign image_comparison_custom_gap_mobile = section.settings.gap_mobile | default: 36 | plus: 0
+  if image_comparison_custom_gap_mobile < 0 or image_comparison_custom_gap_mobile > 100
+    assign image_comparison_custom_gap_mobile = 36
+  endif
+
+  assign image_comparison_custom_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign image_comparison_custom_scheme = section.settings.color_scheme.id
+  endif
+  assign image_comparison_custom_scheme = image_comparison_custom_scheme | default: 'scheme-1' | handleize
+
+  assign image_comparison_custom_padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign image_comparison_custom_padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign image_comparison_custom_padding_top_mobile = section.settings.padding_top_mobile | default: image_comparison_custom_padding_top | plus: 0
+  assign image_comparison_custom_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: image_comparison_custom_padding_bottom | plus: 0
+
+  assign image_comparison_custom_content_class = 'image-comparison-custom__content layout-flow layout-flow--responsive image-comparison-custom__content--direction-' | append: image_comparison_custom_direction
+%}
+
+{% capture image_comparison_custom_style %}
+  {% if image_comparison_custom_padding_top != 0 %}--section-padding-top: {{ image_comparison_custom_padding_top }}px;{% endif %}
+  {% if image_comparison_custom_padding_bottom != 0 %}--section-padding-bottom: {{ image_comparison_custom_padding_bottom }}px;{% endif %}
+  {% if section.settings.customize_mobile_padding %}
+    {% if image_comparison_custom_padding_top_mobile != image_comparison_custom_padding_top %}--section-padding-top-mobile: {{ image_comparison_custom_padding_top_mobile }}px;{% endif %}
+    {% if image_comparison_custom_padding_bottom_mobile != image_comparison_custom_padding_bottom %}--section-padding-bottom-mobile: {{ image_comparison_custom_padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign image_comparison_custom_style = image_comparison_custom_style | strip | replace: '\n', ' ' %}
+
+{% capture image_comparison_custom_content_style %}
+  {% render 'layout-flow-group-style',
+    direction: image_comparison_custom_direction,
+    wrap: 'nowrap',
+    position: image_comparison_custom_flow_position,
+    alignment: image_comparison_custom_flow_alignment,
+    horizontal_alignment: image_comparison_custom_flow_horizontal_alignment,
+    mobile_vertical: image_comparison_custom_mobile_vertical,
+    mobile_alignment: image_comparison_custom_flow_mobile_alignment,
+    mobile_justify: image_comparison_custom_flow_mobile_justify,
+    gap: image_comparison_custom_gap_desktop,
+    gap_mobile: image_comparison_custom_gap_mobile
+  %}
+{% endcapture %}
+{% assign image_comparison_custom_content_style = image_comparison_custom_content_style | strip %}
+
+{% if section.blocks.size > 0 or request.design_mode %}
+  <div class="image-comparison-custom">
+    <div
+      class="section-spacing image-comparison-custom__spacing color-scheme section-color-scope {{ image_comparison_custom_scheme }}{% if image_comparison_custom_container_no_padding %} image-comparison-custom__spacing--no-padding{% endif %}"
+      {% if image_comparison_custom_style != blank %}style="{{ image_comparison_custom_style }}"{% endif %}
+    >
+      <div class="container {{ image_comparison_custom_container_width }} image-comparison-custom__container{% if image_comparison_custom_container_no_padding %} image-comparison-custom__container--no-padding{% endif %}">
+        <div
+          class="{{ image_comparison_custom_content_class }}"
+          {% if image_comparison_custom_content_style != blank %}style="{{ image_comparison_custom_content_style }}"{% endif %}
+        >
+          {% content_for 'blocks' %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .image-comparison-custom {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .image-comparison-custom__spacing {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .image-comparison-custom__container,
+  .image-comparison-custom__content,
+  .image-comparison-custom__content > * {
+    min-width: 0;
+  }
+
+  .image-comparison-custom__container {
+    position: relative;
+  }
+
+  .image-comparison-custom__spacing--no-padding,
+  .image-comparison-custom__spacing .container.image-comparison-custom__container--no-padding {
+    padding-inline: 0;
+  }
+
+  .image-comparison-custom__content--direction-horizontal > * {
+    max-width: 100%;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.image_comparison_custom",
+  "class": "section-image-comparison-custom",
+  "enabled_on": { "templates": ["*"] },
+  "max_blocks": 10,
+  "blocks": [
+    { "type": "header" },
+    { "type": "image-comparison" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" },
+        { "value": "full_width_no_padding", "label": "t:options.section_width.full_width_no_padding" }
+      ],
+      "default": "full_width_no_padding"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "t:labels.direction",
+      "options": [
+        { "value": "horizontal", "label": "t:options.direction.horizontal" },
+        { "value": "vertical", "label": "t:options.direction.vertical" }
+      ],
+      "default": "vertical"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "top", "label": "t:options.position.top" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "bottom", "label": "t:options.position.bottom" }
+      ],
+      "default": "center",
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "horizontal_alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" },
+        { "value": "space-between", "label": "t:options.alignment.space_between" }
+      ],
+      "default": "space-between",
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.vertical_on_mobile",
+      "default": true,
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ section.settings.direction == 'vertical' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "t:labels.alignment_mobile",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ section.settings.direction == 'vertical' or section.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.image_comparison_custom",
+      "category": "t:general.media",
+      "settings": {
+        "section_width": "page_width",
+        "direction": "vertical",
+        "position": "center",
+        "horizontal_alignment": "space-between",
+        "customize_mobile_alignment": true,
+        "alignment": "center",
+        "alignment_mobile": "center",
+        "gap_desktop": 40,
+        "gap_mobile": 32,
+        "color_scheme": "scheme-1",
+        "padding_top": 50,
+        "padding_bottom": 50,
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "header",
+          "settings": {
+            "width": "fit",
+            "gap_desktop": 12,
+            "gap_mobile": 8,
+            "alignment": "center"
+          },
+          "blocks": [
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Image comparison</p>",
+                "heading_size": "lg",
+                "html_tag": "h2"
+              }
+            }
+          ]
+        },
+        {
+          "type": "image-comparison",
+          "settings": {
+            "comparison_style": "slider",
+            "initial_position": 50,
+            "handle_icon": "compare",
+            "direction": "horizontal",
+            "image_ratio_desktop": "original",
+            "image_ratio_mobile": "original",
+            "show_image_first_mobile": false,
+            "separate_images": false,
+            "width_desktop": "fill",
+            "limit_width": false,
+            "before_label": "<p>Before</p>",
+            "after_label": "<p>After</p>",
+            "font": "body",
+            "font_size": "md",
+            "letter_spacing": "normal",
+            "show_text_background": true,
+            "corner_radius": "inherit",
+            "custom_corner_radius": 0,
+            "handle_icon_color": "#262626",
+            "handle_background": "#FFFFFF",
+            "text_color": "#FFFFFF",
+            "text_background": "#000000",
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "customize_mobile_padding": false
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

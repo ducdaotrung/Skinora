@@ -1,0 +1,39 @@
+{% doc %}
+  Fixed Add to cart action inside the Product Buy buttons form.
+
+  @param {string} label - Localized label, optionally with selected variant price
+  @param {boolean} product_unavailable - Disables submission when no available variant is selected
+{% enddoc %}
+
+{% liquid
+  assign button_label = label
+  if block.settings.show_price == false
+    assign button_label = 'products.add_to_cart' | t
+  endif
+%}
+
+<div class="product-buy-buttons__add-to-cart" data-add-to-cart-show-price="{% if block.settings.show_price == false %}false{% else %}true{% endif %}" {{ block.shopify_attributes }}>
+  {% render 'theme-button',
+    label: button_label,
+    type: 'submit',
+    class: 'product-form__submit',
+    disabled: product_unavailable,
+    variant: block.settings.style,
+    attributes: 'name="add" data-add-to-cart-button'
+  %}
+</div>
+
+{% schema %}
+{
+  "name": "t:general.add_to_cart",
+  "tag": null,
+  "settings": [
+    { "type": "checkbox", "id": "show_price", "label": "t:labels.show_price", "default": true },
+    { "type": "select", "id": "style", "label": "t:labels.style", "options": [
+      { "value": "primary", "label": "t:options.button_variant.primary" },
+      { "value": "secondary", "label": "t:options.button_variant.secondary" }
+    ], "default": "primary" },
+    { "type": "paragraph", "content": "t:info.product_add_to_cart_shared_style" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,63 @@
+{% doc %}
+  Renders one localization selector inside the shared overlay component.
+
+  @param {string} id - Unique dialog identifier
+  @param {string} selector_type - country or language
+  @param {object} localization - The Shopify localization object
+  @param {string} label - Visible and accessible selector title
+  @param {boolean} [show_country_flag] - Whether country flags are displayed
+{% enddoc %}
+{% liquid
+  assign selector_type = selector_type | default: 'country'
+  if show_country_flag == nil
+    assign show_country_flag = true
+  endif
+%}
+
+{% capture localization_content %}
+  {% form 'localization', class: 'header-localization__form' %}
+    <input type="hidden" name="return_to" value="{{ request.path }}">
+
+    {% if selector_type == 'country' %}
+      <div class="header-localization__country-list">
+        {% for country in localization.available_countries %}
+          <button
+            class="header-localization__country-option{% if country.iso_code == localization.country.iso_code %} is-selected{% endif %}"
+            type="submit"
+            name="country_code"
+            value="{{ country.iso_code }}"
+          >
+            {% if show_country_flag %}
+              {{ country | image_url: width: 24 | image_tag: class: 'header-localization__flag', alt: '' }}
+            {% endif %}
+            <span class="header-localization__country-name">{{ country.name }}</span>
+            <span class="header-localization__country-currency">{{ country.currency.iso_code }} {{ country.currency.symbol }}</span>
+          </button>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="header-localization__language-list">
+        {% for language in localization.available_languages %}
+          <button
+            class="header-localization__language-option{% if language.iso_code == localization.language.iso_code %} is-selected{% endif %}"
+            type="submit"
+            name="language_code"
+            value="{{ language.iso_code }}"
+          >{{ language.endonym_name }}</button>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endform %}
+{% endcapture %}
+
+{% render 'component-overlay',
+  id: id,
+  label: label,
+  title: label,
+  content: localization_content,
+  append_to_body: true,
+  desktop_layout: 'popup',
+  mobile_layout: 'bottom_sheet',
+  attributes: 'data-header-localization-dialog',
+  body_class: 'header-localization__overlay-body'
+%}

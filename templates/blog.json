@@ -1,0 +1,221 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "blog",
+      "settings": {
+        "posts_per_page": 7,
+        "width": "page",
+        "alignment": "center",
+        "color_scheme": "scheme-1",
+        "padding_top": 70,
+        "padding_bottom": 90,
+        "padding_top_mobile": 50,
+        "padding_bottom_mobile": 50,
+        "gap_desktop": 40,
+        "gap_mobile": 30,
+        "customize_mobile_padding": true
+      },
+      "blocks": {
+        "heading": {
+          "type": "blog-title",
+          "static": true,
+          "settings": {
+            "heading_size": "xl",
+            "html_tag": "h1",
+            "show_rss_icon": true
+          }
+        },
+        "blog-archive-list": {
+          "type": "blog-archive-list",
+          "static": true,
+          "settings": {
+            "columns": "3",
+            "gap_horizontal": 16,
+            "gap_vertical": 40,
+            "gap_mobile": 30
+          },
+          "blocks": {
+            "featured-post": {
+              "type": "featured-post",
+              "settings": {
+                "height": "large",
+                "alignment": "left",
+                "desktop_gap": 8,
+                "mobile_gap": 8,
+                "color_type": "color_scheme",
+                "color_scheme": "scheme-2",
+                "padding_top": 50,
+                "padding_bottom": 50,
+                "padding_left": 50,
+                "padding_right": 50,
+                "customize_mobile_padding": true,
+                "padding_top_mobile": 24,
+                "padding_bottom_mobile": 24,
+                "padding_left_mobile": 20,
+                "padding_right_mobile": 20
+              },
+              "static": true,
+              "blocks": {
+                "title": {
+                  "type": "blog-card-title",
+                  "settings": {
+                    "heading_size": "lg",
+                    "html_tag": "h2",
+                    "line_limit": "no_limit",
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  }
+                },
+                "meta": {
+                  "type": "blog-card-meta",
+                  "settings": {
+                    "show_date": true,
+                    "show_author": true,
+                    "size": "sm",
+                    "show_date_icon": false,
+                    "author_prefix": "",
+                    "separator_icon": "dot",
+                    "padding_top": 0,
+                    "padding_bottom": 12
+                  }
+                },
+                "description": {
+                  "type": "blog-card-description",
+                  "settings": {
+                    "text_limit": "two",
+                    "size": "md",
+                    "padding_top": 0,
+                    "padding_bottom": 12
+                  }
+                },
+                "button": {
+                  "type": "blog-card-button",
+                  "settings": {
+                    "style": "tertiary",
+                    "show_icon": false,
+                    "padding_top": 0,
+                    "padding_bottom": 0
+                  }
+                }
+              },
+              "block_order": [
+                "title",
+                "meta",
+                "description",
+                "button"
+              ]
+            },
+            "blog-card": {
+              "type": "blog-card",
+              "static": true,
+              "settings": {
+                "media_layout": "stacked",
+                "ratio": "original",
+                "alignment": "left",
+                "desktop_gap": 8,
+                "mobile_gap": 8,
+                "border_thickness": 0,
+                "corner_radius": "inherit",
+                "shadow": "none",
+                "color_type": "inherit",
+                "padding_top": 20,
+                "padding_bottom": 0,
+                "padding_left": 0,
+                "padding_right": 10,
+                "customize_mobile_padding": false
+              },
+              "blocks": {
+                "title": {
+                  "type": "blog-card-title",
+                  "settings": {
+                    "line_limit": "no_limit",
+                    "heading_size": "md",
+                    "html_tag": "h2",
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "customize_mobile_padding": false
+                  }
+                },
+                "meta": {
+                  "type": "blog-card-meta",
+                  "settings": {
+                    "show_date": true,
+                    "show_author": true,
+                    "size": "sm",
+                    "text_color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 4,
+                    "customize_mobile_padding": false,
+                    "show_date_icon": false,
+                    "author_prefix": "",
+                    "separator_icon": "dot"
+                  }
+                },
+                "description": {
+                  "type": "blog-card-description",
+                  "settings": {
+                    "text_limit": "two",
+                    "size": "md",
+                    "padding_top": 0,
+                    "padding_bottom": 6,
+                    "customize_mobile_padding": false
+                  }
+                },
+                "button": {
+                  "type": "blog-card-button",
+                  "settings": {
+                    "style": "tertiary",
+                    "show_icon": false,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "customize_mobile_padding": false
+                  }
+                }
+              },
+              "block_order": [
+                "title",
+                "meta",
+                "description",
+                "button"
+              ]
+            },
+            "pagination": {
+              "type": "pagination",
+              "settings": {},
+              "static": true
+            }
+          }
+        },
+        "tag-filter": {
+          "type": "blog-tag-filter",
+          "static": true,
+          "settings": {}
+        }
+      }
+    },
+    "divider": {
+      "type": "divider",
+      "settings": {
+        "width": "full_bleed",
+        "thickness": 1,
+        "length": "fill",
+        "border_type": "inherit",
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    }
+  },
+  "order": [
+    "divider",
+    "main"
+  ]
+}

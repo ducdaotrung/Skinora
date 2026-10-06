@@ -1,0 +1,19 @@
+{% doc %}
+  Loads the shared Swiper 12.2.0 styles once from the global layout.
+
+  The carousel sections used to render this snippet independently, which
+  duplicated the same four stylesheets for every carousel on the page. The
+  critical stylesheet supplies the first-paint structure while these shared
+  rules load asynchronously.
+{% enddoc %}
+
+<link rel="stylesheet" href="{{ 'swiper-12.2.0.min.css' | asset_url }}" media="print" onload="this.media='all'" data-swiper-stylesheet="core">
+<link rel="stylesheet" href="{{ 'swiper-12.2.0-pagination.min.css' | asset_url }}" media="print" onload="this.media='all'" data-swiper-stylesheet="pagination">
+<link rel="stylesheet" href="{{ 'swiper-12.2.0-a11y.min.css' | asset_url }}" media="print" onload="this.media='all'" data-swiper-stylesheet="a11y">
+<link rel="stylesheet" href="{{ 'swiper-carousel.css' | asset_url }}" media="print" onload="this.media='all'" data-swiper-stylesheet="component">
+<noscript>
+  {{ 'swiper-12.2.0.min.css' | asset_url | stylesheet_tag }}
+  {{ 'swiper-12.2.0-pagination.min.css' | asset_url | stylesheet_tag }}
+  {{ 'swiper-12.2.0-a11y.min.css' | asset_url | stylesheet_tag }}
+  {{ 'swiper-carousel.css' | asset_url | stylesheet_tag }}
+</noscript>

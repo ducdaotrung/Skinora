@@ -1,0 +1,282 @@
+{% doc %}
+  Renders the article call-to-action inside Blog Card using the shared Button
+  Foundation. The destination is always the closest article.
+{% enddoc %}
+
+{% liquid
+  assign blog_card_button_article = closest.article | default: article
+  assign blog_card_button_style = block.settings.style | default: 'tertiary'
+  unless blog_card_button_style == 'primary' or blog_card_button_style == 'secondary' or blog_card_button_style == 'tertiary'
+    assign blog_card_button_style = 'tertiary'
+  endunless
+
+  assign blog_card_button_icon = blank
+  if block.settings.show_icon
+    assign blog_card_button_icon = block.settings.icon | default: 'arrow'
+    if blog_card_button_icon == 'arrow-right'
+      assign blog_card_button_icon = 'arrow'
+    elsif blog_card_button_icon == 'shopping-bag'
+      assign blog_card_button_icon = 'cart'
+    endif
+  endif
+
+  assign blog_card_button_icon_position = block.settings.icon_position | default: 'after'
+  unless blog_card_button_icon_position == 'before' or blog_card_button_icon_position == 'after'
+    assign blog_card_button_icon_position = 'after'
+  endunless
+
+  assign blog_card_button_icon_size = block.settings.icon_size | default: 'inherit'
+  unless blog_card_button_icon_size == 'inherit' or blog_card_button_icon_size == 'custom'
+    assign blog_card_button_icon_size = 'inherit'
+  endunless
+
+  assign blog_card_button_icon_width = block.settings.icon_width | default: 20 | plus: 0
+  if blog_card_button_icon_width < 12 or blog_card_button_icon_width > 32
+    assign blog_card_button_icon_width = 20
+  endif
+
+  assign blog_card_button_label = 'products.read_more' | t
+
+  assign blog_card_button_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign blog_card_button_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign blog_card_button_padding_top_mobile = block.settings.padding_top_mobile | default: blog_card_button_padding_top | plus: 0
+  assign blog_card_button_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: blog_card_button_padding_bottom | plus: 0
+%}
+
+{% capture blog_card_button_style_attribute %}
+  {% if blog_card_button_padding_top != 0 %}--blog-card-button-padding-top: {{ blog_card_button_padding_top }}px;{% endif %}
+  {% if blog_card_button_padding_bottom != 0 %}--blog-card-button-padding-bottom: {{ blog_card_button_padding_bottom }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if blog_card_button_padding_top_mobile != blog_card_button_padding_top %}--blog-card-button-padding-top-mobile: {{ blog_card_button_padding_top_mobile }}px;{% endif %}
+    {% if blog_card_button_padding_bottom_mobile != blog_card_button_padding_bottom %}--blog-card-button-padding-bottom-mobile: {{ blog_card_button_padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign blog_card_button_style_attribute = blog_card_button_style_attribute | strip %}
+
+<div
+  class="blog-card-button"
+  {% if blog_card_button_style_attribute != blank %}style="{{ blog_card_button_style_attribute }}"{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {% render 'theme-button',
+    label: blog_card_button_label,
+    url: blog_card_button_article.url,
+    force_link: true,
+    variant: blog_card_button_style,
+    icon: blog_card_button_icon,
+    icon_position: blog_card_button_icon_position,
+    icon_size: blog_card_button_icon_size,
+    icon_width: blog_card_button_icon_width,
+    class: 'blog-card-button__button'
+  %}
+</div>
+
+{% stylesheet %}
+  .blog-card-button {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    padding-top: var(--blog-card-button-padding-top, 0px);
+    padding-bottom: var(--blog-card-button-padding-bottom, 0px);
+  }
+
+  .blog-card-button__button {
+    max-width: 100%;
+  }
+
+  @media (max-width: 767.98px) {
+    .blog-card-button {
+      padding-top: var(--blog-card-button-padding-top-mobile, var(--blog-card-button-padding-top, 0px));
+      padding-bottom: var(--blog-card-button-padding-bottom-mobile, var(--blog-card-button-padding-bottom, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Button",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" },
+        { "value": "tertiary", "label": "t:options.button_variant.tertiary" }
+      ],
+      "default": "tertiary"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "t:labels.show_icon",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "icon",
+      "label": "t:labels.icon",
+      "options": [
+        {
+          "value": "arrow_right",
+          "label": "Arrow right"
+        },
+        {
+          "value": "long_arrow_right",
+          "label": "Long arrow right"
+        },
+        {
+          "value": "chevron_right",
+          "label": "Chevron"
+        },
+        {
+          "value": "arrow_up_right",
+          "label": "Arrow up right"
+        },
+        {
+          "value": "circle_arrow",
+          "label": "Circle arrow"
+        },
+        {
+          "value": "circle_chevron",
+          "label": "Circle chevron"
+        },
+        {
+          "value": "long_arrow_up",
+          "label": "Long arrow up"
+        },
+        {
+          "value": "double_chevron",
+          "label": "Double chevron"
+        },
+        {
+          "value": "arrow_outline",
+          "label": "Arrow outline"
+        },
+        {
+          "value": "square_chevron",
+          "label": "Square chevron"
+        },
+        {
+          "value": "plus",
+          "label": "Plus"
+        }
+      ],
+      "default": "arrow_right",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "t:labels.icon_position",
+      "options": [
+        {
+          "value": "before",
+          "label": "Left"
+        },
+        {
+          "value": "after",
+          "label": "Right"
+        }
+      ],
+      "default": "after",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "icon_size",
+      "label": "t:labels.icon_size",
+      "options": [
+        { "value": "inherit", "label": "t:options.icon_size.inherit" },
+        { "value": "custom", "label": "t:options.icon_size.custom" }
+      ],
+      "default": "inherit",
+      "visible_if": "{{ block.settings.show_icon }}"
+    },
+    {
+      "type": "range",
+      "id": "icon_width",
+      "label": "t:labels.icon_width",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.show_icon and block.settings.icon_size == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Button",
+      "category": "Blog",
+      "settings": {
+        "style": "tertiary",
+        "show_icon": false,
+        "icon": "arrow_right",
+        "icon_position": "after",
+        "icon_size": "inherit",
+        "icon_width": 20,
+        "padding_top": 12,
+        "padding_bottom": 0,
+        "customize_mobile_padding": false,
+        "padding_top_mobile": 0,
+        "padding_bottom_mobile": 0
+      }
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,400 @@
+{% doc %}
+  Renders a responsive grid compound block. Every direct child theme block is
+  treated as one grid item and keeps the order supplied by the theme editor.
+
+  The grid owns columns, a shared gap, vertical alignment, and padding. Child
+  blocks own their content and presentation.
+
+  @example
+  {% content_for 'block', type: 'grid', id: 'grid' %}
+{% enddoc %}
+
+{% liquid
+  assign grid_columns_desktop = block.settings.columns_desktop | default: 3 | plus: 0
+  if grid_columns_desktop < 1 or grid_columns_desktop > 6
+    assign grid_columns_desktop = 3
+  endif
+
+  assign grid_columns_tablet = block.settings.columns_tablet | default: 2 | plus: 0
+  if grid_columns_tablet < 1 or grid_columns_tablet > 6
+    assign grid_columns_tablet = 2
+  endif
+
+  assign grid_columns_mobile = block.settings.columns_mobile | default: 1 | plus: 0
+  if grid_columns_mobile < 1 or grid_columns_mobile > 6
+    assign grid_columns_mobile = 1
+  endif
+
+  assign grid_gap = block.settings.gap | default: 24 | plus: 0
+  if grid_gap < 0 or grid_gap > 100
+    assign grid_gap = 24
+  endif
+  assign grid_gap_mobile = block.settings.gap_mobile | default: 16 | plus: 0
+  if grid_gap_mobile < 0 or grid_gap_mobile > 100
+    assign grid_gap_mobile = 16
+  endif
+
+  assign grid_alignment = 'flex-start'
+  case block.settings.alignment
+    when 'middle'
+      assign grid_alignment = 'center'
+    when 'bottom'
+      assign grid_alignment = 'flex-end'
+  endcase
+
+  assign grid_alignment_mobile = grid_alignment
+  if block.settings.customize_mobile_alignment
+    case block.settings.alignment_mobile
+      when 'middle'
+        assign grid_alignment_mobile = 'center'
+      when 'bottom'
+        assign grid_alignment_mobile = 'flex-end'
+      when 'top'
+        assign grid_alignment_mobile = 'flex-start'
+    endcase
+  endif
+
+  assign grid_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign grid_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign grid_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign grid_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign grid_padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign grid_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign grid_padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign grid_padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+
+  if grid_padding_top < 0 or grid_padding_top > 100
+    assign grid_padding_top = 0
+  endif
+  if grid_padding_bottom < 0 or grid_padding_bottom > 100
+    assign grid_padding_bottom = 0
+  endif
+  if grid_padding_left < 0 or grid_padding_left > 100
+    assign grid_padding_left = 0
+  endif
+  if grid_padding_right < 0 or grid_padding_right > 100
+    assign grid_padding_right = 0
+  endif
+  if grid_padding_top_mobile < 0 or grid_padding_top_mobile > 100
+    assign grid_padding_top_mobile = 0
+  endif
+  if grid_padding_bottom_mobile < 0 or grid_padding_bottom_mobile > 100
+    assign grid_padding_bottom_mobile = 0
+  endif
+  if grid_padding_left_mobile < 0 or grid_padding_left_mobile > 100
+    assign grid_padding_left_mobile = 0
+  endif
+  if grid_padding_right_mobile < 0 or grid_padding_right_mobile > 100
+    assign grid_padding_right_mobile = 0
+  endif
+
+%}
+
+{% capture grid_style %}
+  {% if grid_columns_desktop != 3 %}--grid-columns-desktop: {{ grid_columns_desktop }};{% endif %}
+  {% if grid_columns_tablet != 2 %}--grid-columns-tablet: {{ grid_columns_tablet }};{% endif %}
+  {% if grid_columns_mobile != 1 %}--grid-columns-mobile: {{ grid_columns_mobile }};{% endif %}
+  {% if grid_gap != 24 %}--grid-gap: {{ grid_gap }}px;{% endif %}
+  --grid-gap-mobile: {{ grid_gap_mobile }}px;
+  {% if grid_alignment != 'flex-start' %}--grid-align-items: {{ grid_alignment }};{% endif %}
+  {% if block.settings.customize_mobile_alignment and grid_alignment_mobile != grid_alignment %}--grid-align-items-mobile: {{ grid_alignment_mobile }};{% endif %}
+  {% if grid_padding_top != 0 %}--grid-padding-top: {{ grid_padding_top }}px;{% endif %}
+  {% if grid_padding_bottom != 0 %}--grid-padding-bottom: {{ grid_padding_bottom }}px;{% endif %}
+  {% if grid_padding_left != 0 %}--grid-padding-left: {{ grid_padding_left }}px;{% endif %}
+  {% if grid_padding_right != 0 %}--grid-padding-right: {{ grid_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if grid_padding_top_mobile != grid_padding_top %}--grid-padding-top-mobile: {{ grid_padding_top_mobile }}px;{% endif %}
+    {% if grid_padding_bottom_mobile != grid_padding_bottom %}--grid-padding-bottom-mobile: {{ grid_padding_bottom_mobile }}px;{% endif %}
+    {% if grid_padding_left_mobile != grid_padding_left %}--grid-padding-left-mobile: {{ grid_padding_left_mobile }}px;{% endif %}
+    {% if grid_padding_right_mobile != grid_padding_right %}--grid-padding-right-mobile: {{ grid_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign grid_style = grid_style | strip %}
+
+<div
+  class="block-grid"
+  {% if grid_style != blank %}style="{{ grid_style }}"{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% stylesheet %}
+  .block-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns-desktop, 3), minmax(0, 1fr));
+    gap: var(--grid-gap, var(--layout-grid-gap, 24px));
+    align-items: var(--grid-align-items, flex-start);
+    width: 100%;
+    min-width: 0;
+    padding-top: var(--grid-padding-top, 0px);
+    padding-right: var(--grid-padding-right, 0px);
+    padding-bottom: var(--grid-padding-bottom, 0px);
+    padding-left: var(--grid-padding-left, 0px);
+  }
+
+  .block-grid > * {
+    min-width: 0;
+  }
+
+  @media (min-width: 768px) and (max-width: 1149.98px) {
+    .block-grid {
+      grid-template-columns: repeat(var(--grid-columns-tablet, 2), minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .block-grid {
+      grid-template-columns: repeat(var(--grid-columns-mobile, 1), minmax(0, 1fr));
+      gap: var(--grid-gap-mobile, var(--layout-grid-gap, 16px));
+      align-items: var(--grid-align-items-mobile, var(--grid-align-items, flex-start));
+      padding-top: var(--grid-padding-top-mobile, var(--grid-padding-top, 0px));
+      padding-right: var(--grid-padding-right-mobile, var(--grid-padding-right, 0px));
+      padding-bottom: var(--grid-padding-bottom-mobile, var(--grid-padding-bottom, 0px));
+      padding-left: var(--grid-padding-left-mobile, var(--grid-padding-left, 0px));
+    }
+  }
+
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.grid",
+  "tag": null,
+  "blocks": [
+    { "type": "header" },
+    { "type": "heading" },
+    { "type": "eyebrow" },
+    { "type": "text" },
+    { "type": "image" },
+    { "type": "image-comparison" },
+    { "type": "image-card" },
+    { "type": "video" },
+    { "type": "button" },
+    { "type": "buttons" },
+    { "type": "icon" },
+    { "type": "divider" },
+    { "type": "spacer" },
+    { "type": "group" },
+    { "type": "email-signup" },
+    { "type": "product-card" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "t:labels.desktop_columns",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "columns_tablet",
+      "label": "t:labels.tablet_columns",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "columns_mobile",
+      "label": "t:labels.mobile_columns",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "top", "label": "t:options.vertical_alignment.top" },
+        { "value": "middle", "label": "t:options.vertical_alignment.middle" },
+        { "value": "bottom", "label": "t:options.vertical_alignment.bottom" }
+      ],
+      "default": "top"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.customize_mobile_alignment",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "t:labels.mobile_alignment",
+      "options": [
+        { "value": "top", "label": "t:options.vertical_alignment.top" },
+        { "value": "middle", "label": "t:options.vertical_alignment.middle" },
+        { "value": "bottom", "label": "t:options.vertical_alignment.bottom" }
+      ],
+      "default": "top",
+      "visible_if": "{{ block.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:labels.gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.gap_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.grid",
+      "category": "t:general.layout",
+      "settings": {
+        "columns_desktop": 3,
+        "columns_tablet": 2,
+        "columns_mobile": 1,
+        "gap": 24,
+        "gap_mobile": 16,
+        "alignment": "top",
+        "customize_mobile_alignment": false,
+        "alignment_mobile": "top",
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "text",
+          "settings": {
+            "text": "<p>Grid item one</p>"
+          }
+        },
+        {
+          "type": "text",
+          "settings": {
+            "text": "<p>Grid item two</p>"
+          }
+        },
+        {
+          "type": "text",
+          "settings": {
+            "text": "<p>Grid item three</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

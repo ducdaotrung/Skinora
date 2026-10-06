@@ -1,0 +1,403 @@
+{% liquid
+  assign gallery_width = section.settings.section_width | default: 'full_width'
+  assign gallery_container = 'full-width'
+  if gallery_width == 'page_width'
+    assign gallery_container = 'page-width'
+  endif
+  assign gallery_header_vertical_alignment = section.settings.header_vertical_alignment | default: 'middle'
+  unless gallery_header_vertical_alignment == 'top' or gallery_header_vertical_alignment == 'middle' or gallery_header_vertical_alignment == 'bottom'
+    assign gallery_header_vertical_alignment = 'middle'
+  endunless
+  assign gallery_scheme = section.settings.color_scheme.id | default: section.settings.color_scheme | default: 'scheme-1'
+%}
+
+<div
+  class="hotspot-gallery section-spacing section-color-scope color-scheme {{ gallery_scheme | handleize }}"
+  style="
+    --section-padding-top: {{ section.settings.padding_top | default: 40 }}px;
+    --section-padding-bottom: {{ section.settings.padding_bottom | default: 40 }}px;
+    {% if section.settings.customize_mobile_padding %}
+      --section-padding-top-mobile: {{ section.settings.padding_top_mobile | default: 40 }}px;
+      --section-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile | default: 40 }}px;
+    {% endif %}
+    --hotspot-gallery-content-gap: {{ section.settings.content_gap | default: 40 }}px;
+    {% if gallery_width != 'full_width_no_padding' and section.settings.background_color != blank %}
+      --hotspot-gallery-background: {{ section.settings.background_color | escape }};
+    {% endif %}
+  "
+>
+  {% if gallery_width != 'full_width_no_padding' and section.settings.background_media != 'none' %}
+    {% render 'media-background',
+      media_type: section.settings.background_media,
+      image: section.settings.background_image,
+      video: section.settings.background_video,
+      alt: '',
+      aria_hidden: true,
+      sizes: '100vw',
+      class: 'hotspot-gallery__background'
+    %}
+  {% endif %}
+  <div class="hotspot-gallery__layout container {{ gallery_container }}{% if gallery_width == 'full_width_no_padding' %} hotspot-gallery__layout--no-padding{% endif %}">
+    <div class="hotspot-gallery__header hotspot-gallery__header--{{ gallery_header_vertical_alignment }}{% if section.settings.enable_header_sticky %} hotspot-gallery__header--sticky{% endif %}">
+      {% content_for 'block', type: 'header', id: 'header' %}
+    </div>
+    {% content_for 'block', type: 'product-callout-gallery', id: 'product-callout' %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .hotspot-gallery {
+    position: relative;
+    isolation: isolate;
+    background: var(--hotspot-gallery-background, var(--background-color));
+  }
+
+  .hotspot-gallery__background {
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .hotspot-gallery__layout {
+    display: grid;
+    grid-template-columns: fit-content(50%) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--hotspot-gallery-content-gap, 40px);
+  }
+
+  .hotspot-gallery__header {
+    min-width: 0;
+  }
+
+  .hotspot-gallery__header--top {
+    align-self: start;
+  }
+
+  .hotspot-gallery__header--middle {
+    align-self: center;
+  }
+
+  .hotspot-gallery__header--bottom {
+    align-self: end;
+  }
+
+  @media (min-width: 768px) {
+    .hotspot-gallery__header--sticky {
+      position: sticky;
+      top: calc(var(--header-height, 0px) + var(--layout-grid-gap, 1rem));
+    }
+  }
+
+  .hotspot-gallery__header:not(:has(.block-header)) {
+    display: none;
+  }
+
+  .hotspot-gallery__layout:not(:has(.block-header)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .container.hotspot-gallery__layout--no-padding {
+    padding-inline: 0;
+  }
+
+  @media (max-width: 767.98px) {
+    .hotspot-gallery__layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.hotspot_gallery",
+  "class": "section-hotspot-gallery",
+  "enabled_on": {
+    "templates": [
+      "index"
+    ]
+  },
+  "blocks": [
+    {
+      "type": "header"
+    },
+    {
+      "type": "product-callout-gallery"
+    }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        {
+          "value": "page_width",
+          "label": "t:options.section_width.page_width"
+        },
+        {
+          "value": "full_width",
+          "label": "t:options.section_width.full_width"
+        },
+        {
+          "value": "full_width_no_padding",
+          "label": "t:options.section_width.full_width_no_padding"
+        }
+      ],
+      "default": "full_width"
+    },
+    {
+      "type": "range",
+      "id": "content_gap",
+      "label": "t:labels.content_gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "select",
+      "id": "header_vertical_alignment",
+      "label": "t:labels.header_vertical_alignment",
+      "options": [
+        {
+          "value": "top",
+          "label": "t:options.vertical_alignment.top"
+        },
+        {
+          "value": "middle",
+          "label": "t:options.vertical_alignment.middle"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.vertical_alignment.bottom"
+        }
+      ],
+      "default": "middle"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_header_sticky",
+      "label": "t:labels.enable_sticky",
+      "info": "t:info.hotspot_gallery_sticky_header",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:general.product_card"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_type",
+      "label": "t:labels.show_product_type",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_image",
+      "label": "t:labels.show_product_image",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price",
+      "label": "t:labels.show_price",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "product_link_label",
+      "label": "t:labels.product_link_label",
+      "default": "View product"
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance",
+      "visible_if": "{{ section.settings.section_width != 'full_width_no_padding' }}"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ section.settings.section_width != 'full_width_no_padding' }}"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "t:labels.background_color",
+      "visible_if": "{{ section.settings.section_width != 'full_width_no_padding' }}"
+    },
+    {
+      "type": "select",
+      "id": "background_media",
+      "label": "t:general.media",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.background_media.none"
+        },
+        {
+          "value": "image",
+          "label": "t:general.image"
+        },
+        {
+          "value": "video",
+          "label": "t:general.video"
+        }
+      ],
+      "default": "none",
+      "visible_if": "{{ section.settings.section_width != 'full_width_no_padding' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:labels.background_image",
+      "visible_if": "{{ section.settings.section_width != 'full_width_no_padding' and section.settings.background_media == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "t:labels.background_video",
+      "visible_if": "{{ section.settings.section_width != 'full_width_no_padding' and section.settings.background_media == 'video' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.hotspot_gallery",
+      "category": "t:general.banners",
+      "settings": {
+        "section_width": "full_width",
+        "color_scheme": "scheme-1",
+        "padding_top": 40,
+        "padding_bottom": 40
+      },
+      "blocks": [
+        {
+          "type": "header",
+          "id": "header",
+          "static": true,
+          "settings": {
+            "width": "custom",
+            "max_width": 320,
+            "customize_mobile_size": true,
+            "width_mobile": "fill",
+            "alignment": "left",
+            "gap_desktop": 12,
+            "gap_mobile": 12,
+            "padding_bottom": 0
+          },
+          "blocks": [
+            {
+              "type": "eyebrow",
+              "settings": {
+                "text": "<p>Subheading</p>"
+              }
+            },
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Main Heading Text Placeholder</p>",
+                "heading_size": "lg",
+                "html_tag": "h2"
+              }
+            },
+            {
+              "type": "text",
+              "settings": {
+                "text": "<p>This is placeholder text for a paragraph that provides a short and engaging description to support the heading above.</p>",
+                "text_size": "sm"
+              }
+            }
+          ]
+        },
+        {
+          "type": "product-callout-gallery",
+          "id": "product-callout",
+          "static": true,
+          "settings": {
+            "image_ratio": "portrait",
+            "gap_desktop": 20,
+            "gap_mobile": 24,
+            "hotspot_icon_style": "dot",
+            "hotspot_behavior": "click",
+            "hotspot_color_scheme": "scheme-1"
+          },
+          "blocks": [
+            {
+              "type": "gallery-hotspot",
+              "settings": {
+                "vertical_position": 67,
+                "horizontal_position": 50
+              }
+            },
+            {
+              "type": "gallery-hotspot",
+              "settings": {
+                "vertical_position": 34,
+                "horizontal_position": 70
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

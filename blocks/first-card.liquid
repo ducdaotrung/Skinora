@@ -1,0 +1,651 @@
+{% doc %}
+  Renders the lead article card in a Blog Grid.
+
+  The Blog Grid supplies the current article and blog through `closest`. This
+  composition owns the lead card layout and reuses the shared Blog Card child
+  blocks for article content.
+{% enddoc %}
+
+{% liquid
+  assign first_card_article = closest.article | default: article
+  assign first_card_image = first_card_article.image
+  assign first_card_url = first_card_article.url
+  assign first_card_alt = first_card_article.title | default: 'Blog post'
+
+  assign first_card_ratio_setting = block.settings.ratio | default: 'original'
+  unless first_card_ratio_setting == 'original' or first_card_ratio_setting == 'square' or first_card_ratio_setting == 'portrait' or first_card_ratio_setting == 'landscape' or first_card_ratio_setting == 'wide'
+    assign first_card_ratio_setting = 'original'
+  endunless
+  assign first_card_media_layout = block.settings.media_layout | default: 'horizontal'
+  unless first_card_media_layout == 'stacked' or first_card_media_layout == 'horizontal'
+    assign first_card_media_layout = 'horizontal'
+  endunless
+  assign first_card_ratio = 'auto'
+  case first_card_ratio_setting
+    when 'square'
+      assign first_card_ratio = '1'
+    when 'portrait'
+      assign first_card_ratio = '0.8'
+    when 'landscape'
+      assign first_card_ratio = '1.3333'
+    when 'wide'
+      assign first_card_ratio = '1.7778'
+  endcase
+
+  assign first_card_alignment = block.settings.alignment | default: 'left'
+  unless first_card_alignment == 'left' or first_card_alignment == 'center' or first_card_alignment == 'right'
+    assign first_card_alignment = 'left'
+  endunless
+  assign first_card_alignment_flex = 'flex-start'
+  if first_card_alignment == 'center'
+    assign first_card_alignment_flex = 'center'
+  elsif first_card_alignment == 'right'
+    assign first_card_alignment_flex = 'flex-end'
+  endif
+  assign first_card_position = block.settings.position | default: 'flex-start'
+  unless first_card_position == 'flex-start' or first_card_position == 'center' or first_card_position == 'flex-end' or first_card_position == 'space-between'
+    assign first_card_position = 'flex-start'
+  endunless
+
+  assign first_card_gap_desktop = block.settings.desktop_gap | default: 8 | plus: 0
+  assign first_card_gap_mobile = block.settings.mobile_gap | default: 8 | plus: 0
+  if first_card_gap_desktop < 0 or first_card_gap_desktop > 100
+    assign first_card_gap_desktop = 8
+  endif
+  if first_card_gap_mobile < 0 or first_card_gap_mobile > 100
+    assign first_card_gap_mobile = 8
+  endif
+
+  assign first_card_radius = 'var(--media-radius)'
+  case block.settings.corner_radius
+    when 'square'
+      assign first_card_radius = 'var(--radius-square)'
+    when 'rounded'
+      assign first_card_radius = 'var(--radius-rounded)'
+  endcase
+
+  assign first_card_shadow = 'none'
+  case block.settings.shadow
+    when 'small'
+      assign first_card_shadow = '0 2px 8px rgb(0 0 0 / 0.12)'
+    when 'medium'
+      assign first_card_shadow = '0 8px 24px rgb(0 0 0 / 0.16)'
+  endcase
+
+  assign first_card_color_type = block.settings.color_type | default: 'inherit'
+  assign first_card_scheme = block.settings.color_scheme | default: 'scheme-1'
+  if block.settings.color_scheme.id != blank
+    assign first_card_scheme = block.settings.color_scheme.id
+  endif
+  assign first_card_scheme = first_card_scheme | default: 'scheme-1' | handleize
+
+  assign first_card_padding_top = block.settings.padding_top | default: 16 | plus: 0
+  assign first_card_padding_bottom = block.settings.padding_bottom | default: 16 | plus: 0
+  assign first_card_padding_left = block.settings.padding_left | default: 16 | plus: 0
+  assign first_card_padding_right = block.settings.padding_right | default: 16 | plus: 0
+  assign first_card_padding_top_mobile = block.settings.padding_top_mobile | default: first_card_padding_top | plus: 0
+  assign first_card_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: first_card_padding_bottom | plus: 0
+  assign first_card_padding_left_mobile = block.settings.padding_left_mobile | default: first_card_padding_left | plus: 0
+  assign first_card_padding_right_mobile = block.settings.padding_right_mobile | default: first_card_padding_right | plus: 0
+
+  if first_card_padding_top < 0 or first_card_padding_top > 100
+    assign first_card_padding_top = 16
+  endif
+  if first_card_padding_bottom < 0 or first_card_padding_bottom > 100
+    assign first_card_padding_bottom = 16
+  endif
+  if first_card_padding_left < 0 or first_card_padding_left > 100
+    assign first_card_padding_left = 16
+  endif
+  if first_card_padding_right < 0 or first_card_padding_right > 100
+    assign first_card_padding_right = 16
+  endif
+  if first_card_padding_top_mobile < 0 or first_card_padding_top_mobile > 100
+    assign first_card_padding_top_mobile = first_card_padding_top
+  endif
+  if first_card_padding_bottom_mobile < 0 or first_card_padding_bottom_mobile > 100
+    assign first_card_padding_bottom_mobile = first_card_padding_bottom
+  endif
+  if first_card_padding_left_mobile < 0 or first_card_padding_left_mobile > 100
+    assign first_card_padding_left_mobile = first_card_padding_left
+  endif
+  if first_card_padding_right_mobile < 0 or first_card_padding_right_mobile > 100
+    assign first_card_padding_right_mobile = first_card_padding_right
+  endif
+
+  assign first_card_class = 'blog-first-card blog-first-card--ratio-' | append: first_card_ratio_setting
+  assign first_card_class = first_card_class | append: ' blog-first-card--layout-' | append: first_card_media_layout
+  unless block.settings.media_first
+    assign first_card_class = first_card_class | append: ' blog-first-card--media-after'
+  endunless
+  if first_card_color_type == 'color_scheme'
+    assign first_card_class = first_card_class | append: ' color-scheme section-color-scope ' | append: first_card_scheme
+  endif
+%}
+
+{% capture first_card_style %}
+  --blog-first-card-ratio: {{ first_card_ratio }};
+  --blog-first-card-align: {{ first_card_alignment }};
+  --blog-first-card-align-flex: {{ first_card_alignment_flex }};
+  --blog-card-align: {{ first_card_alignment }};
+  --blog-card-align-flex: {{ first_card_alignment_flex }};
+  --blog-first-card-position: {{ first_card_position }};
+  --blog-first-card-gap: {{ first_card_gap_desktop }}px;
+  --blog-first-card-gap-mobile: {{ first_card_gap_mobile }}px;
+  --blog-first-card-border: {{ block.settings.border_thickness | default: 1 }}px;
+  --blog-first-card-radius: {{ first_card_radius }};
+  --blog-first-card-shadow: {{ first_card_shadow }};
+  --blog-first-card-padding-top: {{ first_card_padding_top }}px;
+  --blog-first-card-padding-bottom: {{ first_card_padding_bottom }}px;
+  --blog-first-card-padding-left: {{ first_card_padding_left }}px;
+  --blog-first-card-padding-right: {{ first_card_padding_right }}px;
+  {% if block.settings.customize_mobile_padding %}
+    --blog-first-card-padding-top-mobile: {{ first_card_padding_top_mobile }}px;
+    --blog-first-card-padding-bottom-mobile: {{ first_card_padding_bottom_mobile }}px;
+    --blog-first-card-padding-left-mobile: {{ first_card_padding_left_mobile }}px;
+    --blog-first-card-padding-right-mobile: {{ first_card_padding_right_mobile }}px;
+  {% endif %}
+{% endcapture %}
+{% assign first_card_style = first_card_style | strip %}
+
+{% if first_card_article != blank or request.design_mode %}
+  <article
+    class="{{ first_card_class }}"
+    {% if first_card_article != blank %}data-article-url="{{ first_card_url | escape }}"{% endif %}
+    style="{{ first_card_style }}"
+    {{ block.shopify_attributes }}
+  >
+    <div class="blog-first-card__media{% if first_card_image == blank %} blog-first-card__media--placeholder{% endif %}">
+      {% render 'image',
+        image: first_card_image,
+        url: first_card_url,
+        alt: first_card_alt,
+        width: 1600,
+        sizes: '(min-width: 768px) 42vw, 100vw',
+        class: 'blog-first-card__image'
+      %}
+    </div>
+    <div class="blog-first-card__content">
+      {% content_for 'blocks' %}
+    </div>
+  </article>
+{% endif %}
+
+{% stylesheet %}
+  .blog-first-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    overflow: hidden;
+    border: var(--blog-first-card-border, 1px) solid var(--border-color);
+    border-radius: var(--blog-first-card-radius, var(--media-radius));
+    background: var(--background-color);
+    box-shadow: var(--blog-first-card-shadow, none);
+  }
+
+  .blog-first-card--layout-horizontal {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .blog-first-card--layout-horizontal .blog-first-card__media {
+    align-self: center;
+  }
+
+  .blog-first-card__media {
+    position: relative;
+    align-self: start;
+    min-width: 0;
+    overflow: hidden;
+    aspect-ratio: var(--blog-first-card-ratio, auto);
+    border-radius: var(--blog-first-card-radius, var(--media-radius));
+    background: var(--surface-color, var(--background-color));
+  }
+
+  .blog-first-card--ratio-original .blog-first-card__media {
+    aspect-ratio: auto;
+  }
+
+  .blog-first-card__media > .image {
+    width: 100%;
+    height: 100%;
+  }
+
+  .blog-first-card__media > .image > img,
+  .blog-first-card__media > .image > picture,
+  .blog-first-card__media > .image > picture > img,
+  .blog-first-card__media > .image > .image__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .blog-first-card--ratio-original .blog-first-card__media > .image,
+  .blog-first-card--ratio-original .blog-first-card__media > .image > img,
+  .blog-first-card--ratio-original .blog-first-card__media > .image > picture,
+  .blog-first-card--ratio-original .blog-first-card__media > .image > picture > img,
+  .blog-first-card--ratio-original .blog-first-card__media > .image > .image__placeholder {
+    height: auto;
+  }
+
+  .blog-first-card--layout-horizontal .blog-first-card__media {
+    border-radius: 0;
+  }
+
+  .blog-first-card--layout-horizontal .blog-first-card__media > .image,
+  .blog-first-card--layout-horizontal .blog-first-card__media > .image > img,
+  .blog-first-card--layout-horizontal .blog-first-card__media > .image > picture,
+  .blog-first-card--layout-horizontal .blog-first-card__media > .image > picture > img,
+  .blog-first-card--layout-horizontal .blog-first-card__media > .image > .image__placeholder {
+    height: 100%;
+  }
+
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal {
+    position: relative;
+  }
+
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal > .blog-first-card__media {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 50%;
+    height: auto;
+    aspect-ratio: auto;
+    align-self: stretch;
+  }
+
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal > .blog-first-card__content {
+    grid-column: 2;
+  }
+
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal.blog-first-card--media-after > .blog-first-card__media {
+    right: 0;
+    left: auto;
+  }
+
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal.blog-first-card--media-after > .blog-first-card__content {
+    grid-column: 1;
+  }
+
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image,
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image > img,
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image > picture,
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image > picture > img,
+  .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image > .image__placeholder {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .blog-first-card__content {
+    display: flex;
+    flex-direction: column;
+    align-items: var(--blog-first-card-align-flex, flex-start);
+    justify-content: var(--blog-first-card-position, flex-start);
+    gap: var(--blog-first-card-gap, 8px);
+    min-width: 0;
+    min-height: 0;
+    padding: var(--blog-first-card-padding-top, 16px) var(--blog-first-card-padding-right, 16px) var(--blog-first-card-padding-bottom, 16px) var(--blog-first-card-padding-left, 16px);
+    text-align: var(--blog-first-card-align, left);
+  }
+
+  .blog-first-card--media-after.blog-first-card--layout-horizontal .blog-first-card__media {
+    order: 2;
+  }
+
+  .blog-first-card--media-after.blog-first-card--layout-horizontal .blog-first-card__content {
+    order: 1;
+  }
+
+  .blog-first-card__content > * {
+    max-width: 100%;
+  }
+
+  @media (max-width: 767.98px) {
+    .blog-first-card--layout-horizontal {
+      grid-template-columns: minmax(0, 1fr);
+      height: auto;
+    }
+
+    .blog-first-card--ratio-original.blog-first-card--layout-horizontal > .blog-first-card__media {
+      position: relative;
+      inset: auto;
+      width: 100%;
+      height: auto;
+      align-self: auto;
+    }
+
+    .blog-first-card--ratio-original.blog-first-card--layout-horizontal > .blog-first-card__content,
+    .blog-first-card--ratio-original.blog-first-card--layout-horizontal.blog-first-card--media-after > .blog-first-card__content {
+      grid-column: auto;
+    }
+
+    .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image,
+    .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image > img,
+    .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image > picture,
+    .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image > picture > img,
+    .blog-first-card--ratio-original.blog-first-card--layout-horizontal .blog-first-card__media > .image > .image__placeholder {
+      height: auto;
+    }
+
+    .blog-first-card__content {
+      gap: var(--blog-first-card-gap-mobile, var(--blog-first-card-gap, 8px));
+      padding: var(--blog-first-card-padding-top-mobile, var(--blog-first-card-padding-top, 16px)) var(--blog-first-card-padding-right-mobile, var(--blog-first-card-padding-right, 16px)) var(--blog-first-card-padding-bottom-mobile, var(--blog-first-card-padding-bottom, 16px)) var(--blog-first-card-padding-left-mobile, var(--blog-first-card-padding-left, 16px));
+    }
+
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Featured post",
+  "tag": null,
+  "blocks": [
+    { "type": "@theme" },
+    { "type": "blog-card-tag" },
+    { "type": "blog-card-title" },
+    { "type": "blog-card-description" },
+    { "type": "blog-card-button" },
+    { "type": "blog-card-meta" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.media"
+    },
+    {
+      "type": "select",
+      "id": "ratio",
+      "label": "Ratio",
+      "options": [
+        { "value": "original", "label": "Auto" },
+        { "value": "square", "label": "Square" },
+        { "value": "portrait", "label": "Portrait" },
+        { "value": "landscape", "label": "Landscape" },
+        { "value": "wide", "label": "Wide" }
+      ],
+      "default": "original"
+    },
+    {
+      "type": "select",
+      "id": "media_layout",
+      "label": "Media layout",
+      "options": [
+        { "value": "stacked", "label": "Stacked" },
+        { "value": "horizontal", "label": "Horizontal" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "checkbox",
+      "id": "media_first",
+      "label": "Media first",
+      "default": true,
+      "visible_if": "{{ block.settings.media_layout == 'horizontal' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.content"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "flex-start", "label": "Start" },
+        { "value": "center", "label": "Center" },
+        { "value": "flex-end", "label": "End" },
+        { "value": "space-between", "label": "Space between" }
+      ],
+      "default": "flex-start",
+      "visible_if": "{{ block.settings.media_layout == 'horizontal' }}"
+    },
+    {
+      "type": "range",
+      "id": "desktop_gap",
+      "label": "Desktop gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "mobile_gap",
+      "label": "Mobile gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "range",
+      "id": "border_thickness",
+      "label": "t:labels.border_thickness",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "t:labels.corner_radius",
+      "options": [
+        { "value": "inherit", "label": "Inherit" },
+        { "value": "square", "label": "Square" },
+        { "value": "rounded", "label": "Rounded" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "select",
+      "id": "shadow",
+      "label": "t:labels.shadow",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "t:general.color"
+    },
+    {
+      "type": "select",
+      "id": "color_type",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "inherit", "label": "t:options.color_type.inherit" },
+        { "value": "color_scheme", "label": "t:options.color_type.color_scheme" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.color_type == 'color_scheme' }}"
+    },
+    {
+      "type": "header",
+      "content": "Content padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured post",
+      "category": "Blog",
+      "blocks": [
+        {
+          "type": "blog-card-tag",
+          "settings": {
+            "text_case": "uppercase",
+            "font_size": "xs",
+            "padding_top": 0
+          }
+        },
+        {
+          "type": "blog-card-title",
+          "settings": {
+            "line_limit": "two",
+            "heading_size": "lg",
+            "html_tag": "h3",
+            "padding_top": 0,
+            "padding_bottom": 0
+          }
+        },
+        {
+          "type": "blog-card-description",
+          "settings": {
+            "text_limit": "three",
+            "size": "sm",
+            "padding_top": 0,
+            "padding_bottom": 0
+          }
+        },
+        {
+          "type": "blog-card-button",
+          "settings": {
+            "style": "tertiary",
+            "show_icon": false,
+            "padding_top": 0,
+            "padding_bottom": 0
+          }
+        },
+        {
+          "type": "blog-card-meta",
+          "settings": {
+            "show_date": true,
+            "show_author": true,
+            "show_comment_count": false,
+            "details_order": "author_date_comment",
+            "author_display_type": "text",
+            "author_prefix": "",
+            "show_date_icon": false,
+            "date_format": "medium",
+            "show_comment_icon": false,
+            "layout": "vertical",
+            "gap": 4,
+            "icon_size": 14,
+            "icon_gap": 4,
+            "size": "xs",
+            "padding_top": 0,
+            "padding_bottom": 0
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

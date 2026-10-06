@@ -1,0 +1,135 @@
+{% doc %}
+  Renders the Product media lightbox owned by the Product media block.
+
+  @param {product} product - Product whose media is displayed
+  @param {string} [id] - Optional stable Swiper root ID
+  @param {string} [controls_color_scheme] - Optional color scheme for lightbox navigation
+  @param {boolean} [filter_variant_media] - Whether to keep only media linked to the selected variant
+  @param {object} [variant] - Selected product variant used by the media filter
+  @param {boolean} [selected_media_found] - Whether the selected variant has linked media
+{% enddoc %}
+
+{% liquid
+  assign lightbox_filter_variant_media = false
+  if filter_variant_media and selected_media_found and variant != blank
+    assign lightbox_filter_variant_media = true
+  endif
+  assign lightbox_media_count = 0
+  for media in product.media
+    assign lightbox_media_hidden = false
+    if lightbox_filter_variant_media and media.variants != blank
+      assign lightbox_media_hidden = true
+      for media_variant in media.variants
+        if media_variant.id == variant.id
+          assign lightbox_media_hidden = false
+          break
+        endif
+      endfor
+    endif
+    assign lightbox_media_available = false
+    if media.media_type == 'image' or media.preview_image != blank
+      assign lightbox_media_available = true
+    endif
+    if lightbox_media_available and lightbox_media_hidden == false
+      assign lightbox_media_count = lightbox_media_count | plus: 1
+    endif
+  endfor
+%}
+
+<dialog class="product-media-lightbox" data-product-media-lightbox aria-label="{{ 'products.media_gallery' | t: product: product.title | escape }}">
+  <div class="product-media-lightbox__panel">
+    <div class="product-media-lightbox__toolbar">
+      {% if lightbox_media_count > 1 %}
+        <p class="product-media-lightbox__counter body-text body-sm" aria-live="polite">
+          <span data-product-lightbox-current>1</span>
+          <span aria-hidden="true">/</span>
+          <span data-product-lightbox-total>{{ lightbox_media_count }}</span>
+        </p>
+      {% endif %}
+      <button class="overlay-close product-media-lightbox__close" type="button" aria-label="{{ 'products.close_media' | t | escape }}" data-product-lightbox-close>
+        {% render 'icon', icon: 'x-mark', bare: true, class: 'overlay-close__icon' %}
+      </button>
+    </div>
+
+    {% if lightbox_media_count > 1 %}
+      <button class="product-media-lightbox__navigation product-media-lightbox__navigation--previous icon-button swiper-nav-button swiper-nav-button--prev{% if controls_color_scheme != blank %} color-scheme {{ controls_color_scheme }}{% endif %}" type="button" aria-label="{{ 'products.previous_media' | t | escape }}" data-product-lightbox-previous>
+        {% render 'icon', icon: 'chevron-left', bare: true %}
+      </button>
+    {% endif %}
+
+    {% capture product_media_lightbox_content %}
+      {% for media in product.media %}
+        {% liquid
+          assign lightbox_media_hidden = false
+          if lightbox_filter_variant_media and media.variants != blank
+            assign lightbox_media_hidden = true
+            for media_variant in media.variants
+              if media_variant.id == variant.id
+                assign lightbox_media_hidden = false
+                break
+              endif
+            endfor
+          endif
+        %}
+        {% assign lightbox_media_available = false %}
+        {% if media.media_type == 'image' or media.preview_image != blank %}
+          {% assign lightbox_media_available = true %}
+        {% endif %}
+        {% if lightbox_media_available and lightbox_media_hidden == false %}
+          {% assign lightbox_image = media.preview_image %}
+          {% if media.media_type == 'image' %}{% assign lightbox_image = media %}{% endif %}
+          {% assign lightbox_alt = media.alt | default: product.title %}
+          <figure class="swiper-slide product-media-lightbox__slide" data-product-lightbox-slide data-media-id="{{ media.id }}" tabindex="0" role="button" aria-pressed="false" aria-label="{{ 'products.view_media' | t: index: forloop.index | escape }}">
+            {{ lightbox_image | image_url: width: 2000 | image_tag: loading: 'lazy', class: 'product-media-lightbox__image', alt: lightbox_alt }}
+          </figure>
+        {% endif %}
+      {% endfor %}
+    {% endcapture %}
+
+    {% render 'swiper-carousel',
+      id: id,
+      content: product_media_lightbox_content,
+      root_class: 'product-media-lightbox__viewport',
+      root_attributes: 'data-product-lightbox-swiper'
+    %}
+
+    {% if lightbox_media_count > 1 %}
+      <div class="product-media-lightbox__thumbnails scrollbar scrollbar--horizontal scrollbar--hidden" data-product-lightbox-thumbnails role="group" aria-label="{{ 'products.media_thumbnails' | t | escape }}">
+        {% for media in product.media %}
+          {% liquid
+            assign lightbox_media_hidden = false
+            if lightbox_filter_variant_media and media.variants != blank
+              assign lightbox_media_hidden = true
+              for media_variant in media.variants
+                if media_variant.id == variant.id
+                  assign lightbox_media_hidden = false
+                  break
+                endif
+              endfor
+            endif
+            assign lightbox_thumbnail_image = media.preview_image
+            if media.media_type == 'image'
+              assign lightbox_thumbnail_image = media
+            endif
+            assign lightbox_thumbnail_alt = media.alt | default: product.title
+          %}
+          {% assign lightbox_media_available = false %}
+          {% if media.media_type == 'image' or media.preview_image != blank %}
+            {% assign lightbox_media_available = true %}
+          {% endif %}
+          {% if lightbox_media_available and lightbox_media_hidden == false %}
+            <button class="product-media-lightbox__thumbnail" type="button" data-product-lightbox-thumbnail data-media-id="{{ media.id }}" aria-current="false" aria-label="{{ 'products.view_media' | t: index: forloop.index | escape }}">
+              {{ lightbox_thumbnail_image | image_url: width: 180 | image_tag: widths: '80, 120, 180', sizes: '72px', loading: 'lazy', alt: lightbox_thumbnail_alt }}
+            </button>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if lightbox_media_count > 1 %}
+      <button class="product-media-lightbox__navigation product-media-lightbox__navigation--next icon-button swiper-nav-button swiper-nav-button--next{% if controls_color_scheme != blank %} color-scheme {{ controls_color_scheme }}{% endif %}" type="button" aria-label="{{ 'products.next_media' | t | escape }}" data-product-lightbox-next>
+        {% render 'icon', icon: 'chevron-right', bare: true %}
+      </button>
+    {% endif %}
+  </div>
+</dialog>

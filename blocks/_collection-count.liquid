@@ -1,0 +1,22 @@
+{% doc %}
+  Live collection result count.
+{% enddoc %}
+<span class="main-collection__product-count" data-alignment="{{ block.settings.alignment }}" aria-live="polite" {{ block.shopify_attributes }}>{{ 'collection.item_count' | t: count: collection.products_count }}</span>
+{% schema %}
+{
+  "name": "Product count",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    }
+  ]
+}
+{% endschema %}

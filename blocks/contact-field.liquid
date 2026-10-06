@@ -1,0 +1,108 @@
+{% liquid
+  assign field_label = block.settings.label | default: 'Custom field'
+  assign field_name = 'custom_field_' | append: block.id | handleize
+  assign field_input_name = 'contact[' | append: field_name | append: ']'
+  assign field_id = 'ContactField-' | append: block.id
+  assign field_type = block.settings.field_type | default: 'text'
+  assign field_control = 'input'
+  if field_type == 'multiline_text'
+    assign field_control = 'textarea'
+  endif
+  assign field_inputmode = blank
+  assign field_pattern = blank
+  assign field_input_type = 'text'
+  if field_type == 'phone'
+    assign field_inputmode = 'numeric'
+    assign field_pattern = '[0-9]*'
+    assign field_input_type = 'tel'
+  endif
+%}
+
+{% if field_type == 'dropdown' %}
+  {% assign field_options = block.settings.options | default: 'Option 1; Option 2; Option 3' | split: ';' %}
+  {% render 'form-field', id: field_id, name: field_input_name, label: field_label, control: 'select', options: field_options, placeholder: field_label, selected: '', hide_label: true, required: block.settings.required %}
+{% elsif field_type == 'radio' %}
+  <fieldset class="form__field contact-field__choice-group">
+    <legend class="form__label">{{ field_label | escape }}</legend>
+    {% assign field_options = block.settings.options | default: 'Option 1; Option 2; Option 3' | split: ';' %}
+    {% for option in field_options %}
+      {% assign option_label = option | strip %}
+      {% if option_label != blank %}
+        <label class="contact-field__choice" for="{{ field_id }}-{{ forloop.index }}">
+          <input class="form__control--radio" id="{{ field_id }}-{{ forloop.index }}" type="radio" name="{{ field_input_name }}" value="{{ option_label | escape }}"{% if block.settings.required and forloop.first %} required{% endif %}>
+          <span>{{ option_label | escape }}</span>
+        </label>
+      {% endif %}
+    {% endfor %}
+  </fieldset>
+{% elsif field_type == 'checkbox' %}
+  <div class="form__field contact-field__choice-group">
+    <label class="contact-field__choice" for="{{ field_id }}">
+      <input class="form__control--checkbox" id="{{ field_id }}" type="checkbox" name="{{ field_input_name }}" value="Yes"{% if block.settings.required %} required{% endif %}>
+      <span>{{ field_label | escape }}</span>
+    </label>
+  </div>
+{% else %}
+  {% render 'form-field', id: field_id, name: field_input_name, label: field_label, type: field_input_type, control: field_control, placeholder: field_label, inputmode: field_inputmode, pattern: field_pattern, hide_label: true, required: block.settings.required %}
+{% endif %}
+
+{% stylesheet %}
+  .contact-field__choice-group { gap: 0.5rem; border: 0; padding: 0; margin: 0; }
+  .contact-field__choice-group legend { margin-bottom: 0.25rem; font-size: inherit; }
+  .contact-field__choice { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+  .contact-field__choice input { flex: 0 0 auto; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.custom_field",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "field_type",
+      "label": "Field type",
+      "options": [
+        { "value": "phone", "label": "Phone number" },
+        { "value": "text", "label": "Text" },
+        { "value": "multiline_text", "label": "Multiline text" },
+        { "value": "dropdown", "label": "Dropdown" },
+        { "value": "radio", "label": "Radio" },
+        { "value": "checkbox", "label": "Checkbox" }
+      ],
+      "default": "text"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "t:labels.label",
+      "default": "Custom field"
+    },
+    {
+      "type": "checkbox",
+      "id": "required",
+      "label": "Required",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "options",
+      "label": "Options",
+      "info": "Separate options with a semicolon (e.g., Option 1; Option 2; Option 3)",
+      "default": "Option 1; Option 2; Option 3",
+      "visible_if": "{{ block.settings.field_type == 'dropdown' or block.settings.field_type == 'radio' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.custom_field",
+      "category": "t:general.forms",
+      "settings": {
+        "label": "Custom field",
+        "field_type": "text",
+        "required": false
+      }
+    }
+  ]
+}
+{% endschema %}

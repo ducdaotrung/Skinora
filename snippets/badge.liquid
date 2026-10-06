@@ -1,0 +1,24 @@
+{% doc %}
+  Renders the shared product badge primitive.
+
+  The data layer chooses the label and semantic tone. This snippet only emits
+  the BEM class for the selected status or configured badge.
+
+  @param {string} text - Badge label
+  @param {string} [tone] - sale, sold-out or manual
+
+  @example
+  {% render 'badge', text: 'Sale', tone: 'sale' %}
+{% enddoc %}
+
+{% liquid
+  assign badge_tone = tone | default: 'sale'
+  unless badge_tone == 'sale' or badge_tone == 'sold-out' or badge_tone == 'manual'
+    assign badge_tone = 'sale'
+  endunless
+  assign badge_class = 'product-badge product-badge--' | append: badge_tone
+%}
+
+<span class="{{ badge_class | strip }}">
+  {{ text | escape }}
+</span>

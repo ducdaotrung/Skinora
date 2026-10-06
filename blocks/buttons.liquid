@@ -1,0 +1,640 @@
+{% doc %}
+  Renders a compound CTA group with up to two fixed button slots.
+
+  The block owns slot content and group layout. The shared theme-button snippet
+  owns Button Foundation markup, variants, icons, focus state and link behavior.
+
+  @example
+  {% content_for 'block', type: 'buttons', id: 'buttons' %}
+{% enddoc %}
+
+{% liquid
+  assign button_1_label = block.settings.button_1_label | default: '' | strip
+  assign button_1_link = block.settings.button_1_link
+  assign button_1_valid = false
+  if button_1_label != blank and button_1_link != blank
+    assign button_1_valid = true
+  endif
+
+  assign button_2_label = block.settings.button_2_label | default: '' | strip
+  assign button_2_link = block.settings.button_2_link
+  assign button_2_valid = false
+  if button_2_label != blank and button_2_link != blank
+    assign button_2_valid = true
+  endif
+
+  assign buttons_direction = block.settings.direction | default: 'row'
+  unless buttons_direction == 'row' or buttons_direction == 'stack'
+    assign buttons_direction = 'row'
+  endunless
+
+  assign buttons_mobile_stacking = block.settings.mobile_stacking | default: 'stack'
+  unless buttons_mobile_stacking == 'row' or buttons_mobile_stacking == 'stack'
+    assign buttons_mobile_stacking = 'stack'
+  endunless
+
+  assign buttons_width = block.settings.width | default: 'fit'
+  unless buttons_width == 'fit' or buttons_width == 'fill'
+    assign buttons_width = 'fit'
+  endunless
+
+  assign buttons_alignment = 'start'
+  if buttons_width == 'fill'
+    assign buttons_alignment = block.settings.alignment | default: 'start'
+    unless buttons_alignment == 'start' or buttons_alignment == 'center' or buttons_alignment == 'end'
+      assign buttons_alignment = 'start'
+    endunless
+  endif
+
+  assign buttons_alignment_mobile = buttons_alignment
+  if buttons_width == 'fill' and block.settings.customize_mobile_alignment
+    assign buttons_alignment_mobile = block.settings.alignment_mobile | default: buttons_alignment
+    unless buttons_alignment_mobile == 'start' or buttons_alignment_mobile == 'center' or buttons_alignment_mobile == 'end'
+      assign buttons_alignment_mobile = buttons_alignment
+    endunless
+  endif
+
+  assign buttons_gap = block.settings.gap | default: 12 | plus: 0
+  if buttons_gap < 0 or buttons_gap > 64
+    assign buttons_gap = 12
+  endif
+  assign buttons_gap_mobile = block.settings.gap_mobile | default: buttons_gap | plus: 0
+  if buttons_gap_mobile < 0 or buttons_gap_mobile > 64
+    assign buttons_gap_mobile = buttons_gap
+  endif
+
+  assign buttons_flow_direction = 'row'
+  if buttons_direction == 'stack'
+    assign buttons_flow_direction = 'column'
+  endif
+
+  assign buttons_flow_direction_mobile = 'row'
+  if buttons_mobile_stacking == 'stack'
+    assign buttons_flow_direction_mobile = 'column'
+  endif
+
+  assign padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign padding_top_mobile = block.settings.padding_top_mobile | default: 0 | plus: 0
+  assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0 | plus: 0
+  assign padding_left_mobile = block.settings.padding_left_mobile | default: 0 | plus: 0
+  assign padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
+
+  assign buttons_class = 'buttons-block layout-flow layout-flow--responsive buttons-block--direction-' | append: buttons_direction
+  assign buttons_class = buttons_class | append: ' buttons-block--mobile-stacking-' | append: buttons_mobile_stacking
+  assign buttons_class = buttons_class | append: ' buttons-block--width-' | append: buttons_width
+  if button_1_valid == false and button_2_valid == false
+    assign buttons_class = buttons_class | append: ' buttons-block--empty'
+  endif
+
+  assign buttons_justify = 'flex-start'
+  assign buttons_align = 'flex-start'
+  case buttons_alignment
+    when 'center'
+      assign buttons_justify = 'center'
+      assign buttons_align = 'center'
+    when 'end'
+      assign buttons_justify = 'flex-end'
+      assign buttons_align = 'flex-end'
+  endcase
+
+  assign buttons_justify_mobile = 'flex-start'
+  assign buttons_align_mobile = 'flex-start'
+  case buttons_alignment_mobile
+    when 'center'
+      assign buttons_justify_mobile = 'center'
+      assign buttons_align_mobile = 'center'
+    when 'end'
+      assign buttons_justify_mobile = 'flex-end'
+      assign buttons_align_mobile = 'flex-end'
+  endcase
+
+  assign button_1_icon = blank
+  assign button_1_icon_position = blank
+  assign button_1_icon_size = blank
+  assign button_1_icon_width = blank
+  if block.settings.button_1_show_icon
+    assign button_1_icon = block.settings.button_1_icon | default: 'arrow'
+    unless button_1_icon == 'arrow' or button_1_icon == 'cart'
+      assign button_1_icon = 'arrow'
+    endunless
+    assign button_1_icon_position = block.settings.button_1_icon_position | default: 'after'
+    unless button_1_icon_position == 'before' or button_1_icon_position == 'after'
+      assign button_1_icon_position = 'after'
+    endunless
+    assign button_1_icon_size = block.settings.button_1_icon_size | default: 'inherit'
+    unless button_1_icon_size == 'inherit' or button_1_icon_size == 'custom'
+      assign button_1_icon_size = 'inherit'
+    endunless
+    assign button_1_icon_width = block.settings.button_1_icon_width | default: 20 | plus: 0
+    if button_1_icon_width < 12 or button_1_icon_width > 32
+      assign button_1_icon_width = 20
+    endif
+  endif
+
+  assign button_2_icon = blank
+  assign button_2_icon_position = blank
+  assign button_2_icon_size = blank
+  assign button_2_icon_width = blank
+  if block.settings.button_2_show_icon
+    assign button_2_icon = block.settings.button_2_icon | default: 'arrow'
+    unless button_2_icon == 'arrow' or button_2_icon == 'cart'
+      assign button_2_icon = 'arrow'
+    endunless
+    assign button_2_icon_position = block.settings.button_2_icon_position | default: 'after'
+    unless button_2_icon_position == 'before' or button_2_icon_position == 'after'
+      assign button_2_icon_position = 'after'
+    endunless
+    assign button_2_icon_size = block.settings.button_2_icon_size | default: 'inherit'
+    unless button_2_icon_size == 'inherit' or button_2_icon_size == 'custom'
+      assign button_2_icon_size = 'inherit'
+    endunless
+    assign button_2_icon_width = block.settings.button_2_icon_width | default: 20 | plus: 0
+    if button_2_icon_width < 12 or button_2_icon_width > 32
+      assign button_2_icon_width = 20
+    endif
+  endif
+%}
+
+{% capture buttons_style %}
+  {% render 'layout-flow-style',
+    direction: buttons_flow_direction,
+    wrap: 'nowrap',
+    align_items: buttons_align,
+    justify_content: buttons_justify,
+    gap: buttons_gap,
+    direction_mobile: buttons_flow_direction_mobile,
+    wrap_mobile: 'nowrap',
+    align_items_mobile: buttons_align_mobile,
+    justify_content_mobile: buttons_justify_mobile,
+    gap_mobile: buttons_gap_mobile
+  %}
+  --buttons-align-mobile: {{ buttons_align_mobile }};
+  --buttons-padding-top: {{ padding_top }}px;
+  --buttons-padding-bottom: {{ padding_bottom }}px;
+  --buttons-padding-left: {{ padding_left }}px;
+  --buttons-padding-right: {{ padding_right }}px;
+  {% if block.settings.customize_mobile_padding %}
+    --buttons-padding-top-mobile: {{ padding_top_mobile }}px;
+    --buttons-padding-bottom-mobile: {{ padding_bottom_mobile }}px;
+    --buttons-padding-left-mobile: {{ padding_left_mobile }}px;
+    --buttons-padding-right-mobile: {{ padding_right_mobile }}px;
+  {% endif %}
+{% endcapture %}
+{% assign buttons_style = buttons_style | strip | replace: '\n', ' ' %}
+
+{% if button_1_valid or button_2_valid or request.design_mode %}
+  <div
+    class="{{ buttons_class }}"
+    style="{{ buttons_style }}"
+    {{ block.shopify_attributes }}
+  >
+    {% if button_1_valid %}
+      <div class="buttons-block__item">
+        {% render 'theme-button',
+          label: button_1_label,
+          url: button_1_link,
+          open_in_new_tab: block.settings.button_1_open_in_new_tab,
+          variant: block.settings.button_1_style,
+          icon: button_1_icon,
+          icon_position: button_1_icon_position,
+          icon_size: button_1_icon_size,
+          icon_width: button_1_icon_width,
+          class: 'buttons-block__button'
+        %}
+      </div>
+    {% endif %}
+    {% if button_2_valid %}
+      <div class="buttons-block__item">
+        {% render 'theme-button',
+          label: button_2_label,
+          url: button_2_link,
+          open_in_new_tab: block.settings.button_2_open_in_new_tab,
+          variant: block.settings.button_2_style,
+          icon: button_2_icon,
+          icon_position: button_2_icon_position,
+          icon_size: button_2_icon_size,
+          icon_width: button_2_icon_width,
+          class: 'buttons-block__button'
+        %}
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .buttons-block {
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    padding-top: var(--buttons-padding-top, 0px);
+    padding-right: var(--buttons-padding-right, 0px);
+    padding-bottom: var(--buttons-padding-bottom, 0px);
+    padding-left: var(--buttons-padding-left, 0px);
+  }
+
+  .buttons-block--width-fill {
+    width: 100%;
+  }
+
+  .buttons-block__item {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .buttons-block__button {
+    max-width: 100%;
+  }
+
+  .buttons-block--empty {
+    min-height: 1px;
+  }
+
+  @media (max-width: 767.98px) {
+    .buttons-block {
+      padding-top: var(--buttons-padding-top-mobile, var(--buttons-padding-top, 0px));
+      padding-right: var(--buttons-padding-right-mobile, var(--buttons-padding-right, 0px));
+      padding-bottom: var(--buttons-padding-bottom-mobile, var(--buttons-padding-bottom, 0px));
+      padding-left: var(--buttons-padding-left-mobile, var(--buttons-padding-left, 0px));
+    }
+
+    .buttons-block--mobile-stacking-stack .buttons-block__item {
+      align-self: var(--buttons-align-mobile, flex-start);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.buttons",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.button_1"
+    },
+    {
+      "type": "text",
+      "id": "button_1_label",
+      "label": "t:labels.button_label"
+    },
+    {
+      "type": "url",
+      "id": "button_1_link",
+      "label": "t:labels.link"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_1_open_in_new_tab",
+      "label": "t:labels.open_in_new_tab",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "button_1_style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" },
+        { "value": "tertiary", "label": "t:options.button_variant.tertiary" }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_1_show_icon",
+      "label": "t:labels.show_icon",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "button_1_icon",
+      "label": "t:labels.icon",
+      "options": [
+        { "value": "arrow", "label": "t:options.button_icon.arrow" },
+        { "value": "cart", "label": "t:options.button_icon.cart" }
+      ],
+      "default": "arrow",
+      "visible_if": "{{ block.settings.button_1_show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "button_1_icon_position",
+      "label": "t:labels.icon_position",
+      "options": [
+        { "value": "before", "label": "t:options.icon_position.before" },
+        { "value": "after", "label": "t:options.icon_position.after" }
+      ],
+      "default": "after",
+      "visible_if": "{{ block.settings.button_1_show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "button_1_icon_size",
+      "label": "t:labels.icon_size",
+      "options": [
+        { "value": "inherit", "label": "t:options.icon_size.inherit" },
+        { "value": "custom", "label": "t:options.icon_size.custom" }
+      ],
+      "default": "inherit",
+      "visible_if": "{{ block.settings.button_1_show_icon }}"
+    },
+    {
+      "type": "range",
+      "id": "button_1_icon_width",
+      "label": "t:labels.icon_width",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.button_1_show_icon and block.settings.button_1_icon_size == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.button_2"
+    },
+    {
+      "type": "text",
+      "id": "button_2_label",
+      "label": "t:labels.button_label"
+    },
+    {
+      "type": "url",
+      "id": "button_2_link",
+      "label": "t:labels.link"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_2_open_in_new_tab",
+      "label": "t:labels.open_in_new_tab",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "button_2_style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "primary", "label": "t:options.button_variant.primary" },
+        { "value": "secondary", "label": "t:options.button_variant.secondary" },
+        { "value": "tertiary", "label": "t:options.button_variant.tertiary" }
+      ],
+      "default": "secondary"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_2_show_icon",
+      "label": "t:labels.show_icon",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "button_2_icon",
+      "label": "t:labels.icon",
+      "options": [
+        { "value": "arrow", "label": "t:options.button_icon.arrow" },
+        { "value": "cart", "label": "t:options.button_icon.cart" }
+      ],
+      "default": "arrow",
+      "visible_if": "{{ block.settings.button_2_show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "button_2_icon_position",
+      "label": "t:labels.icon_position",
+      "options": [
+        { "value": "before", "label": "t:options.icon_position.before" },
+        { "value": "after", "label": "t:options.icon_position.after" }
+      ],
+      "default": "after",
+      "visible_if": "{{ block.settings.button_2_show_icon }}"
+    },
+    {
+      "type": "select",
+      "id": "button_2_icon_size",
+      "label": "t:labels.icon_size",
+      "options": [
+        { "value": "inherit", "label": "t:options.icon_size.inherit" },
+        { "value": "custom", "label": "t:options.icon_size.custom" }
+      ],
+      "default": "inherit",
+      "visible_if": "{{ block.settings.button_2_show_icon }}"
+    },
+    {
+      "type": "range",
+      "id": "button_2_icon_width",
+      "label": "t:labels.icon_width",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.button_2_show_icon and block.settings.button_2_icon_size == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "t:labels.direction",
+      "options": [
+        { "value": "row", "label": "t:options.buttons_direction.row" },
+        { "value": "stack", "label": "t:options.buttons_direction.stack" }
+      ],
+      "default": "row"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:labels.gap",
+      "min": 0,
+      "max": 64,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 64,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" }
+      ],
+      "default": "fit"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "start", "label": "t:options.buttons_alignment.start" },
+        { "value": "center", "label": "t:options.buttons_alignment.center" },
+        { "value": "end", "label": "t:options.buttons_alignment.end" }
+      ],
+      "default": "start",
+      "visible_if": "{{ block.settings.width == 'fill' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.customize_mobile_alignment",
+      "default": false,
+      "visible_if": "{{ block.settings.width == 'fill' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "t:labels.mobile_alignment",
+      "options": [
+        { "value": "start", "label": "t:options.buttons_alignment.start" },
+        { "value": "center", "label": "t:options.buttons_alignment.center" },
+        { "value": "end", "label": "t:options.buttons_alignment.end" }
+      ],
+      "default": "start",
+      "visible_if": "{{ block.settings.width == 'fill' and block.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "select",
+      "id": "mobile_stacking",
+      "label": "t:labels.mobile_stacking",
+      "options": [
+        { "value": "row", "label": "t:options.mobile_stacking.row" },
+        { "value": "stack", "label": "t:options.mobile_stacking.stack" }
+      ],
+      "default": "stack"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.buttons",
+      "category": "t:general.basic",
+      "settings": {
+        "button_1_label": "Shop now",
+        "button_1_link": "/",
+        "button_1_style": "primary",
+        "button_1_show_icon": false,
+        "button_2_label": "Learn more",
+        "button_2_link": "/",
+        "button_2_style": "secondary",
+        "button_2_show_icon": false,
+        "direction": "row",
+        "gap": 12,
+        "gap_mobile": 12,
+        "width": "fit",
+        "alignment": "start",
+        "customize_mobile_alignment": false,
+        "mobile_stacking": "stack"
+      }
+    }
+  ]
+}
+{% endschema %}

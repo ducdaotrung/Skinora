@@ -1,0 +1,259 @@
+{% doc %}
+  Renders the standard View all button block.
+
+  This action accepts an explicit destination and falls back to the closest
+  typed blog or collection resource URL when a compatible section supplies one.
+  An explicit merchant URL always wins. Desktop and mobile
+  presentation are configured independently while both controls retain the
+  same accessible link target.
+
+  @example
+  {% content_for 'block', type: 'view-all-button', id: 'view-all' %}
+{% enddoc %}
+
+{% liquid
+  assign collection_list_view_all_fallback_label = 'collection_tabs.view_all' | t
+  assign collection_list_view_all_url = block.settings.button_link
+  assign collection_list_view_all_is_dynamic = false
+  if collection_list_view_all_url == blank
+    if closest.blog != blank
+      assign collection_list_view_all_url = closest.blog.url
+    elsif closest.collection != blank
+      assign collection_list_view_all_url = closest.collection.url
+      assign collection_list_view_all_is_dynamic = true
+    endif
+  endif
+  assign collection_list_view_all_attributes = 'data-view-all-button'
+  if collection_list_view_all_is_dynamic
+    assign collection_list_view_all_attributes = collection_list_view_all_attributes | append: ' data-view-all-button-dynamic'
+  endif
+
+  assign collection_list_view_all_can_render = false
+  if collection_list_view_all_url != blank or request.design_mode
+    assign collection_list_view_all_can_render = true
+  endif
+
+  assign collection_list_view_all_mobile_height = block.settings.button_height_mobile | default: 'inherit'
+  assign collection_list_view_all_mobile_height_value = blank
+  case collection_list_view_all_mobile_height
+    when 'small'
+      assign collection_list_view_all_mobile_height_value = '44px'
+    when 'medium'
+      assign collection_list_view_all_mobile_height_value = '48px'
+    when 'large'
+      assign collection_list_view_all_mobile_height_value = '56px'
+    when 'inherit'
+    else
+      assign collection_list_view_all_mobile_height = 'inherit'
+  endcase
+%}
+
+{% capture collection_list_view_all_style_attribute %}
+  {% if collection_list_view_all_mobile_height_value != blank %}--collection-list-view-all-height-mobile: {{ collection_list_view_all_mobile_height_value }};{% endif %}
+{% endcapture %}
+{% assign collection_list_view_all_style_attribute = collection_list_view_all_style_attribute | strip %}
+
+{% if collection_list_view_all_can_render %}
+  <div
+    class="collection-list-view-all{% if block.settings.full_width_mobile %} collection-list-view-all--full-width-mobile{% endif %}"
+    {% if collection_list_view_all_style_attribute != blank %}style="{{ collection_list_view_all_style_attribute }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    {% render 'view-all-button',
+      label: block.settings.button_label,
+      fallback_label: collection_list_view_all_fallback_label,
+      url: collection_list_view_all_url,
+      open_in_new_tab: block.settings.button_open_in_new_tab,
+      variant: block.settings.button_style,
+      fallback_variant: 'text',
+      show_icon: block.settings.show_icon,
+      icon: block.settings.icon,
+      icon_position: block.settings.icon_position,
+      icon_size: block.settings.icon_size,
+      icon_width: block.settings.icon_width,
+      class: 'collection-list-view-all__button collection-list-view-all__button--desktop',
+      attributes: collection_list_view_all_attributes
+    %}
+    {% render 'view-all-button',
+      label: block.settings.button_label,
+      fallback_label: collection_list_view_all_fallback_label,
+      url: collection_list_view_all_url,
+      open_in_new_tab: block.settings.button_open_in_new_tab,
+      variant: block.settings.button_style_mobile,
+      fallback_variant: block.settings.button_style,
+      show_icon: block.settings.show_icon_mobile,
+      icon: block.settings.icon,
+      icon_position: block.settings.icon_position,
+      icon_size: block.settings.icon_size,
+      icon_width: block.settings.icon_width,
+      class: 'collection-list-view-all__button collection-list-view-all__button--mobile',
+      attributes: collection_list_view_all_attributes
+    %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .collection-list-view-all .collection-list-view-all__button--mobile {
+    display: none;
+  }
+
+  @media (max-width: 767.98px) {
+    .collection-list-view-all .collection-list-view-all__button--desktop {
+      display: none;
+    }
+
+    .collection-list-view-all .collection-list-view-all__button--mobile {
+      display: inline-flex;
+      min-height: var(--collection-list-view-all-height-mobile, var(--button-height-mobile));
+    }
+
+    .collection-list-view-all--full-width-mobile,
+    .collection-list-view-all--full-width-mobile .collection-list-view-all__button--mobile {
+      width: 100%;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.view_all_button",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "t:general.content" },
+    { "type": "text", "id": "button_label", "label": "t:labels.button_label", "default": "View all" },
+    { "type": "url", "id": "button_link", "label": "t:labels.link" },
+    { "type": "checkbox", "id": "button_open_in_new_tab", "label": "t:labels.open_in_new_tab", "default": false },
+    { "type": "header", "content": "t:labels.desktop" },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "solid", "label": "Solid" },
+        { "value": "outline", "label": "t:options.button_variant.outline" },
+        { "value": "text", "label": "t:options.button_style.text" }
+      ],
+      "default": "text"
+    },
+    { "type": "checkbox", "id": "show_icon", "label": "t:labels.show_icon", "default": false },
+    {
+      "type": "select",
+      "id": "icon",
+      "label": "t:labels.icon",
+      "options": [
+        {
+          "value": "arrow_right",
+          "label": "Arrow right"
+        },
+        {
+          "value": "long_arrow_right",
+          "label": "Long arrow right"
+        },
+        {
+          "value": "chevron_right",
+          "label": "Chevron"
+        },
+        {
+          "value": "arrow_up_right",
+          "label": "Arrow up right"
+        },
+        {
+          "value": "circle_arrow",
+          "label": "Circle arrow"
+        },
+        {
+          "value": "circle_chevron",
+          "label": "Circle chevron"
+        },
+        {
+          "value": "long_arrow_up",
+          "label": "Long arrow up"
+        },
+        {
+          "value": "double_chevron",
+          "label": "Double chevron"
+        },
+        {
+          "value": "arrow_outline",
+          "label": "Arrow outline"
+        },
+        {
+          "value": "square_chevron",
+          "label": "Square chevron"
+        },
+        {
+          "value": "plus",
+          "label": "Plus"
+        }
+      ],
+      "default": "arrow_right",
+      "visible_if": "{{ block.settings.show_icon or block.settings.show_icon_mobile }}"
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "t:labels.icon_position",
+      "options": [
+        {
+          "value": "before",
+          "label": "Left"
+        },
+        {
+          "value": "after",
+          "label": "Right"
+        }
+      ],
+      "default": "after",
+      "visible_if": "{{ block.settings.show_icon or block.settings.show_icon_mobile }}"
+    },
+    {
+      "type": "select",
+      "id": "icon_size",
+      "label": "t:labels.icon_size",
+      "options": [
+        { "value": "inherit", "label": "t:options.icon_size.inherit" },
+        { "value": "custom", "label": "t:options.icon_size.custom" }
+      ],
+      "default": "inherit",
+      "visible_if": "{{ block.settings.show_icon or block.settings.show_icon_mobile }}"
+    },
+    {
+      "type": "range",
+      "id": "icon_width",
+      "label": "t:labels.icon_width",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.icon_size == 'custom' and block.settings.show_icon or block.settings.show_icon_mobile }}"
+    },
+    { "type": "header", "content": "t:labels.mobile" },
+    {
+      "type": "select",
+      "id": "button_style_mobile",
+      "label": "t:labels.style",
+      "options": [
+        { "value": "solid", "label": "Solid" },
+        { "value": "outline", "label": "t:options.button_variant.outline" },
+        { "value": "text", "label": "t:options.button_style.text" }
+      ],
+      "default": "outline"
+    },
+    {
+      "type": "select",
+      "id": "button_height_mobile",
+      "label": "Height",
+      "options": [
+        { "value": "inherit", "label": "t:options.icon_size.inherit" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "inherit"
+    },
+    { "type": "checkbox", "id": "full_width_mobile", "label": "t:labels.full_width", "default": true },
+    { "type": "checkbox", "id": "show_icon_mobile", "label": "t:labels.show_icon", "default": false }
+  ]
+}
+{% endschema %}

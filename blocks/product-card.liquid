@@ -1,0 +1,116 @@
+{% doc %}
+  Renders a Product Card from the product context supplied by its parent
+  Product List, section, grid, or recommendation surface.
+
+  The card's baseline presentation is managed by Theme Settings → Product
+  cards. This block only exposes instance-level controls defined by the
+  Commerce Block contract.
+
+  @param {product} [product] - Product resource supplied by the parent list
+  @param {boolean} [placeholder] - Whether to render the shared empty card state
+  @param {string} [color_type_override] - Internal parent override for legacy card settings
+  @param {object} [color_scheme_override] - Internal parent override for legacy card settings
+  @param {string} [editor_attributes_override] - Internal parent override for legacy editor attributes
+
+  A parent may pass `placeholder: true` while a product resource is not
+  available so the card can preserve the parent layout in the editor and
+  storefront preview.
+
+  @example
+  {% content_for 'block', type: 'product-card', id: 'product-card' %}
+{% enddoc %}
+
+{% liquid
+  assign card_product = closest.product | default: product
+  assign product_card_color_type = block.settings.color_type
+  if color_type_override != nil
+    assign product_card_color_type = color_type_override
+  endif
+  assign product_card_color_scheme = block.settings.color_scheme
+  if color_scheme_override != nil
+    assign product_card_color_scheme = color_scheme_override
+  endif
+  assign product_card_editor_attributes = block.shopify_attributes
+  if editor_attributes_override != blank
+    assign product_card_editor_attributes = editor_attributes_override
+  endif
+%}
+
+{% if card_product != blank %}
+  {% render 'product-card',
+    product: card_product,
+    color_type: product_card_color_type,
+    color_scheme: product_card_color_scheme,
+    attributes: product_card_editor_attributes
+  %}
+{% elsif placeholder %}
+  {% render 'product-card',
+    product: blank,
+    placeholder: true,
+    color_type: product_card_color_type,
+    color_scheme: product_card_color_scheme,
+    attributes: product_card_editor_attributes
+  %}
+{% else %}
+  <div class="product-card product-card--empty" {{ product_card_editor_attributes }}>
+    <p class="product-card__empty-message body-sm">{{ 'products.no_product' | t }}</p>
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .product-card--empty:not(.product-card--placeholder) {
+    display: grid;
+    min-height: 8rem;
+    place-items: center;
+    padding: 1rem;
+  }
+
+  .product-card__empty-message {
+    color: color-mix(in srgb, var(--body-color) 70%, transparent);
+    text-align: center;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.product_card",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:info.product_card_settings"
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "select",
+      "id": "color_type",
+      "label": "t:labels.type",
+      "options": [
+        { "value": "inherit", "label": "t:options.color_type.inherit" },
+        { "value": "color_scheme", "label": "t:options.color_type.color_scheme" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.color_type == 'color_scheme' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.product_card",
+      "category": "t:general.product",
+      "settings": {
+        "color_type": "inherit",
+        "color_scheme": "scheme-1"
+      }
+    }
+  ]
+}
+{% endschema %}

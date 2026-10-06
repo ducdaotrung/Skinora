@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shared overlay regression fixture</title>
+<link rel="stylesheet" href="../assets/critical.css">
+<link rel="stylesheet" href="../assets/component-overlay.css">
+<style>
+  :root { font-size: 10px; --background-color: #fff; --body-color: #222; --heading-color: #222; --font-body-family: sans-serif; --font-body-size: 16px; --font-body-line-height: 1.5; --overlay-color: #000; --overlay-opacity: .4; --overlay-backdrop-color: rgba(0, 0, 0, .4); --overlay-background-color: #fff; --overlay-text-color: #222; --overlay-border-color: #ddd; --overlay-drawer-padding-desktop: 30px; --overlay-popover-border-width: 1px; --overlay-popover-shadow: none; --overlay-backdrop-blur: 12px; --drawer-radius: 0px; --bottom-sheet-radius: 20px; --page-margin-mobile: 16px; --motion-duration-standard: 300ms; --motion-ease-standard: cubic-bezier(.22, 1, .36, 1); }
+  body { font: 16px/1.5 sans-serif; min-height: 160vh; padding: 20px; }
+  button { font: inherit; cursor: pointer; }
+  .component-overlay__close { width: 40px; height: 40px; border: 0; background: transparent; }
+  .component-overlay__body form { display: grid; gap: 16px; margin-top: 24px; }
+  input { width: 100%; border: 1px solid #ccc; padding: 12px; }
+  h2 { font: 24px/1.3 sans-serif; margin: 0; }
+  .sticky { position: sticky; top: 20px; }
+  output { display: block; white-space: pre-wrap; }
+</style>
+<div class="sticky">
+  <h1>Shared overlay QA</h1>
+  <button data-open="popup">Open popup</button>
+  <button data-open="drawer">Open drawer</button>
+  <button data-open="untitled">Open untitled</button>
+  <output id="samples" aria-live="polite"></output>
+</div>
+<template id="shell">
+  <div class="component-overlay" data-component-overlay data-state="closed" data-mobile-layout="bottom_sheet" scroll-lock role="dialog" aria-modal="true" aria-hidden="true" aria-label="Test overlay" hidden>
+    <button class="component-overlay__backdrop backdrop-blur" type="button" tabindex="-1" aria-label="Close" data-component-overlay-backdrop></button>
+    <div class="component-overlay__panel">
+      <header class="component-overlay__header">
+        <span class="bottom-sheet__handle component-overlay__handle" aria-hidden="true"></span>
+        <h2 class="component-overlay__title">Get notified when it's back</h2>
+        <button class="component-overlay__close" data-overlay-close aria-label="Close">×</button>
+      </header>
+      <div class="component-overlay__body">
+        <p>Leave your details and we'll let you know when this variant is available again.</p>
+        <form><label>Email address<input type="email"></label><label>Phone number<input type="tel"></label><button>Done</button></form>
+      </div>
+    </div>
+  </div>
+</template>
+<custom-cursor data-component-overlay-cursor aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" focusable="false" aria-hidden="true">
+    <path d="M13.3334 2.6665L2.66669 13.3332M2.66669 2.6665L13.3334 13.3332" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+</custom-cursor>
+<script src="../assets/component-overlay.js"></script>
+<script>
+  for (const trigger of document.querySelectorAll('[data-open]')) {
+    const dialog = document.querySelector('#shell').content.firstElementChild.cloneNode(true);
+    dialog.id = trigger.dataset.open;
+    dialog.dataset.desktopLayout = trigger.dataset.open === 'popup' ? 'popup' : 'drawer';
+    if (trigger.dataset.open === 'untitled') {
+      dialog.querySelector('header').classList.add('component-overlay__header--untitled');
+      dialog.querySelector('h2').remove();
+    }
+    document.body.append(dialog);
+    trigger.addEventListener('click', () => {
+      ThemeOverlay.get(dialog).open({ opener: trigger });
+      const values = [];
+      const start = performance.now();
+      const sample = () => {
+        const panelStyle = getComputedStyle(dialog.querySelector('.component-overlay__panel'));
+        const backdropStyle = getComputedStyle(dialog.querySelector('[data-component-overlay-backdrop]'));
+        values.push({ ms: Math.round(performance.now() - start), transform: panelStyle.transform, opacity: panelStyle.opacity, backdrop: backdropStyle.backgroundColor, blur: backdropStyle.backdropFilter });
+        if (performance.now() - start < 400) requestAnimationFrame(sample);
+        else document.querySelector('#samples').textContent = JSON.stringify(values);
+      };
+      sample();
+    });
+  }
+</script>
+</html>

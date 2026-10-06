@@ -1,0 +1,213 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "breadcrumbs": {
+      "type": "breadcrumbs",
+      "settings": {
+        "section_width": "full_width",
+        "show_top_divider": true,
+        "show_bottom_divider": false,
+        "separator_style": "dot",
+        "alignment": "left",
+        "text_size": "sm",
+        "color_scheme": "scheme-1",
+        "padding_top": 34,
+        "padding_bottom": 34,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 24,
+        "padding_bottom_mobile": 24
+      }
+    },
+    "main": {
+      "type": "product-information",
+
+      "settings": {
+        "sticky_content": true,
+        "width": "full",
+        "media_width": "large",
+        "gap": 70,
+        "gap_mobile": 30,
+        "color_scheme": "scheme-1",
+        "padding_top": 0,
+        "padding_bottom": 120,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 0,
+        "padding_bottom_mobile": 60
+      },
+      "blocks": {
+        "product-media": {
+          "type": "_product-media",
+          "static": true,
+          "settings": {
+            "desktop_layout": "left_thumbnails",
+            "mobile_layout": "slider",
+            "full_width_media": false,
+            "autoplay": false,
+            "loop_video": false,
+            "zoom": "open_lightbox",
+            "gap": 12,
+            "gap_mobile": 10
+          }
+        },
+        "product-details": {
+          "type": "_product-details",
+          "static": true,
+          "settings": {
+            "alignment": "left",
+            "limit_width": true,
+            "max_width": 500,
+            "container_position": "center",
+            "gap_desktop": 24,
+            "gap_mobile": 24,
+            "border_thickness": 0,
+            "corner_radius": "square",
+            "shadow": "none",
+            "appearance_type": "inherit",
+            "color_scheme": "scheme-1",
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0,
+            "customize_mobile_padding": false,
+            "padding_top_mobile": 0,
+            "padding_bottom_mobile": 0,
+            "padding_left_mobile": 0,
+            "padding_right_mobile": 0
+          },
+          "blocks": {
+            "badges": {
+              "type": "product-badges",
+              "settings": {}
+            },
+            "title": {
+              "type": "product-title",
+              "settings": {}
+            },
+            "price": {
+              "type": "product-price",
+              "settings": {}
+            },
+            "description": {
+              "type": "product-description",
+              "settings": {}
+            },
+            "variant-picker": {
+              "type": "product-variant-picker",
+              "settings": {}
+            },
+            "inventory": {
+              "type": "product-inventory",
+              "settings": {
+                "display_mode": "status",
+                "low_stock_threshold": 5
+              }
+            },
+            "buy-buttons": {
+              "type": "product-buy-buttons",
+              "settings": {}
+            },
+            "benefits": {
+              "type": "group",
+              "settings": { "direction": "vertical", "width": "fill", "gap_desktop": 10, "gap_mobile": 10 },
+              "blocks": {
+                "row-1": { "type": "group", "settings": { "direction": "horizontal", "width": "fill", "horizontal_alignment": "space-between", "customize_mobile_alignment": false, "gap_desktop": 16, "gap_mobile": 12 }, "blocks": {
+                  "shipping": { "type": "group", "settings": { "direction": "horizontal", "width": "fill", "position": "center", "customize_mobile_alignment": false, "gap_desktop": 8, "gap_mobile": 8 }, "blocks": { "icon": { "type": "icon", "settings": { "icon": "truck", "icon_width": 18 } }, "text": { "type": "text", "settings": { "text": "<p>Insured free shipping</p>", "text_size": "sm" } } }, "block_order": ["icon", "text"] },
+                  "gold": { "type": "group", "settings": { "direction": "horizontal", "width": "fill", "position": "center", "customize_mobile_alignment": false, "gap_desktop": 8, "gap_mobile": 8 }, "blocks": { "icon": { "type": "icon", "settings": { "icon": "check", "icon_width": 18 } }, "text": { "type": "text", "settings": { "text": "<p>100% recycled gold</p>", "text_size": "sm" } } }, "block_order": ["icon", "text"] }
+                }, "block_order": ["shipping", "gold"] },
+                "row-2": { "type": "group", "settings": { "direction": "horizontal", "width": "fill", "horizontal_alignment": "space-between", "customize_mobile_alignment": false, "gap_desktop": 16, "gap_mobile": 12 }, "blocks": {
+                  "returns": { "type": "group", "settings": { "direction": "horizontal", "width": "fill", "position": "center", "customize_mobile_alignment": false, "gap_desktop": 8, "gap_mobile": 8 }, "blocks": { "icon": { "type": "icon", "settings": { "icon": "arrow-left", "icon_width": 18 } }, "text": { "type": "text", "settings": { "text": "<p>Free 30-days return</p>", "text_size": "sm" } } }, "block_order": ["icon", "text"] },
+                  "diamonds": { "type": "group", "settings": { "direction": "horizontal", "width": "fill", "position": "center", "customize_mobile_alignment": false, "gap_desktop": 8, "gap_mobile": 8 }, "blocks": { "icon": { "type": "icon", "settings": { "icon": "diamond", "icon_width": 18 } }, "text": { "type": "text", "settings": { "text": "<p>Certified diamonds</p>", "text_size": "sm" } } }, "block_order": ["icon", "text"] }
+                }, "block_order": ["returns", "diamonds"] }
+              },
+              "block_order": ["row-1", "row-2"]
+            },
+            "testimonial": {
+              "type": "group",
+              "settings": { "direction": "vertical", "width": "fill", "gap_desktop": 10, "padding_top": 20, "padding_bottom": 20, "padding_left": 20, "padding_right": 20, "appearance_type": "scheme", "color_scheme": "scheme-2" },
+              "blocks": {
+                "header": { "type": "group", "settings": { "direction": "horizontal", "gap_desktop": 8 }, "blocks": { "rating": { "type": "text", "settings": { "text": "<p>★★★★★</p>", "text_size": "sm" } }, "author": { "type": "text", "settings": { "text": "<p>Claudine A.</p>", "text_size": "sm" } }, "verified": { "type": "text", "settings": { "text": "<p><em>Verified Buyer</em></p>", "text_size": "sm" } } }, "block_order": ["rating", "author", "verified"] },
+                "quote": { "type": "text", "settings": { "text": "<p>I've never owned anything like it. The design is unlike anything else, every stone is unique, and you can feel the intention woven into it. It's become my signature piece.</p>", "text_size": "sm", "width": "fill" } }
+              },
+              "block_order": ["header", "quote"]
+            },
+            "contact-callout": {
+              "type": "group",
+              "settings": { "direction": "horizontal", "gap_desktop": 10, "padding_top": 12, "padding_bottom": 12 },
+              "blocks": {
+                "icon": { "type": "icon", "settings": { "icon": "truck", "icon_width": 18 } },
+                "text": { "type": "text", "settings": { "text": "<p>Need it sooner?</p>", "text_size": "sm" } },
+                "popup": { "type": "popup", "settings": { "trigger_label": "Contact us" }, "blocks": { "heading": { "type": "heading", "settings": { "text": "<p>Need Your Order Sooner?</p>", "heading_size": "md", "html_tag": "h2", "width": "fill" } }, "text": { "type": "text", "settings": { "text": "<p>Fill out your details below and we’ll reach out shortly to ensure your order arrives in time for your special date.</p>", "text_size": "sm", "width": "fill" } }, "contact-form": { "type": "contact-form", "settings": { "submit_label": "Send message", "width_desktop": "fill", "width_mobile": "fill", "gap_desktop": 12, "gap_mobile": 12 }, "blocks": { "phone": { "type": "contact-field", "settings": { "field_type": "phone", "label": "Phone number", "required": true } } }, "block_order": ["phone"] } }, "block_order": ["heading", "text", "contact-form"] }
+              },
+              "block_order": ["icon", "text", "popup"]
+            },
+            "pickup-availability": {
+              "type": "product-pickup-availability",
+              "settings": {}
+            },
+            "group": {
+              "type": "group",
+              "settings": {},
+              "blocks": {
+                "text-1": {
+                  "type": "text",
+                  "settings": {}
+                },
+                "text-2": {
+                  "type": "text",
+                  "settings": {}
+                }
+              },
+              "block_order": [
+                "text-1",
+                "text-2"
+              ]
+            },
+            "accordion": {
+              "type": "product-accordion",
+              "settings": {
+                "heading": "More about this product"
+              }
+            },
+            "recommendations": {
+              "type": "product-recommendations",
+              "settings": { "heading": "Complete the look" }
+            },
+            "sticky-add-to-cart": {
+              "type": "product-sticky-add-to-cart",
+              "settings": {}
+            }
+          },
+          "block_order": [
+            "badges",
+            "title",
+            "price",
+            "description",
+            "variant-picker",
+            "inventory",
+            "buy-buttons",
+            "benefits",
+            "testimonial",
+            "contact-callout",
+            "pickup-availability",
+            "group",
+            "accordion",
+            "recommendations",
+            "sticky-add-to-cart"
+          ]
+        }
+      }
+    }
+  },
+  "order": [
+    "breadcrumbs",
+    "main"
+  ]
+}

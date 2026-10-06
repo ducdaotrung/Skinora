@@ -1,0 +1,152 @@
+{{ 'component-pagination.css' | asset_url | stylesheet_tag }}
+{% doc %}
+  Fixed pagination role. @param {object} paginate - Native collection pagination object.
+{% enddoc %}
+<div class="collection-pagination-block" data-pagination-mode="{{ block.settings.pagination_type }}" {{ block.shopify_attributes }}>
+{% liquid
+  assign pagination_style = block.settings.button_style | default: 'primary'
+  if pagination_style == 'subtle'
+    assign pagination_style = 'outline'
+  elsif pagination_style == 'text'
+    assign pagination_style = 'tertiary'
+  endif
+  assign pagination_button_variant = pagination_style
+  if pagination_button_variant == 'outline'
+    assign pagination_button_variant = 'secondary'
+  endif
+%}
+{% if paginate.pages > 1 %}<nav class="main-collection__pagination theme-pagination body-text body-sm" aria-label="{{ 'collection.pagination' | t }}" data-style="{{ pagination_style }}" data-height="{{ block.settings.button_height }}" style="--pagination-padding-top:{{ block.settings.padding_top }}px;--pagination-padding-bottom:{{ block.settings.padding_bottom }}px;{% if block.settings.customize_mobile_padding %}--pagination-padding-top-mobile:{{ block.settings.padding_top_mobile }}px;--pagination-padding-bottom-mobile:{{ block.settings.padding_bottom_mobile }}px;{% endif %}">
+{% if block.settings.pagination_type == 'pages' %}
+  {% render 'pagination-pages', paginate: paginate %}
+{% elsif paginate.next %}
+  {% assign load_more_label = 'collection.load_more' | t %}
+  {% if block.settings.pagination_type == 'infinite' %}
+    <span data-collection-infinite-sentinel data-next-url="{{ paginate.next.url | escape }}" aria-hidden="true"></span>
+    <a href="{{ paginate.next.url }}" class="btn btn-{{ pagination_button_variant }}" data-collection-load-more>{{ load_more_label }}</a>
+    <noscript>
+      <a href="{{ paginate.next.url }}">{{ load_more_label }}</a>
+    </noscript>
+  {% else %}
+    <a href="{{ paginate.next.url }}" class="btn btn-{{ pagination_button_variant }}" data-collection-load-more>{{ load_more_label }}</a>
+  {% endif %}
+  <span data-collection-pagination-status role="status" hidden>
+    <span class="btn__spinner" aria-hidden="true"></span>
+    <span class="visually-hidden">{{ 'accessibility.loading' | t }}</span>
+  </span>
+{% endif %}
+</nav>{% endif %}</div>
+{% schema %}
+{
+  "name": "Pagination",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "pagination_type",
+      "label": "Pagination type",
+      "options": [
+        {
+          "value": "pages",
+          "label": "Pages"
+        },
+        {
+          "value": "load_more",
+          "label": "Load more"
+        },
+        {
+          "value": "infinite",
+          "label": "Infinite scroll"
+        }
+      ],
+      "default": "pages"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Style",
+      "options": [
+        {
+          "value": "primary",
+          "label": "t:options.button_variant.primary"
+        },
+        {
+          "value": "secondary",
+          "label": "t:options.button_variant.secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "t:options.button_variant.tertiary"
+        },
+        {
+          "value": "outline",
+          "label": "t:options.button_variant.outline"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "select",
+      "id": "button_height",
+      "label": "Height",
+      "options": [
+        { "value": "inherit", "label": "Inherit" },
+        { "value": "extra_small", "label": "Extra small" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" },
+        { "value": "extra_large", "label": "Extra large" }
+      ],
+      "default": "inherit"
+    },
+    { "type": "header", "content": "Padding" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "default": 40,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "Custom for mobile",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Mobile top padding",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 30,
+      "unit": "px",
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Mobile bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 0,
+      "unit": "px",
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ]
+}
+{% endschema %}

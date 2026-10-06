@@ -1,0 +1,75 @@
+{% doc %}
+  Renders the shared Swiper viewport. The caller owns slide markup and can
+  provide any Swiper module options through the shared JavaScript factory.
+  Every item in content must be a direct child of the generated wrapper and
+  must have the swiper-slide class.
+
+  @param {string} [content] - Rendered direct slide markup
+  @param {string} [root_class] - Additional class for the Swiper root
+  @param {string} [root_attributes] - Additional attributes for the root
+  @param {string} [wrapper_class] - Additional class for the Swiper wrapper
+  @param {string} [wrapper_attributes] - Additional attributes for the wrapper
+  @param {string} [id] - Optional stable root ID
+  @param {string} [aria_label] - Accessible name for the carousel
+  @param {string} [layout] - Layout mode: carousel or grid
+  @param {string} [pagination] - Optional rendered pagination markup
+  @param {boolean} [show_next_slide_preview] - Whether to reveal the next slide on desktop
+  @param {boolean} [show_next_slide_preview_on_mobile] - Whether to reveal the next slide on mobile
+  @param {boolean} [autoplay] - Whether the carousel auto-rotates
+  @param {boolean} [pause_on_hover] - Whether pointer hover pauses autoplay
+  @param {number} [autoplay_delay] - Autoplay delay in milliseconds
+{% enddoc %}
+
+{% liquid
+  assign carousel_layout = layout | default: 'carousel'
+  unless carousel_layout == 'carousel' or carousel_layout == 'grid'
+    assign carousel_layout = 'carousel'
+  endunless
+
+  assign carousel_autoplay_enabled = false
+  if autoplay == true or autoplay == 'true'
+    assign carousel_autoplay_enabled = true
+  endif
+
+  assign carousel_pause_on_hover = true
+  if pause_on_hover == false or pause_on_hover == 'false'
+    assign carousel_pause_on_hover = false
+  endif
+
+  assign carousel_autoplay_delay = autoplay_delay | default: 4000 | plus: 0
+  if carousel_autoplay_delay < 1000 or carousel_autoplay_delay > 60000
+    assign carousel_autoplay_delay = 4000
+  endif
+
+  assign carousel_show_next_slide_preview = false
+  if show_next_slide_preview == true or show_next_slide_preview == 'true'
+    assign carousel_show_next_slide_preview = true
+  endif
+
+  assign carousel_show_next_slide_preview_on_mobile = false
+  if show_next_slide_preview_on_mobile == true or show_next_slide_preview_on_mobile == 'true'
+    assign carousel_show_next_slide_preview_on_mobile = true
+  endif
+%}
+
+<div
+  class="swiper swiper-carousel--{{ carousel_layout }}{% if root_class != blank %} {{ root_class }}{% endif %}"
+  data-swiper-carousel
+  data-swiper-layout="{{ carousel_layout }}"
+  data-swiper-autoplay="{{ carousel_autoplay_enabled }}"
+  data-swiper-autoplay-pause-on-hover="{{ carousel_pause_on_hover }}"
+  data-swiper-autoplay-delay="{{ carousel_autoplay_delay }}"
+  data-swiper-next-slide-preview="{{ carousel_show_next_slide_preview }}"
+  data-swiper-next-slide-preview-mobile="{{ carousel_show_next_slide_preview_on_mobile }}"
+  {% if id != blank %}id="{{ id | escape }}"{% endif %}
+  {% if aria_label != blank %}aria-label="{{ aria_label | escape }}"{% endif %}
+  {% if root_attributes != blank %}{{ root_attributes }}{% endif %}
+>
+  <div
+    class="swiper-wrapper{% if wrapper_class != blank %} {{ wrapper_class }}{% endif %}"
+    {% if wrapper_attributes != blank %}{{ wrapper_attributes }}{% endif %}
+  >
+    {{ content }}
+  </div>
+  {% if pagination != blank %}{{ pagination }}{% endif %}
+</div>

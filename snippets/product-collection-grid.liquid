@@ -1,0 +1,318 @@
+{% doc %}
+  Renders the shared responsive product collection grid used by Product List
+  and Collection Tab. Parents provide the resource and setting source; this
+  renderer owns normalization, placeholders, columns, gaps and the shared
+  carousel/grid shell. Callers can provide pre-rendered item content when a
+  nested theme block must own each item.
+
+  @param {object} [collection] - Collection resource to render
+  @param {product[]} [products] - Explicit native product resources when the source is not a collection
+  @param {number} [max_products] - Maximum number of products to render
+  @param {string} [layout_type] - Grid or carousel presentation
+  @param {string} [columns_desktop] - Desktop column setting
+  @param {string} [columns_mobile] - Mobile column setting
+  @param {boolean} [enable_swipe_mobile] - Whether to enable mobile swipe
+  @param {boolean} [mobile_carousel] - Whether a grid should use Swiper on mobile only
+  @param {number} [gap_horizontal] - Desktop horizontal gap in pixels
+  @param {number} [gap_vertical] - Desktop vertical gap in pixels
+  @param {number} [gap_horizontal_mobile] - Mobile horizontal gap in pixels
+  @param {number} [gap_vertical_mobile] - Mobile vertical gap in pixels
+  @param {boolean} [show_placeholders] - Whether to render placeholder cards
+  @param {boolean} [show_placeholders_for_empty_collection] - Whether placeholders replace an empty selected collection
+  @param {number} [placeholder_count] - Number of placeholder cards
+  @param {string} [grid_class] - Additional class for the grid root
+  @param {string} [item_class] - Additional class for each grid item
+  @param {string} [items_data_attributes] - Additional grid data attributes
+  @param {boolean} [next_slide_preview] - Whether to reveal the next slide on desktop
+  @param {string} [carousel_id] - Stable ID for the carousel root
+  @param {string} [aria_label] - Accessible name for the carousel
+  @param {string} [previous_selector] - CSS selector for the previous control
+  @param {string} [next_selector] - CSS selector for the next control
+  @param {boolean} [show_pagination] - Whether to render Swiper pagination
+  @param {string} [pagination_type] - Progress bar or bullets pagination
+  @param {string} [pagination_class] - Additional pagination classes
+  @param {string} [pagination_style] - Inline pagination custom properties
+  @param {boolean} [autoplay] - Whether the carousel auto-rotates
+  @param {boolean} [autoplay_pause_on_hover] - Whether pointer hover pauses autoplay
+  @param {number} [autoplay_delay] - Autoplay delay in milliseconds
+  @param {string} [items_content] - Optional pre-rendered item markup. When provided, the caller owns item rendering.
+  @param {object} [product_card_block] - Direct Product Card child settings and editor attributes
+  @param {boolean} [product_card_override_enabled] - Whether to use legacy card setting overrides
+  @param {string} [product_card_color_type_override] - Legacy card color type override
+  @param {object} [product_card_color_scheme_override] - Legacy card color scheme override
+  @param {string} [product_card_editor_attributes_override] - Legacy card editor attributes
+  @param {string} [grid_attributes] - Theme Editor attributes for the grid root
+{% enddoc %}
+
+{% liquid
+  assign product_collection_grid_collection = collection
+  assign product_collection_grid_max_products = max_products | default: 6 | plus: 0
+  if product_collection_grid_max_products < 1 or product_collection_grid_max_products > 24
+    assign product_collection_grid_max_products = 6
+  endif
+
+  assign product_collection_grid_layout = layout_type | default: 'grid'
+  unless product_collection_grid_layout == 'grid' or product_collection_grid_layout == 'carousel'
+    assign product_collection_grid_layout = 'grid'
+  endunless
+
+  assign product_collection_grid_mobile_carousel = false
+  if mobile_carousel == true or mobile_carousel == 'true'
+    assign product_collection_grid_mobile_carousel = true
+  endif
+
+  assign product_collection_grid_pagination_type = pagination_type | default: 'bullets'
+  unless product_collection_grid_pagination_type == 'progress_bar' or product_collection_grid_pagination_type == 'bullets'
+    assign product_collection_grid_pagination_type = 'bullets'
+  endunless
+
+  assign product_collection_grid_show_pagination = false
+  if product_collection_grid_layout == 'carousel'
+    if show_pagination == true or show_pagination == 'true'
+      assign product_collection_grid_show_pagination = true
+    endif
+  endif
+
+  assign product_collection_grid_autoplay_enabled = false
+  if autoplay == true or autoplay == 'true'
+    assign product_collection_grid_autoplay_enabled = true
+  endif
+
+  assign product_collection_grid_autoplay_delay = autoplay_delay | default: 4000 | plus: 0
+  if product_collection_grid_autoplay_delay < 1000 or product_collection_grid_autoplay_delay > 60000
+    assign product_collection_grid_autoplay_delay = 4000
+  endif
+
+  assign product_collection_grid_aria_label = aria_label | default: 'search.products' | t
+
+  assign product_collection_grid_columns_desktop = columns_desktop | default: 3 | plus: 0
+  assign product_collection_grid_columns_mobile = columns_mobile | default: 1 | plus: 0
+  if product_collection_grid_columns_desktop < 1 or product_collection_grid_columns_desktop > 6
+    assign product_collection_grid_columns_desktop = 3
+  endif
+  if product_collection_grid_columns_mobile < 1 or product_collection_grid_columns_mobile > 6
+    assign product_collection_grid_columns_mobile = 1
+  endif
+
+  assign product_collection_grid_gap_horizontal = gap_horizontal | default: 4 | plus: 0
+  assign product_collection_grid_gap_vertical = gap_vertical | default: 4 | plus: 0
+  assign product_collection_grid_gap_horizontal_mobile = gap_horizontal_mobile | default: 4 | plus: 0
+  assign product_collection_grid_gap_vertical_mobile = gap_vertical_mobile | default: 4 | plus: 0
+  if product_collection_grid_gap_horizontal < 0 or product_collection_grid_gap_horizontal > 40
+    assign product_collection_grid_gap_horizontal = 4
+  endif
+  if product_collection_grid_gap_vertical < 0 or product_collection_grid_gap_vertical > 40
+    assign product_collection_grid_gap_vertical = 4
+  endif
+  if product_collection_grid_gap_horizontal_mobile < 0 or product_collection_grid_gap_horizontal_mobile > 40
+    assign product_collection_grid_gap_horizontal_mobile = 4
+  endif
+  if product_collection_grid_gap_vertical_mobile < 0 or product_collection_grid_gap_vertical_mobile > 40
+    assign product_collection_grid_gap_vertical_mobile = 4
+  endif
+
+  assign product_collection_grid_desktop_gap_count = product_collection_grid_columns_desktop | minus: 1
+  assign product_collection_grid_desktop_gap_total = product_collection_grid_gap_horizontal | times: product_collection_grid_desktop_gap_count
+  assign product_collection_grid_mobile_gap_count = product_collection_grid_columns_mobile | minus: 1
+  assign product_collection_grid_mobile_gap_total = product_collection_grid_gap_horizontal_mobile | times: product_collection_grid_mobile_gap_count
+
+  assign product_collection_grid_items = blank
+  assign product_collection_grid_item_limit = product_collection_grid_max_products
+  assign product_collection_grid_is_placeholder = false
+  assign product_collection_grid_show_placeholders = false
+  if show_placeholders
+    assign product_collection_grid_show_placeholders = true
+  endif
+  assign product_collection_grid_show_placeholders_for_empty_collection = false
+  if show_placeholders_for_empty_collection
+    assign product_collection_grid_show_placeholders_for_empty_collection = true
+  endif
+
+  if products != blank
+    assign product_collection_grid_items = products
+  elsif product_collection_grid_collection != blank and product_collection_grid_collection.products != blank
+    assign product_collection_grid_items = product_collection_grid_collection.products
+  elsif product_collection_grid_show_placeholders
+    if product_collection_grid_collection == blank or product_collection_grid_show_placeholders_for_empty_collection
+      assign product_collection_grid_placeholder_count = placeholder_count | default: 4 | plus: 0
+      if product_collection_grid_placeholder_count < 1 or product_collection_grid_placeholder_count > 24
+        assign product_collection_grid_placeholder_count = 4
+      endif
+      assign product_collection_grid_items = (1..product_collection_grid_placeholder_count)
+      assign product_collection_grid_item_limit = product_collection_grid_placeholder_count
+      assign product_collection_grid_is_placeholder = true
+    endif
+  endif
+
+  assign product_collection_grid_card_color_type = 'inherit'
+  assign product_collection_grid_card_color_scheme = 'scheme-1'
+  assign product_collection_grid_card_editor_attributes = blank
+  if product_card_block != blank
+    assign product_collection_grid_card_color_type = product_card_block.settings.color_type | default: 'inherit'
+    assign product_collection_grid_card_color_scheme = product_card_block.settings.color_scheme | default: 'scheme-1'
+    assign product_collection_grid_card_editor_attributes = product_card_block.shopify_attributes
+  endif
+
+  if product_card_override_enabled
+    if product_card_color_type_override != blank
+      assign product_collection_grid_card_color_type = product_card_color_type_override
+    endif
+    if product_card_color_scheme_override != blank
+      assign product_collection_grid_card_color_scheme = product_card_color_scheme_override
+    endif
+    if product_card_editor_attributes_override != blank
+      assign product_collection_grid_card_editor_attributes = product_card_editor_attributes_override
+    endif
+  endif
+
+  unless product_collection_grid_card_color_type == 'inherit' or product_collection_grid_card_color_type == 'color_scheme'
+    assign product_collection_grid_card_color_type = 'inherit'
+  endunless
+
+  assign product_collection_grid_class = 'product-collection-grid product-collection-grid--' | append: product_collection_grid_layout
+  assign product_collection_grid_scroll_class = blank
+  if product_collection_grid_layout == 'carousel'
+    assign product_collection_grid_scroll_class = ' scrollbar scrollbar--horizontal'
+  elsif product_collection_grid_layout == 'grid'
+    if enable_swipe_mobile or product_collection_grid_mobile_carousel
+      assign product_collection_grid_scroll_class = ' scrollbar scrollbar--horizontal-mobile'
+    endif
+  endif
+  if product_collection_grid_scroll_class != blank
+    assign product_collection_grid_class = product_collection_grid_class | append: product_collection_grid_scroll_class
+  endif
+  if enable_swipe_mobile and product_collection_grid_layout == 'grid'
+    assign product_collection_grid_class = product_collection_grid_class | append: ' product-collection-grid--swipe-mobile'
+  endif
+  if product_collection_grid_mobile_carousel and product_collection_grid_layout == 'grid'
+    assign product_collection_grid_class = product_collection_grid_class | append: ' product-collection-grid--mobile-carousel'
+  endif
+  if product_collection_grid_is_placeholder
+    assign product_collection_grid_class = product_collection_grid_class | append: ' product-collection-grid--placeholder'
+  endif
+  if grid_class != blank
+    assign product_collection_grid_class = product_collection_grid_class | append: ' ' | append: grid_class
+  endif
+%}
+
+{% capture product_collection_grid_style %}
+  {% if product_collection_grid_layout == 'grid' %}
+    --product-collection-grid-columns-desktop: {{ product_collection_grid_columns_desktop }};
+    --product-collection-grid-columns-mobile: {{ product_collection_grid_columns_mobile }};
+    --product-collection-grid-gap-horizontal: {{ product_collection_grid_gap_horizontal }}px;
+    --product-collection-grid-gap-vertical: {{ product_collection_grid_gap_vertical }}px;
+    --product-collection-grid-gap-horizontal-mobile: {{ product_collection_grid_gap_horizontal_mobile }}px;
+    --product-collection-grid-gap-vertical-mobile: {{ product_collection_grid_gap_vertical_mobile }}px;
+    --product-collection-grid-item-width-desktop: calc((100% - {{ product_collection_grid_desktop_gap_total }}px) / {{ product_collection_grid_columns_desktop }});
+    --product-collection-grid-item-width-mobile: calc((100% - {{ product_collection_grid_mobile_gap_total }}px) / {{ product_collection_grid_columns_mobile }});
+  {% endif %}
+{% endcapture %}
+{% assign product_collection_grid_style = product_collection_grid_style | strip %}
+
+{% assign product_collection_grid_content = blank %}
+{% if items_content != blank %}
+  {% assign product_collection_grid_content = items_content %}
+{% elsif product_collection_grid_items != blank %}
+  {% capture product_collection_grid_content %}
+    {% for product_collection_grid_item in product_collection_grid_items limit: product_collection_grid_item_limit %}
+      {% liquid
+        assign product_collection_grid_card_product = product_collection_grid_item
+        assign product_collection_grid_card_placeholder = false
+        if product_collection_grid_is_placeholder
+          assign product_collection_grid_card_product = blank
+          assign product_collection_grid_card_placeholder = true
+        endif
+      %}
+      <div class="{% if product_collection_grid_layout == 'carousel' %}swiper-slide {% endif %}product-collection-grid__item product-card-layout__item{% if item_class != blank %} {{ item_class }}{% endif %}">
+        {% render 'product-card',
+          product: product_collection_grid_card_product,
+          placeholder: product_collection_grid_card_placeholder,
+          color_type: product_collection_grid_card_color_type,
+          color_scheme: product_collection_grid_card_color_scheme,
+          attributes: product_collection_grid_card_editor_attributes
+        %}
+      </div>
+    {% endfor %}
+  {% endcapture %}
+{% endif %}
+
+{% if product_collection_grid_content != blank %}
+  {% if product_collection_grid_layout == 'carousel' %}
+    {% capture product_collection_grid_carousel_attributes %}
+      data-product-collection-grid
+      data-layout="carousel"
+      data-product-carousel
+      data-swiper-columns-desktop="{{ product_collection_grid_columns_desktop }}"
+      data-swiper-columns-mobile="{{ product_collection_grid_columns_mobile }}"
+      data-swiper-gap-desktop="{{ product_collection_grid_gap_horizontal }}"
+      data-swiper-gap-mobile="{{ product_collection_grid_gap_horizontal_mobile }}"
+      data-swiper-pagination-type="{{ product_collection_grid_pagination_type }}"
+      {% if previous_selector != blank %}data-swiper-previous-selector="{{ previous_selector | escape }}"{% endif %}
+      {% if next_selector != blank %}data-swiper-next-selector="{{ next_selector | escape }}"{% endif %}
+      {% if items_data_attributes != blank %}{{ items_data_attributes }}{% endif %}
+      {% if grid_attributes != blank %}{{ grid_attributes }}{% endif %}
+      {% if product_collection_grid_style != blank %}style="{{ product_collection_grid_style }}"{% endif %}
+    {% endcapture %}
+
+    {% capture product_collection_grid_pagination %}
+      {% if product_collection_grid_show_pagination %}
+        {% capture product_collection_grid_pagination_style %}
+          {{ pagination_style }}
+          {% if product_collection_grid_autoplay_enabled %}--swiper-pagination-bullet-progress-duration: {{ product_collection_grid_autoplay_delay }}ms;{% endif %}
+        {% endcapture %}
+        {% assign product_collection_grid_pagination_style = product_collection_grid_pagination_style | strip %}
+        <div
+          class="swiper-pagination{% if pagination_class != blank %} {{ pagination_class }}{% endif %}"
+          data-product-collection-pagination
+          data-pagination-type="{{ product_collection_grid_pagination_type }}"
+          {% if product_collection_grid_pagination_style != blank %}style="{{ product_collection_grid_pagination_style }}"{% endif %}
+        ></div>
+      {% endif %}
+    {% endcapture %}
+
+    {% render 'swiper-carousel',
+      id: carousel_id,
+      content: product_collection_grid_content,
+      root_class: product_collection_grid_class,
+      root_attributes: product_collection_grid_carousel_attributes,
+      aria_label: product_collection_grid_aria_label,
+      pagination: product_collection_grid_pagination,
+      show_next_slide_preview: next_slide_preview,
+      autoplay: autoplay,
+      pause_on_hover: autoplay_pause_on_hover,
+      autoplay_delay: autoplay_delay
+    %}
+  {% elsif product_collection_grid_mobile_carousel %}
+    {% capture product_collection_grid_mobile_carousel_attributes %}
+      data-product-collection-grid
+      data-layout="carousel"
+      data-product-carousel
+      data-swiper-mobile-only="true"
+      data-swiper-columns-desktop="{{ product_collection_grid_columns_desktop }}"
+      data-swiper-columns-mobile="{{ product_collection_grid_columns_mobile }}"
+      data-swiper-gap-desktop="{{ product_collection_grid_gap_horizontal }}"
+      data-swiper-gap-mobile="{{ product_collection_grid_gap_horizontal_mobile }}"
+      {% if items_data_attributes != blank %}{{ items_data_attributes }}{% endif %}
+      {% if grid_attributes != blank %}{{ grid_attributes }}{% endif %}
+      {% if product_collection_grid_style != blank %}style="{{ product_collection_grid_style }}"{% endif %}
+    {% endcapture %}
+    {% render 'swiper-carousel',
+      layout: 'carousel',
+      content: product_collection_grid_content,
+      root_class: product_collection_grid_class,
+      root_attributes: product_collection_grid_mobile_carousel_attributes,
+      aria_label: product_collection_grid_aria_label
+    %}
+  {% else %}
+    <div
+      class="{{ product_collection_grid_class }}"
+      data-product-collection-grid
+      data-layout="grid"
+      {% if items_data_attributes != blank %}{{ items_data_attributes }}{% endif %}
+      {% if grid_attributes != blank %}{{ grid_attributes }}{% endif %}
+      {% if product_collection_grid_style != blank %}style="{{ product_collection_grid_style }}"{% endif %}
+    >
+      {{ product_collection_grid_content }}
+    </div>
+  {% endif %}
+{% endif %}

@@ -1,0 +1,180 @@
+{% capture normalized_heading_size %}{% render 'heading-size-token', size: block.settings.title_size, fallback: 'sm' %}{% endcapture %}
+{% assign normalized_heading_size = normalized_heading_size | strip %}
+{% doc %}
+  Renders links to the previous and next articles in the current blog.
+{% enddoc %}
+
+{% liquid
+  assign article_navigation_radius = 'var(--navigation-radius)'
+  case block.settings.corner_radius
+    when 'square'
+      assign article_navigation_radius = 'var(--radius-square)'
+    when 'rounded'
+      assign article_navigation_radius = 'var(--radius-rounded)'
+    when 'custom'
+      assign article_navigation_radius = block.settings.custom_corner_radius | default: 8 | append: 'px'
+  endcase
+%}
+<nav class="article-pagination article-pagination--{{ block.settings.corner_radius | default: 'inherit' }}" aria-label="{{ 'blog.article_navigation' | t }}" style="--article-navigation-radius: {{ article_navigation_radius }}; --article-pagination-padding-top: {{ block.settings.padding_top }}px; --article-pagination-padding-bottom: {{ block.settings.padding_bottom }}px; {% if block.settings.custom_mobile_padding %}--article-pagination-padding-top-mobile: {{ block.settings.padding_top_mobile }}px;{% endif %} {% if block.settings.custom_mobile_padding %}--article-pagination-padding-bottom-mobile: {{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+  {% if blog.previous_article %}<a class="article-pagination__item article-pagination__item--previous" href="{{ blog.previous_article.url }}"><span class="article-pagination__label">{% render 'icon', icon: 'arrow-left', bare: true %}{{ 'blog.previous_post' | t }}</span><span class="article-pagination__title heading-text heading-{{ normalized_heading_size }}"{% if normalized_heading_size == 'custom' %} style="font-size: {{ block.settings.custom_heading_size }}px;"{% endif %}>{{ blog.previous_article.title | escape }}</span></a>{% endif %}
+  {% if blog.next_article %}<a class="article-pagination__item article-pagination__item--next" href="{{ blog.next_article.url }}"><span class="article-pagination__label">{{ 'blog.next_post' | t }}{% render 'icon', icon: 'arrow-right', bare: true %}</span><span class="article-pagination__title heading-text heading-{{ normalized_heading_size }}"{% if normalized_heading_size == 'custom' %} style="font-size: {{ block.settings.custom_heading_size }}px;"{% endif %}>{{ blog.next_article.title | escape }}</span></a>{% endif %}
+</nav>
+
+{% stylesheet %}
+  .article-pagination { display: flex; align-items: flex-end; justify-content: space-between; width: 100%; min-height: 22px; gap: 2px; padding-top: var(--article-pagination-padding-top, 0px); padding-bottom: var(--article-pagination-padding-bottom, 0px); box-sizing: border-box; background: var(--color-surface); border-radius: var(--article-navigation-radius); }
+  .article-pagination__item { display: flex; flex: 0 1 50%; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0; padding: 20px; color: inherit; border-radius: var(--article-navigation-radius); text-decoration: none;  }
+  .article-pagination__item--next { text-align: right; margin-inline-start: auto; align-items: flex-end; }
+  .article-pagination__label { display: flex; align-items: center; gap: 8px; font-size: var(--font-body-sm); }
+  .article-pagination__label svg { width: 16px; height: 16px; }
+  .article-pagination__title { overflow-wrap: anywhere; }
+  @media (max-width: 767.98px) { .article-pagination__title { display: none; } .article-pagination { padding-top: var(--article-pagination-padding-top-mobile, var(--article-pagination-padding-top, 0px)); padding-bottom: var(--article-pagination-padding-bottom-mobile, var(--article-pagination-padding-bottom, 0px)); } }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Previous and next posts",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "title_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        {
+          "value": "display",
+          "label": "t:options.heading_size.display"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.heading_size.xl"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.heading_size.lg"
+        },
+        {
+          "value": "md",
+          "label": "t:options.heading_size.md"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.heading_size.sm"
+        },
+        {
+          "value": "xs",
+          "label": "t:options.heading_size.xs"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.heading_size.custom"
+        }
+      ],
+      "default": "sm"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.title_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "Corner radius",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "Inherit"
+        },
+        {
+          "value": "square",
+          "label": "Square"
+        },
+        {
+          "value": "rounded",
+          "label": "Rounded"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "range",
+      "id": "custom_corner_radius",
+      "label": "Custom corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 8,
+      "visible_if": "{{ block.settings.corner_radius == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "custom_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.custom_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.custom_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Previous and next posts",
+      "category": "Blog"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,40 @@
+{% liquid
+  assign width = block.settings.width | default: 'fit'
+  unless width == 'fit' or width == 'fill' or width == 'custom'
+    assign width = 'fit'
+  endunless
+  assign max_width = block.settings.max_width | default: 640 | plus: 0
+  assign size_width = 'fit-content'
+  if width == 'fill' or width == 'custom'
+    assign size_width = '100%'
+  endif
+  assign size_max_width = blank
+  if width == 'custom'
+    assign size_max_width = max_width | append: 'px'
+  endif
+%}
+
+{% capture text_style %}
+  {% render 'size-style', width: size_width, max_width: size_max_width %}
+  {% if block.settings.text_color != blank %}--text-block-color: {{ block.settings.text_color | escape }};{% endif %}
+{% endcapture %}
+
+<div class="text-block size-style announcement-text-block motion-block body-text"{% if text_style != blank %} style="{{ text_style | strip }}"{% endif %} {{ block.shopify_attributes }}>
+  {{ block.settings.text | escape }}
+</div>
+
+{% schema %}
+{
+  "name": "Text",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "t:general.content" },
+    { "type": "text", "id": "text", "label": "t:labels.text", "default": "Announcement text" },
+    { "type": "color", "alpha": true, "id": "text_color", "label": "t:labels.text_color" },
+    { "type": "header", "content": "t:general.size" },
+    { "type": "select", "id": "width", "label": "t:labels.width", "options": [{ "value": "fit", "label": "t:options.width.fit" }, { "value": "fill", "label": "t:options.width.fill" }, { "value": "custom", "label": "t:options.width.custom" }], "default": "fit" },
+    { "type": "range", "id": "max_width", "label": "t:labels.max_width", "min": 320, "max": 1600, "step": 20, "unit": "px", "default": 640, "visible_if": "{{ block.settings.width == 'custom' }}" }
+  ],
+  "presets": [{ "name": "Text" }]
+}
+{% endschema %}

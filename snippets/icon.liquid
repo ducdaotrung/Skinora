@@ -1,0 +1,262 @@
+{% doc %}
+  Renders a registered icon or a defensively checked custom SVG, optionally as a link.
+
+  The caller owns the accessible name. A link is only rendered when a label is
+  provided; decorative output is hidden from assistive technology.
+
+  @param {string} [icon] - Registered Heroicons key or a supported legacy alias
+  @param {string} [source] - Icon source: library or custom
+  @param {string} [custom_icon] - Custom SVG markup from the Theme Editor
+  @param {boolean} [bare] - Render only the SVG, without the shared wrapper
+  @param {string} [url] - Optional link destination
+  @param {string} [label] - Accessible name for a linked icon
+  @param {boolean} [open_in_new_tab] - Whether the link opens in a new tab
+  @param {number} [width] - Icon width in pixels
+  @param {number} [padding] - Icon padding in pixels
+  @param {string} [class] - Additional wrapper classes
+
+  @example
+  {% render 'icon', icon: 'arrow', width: 24 %}
+{% enddoc %}
+
+{% liquid
+  assign icon_source = source | default: 'library'
+  unless icon_source == 'library' or icon_source == 'custom'
+    assign icon_source = 'library'
+  endunless
+
+  assign icon_name = icon | default: 'arrow-right'
+  unless icon_name == 'pencil-square' or icon_name == 'lock-closed' or icon_name == 'arrow' or icon_name == 'arrow-left' or icon_name == 'arrow-right' or icon_name == 'paper-airplane' or icon_name == 'bars-3' or icon_name == 'bars' or icon_name == 'grip-vertical' or icon_name == 'compare' or icon_name == 'menu' or icon_name == 'chevron' or icon_name == 'chevron-down' or icon_name == 'chevron-left' or icon_name == 'chevron-right' or icon_name == 'x-mark' or icon_name == 'close' or icon_name == 'eye' or icon_name == 'magnifying-glass' or icon_name == 'search' or icon_name == 'shopping-bag' or icon_name == 'bag' or icon_name == 'cart' or icon_name == 'shopping-cart' or icon_name == 'cube' or icon_name == 'user' or icon_name == 'users' or icon_name == 'account' or icon_name == 'truck' or icon_name == 'shipping' or icon_name == 'tag' or icon_name == 'discount' or icon_name == 'trash' or icon_name == 'remove' or icon_name == 'document-text' or icon_name == 'note' or icon_name == 'receipt-percent' or icon_name == 'coupon' or icon_name == 'share' or icon_name == 'play' or icon_name == 'pause' or icon_name == 'plus' or icon_name == 'minus' or icon_name == 'check' or icon_name == 'check-circle' or icon_name == 'x-circle' or icon_name == 'comparison-yes' or icon_name == 'comparison-no' or icon_name == 'information-circle' or icon_name == 'circle' or icon_name == 'square' or icon_name == 'triangle' or icon_name == 'diamond' or icon_name == 'star' or icon_name == 'four-stars' or icon_name == 'five-stars' or icon_name == 'calendar' or icon_name == 'calendar-days' or icon_name == 'clock' or icon_name == 'comment' or icon_name == 'chat-bubble' or icon_name == 'chat-bubble-left-right' or icon_name == 'shield-check' or icon_name == 'vertical-rule' or icon_name == 'funnel' or icon_name == 'sliders' or icon_name == 'arrow_right' or icon_name == 'long_arrow_right' or icon_name == 'chevron_right' or icon_name == 'arrow_up_right' or icon_name == 'circle_arrow' or icon_name == 'circle_chevron' or icon_name == 'long_arrow_up' or icon_name == 'double_chevron' or icon_name == 'arrow_outline' or icon_name == 'square_chevron'
+    assign icon_name = 'arrow-right'
+  endunless
+
+  assign icon_width = width | default: 24 | plus: 0
+  if icon_width < 8 or icon_width > 100
+    assign icon_width = 24
+  endif
+
+  assign icon_padding = padding | default: 0 | plus: 0
+  if icon_padding < 0 or icon_padding > 100
+    assign icon_padding = 0
+  endif
+
+  assign custom_icon_markup = custom_icon | default: '' | strip
+  assign custom_icon_valid = false
+  if custom_icon_markup != blank
+    assign custom_icon_lower = custom_icon_markup | downcase
+    if custom_icon_lower contains '<svg' and custom_icon_lower contains '</svg>'
+      assign custom_icon_valid = true
+      if custom_icon_lower contains '<script' or custom_icon_lower contains '<foreignobject' or custom_icon_lower contains '<iframe' or custom_icon_lower contains '<object' or custom_icon_lower contains '<embed' or custom_icon_lower contains '<form' or custom_icon_lower contains '<input' or custom_icon_lower contains '<button' or custom_icon_lower contains '<a' or custom_icon_lower contains '<img' or custom_icon_lower contains '<video' or custom_icon_lower contains '<audio' or custom_icon_lower contains 'javascript:' or custom_icon_lower contains 'data:' or custom_icon_lower contains 'onload=' or custom_icon_lower contains 'onclick=' or custom_icon_lower contains 'onerror=' or custom_icon_lower contains 'onmouseover=' or custom_icon_lower contains '{{' or custom_icon_lower contains '{%'
+        assign custom_icon_valid = false
+      endif
+    endif
+  endif
+
+  if icon_source == 'custom' and custom_icon_valid == false
+    assign icon_source = 'library'
+  endif
+
+  assign icon_body = blank
+  if icon_source == 'custom'
+    if custom_icon_valid
+      assign icon_body = custom_icon_markup
+    endif
+  else
+    capture icon_body
+      case icon_name
+        when 'arrow', 'arrow-right', 'arrow_right'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'long_arrow_right'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"><path d="M2 12h20m-6-6 6 6-6 6" /></svg>'
+        when 'arrow_up_right'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"><path d="M6 18 18 6M6 6h12v12" /></svg>'
+        when 'circle_arrow'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"><circle cx="12" cy="12" r="9" /><path d="M8 12h8m-4-4 4 4-4 4" /></svg>'
+        when 'circle_chevron'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"><circle cx="12" cy="12" r="9" /><path d="m10 8 4 4-4 4" /></svg>'
+        when 'long_arrow_up'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"><path d="M12 22V2m-6 6 6-6 6 6" /></svg>'
+        when 'double_chevron'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"><path d="m5 5 7 7-7 7m7-14 7 7-7 7" /></svg>'
+        when 'arrow_outline'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"><path d="M3 8h9V3l9 9-9 9v-5H3Z" /></svg>'
+        when 'square_chevron'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"><rect x="3" y="3" width="18" height="18" rx="1" /><path d="m10 8 4 4-4 4" /></svg>'
+        when 'arrow-left'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m10.5 4.5-7.5 7.5m0 0 7.5 7.5M3 12h18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'paper-airplane'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m3 4.5 18 7.5-18 7.5L7.5 12 3 4.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/><path d="M7.5 12H21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/></svg>'
+        when 'calendar'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M6.75 3v2.25M17.25 3v2.25M3.75 9h16.5M5.25 5.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25A2.25 2.25 0 0 1 18.75 21H5.25A2.25 2.25 0 0 1 3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'calendar-days'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M6.75 3v2.25M17.25 3v2.25M3.75 9h16.5M5.25 5.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25A2.25 2.25 0 0 1 18.75 21H5.25A2.25 2.25 0 0 1 3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/><path d="M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>'
+        when 'clock'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="var(--icon-stroke-width)"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/></svg>'
+        when 'comment'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M7.5 8.25h9m-9 3h6m-7.5 7.5-3 2.25.75-3.75A7.5 7.5 0 0 1 3 12.75a7.5 7.5 0 0 1 7.5-7.5h3a7.5 7.5 0 0 1 7.5 7.5 7.5 7.5 0 0 1-7.5 7.5h-3a7.5 7.5 0 0 1-1.5-.15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'chat-bubble'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M7.5 18.75 3.75 21l.75-4.5a8.25 8.25 0 1 1 3 2.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/><path d="M8.25 10.5h7.5m-7.5 3h4.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/></svg>'
+        when 'chat-bubble-left-right'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M8.25 15.75 4.5 18l.75-4.5a7.5 7.5 0 1 1 2.25 2.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/><path d="M13.5 18.75a7.5 7.5 0 0 0 5.25-2.25l3 1.5-.75-3.75a7.5 7.5 0 0 0 .75-3.25" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/></svg>'
+        when 'shield-check'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M12 3.75 19.5 6v5.25c0 4.52-3.12 7.73-7.5 9-4.38-1.27-7.5-4.48-7.5-9V6L12 3.75Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/><path d="m8.5 12 2.25 2.25 4.75-4.75" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/></svg>'
+        when 'vertical-rule'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M12 3v18" stroke="currentColor" stroke-linecap="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'bars-3', 'menu'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'bars', 'grip-vertical'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M9 4.5v15M15 4.5v15" stroke="currentColor" stroke-linecap="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'compare'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m10 7-5 5 5 5m4-10 5 5-5 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'funnel'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M3 4.5h18l-7.5 8.25v5.5l-3 1.75v-7.25L3 4.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'sliders'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M4 7h3m4 0h9M4 17h9m4 0h3" stroke="currentColor" stroke-linecap="round" stroke-width="var(--icon-stroke-width)" /><circle cx="9" cy="7" r="2" stroke="currentColor" stroke-width="var(--icon-stroke-width)" /><circle cx="15" cy="17" r="2" stroke="currentColor" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'chevron-down'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m19.5 8.25-7.5 7.5-7.5-7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'chevron-left'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m15.75 19.5-7.5-7.5 7.5-7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'chevron-right', 'chevron_right'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m8.25 4.5 7.5 7.5-7.5 7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'x-mark', 'close'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M6 18 18 6M6 6l12 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'eye'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M2.036 12.322a1.012 1.012 0 0 1 0-.644C3.423 7.51 7.36 5 12 5c4.64 0 8.577 2.51 9.964 6.678.07.21.07.434 0 .644C20.577 16.49 16.64 19 12 19c-4.64 0-8.577-2.51-9.964-6.678Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'magnifying-glass', 'search'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'shopping-bag', 'bag', 'cart'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.12 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm6.75 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'shopping-cart'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25C5.843 14.25 4.5 15.593 4.5 17.25h15.75M7.5 14.25h11.218c.68 0 1.273-.454 1.45-1.11.54-1.976 1.032-3.99 1.474-6.028A45.088 45.088 0 0 0 6.75 5.25c-.55 0-1.098.007-1.644.022M7.5 14.25 5.106 5.272M6 20.25c0 .414-.336.75-.75.75s-.75-.336-.75-.75.336-.75.75-.75.75.336.75.75Zm12.75 0c0 .414-.336.75-.75.75s-.75-.336-.75-.75.336-.75.75-.75.75.336.75.75Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'cube'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m12 3 8.25 4.5v9L12 21l-8.25-4.5v-9L12 3Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/><path d="M12 12 3.75 7.5M12 12l8.25-4.5M12 12v9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)"/></svg>'
+        when 'user', 'account'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'users'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="var(--icon-stroke-width)"/><path d="M6 20v-1a6 6 0 0 1 12 0v1m-.5-14a3 3 0 1 1 0 5.9M18.5 14.5A5.5 5.5 0 0 1 21 19v1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'truck', 'shipping'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M8.25 18.75C8.25 19.578 7.578 20.25 6.75 20.25s-1.5-.672-1.5-1.5.672-1.5 1.5-1.5 1.5.672 1.5 1.5Zm0 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5c0 .828-.672 1.5-1.5 1.5s-1.5-.672-1.5-1.5.672-1.5 1.5-1.5 1.5.672 1.5 1.5Zm0 0h1.125c.621 0 1.128-.504 1.09-1.124a21.318 21.318 0 0 0-3.214-9.193 1.5 1.5 0 0 0-1.276-.71H14.25m2.25 11.25h-2.25m0-11.176V6.615c0-.568-.423-1.048-.987-1.106A64.418 64.418 0 0 0 8.25 5.25c-1.693 0-3.365.088-5.013.259-.565.058-.987.538-.987 1.106v7.635m12-6.677v6.677m0 0h-12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'tag', 'discount'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M9.568 3H5.25C4.007 3 3 4.007 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581a2.25 2.25 0 0 0 2.607.33 12.5 12.5 0 0 0 5.224-5.224 2.25 2.25 0 0 0-.33-2.607l-9.581-9.581A2.25 2.25 0 0 0 9.568 3Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /><path d="M6 6h.008v.008H6V6Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'pencil-square'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 0 1 2.652 2.652l-1.688 1.687m-2.651-2.651L7.5 13.85l-.938 3.588 3.588-.938 9.363-9.362m-2.651-2.651 2.651 2.651M19.5 15.75v3.375A1.875 1.875 0 0 1 17.625 21H4.875A1.875 1.875 0 0 1 3 19.125V6.375A1.875 1.875 0 0 1 4.875 4.5H8.25" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'lock-closed'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M16.5 10.5V6.75a4.5 4.5 0 0 0-9 0v3.75m-.75 0h10.5A2.25 2.25 0 0 1 19.5 12.75v6a2.25 2.25 0 0 1-2.25 2.25H6.75a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'trash', 'remove'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.396m-11.7.396c.34-.052.682-.107 1.022-.165m-1.022.165a48.11 48.11 0 0 1 3.478-.396m4.744 0V4.478c0-1.18-.91-2.164-2.09-2.202a48.11 48.11 0 0 0-3.322 0C7.66 2.314 6.75 3.298 6.75 4.478v.916m8.25 0a48.66 48.66 0 0 0-8.25 0" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'document-text', 'note'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M19.5 14.25v-2.625A3.375 3.375 0 0 0 16.125 8.25h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5A3.375 3.375 0 0 0 10.125 2.25H8.25M8.25 15h7.5m-7.5 3H12M10.5 2.25H5.625A1.125 1.125 0 0 0 4.5 3.375v17.25c0 .621.504 1.125 1.125 1.125h12.75a1.125 1.125 0 0 0 1.125-1.125V11.25A9 9 0 0 0 10.5 2.25Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'receipt-percent', 'coupon'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m9 14.25 6-6m4.5-3.493V21.75L15.75 20.25l-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.056 1.907-2.185a48.135 48.135 0 0 1 11.187 0C18.694 2.7 19.5 3.649 19.5 4.757ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'share'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M7.217 10.907A2.25 2.25 0 1 0 7.217 13.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 0-2.186m0 0a2.25 2.25 0 1 0 0-12.814 2.25 2.25 0 0 0 0 4.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'play'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.541 6.348a1.125 1.125 0 0 1 0 1.971L6.917 19.334c-.75.412-1.667-.13-1.667-.986V5.653Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'pause'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M8.25 5.25v13.5m7.5-13.5v13.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'plus'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M12 4.5v15m7.5-7.5h-15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'minus'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M5 12h14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'check'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m4.5 12.75 6 6 9-13.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'comparison-yes'
+          echo '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>'
+        when 'comparison-no'
+          echo '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M7.05131 16.9498L16.9508 7.05026M16.9473 16.9533L7.04777 7.05379" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>'
+        when 'check-circle'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M12 1.25C17.9371 1.25 22.75 6.06294 22.75 12C22.75 17.9371 17.9371 22.75 12 22.75C6.06294 22.75 1.25 17.9371 1.25 12C1.25 6.06294 6.06294 1.25 12 1.25ZM16.4717 8.79492C16.1007 8.42424 15.4999 8.42426 15.1289 8.79492L10.7334 13.1904L8.87109 11.3281C8.50012 10.9577 7.89919 10.9575 7.52832 11.3281C7.15743 11.6991 7.15751 12.3009 7.52832 12.6719L10.0615 15.2051C10.4325 15.5759 11.0343 15.576 11.4053 15.2051L16.4717 10.1387C16.8426 9.76771 16.8425 9.16592 16.4717 8.79492Z" fill="currentColor" /></svg>'
+        when 'x-circle'
+          echo '<svg viewBox="0 0 20 20" fill="none" focusable="false" aria-hidden="true"><path d="M12.6042 7.10417L7.10417 12.6042M7.10417 7.10417L12.6042 12.6042M19.0208 9.85417C19.0208 14.9168 14.9168 19.0208 9.85417 19.0208C4.79156 19.0208 0.6875 14.9168 0.6875 9.85417C0.6875 4.79156 4.79156 0.6875 9.85417 0.6875C14.9168 0.6875 19.0208 4.79167 19.0208 9.85417Z" stroke="currentColor" stroke-width="var(--icon-stroke-width)" stroke-linecap="round" stroke-linejoin="round" /></svg>'
+        when 'information-circle'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="M12 16V12m0-4h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" vector-effect="non-scaling-stroke" /></svg>'
+        when 'circle'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'square'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><rect x="4" y="4" width="16" height="16" stroke="currentColor" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+        when 'triangle'
+          echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m12 4 8 16H4L12 4Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+          when 'diamond'
+            echo '<svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true"><path d="m12 3 9 9-9 9-9-9 9-9Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+          when 'star'
+            echo '<svg viewBox="0 0 24 24" fill="currentColor" focusable="false" aria-hidden="true"><path d="m12 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.06l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L12 2.5Z" /></svg>'
+          when 'four-stars'
+            echo '<svg viewBox="0 0 145 24" fill="none" focusable="false" aria-hidden="true"><path d="m12 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.06l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L12 2.5Z" fill="currentColor"/><path d="m42 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L42 17.06l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L42 2.5Z" fill="currentColor"/><path d="m72 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L72 17.06l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L72 2.5Z" fill="currentColor"/><path d="m102 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L102 17.06l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L102 2.5Z" fill="currentColor"/><path opacity="0.15" d="m132 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L132 17.06l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L132 2.5Z" fill="currentColor"/></svg>'
+          when 'five-stars'
+            echo '<svg viewBox="0 0 144 24" fill="none" focusable="false" aria-hidden="true"><path d="m12 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.06l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L12 2.5Z" fill="currentColor"/><path d="m42 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L42 17.06l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L42 2.5Z" fill="currentColor"/><path d="m72 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L72 17.06l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93L72 2.5Z" fill="currentColor"/><path d="m102 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L102 17.06l-5.7 3-1.09-6.35-4.62-4.5 6.38-.93L102 2.5Z" fill="currentColor"/><path d="m132 2.5 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L132 17.06l-5.7 3-1.09-6.35-4.62-4.5 6.38-.93L132 2.5Z" fill="currentColor"/></svg>'
+        when 'chevron'
+          echo '<svg viewBox="0 0 20 20" fill="none" focusable="false" aria-hidden="true"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--icon-stroke-width)" /></svg>'
+      endcase
+    endcapture
+    assign icon_body = icon_body | strip
+  endif
+
+  if bare and class != blank and icon_body != blank
+    assign bare_svg_start = '<svg class="' | append: class | append: '"'
+    assign icon_body = icon_body | replace_first: '<svg', bare_svg_start
+  endif
+
+  assign icon_wrapper = 'span'
+  if url != blank and label != blank
+    assign icon_wrapper = 'a'
+  endif
+  assign icon_class = 'icon icon-renderer'
+  if class != blank
+    assign icon_class = icon_class | append: ' ' | append: class
+  endif
+
+  assign icon_style = blank
+%}
+
+{% if width != blank or padding != blank %}
+  {% capture icon_style %}
+    --icon-width: {{ icon_width }}px;
+    --icon-padding: {{ icon_padding }}px;
+  {% endcapture %}
+  {% assign icon_style = icon_style | strip %}
+{% endif %}
+
+{% if icon_body != blank and bare and url == blank %}
+  {{ icon_body }}
+{% elsif icon_body != blank %}
+  <{{ icon_wrapper }}
+    class="{{ icon_class | strip }}"
+    {% if icon_style != blank %}style="{{ icon_style }}"{% endif %}
+    {% if icon_wrapper == 'a' %}
+      href="{{ url | escape }}"
+      aria-label="{{ label | escape }}"
+      {% if open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+    {% else %}
+      aria-hidden="true"
+    {% endif %}
+  >{{ icon_body }}</{{ icon_wrapper }}>
+{% endif %}
+
+{% stylesheet %}
+  .icon-renderer {
+    box-sizing: content-box;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--icon-width, var(--icon-size-medium, 20px));
+    height: auto;
+    max-width: 100%;
+    padding: var(--icon-padding, 0px);
+    color: inherit;
+    line-height: 0;
+    overflow: hidden;
+  }
+
+  .icon-renderer > svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: none;
+  }
+
+  .icon-renderer:is(a) {
+    color: inherit;
+    text-decoration: none;
+  }
+{% endstylesheet %}

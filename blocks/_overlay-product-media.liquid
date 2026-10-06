@@ -1,0 +1,483 @@
+{% doc %}
+  Renders the conditional Product media block used by Quick Add and Quick View.
+  Overlay media intentionally has a smaller contract than product-page media:
+  Quick Add uses a compact media strip, while Quick View uses a focused gallery.
+
+  @param {object} [product] - Product supplied by the overlay section context
+{% enddoc %}
+
+{% liquid
+  assign overlay_media_product = closest.product | default: product
+  assign overlay_current_variant = overlay_media_product.selected_or_first_available_variant
+  assign overlay_section_type = section.type | default: ''
+  assign overlay_is_quick_add = false
+  if overlay_section_type == 'quick-add' or section.id contains 'quick-add'
+    assign overlay_is_quick_add = true
+  endif
+  assign overlay_media_position = section.settings.media_position | default: 'left'
+  unless overlay_media_position == 'top' or overlay_media_position == 'left'
+    assign overlay_media_position = 'left'
+  endunless
+  assign overlay_media_format = 'quick-view'
+  assign overlay_media_presentation = 'quick-view'
+
+  if overlay_is_quick_add
+    assign overlay_media_format = 'quick-add'
+    if overlay_media_position == 'top'
+      assign overlay_media_presentation = 'quick-add-strip'
+    else
+      assign overlay_media_presentation = 'quick-add-gallery'
+    endif
+  endif
+
+  assign overlay_media_width = block.settings.desktop_width | default: 'medium'
+  unless overlay_media_width == 'small' or overlay_media_width == 'medium' or overlay_media_width == 'large'
+    assign overlay_media_width = 'medium'
+  endunless
+
+  assign overlay_media_desktop_layout = block.settings.desktop_layout | default: 'left_thumbnails'
+  unless overlay_media_desktop_layout == 'left_thumbnails' or overlay_media_desktop_layout == 'bottom_thumbnails' or overlay_media_desktop_layout == 'grid' or overlay_media_desktop_layout == 'stacked' or overlay_media_desktop_layout == 'stacked_thumbnails' or overlay_media_desktop_layout == 'two_column_grid'
+    assign overlay_media_desktop_layout = 'left_thumbnails'
+  endunless
+
+  capture overlay_media_desktop_ratio_result
+    render '_overlay-media-ratio', setting: block.settings.desktop_ratio, fallback: 'square', custom_width: block.settings.desktop_ratio_custom_width, custom_height: block.settings.desktop_ratio_custom_height, fallback_ratio: '1'
+  endcapture
+  assign overlay_media_desktop_ratio_parts = overlay_media_desktop_ratio_result | strip | split: '|'
+  assign overlay_media_desktop_ratio_setting = overlay_media_desktop_ratio_parts[0] | default: 'square'
+  assign overlay_media_desktop_ratio = overlay_media_desktop_ratio_parts[1] | default: '1'
+
+  capture overlay_media_mobile_ratio_result
+    render '_overlay-media-ratio', setting: block.settings.mobile_ratio, fallback: 'square', custom_width: block.settings.mobile_ratio_custom_width, custom_height: block.settings.mobile_ratio_custom_height, fallback_ratio: '1'
+  endcapture
+  assign overlay_media_mobile_ratio_parts = overlay_media_mobile_ratio_result | strip | split: '|'
+  assign overlay_media_mobile_ratio_setting = overlay_media_mobile_ratio_parts[0] | default: 'square'
+  assign overlay_media_mobile_ratio = overlay_media_mobile_ratio_parts[1] | default: '1'
+
+  capture overlay_media_thumbnail_ratio_result
+    render '_overlay-media-ratio', setting: block.settings.thumbnail_ratio, fallback: 'auto', custom_width: block.settings.thumbnail_ratio_custom_width, custom_height: block.settings.thumbnail_ratio_custom_height, fallback_ratio: 'auto'
+  endcapture
+  assign overlay_media_thumbnail_ratio_parts = overlay_media_thumbnail_ratio_result | strip | split: '|'
+  assign overlay_media_thumbnail_ratio_setting = overlay_media_thumbnail_ratio_parts[0] | default: 'auto'
+  assign overlay_media_thumbnail_ratio = overlay_media_thumbnail_ratio_parts[1] | default: 'auto'
+
+  assign overlay_media_mobile_layout = 'slider'
+  assign overlay_media_mobile_show_pagination = true
+  if overlay_media_presentation == 'quick-add-strip'
+    assign overlay_media_desktop_layout = 'grid'
+    assign overlay_media_mobile_show_pagination = false
+  endif
+
+  assign overlay_media_autoplay = false
+  if block.settings.autoplay
+    assign overlay_media_autoplay = true
+  endif
+
+  assign overlay_media_loop = false
+  if block.settings.loop_video
+    assign overlay_media_loop = true
+  endif
+
+  assign overlay_media_zoom = block.settings.zoom | default: 'open_lightbox'
+  unless overlay_media_zoom == 'open_lightbox' or overlay_media_zoom == 'click_hover' or overlay_media_zoom == 'none'
+    assign overlay_media_zoom = 'open_lightbox'
+  endunless
+
+  assign overlay_media_gap = block.settings.gap | default: 12 | plus: 0
+  if overlay_media_gap < 0 or overlay_media_gap > 40
+    assign overlay_media_gap = 12
+  endif
+  assign overlay_media_gap_mobile = block.settings.gap_mobile | default: 12 | plus: 0
+  if overlay_media_gap_mobile < 0 or overlay_media_gap_mobile > 40
+    assign overlay_media_gap_mobile = 12
+  endif
+
+  assign overlay_media_thumbnail_width = 80
+  if overlay_media_width == 'small'
+    assign overlay_media_thumbnail_width = 64
+  elsif overlay_media_width == 'large'
+    assign overlay_media_thumbnail_width = 96
+  endif
+
+  assign overlay_selected_media_found = false
+  if settings.variant_picker_only_selected_media and overlay_current_variant != blank and overlay_media_product != blank
+    for media in overlay_media_product.media
+      if media.variants != blank
+        for media_variant in media.variants
+          if media_variant.id == overlay_current_variant.id
+            assign overlay_selected_media_found = true
+            break
+          endif
+        endfor
+      endif
+      if overlay_selected_media_found
+        break
+      endif
+    endfor
+  endif
+
+  assign overlay_visible_media_count = 0
+  if overlay_media_product != blank
+    for media in overlay_media_product.media
+      assign overlay_media_hidden = false
+      if settings.variant_picker_only_selected_media and overlay_selected_media_found and media.variants != blank
+        assign overlay_media_hidden = true
+        for media_variant in media.variants
+          if media_variant.id == overlay_current_variant.id
+            assign overlay_media_hidden = false
+            break
+          endif
+        endfor
+      endif
+      unless overlay_media_hidden
+        assign overlay_visible_media_count = overlay_visible_media_count | plus: 1
+      endunless
+    endfor
+  endif
+
+  assign overlay_media_gallery_id = 'OverlayProductMedia-' | append: section.id
+  assign overlay_media_main_id = overlay_media_gallery_id | append: '-main'
+  assign overlay_media_thumbnail_id = overlay_media_gallery_id | append: '-thumbnails'
+  assign overlay_media_lightbox_id = overlay_media_gallery_id | append: '-lightbox'
+  assign overlay_media_main_aria_label = 'products.media_gallery' | t: product: overlay_media_product.title
+  assign overlay_media_thumbnails_aria_label = 'products.media_thumbnails' | t
+
+  assign overlay_media_motion_enabled = true
+  if settings.motion_block_animations == false
+    assign overlay_media_motion_enabled = false
+  endif
+%}
+
+<product-media-gallery
+  id="{{ overlay_media_gallery_id }}"
+  class="media-gallery product-media-gallery product-media-gallery--overlay product-media-gallery--format-{{ overlay_media_format }} product-media-gallery--overlay-{{ overlay_media_presentation }} product-media-gallery--desktop-{{ overlay_media_desktop_layout }} product-media-gallery--mobile-{{ overlay_media_mobile_layout }} product-media-gallery--desktop-ratio-{{ overlay_media_desktop_ratio_setting }} product-media-gallery--mobile-ratio-{{ overlay_media_mobile_ratio_setting }}"
+  data-product-media-gallery
+  data-overlay-media
+  data-overlay-media-format="{{ overlay_media_format }}"
+  data-overlay-presentation="{{ overlay_media_presentation }}"
+  data-overlay-media-width="{{ overlay_media_width }}"
+  data-desktop-layout="{{ overlay_media_desktop_layout }}"
+  data-mobile-layout="{{ overlay_media_mobile_layout }}"
+  data-desktop-ratio="{{ overlay_media_desktop_ratio_setting }}"
+  data-mobile-ratio="{{ overlay_media_mobile_ratio_setting }}"
+  data-thumbnail-ratio="{{ overlay_media_thumbnail_ratio_setting }}"
+  data-mobile-show-pagination="{{ overlay_media_mobile_show_pagination }}"
+  data-zoom="{{ overlay_media_zoom }}"
+  data-block-animations="{{ overlay_media_motion_enabled }}"
+  data-current-variant-id="{{ overlay_current_variant.id | default: '' }}"
+  data-current-variant-media-id="{{ overlay_current_variant.featured_media.id | default: '' }}"
+  data-filter-variant-media="{{ settings.variant_picker_only_selected_media }}"
+  data-visible-media-count="{{ overlay_visible_media_count }}"
+  style="--product-media-thumbnail-aspect-ratio: {{ overlay_media_thumbnail_ratio }};--overlay-media-ratio-desktop: {{ overlay_media_desktop_ratio }};--overlay-media-ratio-mobile: {{ overlay_media_mobile_ratio }};--product-media-thumbnail-width: {{ overlay_media_thumbnail_width }}px;--product-media-thumbnail-width-mobile: {{ overlay_media_thumbnail_width }}px;--product-media-gap: {{ overlay_media_gap }}px;--product-media-gap-mobile: {{ overlay_media_gap_mobile }}px;--product-media-thumbnail-gap: {{ overlay_media_gap }}px;--product-media-thumbnail-gap-mobile: {{ overlay_media_gap_mobile }}px;"
+  {{ block.shopify_attributes }}
+>
+  {% if overlay_media_product != blank and overlay_media_product.media.size > 0 %}
+    <div class="media-gallery__layout product-media-gallery__layout">
+      <div class="media-gallery__carousel swiper-carousel__container">
+        {% capture overlay_media_main_content %}
+          {% assign overlay_preload_done = false %}
+          {% for media in overlay_media_product.media %}
+            {% liquid
+              assign overlay_media_hidden = false
+              if settings.variant_picker_only_selected_media and overlay_selected_media_found and media.variants != blank
+                assign overlay_media_hidden = true
+                for media_variant in media.variants
+                  if media_variant.id == overlay_current_variant.id
+                    assign overlay_media_hidden = false
+                    break
+                  endif
+                endfor
+              endif
+
+              assign overlay_media_loading = 'lazy'
+              assign overlay_media_fetchpriority = 'auto'
+              unless overlay_media_hidden or overlay_preload_done
+                assign overlay_media_loading = 'eager'
+                assign overlay_media_fetchpriority = 'high'
+                assign overlay_preload_done = true
+              endunless
+            %}
+            <div
+              class="swiper-slide product-media-gallery__slide"
+              data-product-media
+              data-media-id="{{ media.id }}"
+              data-media-type="{{ media.media_type }}"
+              data-variant-ids="{% for media_variant in media.variants %}{{ media_variant.id }}{% unless forloop.last %},{% endunless %}{% endfor %}"
+              {% if overlay_media_hidden %}hidden aria-hidden="true"{% endif %}
+            >
+              {% render 'product-media',
+                media: media,
+                product: overlay_media_product,
+                autoplay: overlay_media_autoplay,
+                loop: overlay_media_loop,
+                zoom: overlay_media_zoom,
+                loading: overlay_media_loading,
+                fetchpriority: overlay_media_fetchpriority
+              %}
+            </div>
+          {% endfor %}
+        {% endcapture %}
+
+        {% capture overlay_media_pagination %}
+          {% unless overlay_media_presentation == 'quick-add-strip' %}
+            <div class="swiper-pagination product-media-gallery__pagination" data-product-media-pagination data-pagination-type="bullets"></div>
+          {% endunless %}
+        {% endcapture %}
+
+        {% render 'swiper-carousel',
+          id: overlay_media_main_id,
+          content: overlay_media_main_content,
+          root_class: 'media-gallery__main product-media-gallery__main',
+          root_attributes: 'data-product-main-swiper',
+          aria_label: overlay_media_main_aria_label,
+          pagination: overlay_media_pagination,
+          show_next_slide_preview_on_mobile: false
+        %}
+
+        {% if overlay_media_product.media.size > 1 %}
+          <div class="media-gallery__controls swiper-carousel__navigation--show_on_hover">
+            <button class="media-gallery__navigation media-gallery__navigation--previous product-media-gallery__navigation product-media-gallery__navigation--previous btn btn-secondary btn--secondary btn--icon swiper-nav-button swiper-nav-button--prev" type="button" aria-label="{{ 'products.previous_media' | t | escape }}" data-product-media-previous>
+              {% render 'carousel-navigation-icon', icon: 'chevron', direction: 'previous' %}
+            </button>
+            <button class="media-gallery__navigation media-gallery__navigation--next product-media-gallery__navigation product-media-gallery__navigation--next btn btn-secondary btn--secondary btn--icon swiper-nav-button swiper-nav-button--next" type="button" aria-label="{{ 'products.next_media' | t | escape }}" data-product-media-next>
+              {% render 'carousel-navigation-icon', icon: 'chevron', direction: 'next' %}
+            </button>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if overlay_media_product.media.size > 1 and overlay_media_presentation != 'quick-add-strip' %}
+        <div class="media-thumbnails__carousel"{% if overlay_visible_media_count < 2 %} hidden{% endif %}>
+          {% capture overlay_media_thumbnail_content %}
+            {% for media in overlay_media_product.media %}
+              {% liquid
+                assign overlay_media_hidden = false
+                if settings.variant_picker_only_selected_media and overlay_selected_media_found and media.variants != blank
+                  assign overlay_media_hidden = true
+                  for media_variant in media.variants
+                    if media_variant.id == overlay_current_variant.id
+                      assign overlay_media_hidden = false
+                      break
+                    endif
+                  endfor
+                endif
+                assign overlay_thumbnail_alt = media.alt | default: overlay_media_product.title
+                assign overlay_thumbnail_sizes = overlay_media_thumbnail_width | append: 'px'
+              %}
+              <button
+                class="swiper-slide product-media-gallery__thumbnail{% if media.preview_image == blank %} placeholder-image{% endif %}"
+                type="button"
+                data-product-media-thumbnail
+                data-media-id="{{ media.id }}"
+                aria-label="{{ 'products.view_media' | t: index: forloop.index | escape }}"
+                {% if overlay_media_hidden %}hidden aria-hidden="true"{% endif %}
+              >
+                {% if media.preview_image != blank %}
+                  {{ media.preview_image | image_url: width: 240 | image_tag: widths: '96, 144, 192, 240', sizes: overlay_thumbnail_sizes, loading: 'lazy', alt: overlay_thumbnail_alt }}
+                {% else %}
+                  {{ 'product-1' | placeholder_svg_tag: 'product-media-gallery__thumbnail-placeholder' }}
+                {% endif %}
+              </button>
+            {% endfor %}
+          {% endcapture %}
+
+          {% render 'swiper-carousel',
+            id: overlay_media_thumbnail_id,
+            content: overlay_media_thumbnail_content,
+            root_class: 'media-gallery__thumbnails product-media-gallery__thumbnails',
+            root_attributes: 'data-product-thumbnail-swiper',
+            aria_label: overlay_media_thumbnails_aria_label
+          %}
+        </div>
+      {% endif %}
+    </div>
+
+    {% render 'product-media-lightbox',
+      product: overlay_media_product,
+      id: overlay_media_lightbox_id,
+      filter_variant_media: settings.variant_picker_only_selected_media,
+      variant: overlay_current_variant,
+      selected_media_found: overlay_selected_media_found
+    %}
+  {% else %}
+    <div class="product-media-gallery__empty product-media-gallery__empty--overlay" data-product-media-empty data-overlay-media-empty hidden></div>
+  {% endif %}
+</product-media-gallery>
+
+{% schema %}
+{
+  "name": "t:general.product_media",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:info.product_media_variant_filter"
+    },
+    {
+      "type": "select",
+      "id": "desktop_width",
+      "label": "t:labels.desktop_width",
+      "options": [
+        { "value": "small", "label": "t:options.size.small" },
+        { "value": "medium", "label": "t:options.size.medium" },
+        { "value": "large", "label": "t:options.size.large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "desktop_layout",
+      "label": "t:labels.desktop_layout",
+      "options": [
+        { "value": "left_thumbnails", "label": "t:options.product_media_layout.left_thumbnails" },
+        { "value": "bottom_thumbnails", "label": "t:options.product_media_layout.bottom_thumbnails" },
+        { "value": "grid", "label": "t:options.product_media_layout.grid" },
+        { "value": "stacked", "label": "t:options.product_media_layout.stacked" },
+        { "value": "stacked_thumbnails", "label": "t:options.product_media_layout.stacked_thumbnails" },
+        { "value": "two_column_grid", "label": "t:options.product_media_layout.two_column_grid" }
+      ],
+      "default": "left_thumbnails"
+    },
+    {
+      "type": "header",
+      "content": "t:general.media_settings"
+    },
+    {
+      "type": "select",
+      "id": "desktop_ratio",
+      "label": "t:labels.desktop_image_ratio",
+      "options": [
+        { "value": "auto", "label": "t:options.image_ratio.auto" },
+        { "value": "square", "label": "t:options.image_ratio.square" },
+        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
+        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
+        { "value": "wide", "label": "t:options.image_ratio.wide" },
+        { "value": "custom", "label": "t:options.image_ratio.custom" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "number",
+      "id": "desktop_ratio_custom_width",
+      "label": "W",
+      "default": 1,
+      "visible_if": "{{ block.settings.desktop_ratio == 'custom' }}"
+    },
+    {
+      "type": "number",
+      "id": "desktop_ratio_custom_height",
+      "label": "H",
+      "default": 1,
+      "visible_if": "{{ block.settings.desktop_ratio == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "mobile_ratio",
+      "label": "t:labels.mobile_image_ratio",
+      "options": [
+        { "value": "auto", "label": "t:options.image_ratio.auto" },
+        { "value": "square", "label": "t:options.image_ratio.square" },
+        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
+        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
+        { "value": "wide", "label": "t:options.image_ratio.wide" },
+        { "value": "custom", "label": "t:options.image_ratio.custom" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "number",
+      "id": "mobile_ratio_custom_width",
+      "label": "W",
+      "default": 1,
+      "visible_if": "{{ block.settings.mobile_ratio == 'custom' }}"
+    },
+    {
+      "type": "number",
+      "id": "mobile_ratio_custom_height",
+      "label": "H",
+      "default": 1,
+      "visible_if": "{{ block.settings.mobile_ratio == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "thumbnail_ratio",
+      "label": "t:labels.thumbnail_aspect_ratio",
+      "options": [
+        { "value": "auto", "label": "t:options.image_ratio.auto" },
+        { "value": "square", "label": "t:options.image_ratio.square" },
+        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
+        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
+        { "value": "wide", "label": "t:options.image_ratio.wide" },
+        { "value": "custom", "label": "t:options.image_ratio.custom" }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "number",
+      "id": "thumbnail_ratio_custom_width",
+      "label": "W",
+      "default": 1,
+      "visible_if": "{{ block.settings.thumbnail_ratio == 'custom' }}"
+    },
+    {
+      "type": "number",
+      "id": "thumbnail_ratio_custom_height",
+      "label": "H",
+      "default": 1,
+      "visible_if": "{{ block.settings.thumbnail_ratio == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.playback_and_zoom"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "t:labels.autoplay",
+      "info": "t:info.autoplay_video_muted",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "loop_video",
+      "label": "t:labels.repeat_videos",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "zoom",
+      "label": "t:labels.zoom_behavior",
+      "options": [
+        { "value": "click_hover", "label": "t:options.product_media_zoom.click_hover" },
+        { "value": "open_lightbox", "label": "t:options.product_media_zoom.open_lightbox" },
+        { "value": "none", "label": "t:options.product_media_zoom.none" }
+      ],
+      "default": "open_lightbox"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gallery_spacing"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,220 @@
+{% liquid
+  assign section_width = section.settings.section_width | default: 'page_width'
+  unless section_width == 'page_width' or section_width == 'full_width' or section_width == 'full_width_no_padding'
+    assign section_width = 'page_width'
+  endunless
+
+  assign container_width = 'page-width'
+  assign container_modifier = blank
+  if section_width == 'full_width'
+    assign container_width = 'full-width'
+  elsif section_width == 'full_width_no_padding'
+    assign container_width = 'full-width'
+    assign container_modifier = ' email-signup-dual-image__container--no-padding'
+  endif
+
+  assign direction = section.settings.direction | default: 'horizontal'
+  unless direction == 'horizontal' or direction == 'vertical'
+    assign direction = 'horizontal'
+  endunless
+
+  assign alignment = section.settings.alignment | default: 'left'
+  unless alignment == 'left' or alignment == 'center' or alignment == 'right'
+    assign alignment = 'left'
+  endunless
+  assign alignment_mobile = section.settings.alignment_mobile | default: alignment
+  unless alignment_mobile == 'left' or alignment_mobile == 'center' or alignment_mobile == 'right'
+    assign alignment_mobile = alignment
+  endunless
+
+  assign horizontal_alignment = section.settings.horizontal_alignment | default: 'left'
+  unless horizontal_alignment == 'left' or horizontal_alignment == 'center' or horizontal_alignment == 'right' or horizontal_alignment == 'space-between'
+    assign horizontal_alignment = 'left'
+  endunless
+
+  assign alignment_value = 'start'
+  if alignment == 'center'
+    assign alignment_value = 'center'
+  elsif alignment == 'right'
+    assign alignment_value = 'end'
+  endif
+  assign alignment_mobile_value = 'start'
+  if alignment_mobile == 'center'
+    assign alignment_mobile_value = 'center'
+  elsif alignment_mobile == 'right'
+    assign alignment_mobile_value = 'end'
+  endif
+  assign horizontal_alignment_value = 'start'
+  if horizontal_alignment == 'center'
+    assign horizontal_alignment_value = 'center'
+  elsif horizontal_alignment == 'right'
+    assign horizontal_alignment_value = 'end'
+  elsif horizontal_alignment == 'space-between'
+    assign horizontal_alignment_value = 'space-between'
+  endif
+
+  assign position = section.settings.position | default: 'center'
+  unless position == 'top' or position == 'center' or position == 'bottom'
+    assign position = 'top'
+  endunless
+  assign position_value = 'start'
+  if position == 'center'
+    assign position_value = 'center'
+  elsif position == 'bottom'
+    assign position_value = 'end'
+  endif
+
+  assign vertical_on_mobile = section.settings.vertical_on_mobile
+  if vertical_on_mobile == nil
+    assign vertical_on_mobile = true
+  endif
+
+  assign gap_desktop = section.settings.gap_desktop | default: 0 | plus: 0
+  if gap_desktop < 0 or gap_desktop > 100
+    assign gap_desktop = 0
+  endif
+  assign gap_mobile = section.settings.gap_mobile | default: 0 | plus: 0
+  if gap_mobile < 0 or gap_mobile > 100
+    assign gap_mobile = 0
+  endif
+
+  assign color_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign color_scheme = section.settings.color_scheme.id
+  endif
+  assign color_scheme = color_scheme | default: 'scheme-1' | handleize
+
+  assign padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_top_mobile = section.settings.padding_top_mobile | default: padding_top | plus: 0
+  assign padding_bottom_mobile = section.settings.padding_bottom_mobile | default: padding_bottom | plus: 0
+%}
+
+{% capture section_style %}
+  --email-signup-dual-image-gap-desktop: {{ gap_desktop }}px;
+  --email-signup-dual-image-gap-mobile: {{ gap_mobile }}px;
+  {% if direction == 'horizontal' %}
+    --email-signup-dual-image-align-items: {{ position_value }};
+    --email-signup-dual-image-justify-content: {{ horizontal_alignment_value }};
+  {% else %}
+    --email-signup-dual-image-align-items: {{ alignment_value }};
+    --email-signup-dual-image-justify-content: start;
+  {% endif %}
+  --email-signup-dual-image-align-items-mobile: {{ alignment_mobile_value }};
+  {% if padding_top != 0 %}--email-signup-dual-image-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 0 %}--email-signup-dual-image-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if section.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--email-signup-dual-image-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--email-signup-dual-image-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign section_style = section_style | strip %}
+
+<div class="email-signup-dual-image email-signup-dual-image--direction-{{ direction }}{% if vertical_on_mobile %} email-signup-dual-image--vertical-mobile{% endif %}">
+  <div class="section-spacing email-signup-dual-image__spacing color-scheme section-color-scope {{ color_scheme }}"{% if section_style != blank %} style="{{ section_style }}"{% endif %}>
+    <div class="container {{ container_width }} email-signup-dual-image__container{{ container_modifier }}">
+      <div class="email-signup-dual-image__grid">
+        {% content_for 'block', type: 'image', id: 'image_left' %}
+        {% content_for 'block', type: 'group', id: 'content' %}
+        {% content_for 'block', type: 'image', id: 'image_right' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .email-signup-dual-image__spacing { width: 100%; min-width: 0; padding-top: var(--email-signup-dual-image-padding-top, 0px); padding-bottom: var(--email-signup-dual-image-padding-bottom, 0px); }
+  .email-signup-dual-image__container { min-width: 0; }
+  .container.full-width.email-signup-dual-image__container--no-padding { padding-inline: 0; }
+  .email-signup-dual-image__grid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: var(--email-signup-dual-image-align-items, start); justify-content: var(--email-signup-dual-image-justify-content, start); gap: var(--email-signup-dual-image-gap-desktop, 0px); min-width: 0; }
+  .email-signup-dual-image--direction-horizontal .email-signup-dual-image__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .email-signup-dual-image--direction-vertical .email-signup-dual-image__grid { justify-items: var(--email-signup-dual-image-align-items, start); }
+  .email-signup-dual-image__grid > .image-block,
+  .email-signup-dual-image__grid > .group { max-width: 100%; min-width: 0; height: 100%; }
+  .email-signup-dual-image--direction-horizontal .email-signup-dual-image__grid > .image-block,
+  .email-signup-dual-image--direction-horizontal .email-signup-dual-image__grid > .group { width: 100%; }
+  .email-signup-dual-image--direction-vertical .email-signup-dual-image__grid > .image-block,
+  .email-signup-dual-image--direction-vertical .email-signup-dual-image__grid > .group { justify-self: var(--email-signup-dual-image-align-items, start); }
+  .email-signup-dual-image--direction-vertical .email-signup-dual-image__grid > .image-block,
+  .email-signup-dual-image--direction-vertical .email-signup-dual-image__grid > .group { height: fit-content; }
+  .email-signup-dual-image__grid > .image-block .image-block__media,
+  .email-signup-dual-image__grid > .image-block .image-block__media > picture,
+  .email-signup-dual-image__grid > .image-block .image-block__media > img,
+  .email-signup-dual-image__grid > .image-block .image-block__media .image__placeholder { height: 100%; }
+  .email-signup-dual-image__grid > .image-block .image-block__media > img,
+  .email-signup-dual-image__grid > .image-block .image-block__media > picture > img { object-fit: cover; }
+  @media (max-width: 767.98px) {
+    .email-signup-dual-image__spacing { padding-top: var(--email-signup-dual-image-padding-top-mobile, var(--email-signup-dual-image-padding-top, 0px)); padding-bottom: var(--email-signup-dual-image-padding-bottom-mobile, var(--email-signup-dual-image-padding-bottom, 0px)); }
+    .email-signup-dual-image__grid { gap: var(--email-signup-dual-image-gap-mobile, var(--email-signup-dual-image-gap-desktop, 0px)); }
+    .email-signup-dual-image--vertical-mobile .email-signup-dual-image__grid { grid-template-columns: minmax(0, 1fr); align-items: var(--email-signup-dual-image-align-items-mobile, var(--email-signup-dual-image-align-items, start)); }
+    .email-signup-dual-image--direction-vertical .email-signup-dual-image__grid { justify-items: var(--email-signup-dual-image-align-items, start); }
+    .email-signup-dual-image--vertical-mobile .email-signup-dual-image__grid > .image-block,
+    .email-signup-dual-image--vertical-mobile .email-signup-dual-image__grid > .group { width: 100%; height: fit-content; }
+    .email-signup-dual-image--vertical-mobile .email-signup-dual-image__grid > .image-block .image-block__media,
+    .email-signup-dual-image--vertical-mobile .email-signup-dual-image__grid > .image-block .image-block__media > picture,
+    .email-signup-dual-image--vertical-mobile .email-signup-dual-image__grid > .image-block .image-block__media > img,
+    .email-signup-dual-image--vertical-mobile .email-signup-dual-image__grid > .image-block .image-block__media .image__placeholder { height: auto; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.email_signup_dual_image",
+  "class": "section-email-signup-dual-image",
+  "enabled_on": { "templates": ["*"] },
+  "blocks": [{ "type": "image" }, { "type": "group" }],
+  "settings": [
+    { "type": "header", "content": "t:general.layout" },
+    { "type": "select", "id": "section_width", "label": "t:labels.section_width", "options": [
+      { "value": "page_width", "label": "t:options.section_width.page_width" },
+      { "value": "full_width", "label": "t:options.section_width.full_width" },
+      { "value": "full_width_no_padding", "label": "t:options.section_width.full_width_no_padding" }
+    ], "default": "page_width" },
+    { "type": "select", "id": "direction", "label": "t:general.layout", "options": [
+      { "value": "horizontal", "label": "t:options.direction.horizontal" },
+      { "value": "vertical", "label": "t:options.direction.vertical" }
+    ], "default": "horizontal" },
+    { "type": "text_alignment", "id": "alignment", "label": "t:labels.alignment", "default": "left", "visible_if": "{{ section.settings.direction == 'vertical' }}" },
+    { "type": "select", "id": "position", "label": "t:labels.position", "options": [
+      { "value": "top", "label": "t:options.position.top" },
+      { "value": "center", "label": "t:options.alignment.center" },
+      { "value": "bottom", "label": "t:options.position.bottom" }
+    ], "default": "center", "visible_if": "{{ section.settings.direction == 'horizontal' }}" },
+    { "type": "select", "id": "horizontal_alignment", "label": "Horizontal alignment", "options": [
+      { "value": "left", "label": "t:options.alignment.left" },
+      { "value": "center", "label": "t:options.alignment.center" },
+      { "value": "right", "label": "t:options.alignment.right" },
+      { "value": "space-between", "label": "t:options.alignment.space_between" }
+    ], "default": "left", "visible_if": "{{ section.settings.direction == 'horizontal' }}" },
+    { "type": "checkbox", "id": "vertical_on_mobile", "label": "t:labels.vertical_on_mobile", "default": true, "visible_if": "{{ section.settings.direction == 'horizontal' }}" },
+    { "type": "text_alignment", "id": "alignment_mobile", "label": "Mobile alignment", "default": "left", "visible_if": "{{ section.settings.direction == 'horizontal' and section.settings.vertical_on_mobile }}" },
+    { "type": "header", "content": "t:general.gap" },
+    { "type": "range", "id": "gap_desktop", "label": "t:labels.desktop_gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "gap_mobile", "label": "t:labels.mobile_gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "header", "content": "t:general.appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "t:labels.color_scheme", "default": "scheme-1" },
+    { "type": "header", "content": "t:general.padding" },
+    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "checkbox", "id": "customize_mobile_padding", "label": "t:labels.customize_mobile_padding", "default": false },
+    { "type": "range", "id": "padding_top_mobile", "label": "t:labels.mobile_top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_bottom_mobile", "label": "t:labels.mobile_bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ section.settings.customize_mobile_padding }}" }
+  ],
+  "presets": [{
+    "name": "t:general.email_signup_dual_image",
+    "category": "t:general.forms",
+    "settings": { "section_width": "page_width", "direction": "horizontal", "alignment": "left", "position": "center", "horizontal_alignment": "left", "vertical_on_mobile": true, "alignment_mobile": "left", "gap_desktop": 0, "gap_mobile": 0, "color_scheme": "scheme-1", "padding_top": 0, "padding_bottom": 0, "customize_mobile_padding": false },
+    "blocks": [
+      { "type": "image", "id": "image_left", "static": true, "settings": { "image_ratio_desktop": "auto", "width_desktop": "fill", "width_mobile": "fill", "limit_width_desktop": false, "show_image_first_mobile": true, "corner_radius": "square" } },
+      { "type": "group", "id": "content", "static": true, "settings": { "direction": "vertical", "position": "center", "gap_desktop": 40, "gap_mobile": 40, "width": "fill", "height": "fit", "appearance_type": "inherit", "border_type": "none", "corner_radius": "square", "shadow": "none", "padding_top": 20, "padding_bottom": 20, "padding_left": 20, "padding_right": 20, "customize_mobile_padding": false }, "blocks": [
+        { "type": "header", "settings": { "width": "fill", "alignment": "center", "gap_desktop": 8, "gap_mobile": 8 }, "blocks": [
+          { "type": "heading", "settings": { "text": "<p>Main Heading Placeholder</p>", "heading_size": "md", "html_tag": "h2" } },
+          { "type": "text", "settings": { "text": "<p>This is placeholder text for a short paragraph that explains the purpose of this section.</p>" } }
+        ] },
+        { "type": "email-signup", "settings": { "form_layout": "horizontal", "input_placeholder": "Name", "button_label": "Submit", "button_style": "primary", "show_icon": false, "gap_desktop": 12, "gap_mobile": 12, "width_desktop": "fill", "limit_width_desktop": false, "width_mobile": "fill", "limit_width_mobile": false, "vertical_on_mobile": false } }
+      ] },
+      { "type": "image", "id": "image_right", "static": true, "settings": { "image_ratio_desktop": "auto", "width_desktop": "fill", "width_mobile": "fill", "limit_width_desktop": false, "show_image_first_mobile": false, "corner_radius": "square" } }
+    ]
+  }]
+}
+{% endschema %}

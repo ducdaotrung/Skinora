@@ -1,0 +1,596 @@
+{% liquid
+  assign marquee_direction = block.settings.animation_direction | default: 'backward'
+  unless marquee_direction == 'forward' or marquee_direction == 'backward'
+    assign marquee_direction = 'forward'
+  endunless
+
+  assign marquee_speed = block.settings.animation_speed
+  if marquee_speed == blank
+    assign marquee_speed = 1
+  else
+    assign marquee_speed = marquee_speed | plus: 0
+  endif
+  if marquee_speed < 0 or marquee_speed > 3
+    assign marquee_speed = 1
+  endif
+  assign marquee_duration = 28.0
+  if marquee_speed > 0
+    assign marquee_duration = 28.0 | divided_by: marquee_speed
+  endif
+
+  assign marquee_background = block.settings.background_color
+
+  assign padding_top = block.settings.padding_top
+  if padding_top == blank
+    assign padding_top = 24
+  else
+    assign padding_top = padding_top | plus: 0
+  endif
+  assign padding_bottom = block.settings.padding_bottom
+  if padding_bottom == blank
+    assign padding_bottom = 24
+  else
+    assign padding_bottom = padding_bottom | plus: 0
+  endif
+  assign padding_left = block.settings.padding_left
+  if padding_left == blank
+    assign padding_left = 0
+  else
+    assign padding_left = padding_left | plus: 0
+  endif
+  assign padding_right = block.settings.padding_right
+  if padding_right == blank
+    assign padding_right = 0
+  else
+    assign padding_right = padding_right | plus: 0
+  endif
+  assign marquee_gap_desktop = block.settings.gap_desktop
+  if marquee_gap_desktop == blank
+    assign marquee_gap_desktop = 48
+  else
+    assign marquee_gap_desktop = marquee_gap_desktop | plus: 0
+  endif
+  assign marquee_gap_mobile = block.settings.gap_mobile
+  if marquee_gap_mobile == blank
+    assign marquee_gap_mobile = 32
+  else
+    assign marquee_gap_mobile = marquee_gap_mobile | plus: 0
+  endif
+  assign padding_top_mobile = block.settings.padding_top_mobile | default: padding_top | plus: 0
+  assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: padding_bottom | plus: 0
+  assign padding_left_mobile = block.settings.padding_left_mobile | default: padding_left | plus: 0
+  assign padding_right_mobile = block.settings.padding_right_mobile | default: padding_right | plus: 0
+%}
+
+{% capture marquee_style %}
+  --marquee-duration: {{ marquee_duration }}s;
+  {% if marquee_background != blank %}--marquee-background-color: {{ marquee_background | escape }};{% endif %}
+  {% if padding_top != 24 %}--marquee-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 24 %}--marquee-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if padding_left != 0 %}--marquee-padding-left: {{ padding_left }}px;{% endif %}
+  {% if padding_right != 0 %}--marquee-padding-right: {{ padding_right }}px;{% endif %}
+  {% if marquee_gap_desktop != 48 %}--marquee-gap: {{ marquee_gap_desktop }}px;{% endif %}
+  {% if marquee_gap_mobile != 32 %}--marquee-gap-mobile: {{ marquee_gap_mobile }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    --marquee-padding-top-mobile: {{ padding_top_mobile }}px;
+    --marquee-padding-bottom-mobile: {{ padding_bottom_mobile }}px;
+    --marquee-padding-left-mobile: {{ padding_left_mobile }}px;
+    --marquee-padding-right-mobile: {{ padding_right_mobile }}px;
+  {% endif %}
+{% endcapture %}
+{% assign marquee_style = marquee_style | strip | replace: '\n', ' ' %}
+
+{% assign marquee_class = 'section-spacing marquee marquee--block marquee--' | append: marquee_direction | append: ' section-color-scope' %}
+{% if marquee_speed == 0 %}
+  {% assign marquee_class = marquee_class | append: ' marquee--static' %}
+{% endif %}
+
+<div
+  class="{{ marquee_class }}"
+  {{ block.shopify_attributes }}
+  {% if marquee_style != blank %}style="{{ marquee_style }}"{% endif %}
+>
+  <div class="container full-width marquee__container">
+    <div class="marquee__viewport" role="region" aria-label="Marquee">
+      <div class="marquee__track">
+        {% content_for 'blocks' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .marquee--block {
+    --marquee-duration: 28s;
+    --marquee-loop-distance: 0px;
+    width: 100%;
+    overflow: hidden;
+    background-color: var(--marquee-background-color, var(--background-color));
+    padding-top: var(--marquee-padding-top, 24px);
+    padding-bottom: var(--marquee-padding-bottom, 24px);
+  }
+
+  .marquee--block .container.full-width.marquee__container {
+    min-width: 0;
+    padding-right: var(--marquee-padding-right, 0px);
+    padding-left: var(--marquee-padding-left, 0px);
+  }
+
+  .marquee--block .marquee__viewport {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .marquee--block .marquee__track {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--marquee-gap, 48px);
+    width: max-content;
+    min-width: 0;
+    max-width: none;
+    animation: none;
+    will-change: transform;
+  }
+
+  .marquee--block.marquee--ready .marquee__track {
+    animation: marquee-scroll-left var(--marquee-duration) linear infinite;
+  }
+
+  .marquee--block.marquee--forward .marquee__track {
+    animation-name: marquee-scroll-right;
+  }
+
+  .marquee--block.marquee--backward .marquee__track {
+    animation-name: marquee-scroll-left;
+  }
+
+  .marquee--block.marquee--static .marquee__track {
+    animation: none;
+    transform: none;
+  }
+
+  @media (max-width: 767.98px) {
+    .marquee--block {
+      padding-top: var(--marquee-padding-top-mobile, var(--marquee-padding-top, 24px));
+      padding-bottom: var(--marquee-padding-bottom-mobile, var(--marquee-padding-bottom, 24px));
+    }
+    .marquee--block .container.full-width.marquee__container {
+      padding-left: var(--marquee-padding-left-mobile, var(--marquee-padding-left, 0px));
+      padding-right: var(--marquee-padding-right-mobile, var(--marquee-padding-right, 0px));
+    }
+    .marquee--block .marquee__track {
+      gap: var(--marquee-gap-mobile, var(--marquee-gap, 48px));
+    }
+  }
+
+  .marquee--block .marquee__track > * {
+    flex: 0 0 auto;
+  }
+
+  .marquee--block .marquee__track > .marquee-item-layout {
+    width: fit-content;
+    max-width: max-content;
+  }
+
+  .marquee--block .marquee__track > .marquee-item-layout--horizontal {
+    flex-wrap: nowrap;
+  }
+
+  /* Percentage widths are circular inside a fit-content horizontal item. */
+  .marquee--block .marquee__track > .marquee-item-layout--horizontal > * {
+    width: fit-content;
+    flex: 0 0 auto;
+  }
+
+  /* Marquee items are transparent by default; an Item background setting can override this. */
+  .marquee--block .marquee__track > .marquee-item-layout {
+    --group-background-color: transparent;
+  }
+
+  .marquee--block:hover .marquee__track,
+  .marquee--block:focus-within .marquee__track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee-scroll-left {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(calc(-1 * var(--marquee-loop-distance)), 0, 0); }
+  }
+
+  @keyframes marquee-scroll-right {
+    from { transform: translate3d(calc(-1 * var(--marquee-loop-distance)), 0, 0); }
+    to { transform: translate3d(0, 0, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee--block.marquee--ready .marquee__track {
+      animation: none;
+      transform: none;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    const instances = new WeakMap();
+    const selector = '.marquee--block';
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const prepareClone = (clone) => {
+      clone.setAttribute('aria-hidden', 'true');
+      if (!window.Shopify?.designMode) clone.setAttribute('inert', '');
+      // Keep Shopify block attributes so copies select their source in the editor.
+      [clone, ...clone.querySelectorAll('*')].forEach((element) => {
+        element.removeAttribute('id');
+        // Hidden/inert copies cannot enter the shared reveal lifecycle.
+        // Render their content immediately instead of inheriting opacity: 0.
+        element.classList.remove('reveal-pending');
+        if (element.hasAttribute('data-block-animation') || element.hasAttribute('data-component-reveal')) {
+          element.setAttribute('data-block-animation', 'none');
+          element.removeAttribute('data-component-reveal');
+        }
+        if (element.matches('a, button, input, select, textarea, [tabindex]')) {
+          element.setAttribute('tabindex', '-1');
+        }
+      });
+    };
+
+    const initialize = (marquee) => {
+      if (!marquee || instances.has(marquee) || reducedMotion.matches) return;
+
+      const track = marquee.querySelector('.marquee__track');
+      const viewport = marquee.querySelector('.marquee__viewport');
+      if (!track || !viewport) return;
+
+      let frame = 0;
+      let scrollFrame = 0;
+      let lastScrollY = window.scrollY;
+      let destroyed = false;
+      let measuredLayout = '';
+      const originalItems = () => [...track.children].filter((item) => !item.hasAttribute('data-marquee-clone'));
+      const observeMutations = () => mutationObserver.observe(track, {
+        attributes: true,
+        childList: true,
+        characterData: true,
+        subtree: true
+      });
+
+      const syncClones = () => {
+        if (destroyed) return;
+        mutationObserver.disconnect();
+        track.querySelectorAll('[data-marquee-clone]').forEach((clone) => clone.remove());
+        const items = originalItems();
+        resizeObserver.disconnect();
+        resizeObserver.observe(viewport);
+        items.forEach((item) => resizeObserver.observe(item));
+
+        const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+        // Include the trailing gap so the next cycle starts at the exact seam.
+        const distance = items.reduce((width, item) => width + item.getBoundingClientRect().width + gap, 0);
+        measuredLayout = layoutSignature();
+        if (items.length === 0 || distance <= 0 || viewport.clientWidth === 0) {
+          marquee.classList.remove('marquee--ready');
+          track.style.removeProperty('--marquee-loop-distance');
+          observeMutations();
+          return;
+        }
+
+        // Keep a full viewport of content beyond the end of one animation cycle.
+        const copyCount = Math.max(1, Math.ceil((viewport.clientWidth + gap) / distance));
+        const fragment = document.createDocumentFragment();
+        for (let setIndex = 0; setIndex < copyCount; setIndex += 1) {
+          items.forEach((item) => {
+            const clone = item.cloneNode(true);
+            prepareClone(clone);
+            clone.dataset.marqueeClone = 'true';
+            fragment.appendChild(clone);
+          });
+        }
+        track.appendChild(fragment);
+        track.style.setProperty('--marquee-loop-distance', `${distance}px`);
+        marquee.classList.add('marquee--ready');
+        observeMutations();
+      };
+
+      const scheduleSync = () => {
+        if (destroyed || frame) return;
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          syncClones();
+        });
+      };
+      const layoutSignature = () => [
+        viewport.clientWidth,
+        getComputedStyle(track).columnGap,
+        ...originalItems().map((item) => item.getBoundingClientRect().width.toFixed(2))
+      ].join(':');
+      const mutationObserver = new MutationObserver((mutations) => {
+        if (mutations.some((mutation) => {
+          const element = mutation.target.nodeType === Node.ELEMENT_NODE ? mutation.target : mutation.target.parentElement;
+          if (element?.closest('[data-marquee-clone]')) return false;
+          if (mutation.type === 'attributes') {
+            if (mutation.target === track) return false;
+            if (mutation.attributeName.startsWith('data-shopify-editor')) return false;
+          }
+          return true;
+        })) scheduleSync();
+      });
+      const resizeObserver = new ResizeObserver(() => {
+        if (layoutSignature() !== measuredLayout) scheduleSync();
+      });
+
+      const handleScroll = () => {
+        if (scrollFrame || destroyed) return;
+        scrollFrame = requestAnimationFrame(() => {
+          scrollFrame = 0;
+          const scrollY = window.scrollY;
+          const delta = Math.max(-50, Math.min(50, scrollY - lastScrollY));
+          lastScrollY = scrollY;
+          const bounds = viewport.getBoundingClientRect();
+          const distance = parseFloat(track.style.getPropertyValue('--marquee-loop-distance'));
+          if (!delta || !distance || bounds.bottom <= 0 || bounds.top >= window.innerHeight) return;
+
+          // Move the existing loop's phase, keeping autoplay and the seamless seam.
+          // Upward scrolling has extra influence so it visibly reverses the text.
+          const pixels = delta * (delta < 0 ? 0.7 : 0.35);
+          track.getAnimations().forEach((animation) => {
+            if (!['marquee-scroll-left', 'marquee-scroll-right'].includes(animation.animationName)) return;
+            const duration = Number(animation.effect?.getComputedTiming().duration);
+            if (!duration || animation.currentTime === null) return;
+            const time = Number(animation.currentTime) + pixels / distance * duration;
+            animation.currentTime = ((time % duration) + duration) % duration;
+          });
+        });
+      };
+      // Scrolling text owns this effect; other placements keep their existing motion.
+      const scrollReactive = marquee.closest('.text-marquee-custom') && !marquee.classList.contains('marquee--static');
+      if (scrollReactive) window.addEventListener('scroll', handleScroll, { passive: true });
+
+      instances.set(marquee, {
+        destroy: () => {
+          destroyed = true;
+          cancelAnimationFrame(frame);
+          cancelAnimationFrame(scrollFrame);
+          if (scrollReactive) window.removeEventListener('scroll', handleScroll);
+          resizeObserver.disconnect();
+          mutationObserver.disconnect();
+        }
+      });
+      syncClones();
+    };
+
+    const destroy = (marquee) => {
+      const state = instances.get(marquee);
+      if (!state) return;
+      state.destroy();
+      marquee.querySelectorAll('[data-marquee-clone]').forEach((clone) => clone.remove());
+      marquee.querySelector('.marquee__track')?.style.removeProperty('--marquee-loop-distance');
+      marquee.classList.remove('marquee--ready');
+      instances.delete(marquee);
+    };
+
+    const initializeRoot = (root = document) => {
+      if (root.matches?.(selector)) initialize(root);
+      root.querySelectorAll?.(selector).forEach(initialize);
+    };
+
+    const destroyRoot = (root) => {
+      if (root.matches?.(selector)) destroy(root);
+      root.querySelectorAll?.(selector).forEach(destroy);
+    };
+
+    reducedMotion.addEventListener('change', () => {
+      if (reducedMotion.matches) destroyRoot(document);
+      else initializeRoot();
+    });
+
+    document.addEventListener('shopify:section:load', (event) => initializeRoot(event.target));
+    document.addEventListener('shopify:section:unload', (event) => destroyRoot(event.target));
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => initializeRoot(), { once: true });
+    } else {
+      initializeRoot();
+    }
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "t:general.marquee",
+  "tag": null,
+  "blocks": [
+    { "type": "marquee-item" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.animation"
+    },
+    {
+      "type": "select",
+      "id": "animation_direction",
+      "label": "t:labels.animation_direction",
+      "options": [
+        { "value": "forward", "label": "t:options.animation_direction.forward" },
+        { "value": "backward", "label": "t:options.animation_direction.backward" }
+      ],
+      "default": "backward"
+    },
+    {
+      "type": "range",
+      "id": "animation_speed",
+      "label": "t:labels.animation_speed",
+      "min": 0,
+      "max": 3,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "t:labels.background"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "Left padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "Right padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Mobile top padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Mobile bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "Mobile left padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "Mobile right padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Marquee",
+      "category": "t:general.content",
+      "blocks": [
+        {
+          "type": "marquee-item",
+          "name": "t:general.item",
+          "settings": { "direction": "horizontal", "position": "center" },
+          "blocks": [
+            { "type": "heading", "settings": { "text": "<p>Diamond statement</p>", "heading_size": "md", "html_tag": "div" } },
+            { "type": "image", "settings": { "image_ratio_desktop": "custom", "image_ratio_custom_width_desktop": 2, "image_ratio_custom_height_desktop": 1, "width_desktop": "fill", "corner_radius": "square" } }
+          ]
+        },
+        {
+          "type": "marquee-item",
+          "name": "t:general.item",
+          "settings": { "direction": "horizontal", "position": "center" },
+          "blocks": [
+            { "type": "heading", "settings": { "text": "<p>Birthstone</p>", "heading_size": "md", "html_tag": "div" } },
+            { "type": "image", "settings": { "image_ratio_desktop": "custom", "image_ratio_custom_width_desktop": 2, "image_ratio_custom_height_desktop": 1, "width_desktop": "fill", "corner_radius": "square" } }
+          ]
+        },
+        {
+          "type": "marquee-item",
+          "name": "t:general.item",
+          "settings": { "direction": "horizontal", "position": "center" },
+          "blocks": [
+            { "type": "heading", "settings": { "text": "<p>Diamond statement</p>", "heading_size": "md", "html_tag": "div" } },
+            { "type": "image", "settings": { "image_ratio_desktop": "custom", "image_ratio_custom_width_desktop": 2, "image_ratio_custom_height_desktop": 1, "width_desktop": "fill", "corner_radius": "square" } }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

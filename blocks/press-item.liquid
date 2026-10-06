@@ -1,0 +1,231 @@
+{% doc %}
+  Renders one Press quote item with nested quote content and an inert logo
+  template. The reveal runtime clones the template into the pagination row so
+  this block remains the owner of its image settings.
+{% enddoc %}
+
+{% liquid
+  assign press_item_ratio = block.settings.image_ratio | default: 'original'
+  unless press_item_ratio == 'original' or press_item_ratio == 'square' or press_item_ratio == 'portrait' or press_item_ratio == 'landscape' or press_item_ratio == 'wide'
+    assign press_item_ratio = 'original'
+  endunless
+
+  assign press_item_ratio_value = 'auto'
+  if press_item_ratio == 'original' and block.settings.image != blank
+    assign press_item_ratio_value = block.settings.image.aspect_ratio | default: 'auto'
+  endif
+  case press_item_ratio
+    when 'square'
+      assign press_item_ratio_value = '1'
+    when 'portrait'
+      assign press_item_ratio_value = '0.8'
+    when 'landscape'
+      assign press_item_ratio_value = '1.3333'
+    when 'wide'
+      assign press_item_ratio_value = '1.7778'
+  endcase
+
+  assign press_item_radius = block.settings.corner_radius | default: 'square'
+  unless press_item_radius == 'inherit' or press_item_radius == 'square' or press_item_radius == 'rounded' or press_item_radius == 'full' or press_item_radius == 'custom'
+    assign press_item_radius = 'square'
+  endunless
+
+  assign press_item_custom_radius = block.settings.custom_corner_radius | default: 0 | plus: 0
+  if press_item_custom_radius < 0 or press_item_custom_radius > 100
+    assign press_item_custom_radius = 0
+  endif
+
+  assign press_item_radius_value = 'var(--media-radius, var(--radius-square))'
+  case press_item_radius
+    when 'square'
+      assign press_item_radius_value = 'var(--radius-square)'
+    when 'rounded'
+      assign press_item_radius_value = 'var(--radius-rounded)'
+    when 'full'
+      assign press_item_radius_value = 'var(--radius-pill)'
+    when 'custom'
+      assign press_item_radius_value = press_item_custom_radius | append: 'px'
+  endcase
+
+  assign press_item_width_desktop = block.settings.image_width_desktop | default: 110 | plus: 0
+  assign press_item_width_mobile = block.settings.image_width_mobile | default: 70 | plus: 0
+  if press_item_width_desktop < 40 or press_item_width_desktop > 240
+    assign press_item_width_desktop = 110
+  endif
+  if press_item_width_mobile < 30 or press_item_width_mobile > 180
+    assign press_item_width_mobile = 70
+  endif
+  capture press_item_image_sizes
+    echo '(min-width: 768px) '
+    echo press_item_width_desktop
+    echo 'px, '
+    echo press_item_width_mobile
+    echo 'px'
+  endcapture
+%}
+
+<article
+  class="press-item reveal-carousel-item"
+  data-carousel-slide
+  data-press-image-width-desktop="{{ press_item_width_desktop }}"
+  data-press-image-width-mobile="{{ press_item_width_mobile }}"
+  data-press-image-ratio="{{ press_item_ratio_value }}"
+  data-press-image-radius="{{ press_item_radius_value }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="press-item__content align-content">
+    {% content_for 'blocks' %}
+  </div>
+  <template data-carousel-pagination-template>
+    <div
+      class="press-quotes__pagination-media reveal-carousel__pagination-adapt press-quotes__pagination-media--ratio-{{ press_item_ratio }} press-quotes__pagination-media--radius-{{ press_item_radius }}"
+      style="--press-quotes-image-ratio: {{ press_item_ratio_value }}; --press-quotes-image-radius: {{ press_item_radius_value }}; --image-ratio: {{ press_item_ratio_value }};"
+    >
+      {% render 'image',
+        image: block.settings.image,
+        alt: block.settings.alt_text,
+        class: 'press-quotes__pagination-image',
+        width: 1200,
+        widths: '160, 240, 320, 480, 640, 800, 1200',
+        sizes: press_item_image_sizes
+      %}
+    </div>
+  </template>
+</article>
+
+{% stylesheet %}
+  .press-item {
+    display: flex;
+    flex-direction: column;
+    align-items: var(--flex-align, start);
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    color: var(--body-color);
+    text-align: var(--text-align, inherit);
+  }
+
+  .press-item__content {
+    align-self: stretch;
+    width: 100%;
+    min-width: 0;
+    gap: var(--layout-grid-gap, 1rem);
+  }
+
+  .press-item__content:empty {
+    display: none;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.item",
+  "tag": null,
+  "blocks": [{ "type": "heading" }],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.content"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:labels.image"
+    },
+    {
+      "type": "text",
+      "id": "alt_text",
+      "label": "t:labels.alt_text"
+    },
+    {
+      "type": "header",
+      "content": "t:general.size"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "t:labels.image_ratio",
+      "options": [
+        { "value": "original", "label": "t:options.image_ratio.original" },
+        { "value": "square", "label": "t:options.image_ratio.square" },
+        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
+        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
+        { "value": "wide", "label": "t:options.image_ratio.wide" }
+      ],
+      "default": "original"
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "t:labels.corner_radius",
+      "options": [
+        { "value": "inherit", "label": "t:options.radius_preset.inherit" },
+        { "value": "square", "label": "t:options.radius_preset.square" },
+        { "value": "rounded", "label": "t:options.radius_preset.rounded" },
+        { "value": "full", "label": "t:options.radius_preset.full" },
+        { "value": "custom", "label": "t:options.radius_preset.custom" }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "range",
+      "id": "custom_corner_radius",
+      "label": "t:labels.custom_corner_radius",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.corner_radius == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.image_width"
+    },
+    {
+      "type": "range",
+      "id": "image_width_desktop",
+      "label": "t:options.device.desktop",
+      "min": 40,
+      "max": 240,
+      "step": 5,
+      "unit": "px",
+      "default": 110
+    },
+    {
+      "type": "range",
+      "id": "image_width_mobile",
+      "label": "t:options.device.mobile",
+      "min": 30,
+      "max": 180,
+      "step": 5,
+      "unit": "px",
+      "default": 70
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.item",
+      "category": "t:general.content",
+      "settings": {
+        "image_ratio": "original",
+        "corner_radius": "square",
+        "custom_corner_radius": 0,
+        "image_width_desktop": 100,
+        "image_width_mobile": 70
+      },
+      "blocks": [
+        {
+          "type": "heading",
+          "settings": {
+            "text": "<p>Maecenas ut porta dui, eu consequat nunc. In hac habitasse platea dictumst. Sed sollicitudin orci at sapien dignissim, rhoncus facilisis libero pretium. Aenean id dapibus risus. Etiam non rhoncus nunc, eu commodo nunc. Aliquam sit amet condimentum nunc, rhoncus tincidunt libero. In mollis, nulla non hendrerit faucibus, sem massa auctor nibh.</p>",
+            "heading_size": "xs",
+            "html_tag": "div",
+            "width": "fill"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

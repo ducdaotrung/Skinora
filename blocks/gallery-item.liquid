@@ -1,0 +1,72 @@
+{% liquid
+  assign social_network = block.settings.social_network | default: 'instagram'
+  assign social_url = block.settings.social_url
+  if social_url == blank
+    assign social_setting_key = 'social_' | append: social_network
+    assign social_url = settings[social_setting_key]
+  endif
+  assign text = block.settings.text | default: '@pam_sam'
+  assign social_background = block.settings.social_background | default: '#F0E5E2'
+  assign icon_size = block.settings.icon_size | default: 24 | plus: 0
+%}
+
+<article class="gallery-item swiper-slide" style="--gallery-item-social-background: {{ social_background | escape }}; --gallery-item-icon-size: {{ icon_size }}px;" {{ block.shopify_attributes }}>
+  <div class="gallery-item__media">
+    {% render 'image', image: block.settings.image, mobile_image: block.settings.mobile_image, alt: block.settings.alt_text, class: 'gallery-item__image', width: 1600, widths: '320, 480, 640, 800, 1200, 1600', sizes: '(min-width: 1200px) 25vw, (min-width: 768px) 33vw, 100vw' %}
+  </div>
+  <div class="gallery-item__footer">
+    <div class="gallery-item__identity">
+      <div class="gallery-item__avatar">
+        {% render 'image', image: block.settings.avatar_image, alt: block.settings.avatar_alt, width: 96, height: 96, crop: 'center', class: 'gallery-item__avatar-image' %}
+      </div>
+      {% if text != blank %}<span class="gallery-item__text">{{ text | escape }}</span>{% endif %}
+    </div>
+    {% unless social_network == 'none' %}
+      {% if social_url != blank %}<a class="gallery-item__social" href="{{ social_url | escape }}" target="_blank" rel="noopener noreferrer" aria-label="{{ text | escape }}">{% else %}<span class="gallery-item__social" aria-hidden="true">{% endif %}
+        {% case social_network %}
+          {% when 'facebook' %}<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.5 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.5 1.6-1.5h1.7V4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4V10H8v3h2.6v8h2.9Z"/></svg>
+          {% when 'x' %}<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M5 4h4.2l3.1 4.3L16 4h2.7l-5.1 5.8L19 20h-4.2l-3.5-4.9L7.1 20H4.4l5.4-6.4L5 4Zm3.1 2 7.7 12h1.1L9.2 6H8.1Z"/></svg>
+          {% when 'tiktok' %}<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 4h2.4c.2 1.5 1.1 2.8 2.6 3.5v2.5a7 7 0 0 1-2.6-1V15a5 5 0 1 1-5-5h.5v2.6a2.5 2.5 0 1 0 1.9 2.4V4Z"/></svg>
+          {% else %}<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="4.25" stroke="currentColor" stroke-width="1.5"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor"/></svg>
+        {% endcase %}
+      {% if social_url != blank %}</a>{% else %}</span>{% endif %}
+    {% endunless %}
+  </div>
+</article>
+
+{% stylesheet %}
+  .gallery-item { display: flex !important; flex-direction: column; min-width: 0; overflow: hidden; border: 1px solid var(--border-color); background: var(--background-color); }
+  .gallery-item__media, .gallery-item__image, .gallery-item__image > picture, .gallery-item__image > img, .gallery-item__image .image__placeholder { display: block; width: 100%; height: 100%; }
+  .gallery-item__media { aspect-ratio: 1; overflow: hidden; }
+  .gallery-item__media img, .gallery-item__media .image__placeholder { height: 100%; object-fit: cover; }
+  .gallery-item__footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 16px; }
+  .gallery-item__identity { display: flex; align-items: center; min-width: 0; gap: 8px; }
+  .gallery-item__avatar { flex: 0 0 48px; width: 48px; height: 48px; overflow: hidden; border-radius: 50%; background: var(--color-foreground-alpha-10, rgb(0 0 0 / 0.08)); }
+  .gallery-item__avatar-image, .gallery-item__avatar-image > img, .gallery-item__avatar-image .image__placeholder { display: block; width: 100%; height: 100%; }
+  .gallery-item__avatar-image img, .gallery-item__avatar-image .image__placeholder { object-fit: cover; }
+  .gallery-item__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-body-sm); line-height: 1.2; }
+  .gallery-item__social { display: inline-flex; flex: 0 0 calc(var(--gallery-item-icon-size, 24px) + 32px); align-items: center; justify-content: center; width: calc(var(--gallery-item-icon-size, 24px) + 32px); height: calc(var(--gallery-item-icon-size, 24px) + 32px); padding: 16px; color: currentColor; background: var(--gallery-item-social-background, #F0E5E2); border-radius: 50%; text-decoration: none; }
+  .gallery-item__social svg { display: block; width: var(--gallery-item-icon-size, 24px); height: var(--gallery-item-icon-size, 24px); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Gallery item",
+  "tag": null,
+  "settings": [
+    { "type": "header", "content": "Image" },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "image_picker", "id": "mobile_image", "label": "Mobile image" },
+    { "type": "text", "id": "alt_text", "label": "Alt text" },
+    { "type": "header", "content": "Profile" },
+    { "type": "image_picker", "id": "avatar_image", "label": "Avatar" },
+    { "type": "text", "id": "avatar_alt", "label": "Avatar alt text" },
+    { "type": "text", "id": "text", "label": "Text", "default": "@pam_sam" },
+    { "type": "select", "id": "social_network", "label": "Icon", "options": [{ "value": "none", "label": "None" }, { "value": "instagram", "label": "Instagram" }, { "value": "facebook", "label": "Facebook" }, { "value": "x", "label": "X" }, { "value": "tiktok", "label": "TikTok" }], "default": "instagram" },
+    { "type": "range", "id": "icon_size", "label": "Icon size", "min": 12, "max": 48, "step": 1, "unit": "px", "default": 24 },
+    { "type": "color", "alpha": true, "id": "social_background", "label": "Icon background", "default": "#F0E5E2" },
+    { "type": "url", "id": "social_url", "label": "Icon link" }
+  ],
+  "presets": [{ "name": "Gallery item", "category": "Gallery", "settings": { "text": "@pam_sam", "social_network": "instagram", "icon_size": 24 } }]
+}
+{% endschema %}

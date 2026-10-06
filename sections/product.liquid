@@ -1,0 +1,184 @@
+{% comment %}
+  This section is used in the product template to render product page with
+  media, content, and add-to-cart form.
+
+  https://shopify.dev/docs/storefronts/themes/architecture/templates/product
+{% endcomment %}
+
+{% assign current_variant = product.selected_or_first_available_variant %}
+{% assign product_media_gallery_id = 'ProductMedia-' | append: section.id %}
+{% assign selected_media_found = false %}
+{% if settings.variant_picker_only_selected_media and current_variant != blank %}
+  {% for image in product.images %}
+    {% for image_variant in image.variants %}
+      {% if image_variant.id == current_variant.id %}
+        {% assign selected_media_found = true %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+{% endif %}
+
+<div class="product container page-width body-text body-md">
+
+<div
+  id="{{ product_media_gallery_id }}"
+  class="product-images section-color-scope {{ section.settings.color_scheme | default: 'scheme-1' }}"
+  data-product-media-gallery
+  data-section-id="{{ section.id }}"
+>
+  {% for image in product.images %}
+    {% assign media_hidden = false %}
+    {% if settings.variant_picker_only_selected_media and selected_media_found and image.variants != blank %}
+      {% assign media_hidden = true %}
+      {% for image_variant in image.variants %}
+        {% if image_variant.id == current_variant.id %}
+          {% assign media_hidden = false %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    <div
+      class="product-image"
+      data-product-media
+      data-media-id="{{ image.id }}"
+      data-variant-ids="{% for image_variant in image.variants %}{{ image_variant.id }}{% unless forloop.last %},{% endunless %}{% endfor %}"
+      {% if media_hidden %}
+        hidden
+        aria-hidden="true"
+      {% endif %}
+    >
+      {% render 'image', class: 'product-image__image', image: image, width: 1200 %}
+    </div>
+  {% else %}
+    <div class="product-image product-image--placeholder placeholder-image" data-product-media>
+      {{ 'product-1' | placeholder_svg_tag: 'product-image__placeholder' }}
+    </div>
+  {% endfor %}
+</div>
+
+<div class="product-info section-color-scope {{ section.settings.color_scheme | default: 'scheme-1' }}">
+  <h1 class="heading-text heading-xl">{{ product.title }}</h1>
+  <div
+    class="product-info__price"
+    data-product-price-container
+    data-section-id="{{ section.id }}"
+    aria-live="polite"
+  >
+    {% if current_variant != blank %}
+      {% render 'price', item: current_variant, context: 'product-page', class: 'product-page__price' %}
+    {% else %}
+      {% render 'price', item: product, context: 'product-page', class: 'product-page__price' %}
+    {% endif %}
+    <div hidden data-variant-price-templates aria-hidden="true">
+      {% for variant in product.variants %}
+        <template data-variant-price-template="{{ variant.id }}">
+          {% render 'price', item: variant, context: 'product-page', class: 'product-page__price' %}
+        </template>
+      {% endfor %}
+    </div>
+  </div>
+  <p>{{ product.description }}</p>
+</div>
+
+<div class="product-form section-color-scope {{ section.settings.color_scheme | default: 'scheme-1' }}">
+  {% form 'product', product %}
+    <div class="form__wrapper">
+      <div class="form__fields">
+        {% assign add_to_cart_label = 'products.add_to_cart' | t %}
+        {% assign product_unavailable = true %}
+        {% if product.available and current_variant != blank and current_variant.available %}
+          {% assign product_unavailable = false %}
+        {% endif %}
+
+        {% render 'variant-picker',
+          product: product,
+          current_variant: current_variant,
+          section_id: section.id,
+          media_gallery_id: product_media_gallery_id,
+        %}
+
+        <div class="form__field form__field--quantity">
+          <label class="form__label" for="quantity">{{ 'accessibility.quantity' | t }}</label>
+          <input class="form__control form__control--input" id="quantity" type="number" name="quantity" min="1" value="1">
+        </div>
+
+        {% render 'theme-button',
+          label: add_to_cart_label,
+          type: 'submit',
+          class: 'product-form__submit',
+          disabled: product_unavailable,
+        %}
+        {{ form | payment_button }}
+      </div>
+    </div>
+  {% endform %}
+</div>
+
+</div>
+
+<script type="module" src="{{ 'variant-picker.js' | asset_url }}"></script>
+
+{% stylesheet %}
+  .product {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--layout-grid-gap);
+  }
+
+  .product-images {
+    display: grid;
+    gap: var(--layout-grid-gap);
+  }
+  .product-image {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .product-image__image,
+  .product-image__placeholder {
+    width: 100%;
+  }
+  .product-info,
+  .product-form {
+    display: grid;
+    gap: 1rem;
+  }
+  .product-form .form__fields {
+    display: grid;
+    gap: 1rem;
+  }
+  .product-form {
+    align-content: start;
+  }
+  .product-form .shopify-payment-button {
+    margin-block-start: 0.5rem;
+  }
+  @media (min-width: 768px) {
+    .product {
+      grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+      align-items: start;
+    }
+
+    .product-images {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+    }
+    .product-info,
+    .product-form {
+      grid-column: 2;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.product",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    }
+  ],
+  "enabled_on": { "templates": ["product"] }
+}
+{% endschema %}

@@ -1,0 +1,110 @@
+{% liquid
+  assign divider_height = block.settings.height | default: 12 | plus: 0
+  if divider_height < 0 or divider_height > 48
+    assign divider_height = 12
+  endif
+
+  assign divider_color_type = block.settings.color_type | default: 'inherit'
+  unless divider_color_type == 'inherit' or divider_color_type == 'custom'
+    assign divider_color_type = 'inherit'
+  endunless
+
+  assign divider_color = block.settings.border_color | default: 'var(--border-color)'
+  assign divider_class = 'header-divider header-divider--color-' | append: divider_color_type
+  if block.settings.full_height
+    assign divider_class = divider_class | append: ' header-divider--full-height'
+  endif
+%}
+
+{% capture divider_style %}
+  {% if divider_height != 12 %}--header-divider-height: {{ divider_height }}px;{% endif %}
+  {% if divider_color_type == 'custom' and divider_color != blank %}--header-divider-color: {{ divider_color }};{% endif %}
+{% endcapture %}
+{% assign divider_style = divider_style | strip %}
+
+<span
+  class="{{ divider_class }}"
+  role="separator"
+  aria-hidden="true"
+  {% if divider_style != blank %}style="{{ divider_style }}"{% endif %}
+  {{ block.shopify_attributes }}
+></span>
+
+{% stylesheet %}
+  .header-divider {
+    display: block;
+    flex: 0 0 1px;
+    align-self: center;
+    width: 1px;
+    height: var(--header-divider-height, 12px);
+    background-color: var(--header-divider-color, var(--border-color));
+  }
+
+  .header-divider--full-height {
+    align-self: stretch;
+    height: auto;
+    min-height: var(--header-icon-size, var(--button-height));
+  }
+
+  .header-divider--color-inherit {
+    --header-divider-color: var(--border-color);
+  }
+
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header_divider",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_height",
+      "label": "Full height",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "height",
+      "label": "Height",
+      "min": 0,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "select",
+      "id": "color_type",
+      "label": "Color",
+      "options": [
+        { "value": "inherit", "label": "Inherit" },
+        { "value": "custom", "label": "Custom" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "border_color",
+      "label": "Border color",
+      "default": "#DBD9D9",
+      "visible_if": "{{ block.settings.color_type == 'custom' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.header_divider",
+      "category": "t:general.header"
+    }
+  ]
+}
+{% endschema %}

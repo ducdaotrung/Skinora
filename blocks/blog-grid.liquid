@@ -1,0 +1,415 @@
+{% doc %}
+  Renders the lead article and supporting cards for Featured Blog Posts.
+
+  Blog Grid owns the selected blog, item count, and responsive composition. Its
+  static First card and Blog card children own the editable card presentation;
+  article resources are passed to those shared compositions through `closest`.
+  @param {boolean} [use_section_blog] - Use the supplied section blog, including an intentionally blank selection
+{% enddoc %}
+
+{% liquid
+  if use_section_blog
+    assign blog_grid_source = section.settings.blog
+  else
+    assign blog_grid_source = closest.blog | default: block.settings.blog | default: blog
+  endif
+  assign blog_grid_layout = block.settings.layout | default: 'horizontal'
+  unless blog_grid_layout == 'horizontal' or blog_grid_layout == 'vertical'
+    assign blog_grid_layout = 'horizontal'
+  endunless
+
+  assign blog_grid_card_count = block.settings.max_posts | default: 3 | plus: 0
+  if blog_grid_card_count < 1 or blog_grid_card_count > 8
+    assign blog_grid_card_count = 3
+  endif
+
+  assign blog_grid_columns_desktop = block.settings.desktop_columns | default: 2 | plus: 0
+  if blog_grid_columns_desktop < 2 or blog_grid_columns_desktop > 6
+    assign blog_grid_columns_desktop = 2
+  endif
+  assign blog_grid_columns_mobile = block.settings.mobile_columns | default: 1 | plus: 0
+  if blog_grid_columns_mobile < 1 or blog_grid_columns_mobile > 2
+    assign blog_grid_columns_mobile = 1
+  endif
+
+  assign blog_grid_featured_width = block.settings.horizontal_split | default: 65 | split: '-' | first | plus: 0
+  if blog_grid_featured_width < 50 or blog_grid_featured_width > 75
+    assign blog_grid_featured_width = 65
+  endif
+  assign blog_grid_secondary_width = 100 | minus: blog_grid_featured_width
+  assign blog_grid_horizontal_columns = 'minmax(0, ' | append: blog_grid_featured_width | append: 'fr) minmax(0, ' | append: blog_grid_secondary_width | append: 'fr)'
+
+  assign blog_grid_secondary_limit = blog_grid_card_count
+  assign blog_grid_placeholder_article = blank
+  assign blog_grid_gap_desktop = block.settings.gap_desktop | default: 8 | plus: 0
+  assign blog_grid_gap_mobile = block.settings.gap_mobile | default: 16 | plus: 0
+  assign blog_grid_class = 'blog-grid'
+  if block.settings.sticky and blog_grid_layout == 'horizontal'
+    assign blog_grid_class = blog_grid_class | append: ' blog-grid--sticky'
+  endif
+  assign blog_grid_layout_class = 'blog-grid__layout blog-grid__layout--' | append: blog_grid_layout
+  if blog_grid_source != blank and blog_grid_source.articles.size < 2
+    assign blog_grid_layout_class = blog_grid_layout_class | append: ' blog-grid__layout--single'
+  endif
+%}
+
+<div
+  class="{{ blog_grid_class }}"
+  style="--blog-grid-gap-desktop: {{ blog_grid_gap_desktop }}px; --blog-grid-gap-mobile: {{ blog_grid_gap_mobile }}px; --blog-grid-columns-horizontal: {{ blog_grid_horizontal_columns }}; --blog-grid-columns-desktop: {{ blog_grid_columns_desktop }}; --blog-grid-columns-mobile: {{ blog_grid_columns_mobile }};"
+  {{ block.shopify_attributes }}
+>
+  {% if blog_grid_source != blank and blog_grid_source.articles != blank %}
+    {% assign blog_grid_first_article = blog_grid_source.articles.first %}
+    <div class="{{ blog_grid_layout_class }}">
+      <div class="blog-grid__first-card">
+        {% content_for 'block', type: 'first-card', id: 'first-card', closest.article: blog_grid_first_article, blog: blog_grid_source %}
+      </div>
+      {% if blog_grid_source.articles.size > 1 %}
+        <div class="blog-grid__items">
+          {% for blog_grid_article in blog_grid_source.articles offset: 1 limit: blog_grid_secondary_limit %}
+            <div class="blog-grid__item">
+              {% content_for 'block', type: 'blog-card', id: 'blog-card', closest.article: blog_grid_article, blog: blog_grid_source, placeholder: false %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% elsif request.design_mode %}
+    <div class="{{ blog_grid_layout_class }}">
+      <div class="blog-grid__first-card">
+        {% content_for 'block', type: 'first-card', id: 'first-card', closest.article: blog_grid_placeholder_article, blog: blog_grid_source, placeholder: true %}
+      </div>
+      <div class="blog-grid__items">
+        {% for blog_grid_placeholder in (1..blog_grid_secondary_limit) %}
+          <div class="blog-grid__item">
+            {% content_for 'block', type: 'blog-card', id: 'blog-card', closest.article: blog_grid_placeholder_article, blog: blog_grid_source, placeholder: true %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% stylesheet %}
+  .blog-grid {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .blog-grid__layout {
+    display: grid;
+    grid-template-columns: var(--blog-grid-columns-horizontal, minmax(0, 1.8fr) minmax(0, 1fr));
+    align-items: stretch;
+    gap: var(--blog-grid-gap-desktop, 8px);
+    min-width: 0;
+  }
+
+  .blog-grid__layout--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .blog-grid__layout--vertical {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .blog-grid__first-card,
+  .blog-grid__items,
+  .blog-grid__item {
+    min-width: 0;
+  }
+
+  .blog-grid__items {
+    display: grid;
+    grid-auto-rows: minmax(116px, 1fr);
+    gap: var(--blog-grid-gap-desktop, 8px);
+    min-height: 0;
+  }
+
+  .blog-grid__layout--vertical .blog-grid__items {
+    grid-template-columns: repeat(var(--blog-grid-columns-desktop, 2), minmax(0, 1fr));
+    grid-auto-rows: auto;
+  }
+
+  .blog-grid__item > .blog-card {
+    min-height: 116px;
+    height: 100%;
+  }
+
+  .blog-grid__layout--vertical .blog-grid__item > .blog-card {
+    height: auto;
+  }
+
+  @media (min-width: 768px) {
+    .blog-grid--sticky .blog-grid__layout--horizontal .blog-grid__first-card {
+      position: sticky;
+      top: calc(var(--header-height, 0px) + 1rem);
+      align-self: start;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .blog-grid__layout {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--blog-grid-gap-mobile, 16px);
+    }
+
+    .blog-grid__items {
+      gap: var(--blog-grid-gap-mobile, 16px);
+    }
+
+    .blog-grid__layout--vertical .blog-grid__items {
+      grid-template-columns: repeat(var(--blog-grid-columns-mobile, 1), minmax(0, 1fr));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Blog grid",
+  "tag": null,
+  "blocks": [
+    { "type": "first-card" },
+    { "type": "blog-card" }
+  ],
+  "settings": [
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Blog",
+      "info": "Blog posts and Featured blog posts use the section Blog setting. This picker is used in other compositions."
+    },
+    {
+      "type": "range",
+      "id": "max_posts",
+      "label": "Number of Blog cards",
+      "min": 1,
+      "max": 8,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal" },
+        { "value": "vertical", "label": "Vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "checkbox",
+      "id": "sticky",
+      "label": "Enable sticky first card on desktop",
+      "default": true,
+      "visible_if": "{{ block.settings.layout == 'horizontal' }}"
+    },
+    {
+      "type": "range",
+      "id": "horizontal_split",
+      "label": "Desktop featured post width",
+      "min": 50,
+      "max": 75,
+      "step": 1,
+      "unit": "%",
+      "default": 65,
+      "visible_if": "{{ block.settings.layout == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "desktop_columns",
+      "label": "t:labels.desktop_columns",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" },
+        { "value": "5", "label": "5" },
+        { "value": "6", "label": "6" }
+      ],
+      "default": "2",
+      "visible_if": "{{ block.settings.layout == 'vertical' }}"
+    },
+    {
+      "type": "select",
+      "id": "mobile_columns",
+      "label": "t:labels.mobile_columns",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "1",
+      "visible_if": "{{ block.settings.layout == 'vertical' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:options.device.desktop",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:options.device.mobile",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blog grid",
+      "category": "Blog",
+      "settings": {
+        "blog": "",
+        "layout": "horizontal",
+        "sticky": true,
+        "horizontal_split": 50,
+        "desktop_columns": "2",
+        "mobile_columns": "1",
+        "max_posts": 6,
+        "gap_desktop": 8,
+        "gap_mobile": 16
+      },
+      "blocks": [
+        {
+          "type": "first-card",
+          "id": "first-card",
+          "static": true,
+          "blocks": [
+            {
+              "type": "blog-card-tag",
+              "settings": {
+                "text_case": "uppercase",
+                "font_size": "xs",
+                "padding_top": 0
+              }
+            },
+            {
+              "type": "blog-card-title",
+              "settings": {
+                "line_limit": "two",
+                "heading_size": "lg",
+                "html_tag": "h3",
+                "padding_top": 0,
+                "padding_bottom": 0
+              }
+            },
+            {
+              "type": "blog-card-description",
+              "settings": {
+                "text_limit": "three",
+                "size": "sm",
+                "padding_top": 0,
+                "padding_bottom": 0
+              }
+            },
+            {
+              "type": "blog-card-button",
+              "settings": {
+                "style": "tertiary",
+                "show_icon": false,
+                "padding_top": 0,
+                "padding_bottom": 0
+              }
+            },
+            {
+              "type": "blog-card-meta",
+              "settings": {
+                "show_date": true,
+                "show_author": true,
+                "show_comment_count": false,
+                "details_order": "author_date_comment",
+                "author_display_type": "text",
+                "author_prefix": "",
+                "show_date_icon": false,
+                "date_format": "medium",
+                "show_comment_icon": false,
+                "layout": "vertical",
+                "gap": 4,
+                "icon_size": 14,
+                "icon_gap": 4,
+                "size": "xs",
+                "padding_top": 0,
+                "padding_bottom": 0
+              }
+            }
+          ]
+        },
+        {
+          "type": "blog-card",
+          "id": "blog-card",
+          "static": true,
+          "settings": {
+            "ratio": "original",
+            "media_layout": "horizontal",
+            "alignment": "left",
+            "desktop_gap": 8,
+            "mobile_gap": 8,
+            "border_thickness": 1,
+            "corner_radius": "square",
+            "shadow": "none",
+            "color_type": "inherit",
+            "color_scheme": "scheme-1",
+            "padding_top": 12,
+            "padding_bottom": 12,
+            "padding_left": 12,
+            "padding_right": 12,
+            "customize_mobile_padding": false
+          },
+          "blocks": [
+            {
+              "type": "blog-card-tag",
+              "settings": {
+                "text_case": "uppercase",
+                "font_size": "xs",
+                "padding_top": 0
+              }
+            },
+            {
+              "type": "blog-card-title",
+              "settings": {
+                "line_limit": "two",
+                "heading_size": "sm",
+                "html_tag": "h3",
+                "padding_top": 0,
+                "padding_bottom": 0
+              }
+            },
+            {
+              "type": "blog-card-meta",
+              "settings": {
+                "show_date": true,
+                "show_author": true,
+                "show_comment_count": false,
+                "details_order": "author_date_comment",
+                "author_display_type": "text",
+                "author_prefix": "",
+                "show_date_icon": false,
+                "date_format": "medium",
+                "show_comment_icon": false,
+                "layout": "horizontal",
+                "gap": 8,
+                "icon_size": 14,
+                "icon_gap": 4,
+                "size": "xs",
+                "padding_top": 0,
+                "padding_bottom": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

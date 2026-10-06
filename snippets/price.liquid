@@ -1,0 +1,187 @@
+{% doc %}
+  Renders a product, variant, line-item, or total price using the shared price
+  contract. Money formatting stays in Liquid so every surface uses the
+  shop's active market and currency format.
+
+  @param {product} [item] - Product, variant, or cart line item with price data
+  @param {number} [amount] - Standalone amount such as a cart total
+  @param {string} [context] - product-card, product-page, or cart
+  @param {string} [class] - Additional classes
+
+  @example
+  {% render 'price', item: product, context: 'product-card' %}
+{% enddoc %}
+
+{% liquid
+  assign price_context = context | default: 'product-page'
+  assign price_class = 'price'
+  assign price_context_modifier = 'price--product-page'
+  case price_context
+    when 'product-card'
+      assign price_context_modifier = 'price--product-card'
+    when 'cart'
+      assign price_context_modifier = 'price--cart'
+  endcase
+  assign price_class = price_class | append: ' ' | append: price_context_modifier
+  if class != blank
+    assign price_class = price_class | append: ' ' | append: class
+  endif
+
+  assign show_sale_first = true
+  if settings.price_show_sale_first == false
+    assign show_sale_first = false
+  endif
+
+  assign show_currency_code = false
+  if price_context == 'product-card' and settings.price_currency_code_product_cards
+    assign show_currency_code = true
+  elsif price_context == 'product-page' and settings.price_currency_code_product_pages
+    assign show_currency_code = true
+  endif
+
+  assign current_price = blank
+  assign compare_at_price = blank
+  assign unit_price = blank
+  assign unit_price_measurement = blank
+  assign variant_id = blank
+
+  if amount != blank
+    assign current_price = amount
+  elsif price_context == 'cart'
+    assign current_price = item.final_line_price
+    if current_price == blank
+      assign current_price = item.final_price
+    endif
+    if current_price == blank
+      assign current_price = item.price
+    endif
+    assign compare_at_price = item.original_line_price
+    if compare_at_price == blank
+      assign compare_at_price = item.original_price
+    endif
+    if compare_at_price == blank
+      assign compare_at_price = item.compare_at_price
+    endif
+    assign unit_price = item.unit_price
+    assign unit_price_measurement = item.unit_price_measurement
+    if item.variant != blank
+      assign variant_id = item.variant.id
+    endif
+  elsif item != blank
+    assign current_price = item.price
+    assign compare_at_price = item.compare_at_price
+    if compare_at_price == blank
+      assign compare_at_price = item.compare_at_price_max
+    endif
+    assign unit_price = item.unit_price
+    assign unit_price_measurement = item.unit_price_measurement
+    if price_context == 'product-page'
+      assign variant_id = item.id
+    endif
+  endif
+
+  assign has_current_price = false
+  if current_price != blank
+    assign has_current_price = true
+  endif
+
+  assign is_sale = false
+  if has_current_price and compare_at_price != blank and compare_at_price > current_price
+    assign is_sale = true
+  endif
+
+  assign has_unit_price = false
+  if unit_price != blank and unit_price_measurement != blank
+    assign unit_reference_value = unit_price_measurement.reference_value
+    assign unit_reference_unit = unit_price_measurement.reference_unit
+    if unit_reference_value != blank and unit_reference_unit != blank
+      assign has_unit_price = true
+    endif
+  endif
+
+  if has_current_price
+    if is_sale
+      assign price_class = price_class | append: ' price--sale'
+      if show_sale_first
+        assign price_class = price_class | append: ' price--sale-first'
+      else
+        assign price_class = price_class | append: ' price--compare-first'
+      endif
+    else
+      assign price_class = price_class | append: ' price--regular'
+    endif
+    if show_currency_code
+      assign price_class = price_class | append: ' price--currency-code'
+    endif
+    if has_unit_price
+      assign price_class = price_class | append: ' price--has-unit'
+    endif
+    if variant_id != blank
+      assign price_class = price_class | append: ' price--variant'
+    endif
+  endif
+
+  assign current_price_modifier = 'regular'
+  if is_sale
+    assign current_price_modifier = 'sale'
+  endif
+%}
+
+{% if has_current_price %}
+  {% capture current_price_markup %}
+    <span class="price__current price__current--{{ current_price_modifier }} price__value price__value--{{ current_price_modifier }}" data-price-current>
+      {% if is_sale %}
+        <span class="visually-hidden">{{ 'products.sale_price' | t }}: </span>
+      {% endif %}
+      {% if show_currency_code %}
+        {{ current_price | money_with_currency }}
+      {% else %}
+        {{ current_price | money }}
+      {% endif %}
+    </span>
+  {% endcapture %}
+
+  {% if is_sale %}
+    {% capture compare_at_price_markup %}
+      <s class="price__compare price__compare-at price__value price__value--compare-at" data-price-compare-at>
+        <span class="visually-hidden">{{ 'products.compare_at_price' | t }}: </span>
+        {% if show_currency_code %}
+          {{ compare_at_price | money_with_currency }}
+        {% else %}
+          {{ compare_at_price | money }}
+        {% endif %}
+      </s>
+    {% endcapture %}
+  {% endif %}
+
+  {% if has_unit_price %}
+    {% capture unit_price_markup %}
+      <span class="price__unit price__unit--measured" data-price-unit>
+        <span class="visually-hidden">{{ 'products.unit_price' | t }}: </span>
+        {% if show_currency_code %}
+          {{ unit_price | money_with_currency | unit_price_with_measurement: unit_price_measurement }}
+        {% else %}
+          {{ unit_price | money | unit_price_with_measurement: unit_price_measurement }}
+        {% endif %}
+      </span>
+    {% endcapture %}
+  {% endif %}
+
+  <span
+    class="{{ price_class | strip }}"
+    data-price-component
+    data-price-context="{{ price_context }}"
+    {% if variant_id != blank %}
+      data-price-variant-id="{{ variant_id }}"
+    {% endif %}
+  >
+    {% if is_sale and show_sale_first == false %}
+      {{ compare_at_price_markup }}
+      {{ current_price_markup }}
+    {% else %}
+      {{ current_price_markup }}
+      {% if is_sale %}{{ compare_at_price_markup }}{% endif %}
+    {% endif %}
+    {% if has_unit_price %}{{ unit_price_markup }}{% endif %}
+  </span>
+{% endif %}

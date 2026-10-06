@@ -1,0 +1,499 @@
+{% doc %}
+  Fixed collection filter role. Owns sidebar/drawer behavior and native Shopify facets.
+{% enddoc %}
+{% liquid
+ assign sort_by = collection.sort_by | default: collection.default_sort_by
+ assign sort_label = 'collection.sort_by' | t | remove: ':' | strip
+ assign clear_filters_label = 'collection.clear_all' | t
+ assign filter_items_limit = block.settings.items_limit | default: 5 | plus: 0
+ assign apply_filters_label = 'collection.apply_filters' | t: count: collection.products_count
+ assign active_filter_count = 0
+ for filter in collection.filters
+  assign active_filter_count = active_filter_count | plus: filter.active_values.size
+  if filter.type == 'price_range'
+   if filter.min_value.value != nil or filter.max_value.value != nil
+    assign active_filter_count = active_filter_count | plus: 1
+   endif
+  endif
+ endfor
+ assign filter_button_label = 'collection.filter' | t
+ if active_filter_count > 0
+  assign filter_button_label = filter_button_label | append: ' (' | append: active_filter_count | append: ')'
+ endif
+ assign filter_button_icon = block.settings.filter_icon | default: 'sliders'
+ assign filter_button_style = block.settings.button_style | default: 'primary'
+ if filter_button_style == 'outline'
+  assign filter_button_style = 'secondary'
+ elsif filter_button_style == 'text'
+  assign filter_button_style = 'tertiary'
+ endif
+ assign filter_heading_size = block.settings.heading_size | default: 'sm'
+ case filter_heading_size
+  when 'h3'
+   assign filter_heading_size = 'lg'
+  when 'h4'
+   assign filter_heading_size = 'md'
+  when 'h5'
+   assign filter_heading_size = 'sm'
+  when 'h6'
+   assign filter_heading_size = 'xs'
+ endcase
+ unless filter_heading_size == 'lg' or filter_heading_size == 'md' or filter_heading_size == 'sm' or filter_heading_size == 'xs'
+  assign filter_heading_size = 'sm'
+ endunless
+%}
+<div class="collection-filter-block" {{ block.shopify_attributes }}>
+{% if collection.filters.size > 0 %}
+{% if block.settings.desktop_layout == 'sidebar' and block.settings.sidebar_visibility == 'always' %}
+  <h2 class="main-collection__filter-label heading-text heading-md">{{ 'collection.filter' | t }}</h2>
+{% endif %}
+{% capture filter_button_attributes %}aria-controls="CollectionFilters-{{ section.id }}" aria-expanded="false" data-collection-filter-open{% endcapture %}
+{% render 'theme-button', label: filter_button_label, variant: filter_button_style, class: 'main-collection__filter-button', attributes: filter_button_attributes, icon: filter_button_icon, icon_expanded: 'x-mark', icon_position: 'before' %}
+{% endif %}
+</div>
+{% if collection.filters.size > 0 %}
+      <div class="main-collection__filter-panel-positioner">
+      <dialog
+        class="main-collection__filter-dialog modal-drag-target" data-desktop-layout="{{ block.settings.desktop_layout }}" data-sidebar-visibility="{{ block.settings.sidebar_visibility }}" data-mobile-layout="{{ block.settings.mobile_layout }}" data-collapse-icon="{{ block.settings.collapse_icon }}" style="--collection-filter-right-padding:{{ block.settings.right_padding }}px"
+        id="CollectionFilters-{{ section.id }}"
+        aria-labelledby="CollectionFiltersTitle-{{ section.id }}"
+        scroll-lock
+        data-collection-filter-dialog
+      >
+        <span class="main-collection__filter-backdrop-pointer modal-backdrop-pointer modal-close-button close-icon" aria-hidden="true"></span>
+        <form class="main-collection__filter-form" action="{{ collection.url | escape }}" method="get">
+          <div class="quick-view__handle main-collection__filter-handle" data-collection-filter-handle aria-hidden="true"></div>
+          <header class="main-collection__filter-header">
+            <h2 id="CollectionFiltersTitle-{{ section.id }}" class="heading-text heading-xl">{{ 'collection.filters' | t }}</h2>
+            <button class="main-collection__filter-close overlay-close" type="button" aria-label="{{ 'collection.close_filters' | t | escape }}" data-collection-filter-close>
+              {% render 'icon', icon: 'x-mark', bare: true, class: 'overlay-close__icon' %}
+            </button>
+          </header>
+
+          <div class="main-collection__filter-body">
+            {% if active_filter_count > 0 %}
+              <div class="main-collection__active-filters">
+              {% for filter in collection.filters %}
+                {% for value in filter.active_values %}
+                  <a class="main-collection__active-filter body-text body-sm" href="{{ value.url_to_remove | escape }}">
+                    {% if filter.presentation == 'swatch' %}
+                      {% liquid
+                        assign swatch_style = ''
+                        if value.swatch.image != blank
+                          assign swatch_image_url = value.swatch.image | image_url: width: 48
+                          assign swatch_style = '--main-collection-swatch-image: url(' | append: swatch_image_url | append: ');'
+                        elsif value.swatch.color != blank
+                          assign swatch_style = '--main-collection-swatch-color: ' | append: value.swatch.color | append: ';'
+                        endif
+                      %}
+                      <span class="main-collection__swatch"{% if swatch_style != blank %} style="{{ swatch_style }}"{% endif %} aria-hidden="true"></span>
+                    {% endif %}
+                    <span>{{ value.label | escape }}</span>
+                    <span aria-hidden="true">×</span>
+                  </a>
+                {% endfor %}
+                {% if filter.type == 'price_range' %}
+                  {% if filter.min_value.value != nil or filter.max_value.value != nil %}
+                    <a class="main-collection__active-filter body-text body-sm" href="{{ filter.url_to_remove | escape }}">
+                      <span>{{ filter.label | escape }}</span>
+                      <span aria-hidden="true">×</span>
+                    </a>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+              <a class="main-collection__clear-link body-text body-sm" href="{{ collection.url | escape }}">{{ 'collection.clear_all' | t }}</a>
+              </div>
+            {% endif %}
+
+            <div class="main-collection__filter-groups">
+              {% if block.settings.enable_sorting %}
+                <details data-accordion-details class="main-collection__mobile-sort main-collection__filter-group" data-filter-key="sort_by" open>
+                  <summary class="heading-text heading-{{ filter_heading_size }}">
+                    <span>{{ sort_label }}</span>
+                    <span class="main-collection__filter-icon main-collection__filter-icon--chevron" aria-hidden="true">{% render 'icon', icon: 'chevron-down', bare: true %}</span>
+                    <span class="main-collection__filter-icon main-collection__filter-icon--plus" aria-hidden="true">
+                      <span class="main-collection__filter-icon-closed">{% render 'icon', icon: 'plus', bare: true %}</span>
+                      <span class="main-collection__filter-icon-open">{% render 'icon', icon: 'minus', bare: true %}</span>
+                    </span>
+                  </summary>
+                  <fieldset class="main-collection__sort-options">
+                    <legend class="visually-hidden">{{ sort_label }}</legend>
+                    {% for option in collection.sort_options %}
+                      <label class="main-collection__sort-option body-text body-sm">
+                        <input
+                          type="radio"
+                          name="sort_by"
+                          value="{{ option.value }}"
+                          {% if option.value == sort_by %}checked{% endif %}
+                        >
+                        <span class="main-collection__sort-radio" aria-hidden="true"></span>
+                        <span class="main-collection__sort-option-label">{{ option.name }}</span>
+                      </label>
+                    {% endfor %}
+                  </fieldset>
+                </details>
+              {% endif %}
+
+              {% for filter in collection.filters %}
+                {% liquid
+                  assign selected_count = filter.active_values.size
+                  if filter.type == 'price_range'
+                    if filter.min_value.value != nil or filter.max_value.value != nil
+                      assign selected_count = 1
+                    endif
+                  endif
+                %}
+                <details data-accordion-details class="main-collection__filter-group" data-filter-key="{{ filter.param_name | default: filter.min_value.param_name | escape }}" {% unless block.settings.collapse_filters %}open{% endunless %}>
+                <summary class="heading-text heading-{{ filter_heading_size }}">
+                  <span data-filter-heading>{{ filter.label | escape }}{% if selected_count > 0 %} ({{ selected_count }}){% endif %}</span>
+                  <span class="main-collection__filter-icon main-collection__filter-icon--chevron" aria-hidden="true">{% render 'icon', icon: 'chevron-down', bare: true %}</span>
+                  <span class="main-collection__filter-icon main-collection__filter-icon--plus" aria-hidden="true">
+                    <span class="main-collection__filter-icon-closed">{% render 'icon', icon: 'plus', bare: true %}</span>
+                    <span class="main-collection__filter-icon-open">{% render 'icon', icon: 'minus', bare: true %}</span>
+                  </span>
+                </summary>
+
+                <div class="main-collection__filter-content">
+                {% if filter.type == 'price_range' %}
+                  {% liquid
+                    assign price_range_max = filter.range_max | divided_by: 100.0 | ceil
+                    assign price_range_min_value = 0
+                    assign price_range_max_value = price_range_max
+                    assign currency_symbol = cart.currency.symbol | default: localization.country.currency.symbol | default: '$'
+
+                    if filter.min_value.value != nil
+                      assign price_range_min_value = filter.min_value.value | divided_by: 100.0 | round
+                    endif
+
+                    if filter.max_value.value != nil
+                      assign price_range_max_value = filter.max_value.value | divided_by: 100.0 | round
+                    endif
+                  %}
+                  <collection-price-range class="main-collection__price-filter">
+                    <div class="main-collection__price-slider" data-price-range-slider>
+                      <input
+                        type="range"
+                        min="0"
+                        max="{{ price_range_max }}"
+                        step="1" inputmode="numeric"
+                        value="{{ price_range_min_value }}"
+                        aria-label="{{ 'collection.price_from' | t | escape }}"
+                        data-price-range-min
+                      >
+                      <input
+                        type="range"
+                        min="0"
+                        max="{{ price_range_max }}"
+                        step="1" inputmode="numeric"
+                        value="{{ price_range_max_value }}"
+                        aria-label="{{ 'collection.price_to' | t | escape }}"
+                        data-price-range-max
+                      >
+                    </div>
+
+                    <div class="main-collection__price-fields">
+                      <div class="main-collection__price-input">
+                        <label class="visually-hidden" for="Filter-{{ filter.label | handle }}-Min-{{ section.id }}">{{ 'collection.price_from' | t }}</label>
+                        <span class="body-text body-sm" aria-hidden="true">{{ currency_symbol }}</span>
+                        <input
+                          id="Filter-{{ filter.label | handle }}-Min-{{ section.id }}"
+                          class="body-text body-sm"
+                          type="number"
+                          name="{{ filter.min_value.param_name }}"
+                          min="0"
+                          max="{{ price_range_max }}"
+                          step="1" inputmode="numeric"
+                          placeholder="0"
+                          data-price-number-min
+                          {% if filter.min_value.value != nil %}value="{{ price_range_min_value }}"{% endif %}
+                        >
+                      </div>
+                      <span class="main-collection__price-separator body-text body-sm" aria-hidden="true">{{ 'collection.price_to' | t | downcase }}</span>
+                      <div class="main-collection__price-input">
+                        <label class="visually-hidden" for="Filter-{{ filter.label | handle }}-Max-{{ section.id }}">{{ 'collection.price_to' | t }}</label>
+                        <span class="body-text body-sm" aria-hidden="true">{{ currency_symbol }}</span>
+                        <input
+                          id="Filter-{{ filter.label | handle }}-Max-{{ section.id }}"
+                          class="body-text body-sm"
+                          type="number"
+                          name="{{ filter.max_value.param_name }}"
+                          min="0"
+                          max="{{ price_range_max }}"
+                          step="1" inputmode="numeric"
+                          placeholder="{{ price_range_max }}"
+                          data-price-number-max
+                          {% if filter.max_value.value != nil %}value="{{ price_range_max_value }}"{% endif %}
+                        >
+                      </div>
+                    </div>
+                  </collection-price-range>
+                {% else %}
+                  {% liquid
+                    assign is_swatch_filter = false
+                    if filter.presentation == 'swatch'
+                      assign is_swatch_filter = true
+                    endif
+                  %}
+                  <ul id="FilterValues-{{ block.id }}-{{ forloop.index }}" class="main-collection__filter-values{% if is_swatch_filter %} main-collection__filter-values--swatches{% endif %}" role="list">
+                    {% for value in filter.values %}
+                      <li {% if filter_items_limit > 0 and forloop.index > filter_items_limit and value.active == false %}data-filter-overflow hidden{% endif %}>
+                        <label class="main-collection__filter-value body-text body-sm{% if value.active %} is-active{% endif %}">
+                          <input
+                            type="checkbox"
+                            name="{{ value.param_name }}"
+                            value="{{ value.value }}"
+                            {% if value.active %}checked{% endif %}
+                            {% if value.count == 0 and value.active == false %}disabled{% endif %}
+                          >
+                          {% if is_swatch_filter %}
+                            {% liquid
+                              assign swatch_style = ''
+                              if value.swatch.image != blank
+                                assign swatch_image_url = value.swatch.image | image_url: width: 48
+                                assign swatch_style = '--main-collection-swatch-image: url(' | append: swatch_image_url | append: ');'
+                              elsif value.swatch.color != blank
+                                assign swatch_style = '--main-collection-swatch-color: ' | append: value.swatch.color | append: ';'
+                              endif
+                            %}
+                            <span class="main-collection__swatch"{% if swatch_style != blank %} style="{{ swatch_style }}"{% endif %}></span>
+                          {% endif %}
+                          <span>{{ value.label | escape }}</span>
+                          <span class="main-collection__filter-count">({{ value.count }})</span>
+                        </label>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                  {% if filter_items_limit > 0 and filter.values.size > filter_items_limit %}
+                    {% assign more_label = 'collection.view_more' | t %}
+                    {% capture more_attributes %}data-filter-show-more aria-expanded="false" aria-controls="FilterValues-{{ block.id }}-{{ forloop.index }}" data-more-label="{{ more_label | escape }}" data-less-label="{{ 'collection.view_less' | t | escape }}"{% endcapture %}
+                    {% render 'theme-button', label: more_label, variant: 'tertiary', class: 'main-collection__filter-more', attributes: more_attributes %}
+                  {% endif %}
+                {% endif %}
+                </div>
+                </details>
+              {% endfor %}
+            </div>
+          </div>
+
+          <footer class="main-collection__filter-footer">
+            {% render 'theme-button', label: apply_filters_label, variant: 'primary', type: 'submit' %}
+            {% render 'theme-button', label: clear_filters_label, url: collection.url, variant: 'secondary' %}
+          </footer>
+        </form>
+      </dialog>
+      </div>
+{% endif %}
+{% schema %}
+{
+  "name": "Filter",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:info.collection_filter_search_discovery"
+    },
+    {
+      "type": "select",
+      "id": "filter_icon",
+      "label": "Filter icon",
+      "options": [
+        {
+          "value": "funnel",
+          "label": "Funnel"
+        },
+        {
+          "value": "sliders",
+          "label": "Sliders"
+        }
+      ],
+      "default": "sliders",
+      "visible_if": "{{ block.settings.desktop_layout == 'drawer' or block.settings.sidebar_visibility != 'always' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.desktop_layout"
+    },
+    {
+      "type": "select",
+      "id": "desktop_layout",
+      "label": "t:general.layout",
+      "options": [
+        {
+          "value": "sidebar",
+          "label": "Sidebar"
+        },
+        {
+          "value": "drawer",
+          "label": "Drawer"
+        }
+      ],
+      "default": "sidebar"
+    },
+    {
+      "type": "select",
+      "id": "sidebar_visibility",
+      "label": "Sidebar visibility",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always open"
+        },
+        {
+          "value": "open",
+          "label": "Open by default"
+        },
+        {
+          "value": "closed",
+          "label": "Closed by default"
+        }
+      ],
+      "default": "always",
+      "visible_if": "{{ block.settings.desktop_layout == 'sidebar' }}"
+    },
+    {
+      "type": "range",
+      "id": "right_padding",
+      "label": "Right padding",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 50,
+      "visible_if": "{{ block.settings.desktop_layout == 'sidebar' }}"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Desktop filter button style",
+      "options": [
+        {
+          "value": "primary",
+          "label": "t:options.button_variant.primary"
+        },
+        {
+          "value": "secondary",
+          "label": "t:options.button_variant.secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "t:options.button_variant.tertiary"
+        },
+        {
+          "value": "outline",
+          "label": "Outline"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "primary",
+      "visible_if": "{{ block.settings.desktop_layout == 'drawer' or block.settings.sidebar_visibility != 'always' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.mobile_layout"
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "t:general.layout",
+      "options": [
+        {
+          "value": "sheet",
+          "label": "Bottom sheet"
+        },
+        {
+          "value": "drawer",
+          "label": "Drawer"
+        }
+      ],
+      "default": "sheet"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.filter_settings"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        {
+          "value": "lg",
+          "label": "t:options.heading_size.lg"
+        },
+        {
+          "value": "md",
+          "label": "t:options.heading_size.md"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.heading_size.sm"
+        },
+        {
+          "value": "xs",
+          "label": "t:options.heading_size.xs"
+        }
+      ],
+      "default": "sm"
+    },
+    {
+      "type": "select",
+      "id": "collapse_icon",
+      "label": "Collapse icon",
+      "options": [
+        {
+          "value": "chevron",
+          "label": "Chevron"
+        },
+        {
+          "value": "plus",
+          "label": "Plus"
+        }
+      ],
+      "default": "plus"
+    },
+    {
+      "type": "checkbox",
+      "id": "collapse_filters",
+      "label": "Collapse filters",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "items_limit",
+      "label": "Items limit",
+      "options": [
+        {
+          "value": "0",
+          "label": "No limit"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        },
+        {
+          "value": "10",
+          "label": "10"
+        },
+        {
+          "value": "15",
+          "label": "15"
+        },
+        {
+          "value": "20",
+          "label": "20"
+        }
+      ],
+      "default": "5"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "Show sorting in drawer",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,188 @@
+{% doc %}
+  Renders a viewport-aware sticky product action. The runtime portals this block
+  to document.body so transformed Product Details ancestors cannot contain its
+  fixed positioning. Submission remains delegated to the canonical product form.
+{% enddoc %}
+
+{% liquid
+  assign sticky_product = closest.product | default: product
+  assign sticky_variant = sticky_product.selected_or_first_available_variant
+  assign sticky_image = sticky_variant.featured_image | default: sticky_product.featured_image
+  assign sticky_fallback_image = sticky_product.featured_image | default: sticky_image
+  assign sticky_fallback_image_url = blank
+  if sticky_fallback_image != blank
+    assign sticky_fallback_image_url = sticky_fallback_image | image_url: width: 240
+  endif
+
+  assign sticky_layout = block.settings.layout_style | default: 'floating'
+  unless sticky_layout == 'page' or sticky_layout == 'full' or sticky_layout == 'floating'
+    assign sticky_layout = 'floating'
+  endunless
+
+  assign show_variant_selector = true
+  if block.settings.show_variant_selector == false
+    assign show_variant_selector = false
+  endif
+
+  assign thumbnail_width = block.settings.thumbnail_width | default: 85 | plus: 0
+  if thumbnail_width < 45 or thumbnail_width > 120
+    assign thumbnail_width = 85
+  endif
+
+  assign button_height_desktop = block.settings.button_height_desktop | default: 'medium'
+  case button_height_desktop
+    when 'small'
+      assign button_height_desktop_value = '44px'
+    when 'large'
+      assign button_height_desktop_value = '56px'
+    else
+      assign button_height_desktop = 'medium'
+      assign button_height_desktop_value = '48px'
+  endcase
+
+  assign button_height_mobile = block.settings.button_height_mobile | default: 'inherit'
+  case button_height_mobile
+    when 'small'
+      assign button_height_mobile_value = '44px'
+    when 'medium'
+      assign button_height_mobile_value = '48px'
+    when 'large'
+      assign button_height_mobile_value = '56px'
+    else
+      assign button_height_mobile = 'inherit'
+      assign button_height_mobile_value = button_height_desktop_value
+  endcase
+
+  assign sticky_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign sticky_scheme = section.settings.color_scheme.id
+  endif
+  assign sticky_scheme = sticky_scheme | default: 'scheme-1' | handleize
+%}
+
+{% if sticky_product != blank %}
+  <product-sticky-add-to-cart
+    class="product-sticky-add-to-cart product-sticky-add-to-cart--{{ sticky_layout }}{% if sticky_image != blank %} product-sticky-add-to-cart--has-media{% endif %} color-scheme section-color-scope {{ sticky_scheme }}"
+    data-product-sticky-add-to-cart
+    data-block-id="{{ block.id }}"
+    data-current-variant-id="{{ sticky_variant.id }}"
+    data-available="{{ sticky_variant.available }}"
+    data-add-to-cart-label="{{ 'products.add_to_cart' | t | escape }}"
+    data-sold-out-label="{{ 'products.sold_out' | t | escape }}"
+    aria-hidden="true"
+    inert
+    style="--sticky-cart-thumbnail-width: {{ thumbnail_width }}px; --sticky-cart-button-height: {{ button_height_desktop_value }}; --sticky-cart-button-height-mobile: {{ button_height_mobile_value }};"
+    {{ block.shopify_attributes }}
+  >
+    {% if sticky_image != blank %}
+      <div class="product-sticky-add-to-cart__media">
+        {% assign sticky_image_sizes = thumbnail_width | append: 'px' %}
+        {{ sticky_image | image_url: width: 240 | image_tag: widths: '90, 170, 240', sizes: sticky_image_sizes, loading: 'lazy', class: 'product-sticky-add-to-cart__image', data-sticky-add-to-cart-image: '', data-fallback-src: sticky_fallback_image_url }}
+      </div>
+    {% endif %}
+
+    <div class="product-sticky-add-to-cart__product">
+      <span class="product-sticky-add-to-cart__title">{{ sticky_product.title | escape }}</span>
+      {% if show_variant_selector and sticky_product.has_only_default_variant == false %}
+        <label class="visually-hidden" for="StickyVariant-{{ section.id }}-{{ block.id }}">{{ 'products.options' | t }}</label>
+        <select id="StickyVariant-{{ section.id }}-{{ block.id }}" class="product-sticky-add-to-cart__variant-select" data-sticky-add-to-cart-variant-select>
+          {% for variant in sticky_product.variants %}
+            <option value="{{ variant.id }}"{% if variant.id == sticky_variant.id %} selected{% endif %}{% unless variant.available %} disabled{% endunless %}>{{ variant.title | escape }}</option>
+          {% endfor %}
+        </select>
+      {% elsif sticky_product.has_only_default_variant == false %}
+        <span class="product-sticky-add-to-cart__variant" data-sticky-add-to-cart-variant>{{ sticky_variant.title | escape }}</span>
+      {% endif %}
+      <span class="product-sticky-add-to-cart__prices{% if sticky_variant.compare_at_price > sticky_variant.price %} is-sale{% endif %}" data-sticky-add-to-cart-prices>
+        <span data-sticky-add-to-cart-price>{{ sticky_variant.price | money }}</span>
+        <s data-sticky-add-to-cart-compare-price{% unless sticky_variant.compare_at_price > sticky_variant.price %} hidden{% endunless %}>{{ sticky_variant.compare_at_price | money }}</s>
+      </span>
+    </div>
+
+    <button type="button" class="btn btn-primary btn--primary product-sticky-add-to-cart__button" data-sticky-add-to-cart-button{% unless sticky_variant.available %} disabled aria-disabled="true"{% endunless %}>
+      <span data-sticky-add-to-cart-label>{% if sticky_variant.available %}{{ 'products.add_to_cart' | t }}{% else %}{{ 'products.sold_out' | t }}{% endif %}</span>
+    </button>
+
+    <div hidden aria-hidden="true" data-sticky-add-to-cart-templates>
+      {% for variant in sticky_product.variants %}
+        {% assign variant_image = variant.featured_image | default: sticky_fallback_image %}
+        <template
+          data-sticky-add-to-cart-template="{{ variant.id }}"
+          data-available="{{ variant.available }}"
+          data-title="{{ variant.title | escape }}"
+          data-price="{{ variant.price | money | escape }}"
+          data-compare-price="{% if variant.compare_at_price > variant.price %}{{ variant.compare_at_price | money | escape }}{% endif %}"
+          {% if variant_image != blank %}data-image-src="{{ variant_image | image_url: width: 240 }}"{% endif %}
+        ></template>
+      {% endfor %}
+    </div>
+  </product-sticky-add-to-cart>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Sticky add to cart",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout_style",
+      "label": "Layout style",
+      "options": [
+        { "value": "page", "label": "Page" },
+        { "value": "full", "label": "Full" },
+        { "value": "floating", "label": "Floating" }
+      ],
+      "default": "floating"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_variant_selector",
+      "label": "Show variant selector",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Thumbnail"
+    },
+    {
+      "type": "range",
+      "id": "thumbnail_width",
+      "label": "Desktop width",
+      "min": 45,
+      "max": 120,
+      "step": 5,
+      "unit": "px",
+      "default": 85
+    },
+    {
+      "type": "header",
+      "content": "Button height"
+    },
+    {
+      "type": "select",
+      "id": "button_height_desktop",
+      "label": "Desktop",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "button_height_mobile",
+      "label": "Mobile",
+      "options": [
+        { "value": "inherit", "label": "Inherit" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "inherit"
+    }
+  ],
+  "presets": [{ "name": "Sticky add to cart" }]
+}
+{% endschema %}

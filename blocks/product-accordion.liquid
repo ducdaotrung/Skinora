@@ -1,0 +1,386 @@
+{% doc %}
+  Renders a product disclosure with content sourced from the product
+  description or a merchant-authored rich text value.
+{% enddoc %}
+
+{% liquid
+  assign accordion_product = closest.product | default: product
+  assign accordion_source = block.settings.content_source | default: 'description'
+  assign accordion_content = accordion_product.description
+  if accordion_source == 'custom'
+    assign accordion_content = block.settings.content
+  endif
+
+  assign accordion_presentation = block.settings.presentation | default: 'simple'
+  unless accordion_presentation == 'simple' or accordion_presentation == 'boxed'
+    assign accordion_presentation = 'simple'
+  endunless
+
+  assign accordion_icon = block.settings.toggle_icon | default: 'plus'
+  unless accordion_icon == 'plus' or accordion_icon == 'chevron'
+    assign accordion_icon = 'plus'
+  endunless
+
+  assign accordion_heading_size = block.settings.heading_size | default: 'sm'
+  unless accordion_heading_size == 'display' or accordion_heading_size == 'xl' or accordion_heading_size == 'lg' or accordion_heading_size == 'md' or accordion_heading_size == 'sm' or accordion_heading_size == 'xs' or accordion_heading_size == 'custom'
+    assign accordion_heading_size = 'sm'
+  endunless
+  assign accordion_custom_heading_size = block.settings.custom_heading_size | default: 24 | plus: 0
+  if accordion_custom_heading_size < 10 or accordion_custom_heading_size > 100
+    assign accordion_custom_heading_size = 24
+  endif
+
+  assign accordion_heading_font = block.settings.heading_font | default: 'heading'
+  unless accordion_heading_font == 'body' or accordion_heading_font == 'heading' or accordion_heading_font == 'accent'
+    assign accordion_heading_font = 'heading'
+  endunless
+
+  assign accordion_tracking = block.settings.letter_spacing | default: 'normal'
+  unless accordion_tracking == 'tight' or accordion_tracking == 'normal' or accordion_tracking == 'relaxed' or accordion_tracking == 'loose' or accordion_tracking == 'extra_loose'
+    assign accordion_tracking = 'normal'
+  endunless
+
+  assign accordion_gap_desktop = block.settings.content_gap_desktop | default: 16 | plus: 0
+  assign accordion_gap_mobile = block.settings.content_gap_mobile | default: accordion_gap_desktop | plus: 0
+  if accordion_gap_desktop < 0 or accordion_gap_desktop > 64
+    assign accordion_gap_desktop = 16
+  endif
+  if accordion_gap_mobile < 0 or accordion_gap_mobile > 64
+    assign accordion_gap_mobile = accordion_gap_desktop
+  endif
+
+  assign accordion_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  assign accordion_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  assign accordion_padding_left = block.settings.padding_left | default: 0 | plus: 0
+  assign accordion_padding_right = block.settings.padding_right | default: 0 | plus: 0
+  assign accordion_padding_top_mobile = block.settings.padding_top_mobile | default: accordion_padding_top | plus: 0
+  assign accordion_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: accordion_padding_bottom | plus: 0
+  assign accordion_padding_left_mobile = block.settings.padding_left_mobile | default: accordion_padding_left | plus: 0
+  assign accordion_padding_right_mobile = block.settings.padding_right_mobile | default: accordion_padding_right | plus: 0
+  if accordion_padding_top < 0 or accordion_padding_top > 100
+    assign accordion_padding_top = 0
+  endif
+  if accordion_padding_bottom < 0 or accordion_padding_bottom > 100
+    assign accordion_padding_bottom = 0
+  endif
+  if accordion_padding_left < 0 or accordion_padding_left > 100
+    assign accordion_padding_left = 0
+  endif
+  if accordion_padding_right < 0 or accordion_padding_right > 100
+    assign accordion_padding_right = 0
+  endif
+  if accordion_padding_top_mobile < 0 or accordion_padding_top_mobile > 100
+    assign accordion_padding_top_mobile = accordion_padding_top
+  endif
+  if accordion_padding_bottom_mobile < 0 or accordion_padding_bottom_mobile > 100
+    assign accordion_padding_bottom_mobile = accordion_padding_bottom
+  endif
+  if accordion_padding_left_mobile < 0 or accordion_padding_left_mobile > 100
+    assign accordion_padding_left_mobile = accordion_padding_left
+  endif
+  if accordion_padding_right_mobile < 0 or accordion_padding_right_mobile > 100
+    assign accordion_padding_right_mobile = accordion_padding_right
+  endif
+
+  assign accordion_class = 'product-accordion product-accordion--' | append: accordion_presentation
+  assign accordion_class = accordion_class | append: ' product-accordion--icon-' | append: accordion_icon
+  if block.settings.show_dividers == false
+    assign accordion_class = accordion_class | append: ' product-accordion--no-dividers'
+  endif
+  assign accordion_class = accordion_class | append: ' product-accordion--font-' | append: accordion_heading_font
+  assign accordion_class = accordion_class | append: ' product-accordion--tracking-' | append: accordion_tracking
+
+  assign accordion_has_content = false
+  if accordion_content != blank
+    assign accordion_has_content = true
+  endif
+  assign accordion_has_heading = false
+  if block.settings.heading != blank
+    assign accordion_has_heading = true
+  endif
+  assign accordion_should_render = false
+  if accordion_has_heading and accordion_has_content
+    assign accordion_should_render = true
+  endif
+%}
+
+{% capture accordion_style %}
+  {% if accordion_heading_size == 'custom' %}--product-accordion-custom-heading-size: {{ accordion_custom_heading_size }}px;{% endif %}
+  {% if accordion_gap_desktop != 16 %}--product-accordion-content-gap: {{ accordion_gap_desktop }}px;{% endif %}
+  {% if accordion_gap_mobile != accordion_gap_desktop %}--product-accordion-content-gap-mobile: {{ accordion_gap_mobile }}px;{% endif %}
+  {% if accordion_padding_top != 0 %}--product-accordion-padding-top: {{ accordion_padding_top }}px;{% endif %}
+  {% if accordion_padding_bottom != 0 %}--product-accordion-padding-bottom: {{ accordion_padding_bottom }}px;{% endif %}
+  {% if accordion_padding_left != 0 %}--product-accordion-padding-left: {{ accordion_padding_left }}px;{% endif %}
+  {% if accordion_padding_right != 0 %}--product-accordion-padding-right: {{ accordion_padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if accordion_padding_top_mobile != accordion_padding_top %}--product-accordion-padding-top-mobile: {{ accordion_padding_top_mobile }}px;{% endif %}
+    {% if accordion_padding_bottom_mobile != accordion_padding_bottom %}--product-accordion-padding-bottom-mobile: {{ accordion_padding_bottom_mobile }}px;{% endif %}
+    {% if accordion_padding_left_mobile != accordion_padding_left %}--product-accordion-padding-left-mobile: {{ accordion_padding_left_mobile }}px;{% endif %}
+    {% if accordion_padding_right_mobile != accordion_padding_right %}--product-accordion-padding-right-mobile: {{ accordion_padding_right_mobile }}px;{% endif %}
+  {% endif %}
+{% endcapture %}
+{% assign accordion_style = accordion_style | strip %}
+
+{% if accordion_should_render %}
+  <details class="{{ accordion_class }}"{% if accordion_style != blank %} style="{{ accordion_style }}"{% endif %}{% if block.settings.open_by_default %} open{% endif %} {{ block.shopify_attributes }}>
+    <summary class="product-accordion__summary">
+      <span class="heading-text heading-{{ accordion_heading_size }}">{{ block.settings.heading | escape }}</span>
+      <span class="product-accordion__icon" aria-hidden="true">
+        {% if accordion_icon == 'chevron' %}
+          {% render 'icon', icon: 'chevron', bare: true %}
+        {% else %}
+          {% render 'icon', icon: 'plus', bare: true %}
+        {% endif %}
+      </span>
+    </summary>
+    <div class="product-accordion__content rte">
+      {% if accordion_has_content %}
+        {{ accordion_content }}
+      {% else %}
+        <span class="visually-hidden">{{ 'products.product_accordion' | t }}</span>
+      {% endif %}
+    </div>
+  </details>
+{% endif %}
+
+{% stylesheet %}
+  .product-accordion__summary .heading-text.heading-custom { font-size: var(--product-accordion-custom-heading-size, var(--font-heading-custom)); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.product_accordion",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:labels.accordion_title",
+      "default": "More about this product"
+    },
+    {
+      "type": "select",
+      "id": "content_source",
+      "label": "t:labels.copy_source",
+      "options": [
+        { "value": "description", "label": "t:options.product_accordion_source.description" },
+        { "value": "custom", "label": "t:options.product_accordion_source.custom" }
+      ],
+      "default": "description"
+    },
+    {
+      "type": "richtext",
+      "id": "content",
+      "label": "t:labels.custom_body",
+      "default": "<p>Use this area for product information.</p>",
+      "visible_if": "{{ block.settings.content_source == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_by_default",
+      "label": "t:labels.start_expanded",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:general.accordion_options"
+    },
+    {
+      "type": "select",
+      "id": "presentation",
+      "label": "t:labels.presentation",
+      "options": [
+        { "value": "simple", "label": "t:options.product_accordion_presentation.simple" },
+        { "value": "boxed", "label": "t:options.product_accordion_presentation.boxed" }
+      ],
+      "default": "simple"
+    },
+    {
+      "type": "select",
+      "id": "toggle_icon",
+      "label": "t:labels.toggle_icon",
+      "options": [
+        { "value": "plus", "label": "t:options.product_accordion_icon.plus" },
+        { "value": "chevron", "label": "t:options.product_accordion_icon.chevron" }
+      ],
+      "default": "plus"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dividers",
+      "label": "t:labels.show_dividers",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "heading_font",
+      "label": "t:labels.heading_font",
+      "options": [
+        { "value": "body", "label": "t:options.product_accordion_font.body" },
+        { "value": "heading", "label": "t:options.product_accordion_font.heading" },
+        { "value": "accent", "label": "t:options.product_accordion_font.accent" }
+      ],
+      "default": "heading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
+        { "value": "xl", "label": "t:options.heading_size.xl" },
+        { "value": "lg", "label": "t:options.heading_size.lg" },
+        { "value": "md", "label": "t:options.heading_size.md" },
+        { "value": "sm", "label": "t:options.heading_size.sm" },
+        { "value": "xs", "label": "t:options.heading_size.xs" },
+        { "value": "custom", "label": "t:options.heading_size.custom" }
+      ],
+      "default": "sm"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Custom size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        { "value": "tight", "label": "t:options.letter_spacing.tight" },
+        { "value": "normal", "label": "t:options.letter_spacing.normal" },
+        { "value": "relaxed", "label": "t:options.letter_spacing.relaxed" },
+        { "value": "loose", "label": "t:options.letter_spacing.loose" },
+        { "value": "extra_loose", "label": "t:options.letter_spacing.extra_loose" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "range",
+      "id": "content_gap_desktop",
+      "label": "t:labels.desktop_content_gap",
+      "min": 0,
+      "max": 64,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "content_gap_mobile",
+      "label": "t:labels.mobile_content_gap",
+      "min": 0,
+      "max": 64,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.product_accordion",
+      "category": "t:general.product"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,405 @@
+{% comment %}
+  Editorial masonry section with a static sticky Header and editable Items.
+  Uses shared theme typography, layout, image and background block primitives.
+{% endcomment %}
+{{ 'section-parallax.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'section-parallax.js' | asset_url }}" defer="defer"></script>
+{% liquid
+  assign scheme = section.settings.color_scheme.id | default: section.settings.color_scheme | default: 'scheme-1'
+  assign container_width = 'page-width'
+  if section.settings.section_width == 'full_width'
+    assign container_width = 'full-width'
+  endif
+  assign gap_delta = section.settings.gap_desktop | minus: section.settings.gap_mobile
+  assign gap_slope = gap_delta | divided_by: 5.12
+  assign gap_intercept_delta = gap_delta | times: 1.5
+  assign gap_intercept = section.settings.gap_mobile | minus: gap_intercept_delta
+  assign padding_top_mobile = section.settings.padding_top
+  assign padding_bottom_mobile = section.settings.padding_bottom
+  if section.settings.customize_mobile_padding
+    assign padding_top_mobile = section.settings.padding_top_mobile
+    assign padding_bottom_mobile = section.settings.padding_bottom_mobile
+  endif
+  assign top_delta = section.settings.padding_top | minus: padding_top_mobile
+  assign top_slope = top_delta | divided_by: 5.12
+  assign top_intercept_delta = top_delta | times: 1.5
+  assign top_intercept = padding_top_mobile | minus: top_intercept_delta
+  assign bottom_delta = section.settings.padding_bottom | minus: padding_bottom_mobile
+  assign bottom_slope = bottom_delta | divided_by: 5.12
+  assign bottom_intercept_delta = bottom_delta | times: 1.5
+  assign bottom_intercept = padding_bottom_mobile | minus: bottom_intercept_delta
+%}
+{% capture responsive_style %}
+  --parallax-header-gap-fluid: calc({{ gap_slope }}vw + {{ gap_intercept }}px);
+  --section-padding-top-mobile: {{ padding_top_mobile }}px;
+  --section-padding-bottom-mobile: {{ padding_bottom_mobile }}px;
+  --parallax-padding-top-fluid: calc({{ top_slope }}vw + {{ top_intercept }}px);
+  --parallax-padding-bottom-fluid: calc({{ bottom_slope }}vw + {{ bottom_intercept }}px);
+{% endcapture %}
+<div class="parallax-section section-spacing color-scheme section-color-scope {{ scheme }}"
+  style="--section-padding-top: {{ section.settings.padding_top }}px; --section-padding-bottom: {{ section.settings.padding_bottom }}px; --parallax-header-gap: {{ section.settings.gap_desktop }}px; --parallax-header-gap-mobile: {{ section.settings.gap_mobile }}px; --parallax-content-gap: {{ section.settings.content_gap_desktop }}px; --parallax-content-gap-mobile: {{ section.settings.content_gap_mobile }}px; {{ responsive_style | strip }}">
+  {% if section.settings.background_media != 'none' %}
+    {% render 'media-background', media_type: section.settings.background_media, image: section.settings.background_image, video: section.settings.background_video, sizes: '100vw', aria_hidden: true %}
+  {% endif %}
+  <div class="container {{ container_width }} parallax-section__inner">
+    {% content_for 'block', type: 'header', id: 'header' %}
+    <lh-parallax class="parallax-section__items" tabindex="0" role="region" aria-label="Parallax">
+      <div class="parallax-section__grid">
+        {% content_for 'blocks' %}
+      </div>
+    </lh-parallax>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Parallax",
+  "tag": "section",
+  "class": "section-parallax",
+  "enabled_on": {
+    "templates": [
+      "index",
+      "page",
+      "product",
+      "collection"
+    ]
+  },
+  "max_blocks": 24,
+  "blocks": [
+    {
+      "type": "parallax-item"
+    }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        {
+          "value": "page_width",
+          "label": "t:options.section_width.page_width"
+        },
+        {
+          "value": "full_width",
+          "label": "t:options.section_width.full_width"
+        }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "header",
+      "content": "Gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "Desktop",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Mobile",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Content gap"
+    },
+    {
+      "type": "range",
+      "id": "content_gap_desktop",
+      "label": "Desktop",
+      "min": 100,
+      "max": 300,
+      "step": 2,
+      "unit": "px",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "content_gap_mobile",
+      "label": "Mobile",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "Background"
+    },
+    {
+      "type": "select",
+      "id": "background_media",
+      "label": "Media",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "image",
+          "label": "Image"
+        },
+        {
+          "value": "video",
+          "label": "Video"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Image",
+      "visible_if": "{{ section.settings.background_media == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "Video",
+      "visible_if": "{{ section.settings.background_media == 'video' }}"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 50,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 50,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Parallax",
+      "category": "t:general.banners",
+      "blocks": {
+        "header": {
+          "type": "header",
+          "static": true,
+          "settings": {
+            "width": "custom",
+            "max_width": 750,
+            "alignment": "center",
+            "gap_desktop": 12,
+            "gap_mobile": 8
+          },
+          "blocks": {
+            "text": {
+              "type": "editorial-text",
+              "settings": {
+                "text": "<p>Use this text to share information about your brand with customers, describe products, or highlight announcements.</p>",
+                "width": "fill",
+                "size": "xl",
+                "corner_radius": "rounded"
+              }
+            }
+          },
+          "block_order": [
+            "text"
+          ]
+        },
+        "item_1": {
+          "type": "parallax-item",
+          "settings": {
+            "position": "left"
+          },
+          "blocks": {
+            "image": {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "portrait",
+                "image_ratio_mobile": "portrait",
+                "width_desktop": "fill",
+                "width_mobile": "fill",
+                "corner_radius": "rounded"
+              }
+            }
+          },
+          "block_order": [
+            "image"
+          ]
+        },
+        "item_2": {
+          "type": "parallax-item",
+          "settings": {
+            "position": "center"
+          },
+          "blocks": {
+            "image": {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "portrait",
+                "image_ratio_mobile": "portrait",
+                "width_desktop": "fill",
+                "width_mobile": "fill",
+                "corner_radius": "rounded"
+              }
+            }
+          },
+          "block_order": [
+            "image"
+          ]
+        },
+        "item_3": {
+          "type": "parallax-item",
+          "settings": {
+            "position": "right"
+          },
+          "blocks": {
+            "image": {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "portrait",
+                "image_ratio_mobile": "portrait",
+                "width_desktop": "fill",
+                "width_mobile": "fill",
+                "corner_radius": "rounded"
+              }
+            }
+          },
+          "block_order": [
+            "image"
+          ]
+        },
+        "item_4": {
+          "type": "parallax-item",
+          "settings": {
+            "position": "left"
+          },
+          "blocks": {
+            "image": {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "portrait",
+                "image_ratio_mobile": "portrait",
+                "width_desktop": "fill",
+                "width_mobile": "fill",
+                "corner_radius": "rounded"
+              }
+            }
+          },
+          "block_order": [
+            "image"
+          ]
+        },
+        "item_5": {
+          "type": "parallax-item",
+          "settings": {
+            "position": "center"
+          },
+          "blocks": {
+            "image": {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "portrait",
+                "image_ratio_mobile": "portrait",
+                "width_desktop": "fill",
+                "width_mobile": "fill",
+                "corner_radius": "rounded"
+              }
+            }
+          },
+          "block_order": [
+            "image"
+          ]
+        },
+        "item_6": {
+          "type": "parallax-item",
+          "settings": {
+            "position": "right"
+          },
+          "blocks": {
+            "image": {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "portrait",
+                "image_ratio_mobile": "portrait",
+                "width_desktop": "fill",
+                "width_mobile": "fill",
+                "corner_radius": "rounded"
+              }
+            }
+          },
+          "block_order": [
+            "image"
+          ]
+        }
+      },
+      "block_order": [
+        "item_1",
+        "item_2",
+        "item_3",
+        "item_4",
+        "item_5",
+        "item_6"
+      ]
+    }
+  ]
+}
+{% endschema %}

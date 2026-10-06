@@ -1,0 +1,158 @@
+{% doc %}
+  A gallery image with one Product or custom-content hotspot. The parent
+  Product callout gallery owns image ratio, gap, icon, behavior and scheme.
+  Uses the same hotspot renderer and controller as ordinary Product callouts.
+{% enddoc %}
+
+{% liquid
+  assign gallery_image = block.settings.image | default: block.settings.mobile_image
+  assign gallery_mobile_image = block.settings.mobile_image
+  if block.settings.image == blank
+    assign gallery_mobile_image = blank
+  endif
+
+  assign gallery_item_ratio = gallery_image.aspect_ratio | default: 0.8 | plus: 0
+  if gallery_item_ratio < 0.25 or gallery_item_ratio > 3
+    assign gallery_item_ratio = 0.8
+  endif
+  assign gallery_item_mobile_ratio = gallery_mobile_image.aspect_ratio | default: gallery_item_ratio | plus: 0
+  if gallery_item_mobile_ratio < 0.25 or gallery_item_mobile_ratio > 3
+    assign gallery_item_mobile_ratio = gallery_item_ratio
+  endif
+%}
+
+  <article
+    class="swiper-slide hotspot-gallery-item product-callout product-callout--desktop-adapt product-callout--mobile-adapt"
+    data-product-callout
+    data-hotspot-gallery-item
+    {{ block.shopify_attributes }}
+  >
+    <div class="product-callout__media" style="--product-callout-ratio: var(--hotspot-gallery-image-ratio, {{ gallery_item_ratio }}); --product-callout-ratio-mobile: var(--hotspot-gallery-image-ratio-mobile, {{ gallery_item_mobile_ratio }});">
+      {% render 'media-background',
+        media_type: 'image',
+        image: gallery_image,
+        mobile_image: gallery_mobile_image,
+        alt: gallery_image.alt,
+        placeholder: 'image',
+        sizes: '(min-width: 768px) 38vw, 100vw'
+      %}
+      <div class="product-callout__hotspots" role="group" aria-label="{{ 'accessibility.product_callout_hotspots' | t | escape }}">
+        {% render 'product-callout-hotspot', block: block, omit_editor_attributes: true %}
+      </div>
+    </div>
+  </article>
+{% schema %}
+{
+  "name": "t:general.hotspot",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.media"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:labels.image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "t:labels.mobile_image",
+      "info": "t:info.mobile_image_optional",
+      "visible_if": "{{ block.settings.image != blank }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.hotspot"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "t:labels.product"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_content",
+      "label": "t:labels.use_content_for_hotspot",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "content_heading",
+      "label": "t:labels.heading",
+      "default": "Medium Heading",
+      "visible_if": "{{ block.settings.use_content }}"
+    },
+    {
+      "type": "richtext",
+      "id": "content_text",
+      "label": "t:labels.text",
+      "default": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique.</p>",
+      "visible_if": "{{ block.settings.use_content }}"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.position"
+    },
+    {
+      "type": "range",
+      "id": "vertical_position",
+      "label": "t:labels.vertical_position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "horizontal_position",
+      "label": "t:labels.horizontal_position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_position",
+      "label": "t:labels.customize_mobile_position",
+      "info": "t:info.customize_mobile_hotspot_position",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "mobile_vertical_position",
+      "label": "t:labels.mobile_vertical_position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.customize_mobile_position }}"
+    },
+    {
+      "type": "range",
+      "id": "mobile_horizontal_position",
+      "label": "t:labels.mobile_horizontal_position",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.customize_mobile_position }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.hotspot",
+      "settings": {
+        "vertical_position": 50,
+        "horizontal_position": 50
+      }
+    }
+  ]
+}
+{% endschema %}

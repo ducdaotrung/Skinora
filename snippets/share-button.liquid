@@ -1,0 +1,52 @@
+{% doc %}
+  Renders a reusable share control with accessible feedback.
+
+  @param {string} label - Accessible name for the share control
+  @param {string} [url] - URL to share, defaults to the current canonical URL
+  @param {string} [title] - Share title, defaults to the current page title
+  @param {string} [text] - Optional share text
+  @param {string} [copied_label] - Feedback after copying the URL
+  @param {string} [error_label] - Feedback when sharing and copying fail
+  @param {string} [class] - Additional classes for the button
+  @param {string} [attributes] - Additional HTML attributes owned by the caller
+
+  @example
+  {% render 'share-button', label: 'Share product', url: product.url, title: product.title %}
+{% enddoc %}
+
+{% liquid
+  assign share_button_label = label
+  if share_button_label == blank
+    assign share_button_label = 'accessibility.share' | t
+  endif
+  assign share_button_url = url | default: canonical_url
+  assign share_button_title = title | default: page_title
+  assign share_button_copied_label = copied_label
+  if share_button_copied_label == blank
+    assign share_button_copied_label = 'accessibility.link_copied' | t
+  endif
+  assign share_button_error_label = error_label
+  if share_button_error_label == blank
+    assign share_button_error_label = 'accessibility.share_error' | t
+  endif
+  assign share_button_class = 'share-button'
+  if class != blank
+    assign share_button_class = share_button_class | append: ' ' | append: class
+  endif
+%}
+
+<button
+  class="{{ share_button_class | strip }}"
+  type="button"
+  aria-label="{{ share_button_label | escape }}"
+  data-share
+  {% if share_button_url != blank %}data-share-url="{{ share_button_url | escape }}"{% endif %}
+  {% if share_button_title != blank %}data-share-title="{{ share_button_title | escape }}"{% endif %}
+  {% if text != blank %}data-share-text="{{ text | escape }}"{% endif %}
+  data-share-copied="{{ share_button_copied_label | escape }}"
+  data-share-error="{{ share_button_error_label | escape }}"
+  {% if attributes != blank %}{{ attributes }}{% endif %}
+>
+  {% render 'icon', icon: 'share', bare: true %}
+</button>
+<span class="share-button__status visually-hidden" data-share-status role="status" aria-live="polite"></span>

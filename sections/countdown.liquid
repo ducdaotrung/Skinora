@@ -1,0 +1,589 @@
+{% liquid
+  assign countdown_section_width = section.settings.section_width | default: 'full_width'
+  unless countdown_section_width == 'page_width' or countdown_section_width == 'full_width'
+    assign countdown_section_width = 'full_width'
+  endunless
+
+  assign countdown_section_boxed_layout = false
+  if section.settings.enable_boxed_layout == true or section.settings.enable_boxed_layout == 'true'
+    assign countdown_section_boxed_layout = true
+  endif
+
+  assign countdown_section_container_width = 'page-width'
+  if countdown_section_width == 'full_width'
+    assign countdown_section_container_width = 'full-width'
+  endif
+
+  assign countdown_section_direction = section.settings.direction | default: 'horizontal'
+  unless countdown_section_direction == 'horizontal' or countdown_section_direction == 'vertical'
+    assign countdown_section_direction = 'horizontal'
+  endunless
+
+  assign countdown_section_position = section.settings.position | default: 'center'
+  unless countdown_section_position == 'top' or countdown_section_position == 'center' or countdown_section_position == 'bottom'
+    assign countdown_section_position = 'center'
+  endunless
+
+  assign countdown_section_horizontal_alignment = section.settings.horizontal_alignment | default: 'space-between'
+  unless countdown_section_horizontal_alignment == 'left' or countdown_section_horizontal_alignment == 'center' or countdown_section_horizontal_alignment == 'right' or countdown_section_horizontal_alignment == 'space-between'
+    assign countdown_section_horizontal_alignment = 'space-between'
+  endunless
+
+  assign countdown_section_alignment = section.settings.alignment | default: 'left'
+  unless countdown_section_alignment == 'left' or countdown_section_alignment == 'center' or countdown_section_alignment == 'right'
+    assign countdown_section_alignment = 'left'
+  endunless
+
+  assign countdown_section_alignment_mobile = section.settings.alignment_mobile | default: 'left'
+  unless countdown_section_alignment_mobile == 'left' or countdown_section_alignment_mobile == 'center' or countdown_section_alignment_mobile == 'right'
+    assign countdown_section_alignment_mobile = 'left'
+  endunless
+
+  assign countdown_section_flow_position = 'top'
+  if countdown_section_direction == 'horizontal'
+    assign countdown_section_flow_position = countdown_section_position
+  endif
+
+  assign countdown_section_flow_wrap = 'nowrap'
+
+  assign countdown_section_flow_alignment = 'start'
+  case countdown_section_alignment
+    when 'center'
+      assign countdown_section_flow_alignment = 'center'
+    when 'right'
+      assign countdown_section_flow_alignment = 'end'
+  endcase
+
+  assign countdown_section_flow_horizontal_alignment = 'flex-start'
+  case countdown_section_horizontal_alignment
+    when 'left'
+      assign countdown_section_flow_horizontal_alignment = 'flex-start'
+    when 'center'
+      assign countdown_section_flow_horizontal_alignment = 'center'
+    when 'right'
+      assign countdown_section_flow_horizontal_alignment = 'flex-end'
+    when 'space-between'
+      assign countdown_section_flow_horizontal_alignment = 'space-between'
+  endcase
+
+  assign countdown_section_flow_mobile_alignment = 'start'
+  case countdown_section_alignment_mobile
+    when 'center'
+      assign countdown_section_flow_mobile_alignment = 'center'
+    when 'right'
+      assign countdown_section_flow_mobile_alignment = 'end'
+  endcase
+
+  assign countdown_section_flow_mobile_justify = 'flex-start'
+  case countdown_section_alignment_mobile
+    when 'center'
+      assign countdown_section_flow_mobile_justify = 'center'
+    when 'right'
+      assign countdown_section_flow_mobile_justify = 'flex-end'
+  endcase
+
+  assign countdown_section_mobile_vertical = false
+  if countdown_section_direction == 'horizontal' and section.settings.customize_mobile_alignment
+    assign countdown_section_mobile_vertical = true
+  endif
+
+  assign countdown_section_gap_desktop = section.settings.gap_desktop | default: 36 | plus: 0
+  if countdown_section_gap_desktop < 0 or countdown_section_gap_desktop > 100
+    assign countdown_section_gap_desktop = 36
+  endif
+  assign countdown_section_gap_mobile = section.settings.gap_mobile | default: 36 | plus: 0
+  if countdown_section_gap_mobile < 0 or countdown_section_gap_mobile > 100
+    assign countdown_section_gap_mobile = 36
+  endif
+
+  assign countdown_section_content_class = 'countdown-section__content layout-flow layout-flow--responsive countdown-section__content--direction-' | append: countdown_section_direction
+  if countdown_section_direction == 'horizontal'
+    assign countdown_section_content_class = countdown_section_content_class | append: ' countdown-section__content--position-' | append: countdown_section_position
+    assign countdown_section_content_class = countdown_section_content_class | append: ' countdown-section__content--horizontal-align-' | append: countdown_section_horizontal_alignment
+  else
+    assign countdown_section_content_class = countdown_section_content_class | append: ' countdown-section__content--align-' | append: countdown_section_alignment
+  endif
+
+  if countdown_section_mobile_vertical
+    assign countdown_section_content_class = countdown_section_content_class | append: ' countdown-section__content--mobile-vertical countdown-section__content--mobile-align-' | append: countdown_section_alignment_mobile
+  endif
+
+  assign countdown_section_scheme = section.settings.color_scheme | default: 'scheme-3'
+  if section.settings.color_scheme.id != blank
+    assign countdown_section_scheme = section.settings.color_scheme.id
+  endif
+  assign countdown_section_scheme = countdown_section_scheme | default: 'scheme-3' | handleize
+
+  assign countdown_section_boxed_scheme = section.settings.boxed_color_scheme | default: 'scheme-1'
+  if section.settings.boxed_color_scheme.id != blank
+    assign countdown_section_boxed_scheme = section.settings.boxed_color_scheme.id
+  endif
+  assign countdown_section_boxed_scheme = countdown_section_boxed_scheme | default: 'scheme-1' | handleize
+
+  assign countdown_section_padding_top = section.settings.padding_top | default: 16 | plus: 0
+  assign countdown_section_padding_bottom = section.settings.padding_bottom | default: 16 | plus: 0
+  assign countdown_section_padding_top_mobile = section.settings.padding_top_mobile | default: countdown_section_padding_top | plus: 0
+  assign countdown_section_padding_bottom_mobile = section.settings.padding_bottom_mobile | default: countdown_section_padding_bottom | plus: 0
+
+  assign countdown_boxed_padding_block = section.settings.boxed_padding_block | default: 70 | plus: 0
+  if countdown_boxed_padding_block < 0 or countdown_boxed_padding_block > 100
+    assign countdown_boxed_padding_block = 70
+  endif
+  assign countdown_boxed_padding_inline = section.settings.boxed_padding_inline | default: 50 | plus: 0
+  if countdown_boxed_padding_inline < 0 or countdown_boxed_padding_inline > 100
+    assign countdown_boxed_padding_inline = 50
+  endif
+  assign countdown_boxed_padding_block_mobile = section.settings.boxed_padding_block_mobile | default: 40 | plus: 0
+  if countdown_boxed_padding_block_mobile < 0 or countdown_boxed_padding_block_mobile > 100
+    assign countdown_boxed_padding_block_mobile = 40
+  endif
+  assign countdown_boxed_padding_inline_mobile = section.settings.boxed_padding_inline_mobile | default: 30 | plus: 0
+  if countdown_boxed_padding_inline_mobile < 0 or countdown_boxed_padding_inline_mobile > 100
+    assign countdown_boxed_padding_inline_mobile = 30
+  endif
+%}
+
+{% capture countdown_section_style %}
+  --countdown-section-padding-top: {{ countdown_section_padding_top }}px;
+  --countdown-section-padding-bottom: {{ countdown_section_padding_bottom }}px;
+  {% if section.settings.customize_mobile_padding %}
+    --countdown-section-padding-top-mobile: {{ countdown_section_padding_top_mobile }}px;
+    --countdown-section-padding-bottom-mobile: {{ countdown_section_padding_bottom_mobile }}px;
+  {% endif %}
+{% endcapture %}
+{% assign countdown_section_style = countdown_section_style | strip %}
+
+{% capture countdown_section_content_style %}
+  {% render 'layout-flow-group-style',
+    direction: countdown_section_direction,
+    wrap: countdown_section_flow_wrap,
+    position: countdown_section_flow_position,
+    alignment: countdown_section_flow_alignment,
+    horizontal_alignment: countdown_section_flow_horizontal_alignment,
+    mobile_vertical: countdown_section_mobile_vertical,
+    mobile_alignment: countdown_section_flow_mobile_alignment,
+    mobile_justify: countdown_section_flow_mobile_justify,
+    gap: countdown_section_gap_desktop,
+    gap_mobile: countdown_section_gap_mobile
+  %}
+{% endcapture %}
+{% assign countdown_section_content_style = countdown_section_content_style | strip %}
+
+{% capture countdown_section_boxed_style %}
+  {% if countdown_section_boxed_layout %}
+    --countdown-boxed-padding-block: {{ countdown_boxed_padding_block }}px;
+    --countdown-boxed-padding-inline: {{ countdown_boxed_padding_inline }}px;
+    --countdown-boxed-padding-block-mobile: {{ countdown_boxed_padding_block_mobile }}px;
+    --countdown-boxed-padding-inline-mobile: {{ countdown_boxed_padding_inline_mobile }}px;
+  {% endif %}
+{% endcapture %}
+{% assign countdown_section_boxed_style = countdown_section_boxed_style | strip %}
+
+<div
+  class="section-spacing countdown-section color-scheme section-color-scope {{ countdown_section_scheme }}"
+  {% if countdown_section_style != blank %}style="{{ countdown_section_style }}"{% endif %}
+>
+  <div class="container {{ countdown_section_container_width }} countdown-section__container">
+    <div
+      class="countdown-section__box{% if countdown_section_boxed_layout %} countdown-section__box--boxed color-scheme section-color-scope {{ countdown_section_boxed_scheme }}{% endif %}"
+      {% if countdown_section_boxed_style != blank %}style="{{ countdown_section_boxed_style }}"{% endif %}
+    >
+      <div
+        class="{{ countdown_section_content_class }}"
+        {% if countdown_section_content_style != blank %}style="{{ countdown_section_content_style }}"{% endif %}
+      >
+        {% content_for 'block', type: 'group', id: 'content' %}
+        {% content_for 'block', type: 'countdown-timer', id: 'countdown' %}
+        {% content_for 'block', type: 'button', id: 'button' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .countdown-section {
+    width: 100%;
+    padding-top: var(--countdown-section-padding-top, 16px);
+    padding-bottom: var(--countdown-section-padding-bottom, 16px);
+  }
+
+  .countdown-section__container {
+    min-width: 0;
+  }
+
+  .countdown-section__box {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .countdown-section__box--boxed {
+    padding-block: var(--countdown-boxed-padding-block, 70px);
+    padding-inline: var(--countdown-boxed-padding-inline, 50px);
+  }
+
+  .countdown-section__content {
+    min-width: 0;
+  }
+
+  .countdown-section__content > .group,
+  .countdown-section__content > countdown-timer,
+  .countdown-section__content > .button-block {
+    min-width: 0;
+  }
+
+  @media (max-width: 767.98px) {
+    .countdown-section {
+      padding-top: var(--countdown-section-padding-top-mobile, var(--countdown-section-padding-top, 16px));
+      padding-bottom: var(--countdown-section-padding-bottom-mobile, var(--countdown-section-padding-bottom, 16px));
+    }
+
+    .countdown-section__box--boxed {
+      padding-block: var(--countdown-boxed-padding-block-mobile, 40px);
+      padding-inline: var(--countdown-boxed-padding-inline-mobile, 30px);
+    }
+
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.countdown",
+  "class": "section-countdown",
+  "enabled_on": { "templates": ["*"] },
+  "blocks": [
+    { "type": "group" },
+    { "type": "countdown-timer" },
+    { "type": "button" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" }
+      ],
+      "default": "full_width"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_boxed_layout",
+      "label": "t:labels.enable_boxed_layout",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "t:labels.direction",
+      "options": [
+        { "value": "horizontal", "label": "t:options.direction.horizontal" },
+        { "value": "vertical", "label": "t:options.direction.vertical" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "top", "label": "t:options.position.top" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "bottom", "label": "t:options.position.bottom" }
+      ],
+      "default": "center",
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "horizontal_alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" },
+        { "value": "space-between", "label": "t:options.alignment.space_between" }
+      ],
+      "default": "space-between",
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_alignment",
+      "label": "t:labels.vertical_on_mobile",
+      "default": true,
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ section.settings.direction == 'vertical' }}"
+    },
+    {
+      "type": "select",
+      "id": "alignment_mobile",
+      "label": "t:labels.alignment_mobile",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" }
+      ],
+      "default": "left",
+      "visible_if": "{{ section.settings.direction == 'vertical' or section.settings.customize_mobile_alignment }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-3"
+    },
+    {
+      "type": "color_scheme",
+      "id": "boxed_color_scheme",
+      "label": "t:labels.boxed_color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ section.settings.enable_boxed_layout }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.boxed_padding",
+      "visible_if": "{{ section.settings.enable_boxed_layout }}"
+    },
+    {
+      "type": "range",
+      "id": "boxed_padding_block",
+      "label": "t:labels.boxed_padding_block",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 70,
+      "visible_if": "{{ section.settings.enable_boxed_layout }}"
+    },
+    {
+      "type": "range",
+      "id": "boxed_padding_inline",
+      "label": "t:labels.boxed_padding_inline",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 50,
+      "visible_if": "{{ section.settings.enable_boxed_layout }}"
+    },
+    {
+      "type": "range",
+      "id": "boxed_padding_block_mobile",
+      "label": "t:labels.boxed_padding_block_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ section.settings.enable_boxed_layout }}"
+    },
+    {
+      "type": "range",
+      "id": "boxed_padding_inline_mobile",
+      "label": "t:labels.boxed_padding_inline_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 30,
+      "visible_if": "{{ section.settings.enable_boxed_layout }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.countdown",
+      "category": "t:general.content",
+      "settings": {
+        "section_width": "full_width",
+        "enable_boxed_layout": false,
+        "direction": "horizontal",
+        "position": "center",
+        "horizontal_alignment": "space-between",
+        "customize_mobile_alignment": true,
+        "alignment": "left",
+        "alignment_mobile": "center",
+        "gap_desktop": 36,
+        "gap_mobile": 36,
+        "color_scheme": "scheme-3",
+        "boxed_color_scheme": "scheme-1",
+        "boxed_padding_block": 70,
+        "boxed_padding_inline": 50,
+        "boxed_padding_block_mobile": 40,
+        "boxed_padding_inline_mobile": 30,
+        "padding_top": 48,
+        "padding_bottom": 48,
+        "customize_mobile_padding": false
+      },
+      "blocks": [
+        {
+          "type": "group",
+          "id": "content",
+          "static": true,
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "alignment_mobile": "center",
+            "width": "fit",
+            "height": "fit",
+            "gap_desktop": 8,
+            "gap_mobile": 6,
+            "appearance_type": "inherit",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none",
+            "customize_mobile_padding": false
+          },
+          "blocks": [
+            {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Flash sale: Up to 40% Off!</p>",
+                "heading_size": "sm",
+                "html_tag": "h2",
+                "width": "fit",
+                "customize_mobile_size": false
+              }
+            },
+            {
+              "type": "text",
+              "settings": {
+                "text": "<p>Timeless quality, limited time offer. Don't miss out.</p>",
+                "text_size": "xs",
+                "width": "fit",
+                "customize_mobile_size": false
+              }
+            }
+          ]
+        },
+        {
+          "type": "countdown-timer",
+          "id": "countdown",
+          "static": true,
+          "settings": {
+            "style": "with_labels",
+            "show_background": true,
+            "corner_radius": "square",
+            "type": "fixed_time",
+            "end_time": "2026-12-25 12:00",
+            "hide_when_expired": true,
+            "number_size": "md",
+            "label_size": "xs",
+            "color_type": "inherit"
+          }
+        },
+        {
+          "type": "button",
+          "id": "button",
+          "static": true,
+          "settings": {
+            "button_label": "Shop sale",
+            "button_link": "",
+            "button_style": "secondary",
+            "button_open_in_new_tab": false,
+            "show_icon": false,
+            "width": "fit",
+            "width_mobile": "fit",
+            "customize_mobile_padding": false
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

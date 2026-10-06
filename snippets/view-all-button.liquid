@@ -1,0 +1,81 @@
+{% doc %}
+  Renders the shared button implementation used by View all blocks.
+
+  The caller owns the wrapper, rendering condition, destination resolution,
+  responsive visibility, and block editor attributes. This component owns the
+  shared label, variant, icon, and link normalization before delegating the
+  actual button markup to the theme button foundation.
+
+  @param {string} label - Visible button label
+  @param {string} [fallback_label] - Label used when `label` is blank
+  @param {string} [url] - Link destination
+  @param {string} [variant] - Button variant: primary, secondary, tertiary, solid, outline, or text
+  @param {string} [fallback_variant] - Fallback variant when `variant` is missing or invalid
+  @param {string} [open_in_new_tab] - Whether the link opens in a new tab
+  @param {boolean} [force_link] - Render a link when the destination is assigned dynamically
+  @param {boolean} [show_icon] - Whether to show the icon
+  @param {string} [icon] - Icon key: arrow or cart
+  @param {string} [icon_position] - Icon position: before or after
+  @param {string} [icon_size] - Icon size: inherit or custom
+  @param {number} [icon_width] - Custom icon width in pixels
+  @param {string} [class] - Additional button classes
+  @param {string} [attributes] - Additional HTML attributes
+
+  @example
+  {% render 'view-all-button', label: 'View all', url: routes.all_products_collection_url %}
+{% enddoc %}
+
+{% liquid
+  assign view_all_button_label = label | strip
+  if view_all_button_label == blank
+    assign view_all_button_label = fallback_label | strip
+  endif
+
+  assign view_all_button_fallback_variant = fallback_variant | default: 'text'
+  unless view_all_button_fallback_variant == 'primary' or view_all_button_fallback_variant == 'secondary' or view_all_button_fallback_variant == 'tertiary' or view_all_button_fallback_variant == 'solid' or view_all_button_fallback_variant == 'outline' or view_all_button_fallback_variant == 'text'
+    assign view_all_button_fallback_variant = 'text'
+  endunless
+
+  assign view_all_button_variant = variant | default: view_all_button_fallback_variant
+  unless view_all_button_variant == 'primary' or view_all_button_variant == 'secondary' or view_all_button_variant == 'tertiary' or view_all_button_variant == 'solid' or view_all_button_variant == 'outline' or view_all_button_variant == 'text'
+    assign view_all_button_variant = view_all_button_fallback_variant
+  endunless
+
+  assign view_all_button_icon_position = icon_position | default: 'after'
+  unless view_all_button_icon_position == 'before' or view_all_button_icon_position == 'after'
+    assign view_all_button_icon_position = 'after'
+  endunless
+
+  assign view_all_button_icon_size = icon_size | default: 'inherit'
+  unless view_all_button_icon_size == 'inherit' or view_all_button_icon_size == 'custom'
+    assign view_all_button_icon_size = 'inherit'
+  endunless
+
+  assign view_all_button_icon_width = icon_width | default: 20 | plus: 0
+  if view_all_button_icon_width < 12 or view_all_button_icon_width > 32
+    assign view_all_button_icon_width = 20
+  endif
+
+  assign view_all_button_icon_name = icon | default: 'arrow'
+
+  assign view_all_button_icon = blank
+  if show_icon == true or show_icon == 'true'
+    assign view_all_button_icon = view_all_button_icon_name
+  endif
+%}
+
+{% if view_all_button_label != blank %}
+  {% render 'theme-button',
+    label: view_all_button_label,
+    url: url,
+    force_link: force_link,
+    open_in_new_tab: open_in_new_tab,
+    variant: view_all_button_variant,
+    icon: view_all_button_icon,
+    icon_position: view_all_button_icon_position,
+    icon_size: view_all_button_icon_size,
+    icon_width: view_all_button_icon_width,
+    class: class,
+    attributes: attributes
+  %}
+{% endif %}

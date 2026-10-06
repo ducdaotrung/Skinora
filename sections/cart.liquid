@@ -1,0 +1,155 @@
+{{ 'cart-page.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'cart-page.js' | asset_url }}" defer></script>
+{% style %}#shopify-section-{{ section.id }} { background: {{ section.settings.background_color | default: section.settings.color_scheme.settings.background }}; }{% endstyle %}
+<div class="cart-page section-spacing color-scheme section-color-scope body-text body-md {{ section.settings.color_scheme }}" data-cart-page data-section-id="{{ section.id }}" data-update-error="{{ 'cart.update_error' | t }}" data-discount-error="{{ 'cart_drawer.discount_error' | t }}" data-note-saved="{{ 'cart_drawer.note_saved' | t }}" data-shipping-error="{{ 'cart_drawer.shipping_unavailable' | t }}" data-no-rates="{{ 'cart_drawer.shipping_no_rates' | t }}" style="--section-padding-top: {{ section.settings.padding_top }}px; --section-padding-bottom: {{ section.settings.padding_bottom }}px; --cart-page-gap: {{ section.settings.gap_desktop }}px; --cart-page-gap-mobile: {{ section.settings.gap_mobile }}px;{% if section.settings.customize_mobile_padding %} --section-padding-top-mobile: {{ section.settings.padding_top_mobile }}px; --section-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile }}px;{% endif %}">
+{% if section.settings.show_top_divider %}<div class="cart-page__divider"></div>{% endif %}
+<div class="container {% if section.settings.section_width == 'full_width' %}full-width{% else %}page-width{% endif %}">
+<p class="cart-page__message" data-cart-page-message role="status" tabindex="-1" hidden></p>
+{% if cart.empty? %}<div class="cart-page__empty"><h1 class="heading-text heading-xl">{{ 'cart.empty' | t }}</h1>{% assign continue_label = 'cart.continue_shopping' | t %}{% render 'theme-button', label: continue_label, url: routes.all_products_collection_url, variant: 'primary' %}</div>{% else %}
+<div class="cart-page__layout">{% content_for 'block', type: '_cart-content', id: 'content' %}{% content_for 'block', type: '_cart-summary', id: 'summary' %}</div>
+{% endif %}</div>
+{% if section.settings.show_bottom_divider %}<div class="cart-page__divider"></div>{% endif %}
+</div>
+{% schema %}
+{
+  "name": "Cart",
+  "enabled_on": {
+    "templates": [
+      "cart"
+    ]
+  },
+  "blocks": [
+    {
+      "type": "_cart-content"
+    },
+    {
+      "type": "_cart-summary"
+    }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "page_width",
+          "label": "Page width"
+        },
+        {
+          "value": "full_width",
+          "label": "Full width"
+        }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_top_divider",
+      "label": "Show top divider",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_bottom_divider",
+      "label": "Show bottom divider",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "Desktop gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Mobile gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 70
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 90
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "Customize for mobile",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Top (mobile)",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 40,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Bottom (mobile)",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 60,
+      "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    }
+  ]
+}
+{% endschema %}

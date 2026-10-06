@@ -1,0 +1,31 @@
+{% liquid
+  assign comparison_value_type = type | default: 'yes'
+  unless comparison_value_type == 'none' or comparison_value_type == 'yes' or comparison_value_type == 'no' or comparison_value_type == 'text'
+    assign comparison_value_type = 'yes'
+  endunless
+
+  assign comparison_value_text = text | default: ''
+%}
+
+<div
+  class="comparison-table__cell comparison-table__cell--value comparison-table__value{% if comparison_value_type == 'none' %} comparison-table__value--empty{% endif %}"
+  role="cell"
+  {% if comparison_value_type == 'none' %}aria-hidden="true"{% else %}aria-labelledby="{{ feature_id }} {{ product_id }} {{ value_id }}"{% endif %}
+>
+  {% case comparison_value_type %}
+    {% when 'none' %}
+    {% when 'yes' %}
+      <span class="comparison-table__mark comparison-table__mark--yes" aria-hidden="true">{% render 'icon', icon: 'comparison-yes', bare: true %}</span>
+      <span class="visually-hidden" id="{{ value_id }}">{{ 'comparison_table.yes' | t }}</span>
+    {% when 'no' %}
+      <span class="comparison-table__mark comparison-table__mark--no" aria-hidden="true">{% render 'icon', icon: 'comparison-no', bare: true %}</span>
+      <span class="visually-hidden" id="{{ value_id }}">{{ 'comparison_table.no' | t }}</span>
+    {% when 'text' %}
+      {% if comparison_value_text != blank %}
+        <span id="{{ value_id }}">{{ comparison_value_text | escape }}</span>
+      {% else %}
+        <span aria-hidden="true">—</span>
+        <span class="visually-hidden" id="{{ value_id }}">{{ 'comparison_table.not_provided' | t }}</span>
+      {% endif %}
+  {% endcase %}
+</div>

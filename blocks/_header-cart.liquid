@@ -1,0 +1,195 @@
+{% liquid
+  assign cart_type = block.settings.type | default: 'icon'
+  unless cart_type == 'icon' or cart_type == 'text' or cart_type == 'icon_with_text'
+    assign cart_type = 'icon'
+  endunless
+
+  assign cart_label = block.settings.label | default: 'Cart'
+  assign cart_badge_type = block.settings.badge_type | default: 'primary'
+  unless cart_badge_type == 'primary' or cart_badge_type == 'secondary' or cart_badge_type == 'tertiary'
+    assign cart_badge_type = 'primary'
+  endunless
+
+  assign cart_aria_label = cart_label
+  if cart.item_count > 0
+    assign cart_aria_label = cart_label | append: ', ' | append: cart.item_count
+  endif
+
+  assign cart_typography_class = 'body-text body-md font-accent tracking-normal text-case-original'
+  assign cart_class = 'header-cart header-cart--type-' | append: cart_type | append: ' header-cart--badge-' | append: cart_badge_type | append: ' ' | append: cart_typography_class
+  if cart_type == 'icon'
+    assign cart_class = cart_class | append: ' header-action--type-icon'
+  endif
+%}
+
+<a
+  class="{{ cart_class }}"
+  href="{{ routes.cart_url }}"
+  aria-label="{{ cart_aria_label | escape }}"
+  aria-haspopup="dialog"
+  aria-controls="CartDrawer"
+  aria-expanded="false"
+  data-cart-label="{{ cart_label | escape }}"
+  data-cart-drawer-open
+  {{ block.shopify_attributes }}
+>
+  <span class="icon{% if cart_type == 'text' %} header-cart__mobile-icon{% endif %}" aria-hidden="true">
+    {% render 'icon', icon: 'shopping-bag', bare: true %}
+    {% if cart_type == 'icon' %}<span class="header-cart__count" data-cart-count aria-label="{{ cart.item_count }}"{% if cart.item_count == 0 %} hidden{% endif %}>{% if cart.item_count > 99 %}99+{% else %}{{ cart.item_count }}{% endif %}</span>{% elsif cart_type == 'icon_with_text' or cart_type == 'text' %}<span class="header-cart__count header-cart__count--mobile-icon" data-cart-count aria-label="{{ cart.item_count }}"{% if cart.item_count == 0 %} hidden{% endif %}>{% if cart.item_count > 99 %}99+{% else %}{{ cart.item_count }}{% endif %}</span>{% endif %}
+  </span>
+  {% unless cart_type == 'icon' %}
+    <span class="header-action__label {{ cart_typography_class }}">{{ cart_label | escape }} (<span class="header-cart__count header-cart__count--text" data-cart-count aria-label="{{ cart.item_count }}">{% if cart.item_count > 99 %}99+{% else %}{{ cart.item_count }}{% endif %}</span>)</span>
+  {% endunless %}
+</a>
+
+{% stylesheet %}
+  .header-cart__count[hidden] { display: none; }
+  .header-cart {
+    position: relative;
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 0;
+    min-height: var(--button-height);
+    color: var(--body-color);
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .header-cart .icon {
+    /* The cart action is the count's containing block. */
+    position: static;
+    display: inline-flex;
+    width: var(--header-icon-size, var(--icon-size-medium));
+    height: var(--header-icon-size, var(--icon-size-medium));
+    flex: 0 0 auto;
+  }
+
+  .header-cart .icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .header-cart__count {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: 0.3rem;
+    inset-inline-end: -1rem;
+    display: flex;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    padding-inline: 0.4rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 99px;
+    font-size: 1rem;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .header-cart__count--mobile-icon {
+    display: none;
+  }
+
+  .header-cart .header-cart__mobile-icon {
+    display: none;
+  }
+
+  @media (max-width: 991.98px) {
+    .header-cart.header-cart--type-text .header-cart__mobile-icon {
+      display: inline-flex;
+    }
+
+    .header-cart__count--mobile-icon {
+      display: flex;
+    }
+  }
+
+  .header-cart--badge-primary .header-cart__count {
+    background: var(--button-primary-background);
+    color: var(--button-primary-text);
+  }
+
+  .header-cart--badge-secondary .header-cart__count {
+    background: var(--button-secondary-background);
+    color: var(--button-secondary-text);
+  }
+
+  .header-cart--badge-tertiary .header-cart__count {
+    border: 1px solid var(--button-tertiary-text);
+    background: var(--button-tertiary-background);
+    color: var(--button-tertiary-text);
+  }
+
+  /* Text cart counts stay plain inline content instead of becoming badges. */
+  .header-cart .header-cart__count--text {
+    all: unset;
+    display: inline;
+  }
+
+  .header-cart .header-cart__count--text[hidden] {
+    display: none;
+  }
+
+  @media (max-width: 991.98px) {
+    .header-cart {
+      min-height: var(--button-height-mobile);
+      /* Keep the negative inset visible inside the mobile header track. */
+      margin-inline-end: 1rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header_cart",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "Type",
+      "options": [
+        { "value": "icon", "label": "Icon" },
+        { "value": "text", "label": "Text" },
+        { "value": "icon_with_text", "label": "Icon with text" }
+      ],
+      "default": "icon"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Label",
+      "default": "Cart"
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "select",
+      "id": "badge_type",
+      "label": "Badge type",
+      "options": [
+        { "value": "primary", "label": "Primary" },
+        { "value": "secondary", "label": "Secondary" },
+        { "value": "tertiary", "label": "Tertiary" }
+      ],
+      "default": "primary"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.header_cart",
+      "category": "t:general.header"
+    }
+  ]
+}
+{% endschema %}

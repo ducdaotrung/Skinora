@@ -1,0 +1,348 @@
+{% doc %}
+  Renders the fixed reveal carousel used by the Press section.
+
+  The block owns carousel behavior, logo pagination and the spacing between the
+  quote and logo rows. `press-item` owns its image settings and nested quote
+  content. This block intentionally has no preset so it cannot be added as a
+  second Quotes block. The reveal runtime is shared with the theme's existing
+  carousel lifecycle.
+{% enddoc %}
+
+{% liquid
+  assign press_quotes_autoplay = block.settings.autoplay
+  if press_quotes_autoplay == nil
+    assign press_quotes_autoplay = true
+  endif
+
+  assign press_quotes_pause_on_hover = block.settings.pause_on_hover
+  if press_quotes_pause_on_hover == nil
+    assign press_quotes_pause_on_hover = true
+  endif
+
+  assign press_quotes_speed = block.settings.autoplay_speed | default: 4 | plus: 0
+  if press_quotes_speed < 3 or press_quotes_speed > 7
+    assign press_quotes_speed = 4
+  endif
+
+  assign press_quotes_image_spacing_desktop = block.settings.image_spacing_desktop | default: 50 | plus: 0
+  assign press_quotes_image_spacing_mobile = block.settings.image_spacing_mobile | default: 40 | plus: 0
+  assign press_quotes_image_gap_desktop = block.settings.image_gap_desktop | default: 40 | plus: 0
+  assign press_quotes_image_gap_mobile = block.settings.image_gap_mobile | default: 30 | plus: 0
+  if press_quotes_image_spacing_desktop < 0 or press_quotes_image_spacing_desktop > 100
+    assign press_quotes_image_spacing_desktop = 50
+  endif
+  if press_quotes_image_spacing_mobile < 0 or press_quotes_image_spacing_mobile > 100
+    assign press_quotes_image_spacing_mobile = 40
+  endif
+  if press_quotes_image_gap_desktop < 0 or press_quotes_image_gap_desktop > 100
+    assign press_quotes_image_gap_desktop = 40
+  endif
+  if press_quotes_image_gap_mobile < 0 or press_quotes_image_gap_mobile > 100
+    assign press_quotes_image_gap_mobile = 30
+  endif
+
+  assign press_quotes_item_count = block.blocks.size | default: 0
+  assign press_quotes_id = 'PressQuotes-' | append: block.id
+  assign press_quotes_aria_label = 'press.carousel_label' | t
+  assign press_quotes_delay = press_quotes_speed | times: 1000
+  assign press_quotes_loop = false
+  if press_quotes_item_count > 1
+    assign press_quotes_loop = true
+  endif
+%}
+
+<script data-theme-module="{{ 'carousel-block.js' | asset_url }}"></script>
+
+{% capture press_quotes_items %}{% content_for 'blocks' %}{% endcapture %}
+
+<div
+  class="press-quotes reveal-carousel"
+  style="--press-quotes-image-spacing: {{ press_quotes_image_spacing_desktop }}px; --press-quotes-image-spacing-mobile: {{ press_quotes_image_spacing_mobile }}px; --press-quotes-image-gap: {{ press_quotes_image_gap_desktop }}px; --press-quotes-image-gap-mobile: {{ press_quotes_image_gap_mobile }}px;"
+  data-carousel-block
+  data-carousel-mode="reveal"
+  data-carousel-loop="{{ press_quotes_loop }}"
+  data-swiper-autoplay="{{ press_quotes_autoplay }}"
+  data-swiper-autoplay-pause-on-hover="{{ press_quotes_pause_on_hover }}"
+  data-swiper-autoplay-delay="{{ press_quotes_delay }}"
+  {{ block.shopify_attributes }}
+>
+  {% if press_quotes_item_count > 0 %}
+    <div class="press-quotes__list reveal-carousel__list" id="{{ press_quotes_id }}" aria-label="{{ press_quotes_aria_label | escape }}">
+      <div class="press-quotes__wrapper reveal-carousel__wrapper">
+        {{ press_quotes_items }}
+      </div>
+    </div>
+    <div class="press-quotes__pagination reveal-carousel__pagination scrollbar scrollbar--horizontal scrollbar--hidden" aria-label="{{ press_quotes_aria_label | escape }}">
+      {% for press_item in block.blocks %}
+        <button
+          class="press-quotes__pagination-button reveal-carousel__pagination-button btn--unstyled"
+          type="button"
+          aria-current="{{ forloop.first }}"
+          aria-label="{{ 'press.go_to_slide' | t: index: forloop.index | escape }}"
+          aria-controls="{{ press_quotes_id }}"
+          data-carousel-pagination-button
+          data-carousel-pagination-index="{{ forloop.index0 }}"
+          {{ press_item.shopify_attributes }}
+        ></button>
+      {% endfor %}
+    </div>
+  {% elsif request.design_mode %}
+    <div class="press-quotes__empty" role="status">{{ 'press.empty_quotes' | t }}</div>
+  {% endif %}
+</div>
+
+{% stylesheet %}
+  .press-quotes {
+    display: flex;
+    flex-direction: column;
+    align-items: var(--flex-align, start);
+    gap: var(--press-quotes-image-spacing, 50px);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .press-quotes__list,
+  .press-quotes__wrapper {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .press-quotes__wrapper {
+    display: grid;
+    touch-action: pan-y;
+  }
+
+  .press-quotes__wrapper.is-dragging {
+    user-select: none;
+  }
+
+  .press-quotes__wrapper > .press-item,
+  .press-quotes__wrapper > .reveal-carousel-item {
+    grid-area: 1 / -1;
+  }
+
+  .press-quotes .press-item {
+    opacity: 0;
+    visibility: hidden;
+    transform: none;
+    transition: none;
+    will-change: opacity, transform;
+  }
+
+  .press-quotes:not(.reveal-initialized) .press-item:first-child,
+  .press-quotes .press-item.is-selected {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .press-quotes.reveal-initialized .press-item:not(.is-selected) {
+    pointer-events: none;
+  }
+
+  .press-quotes__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--press-quotes-image-gap, 40px);
+    max-width: 100%;
+    margin: -0.3rem;
+    padding: 0.3rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .press-quotes.reveal-carousel .press-quotes__pagination-button {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex: 0 0 var(--press-quotes-image-width, 110px);
+    width: var(--press-quotes-image-width, 110px);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    line-height: 0;
+    opacity: 0.5;
+    scroll-snap-align: center;
+    transition: opacity var(--animation-speed-slow, 200ms) var(--animation-easing, ease-in-out);
+  }
+
+  .press-quotes.reveal-carousel .press-quotes__pagination-button[aria-current='false'] {
+    opacity: 0.5;
+  }
+
+  .press-quotes.reveal-carousel .press-quotes__pagination-button:hover,
+  .press-quotes.reveal-carousel .press-quotes__pagination-button:focus-visible,
+  .press-quotes.reveal-carousel .press-quotes__pagination-button[aria-current='true'] {
+    opacity: 1;
+  }
+
+  .press-quotes.reveal-carousel .press-quotes__pagination-button:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+
+  .press-quotes__pagination-media {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    aspect-ratio: var(--press-quotes-image-ratio, auto);
+    overflow: hidden;
+    border-radius: var(--press-quotes-image-radius, var(--radius-square));
+  }
+
+  .press-quotes__pagination-media--radius-inherit {
+    border-radius: var(--media-radius, var(--radius-square));
+  }
+
+  .press-quotes__pagination-media > .image,
+  .press-quotes__pagination-media > .image > picture,
+  .press-quotes__pagination-media > .image > img,
+  .press-quotes__pagination-media > .image > picture > img,
+  .press-quotes__pagination-media > .image > .image__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .press-quotes__pagination-media > .image > img,
+  .press-quotes__pagination-media > .image > picture > img,
+  .press-quotes__pagination-media > .image > .image__placeholder {
+    object-fit: cover;
+  }
+
+  .press-quotes__pagination-media--ratio-original > .image,
+  .press-quotes__pagination-media--ratio-original > .image > picture,
+  .press-quotes__pagination-media--ratio-original > .image > img,
+  .press-quotes__pagination-media--ratio-original > .image > picture > img,
+  .press-quotes__pagination-media--ratio-original > .image > .image__placeholder {
+    height: auto;
+  }
+
+  .press-quotes__empty {
+    width: 100%;
+    padding: 1rem;
+    border: 1px dashed var(--border-color);
+    color: var(--body-color);
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .press-quotes.reveal-carousel .press-quotes__pagination-button {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .press-quotes {
+      gap: var(--press-quotes-image-spacing-mobile, var(--press-quotes-image-spacing, 40px));
+    }
+
+    .press-quotes__pagination {
+      gap: var(--press-quotes-image-gap-mobile, 30px);
+      margin-inline: calc(var(--page-margin-mobile, 0px) * -1);
+      padding-inline: var(--page-margin-mobile, 0px);
+      max-width: 100vw;
+    }
+
+    .press-quotes.reveal-carousel .press-quotes__pagination-button {
+      flex-basis: var(--press-quotes-image-width-mobile, 70px);
+      width: var(--press-quotes-image-width-mobile, 70px);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.quotes",
+  "tag": null,
+  "blocks": [{ "type": "press-item" }],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:labels.autoplay"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "t:labels.auto_rotate_slides",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "t:labels.pause_on_hover",
+      "default": true,
+      "visible_if": "{{ block.settings.autoplay }}"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "t:labels.speed",
+      "min": 3,
+      "max": 7,
+      "step": 1,
+      "unit": "s",
+      "default": 4,
+      "visible_if": "{{ block.settings.autoplay }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.image_spacing"
+    },
+    {
+      "type": "range",
+      "id": "image_spacing_desktop",
+      "label": "t:options.device.desktop",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "image_spacing_mobile",
+      "label": "t:options.device.mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "t:general.image_gap"
+    },
+    {
+      "type": "range",
+      "id": "image_gap_desktop",
+      "label": "t:options.device.desktop",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "image_gap_mobile",
+      "label": "t:options.device.mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 30
+    }
+  ]
+}
+{% endschema %}

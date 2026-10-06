@@ -1,0 +1,207 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "article",
+      "settings": {
+        "max_width": 800,
+        "gap_desktop": 50,
+        "gap_mobile": 30,
+        "color_scheme": "scheme-1",
+        "padding_top": 100,
+        "padding_bottom": 120,
+        "custom_mobile_padding": true,
+        "padding_top_mobile": 50,
+        "padding_bottom_mobile": 60,
+        "show_top_divider": true,
+        "show_bottom_divider": false,
+        "divider_full_width": true
+      },
+      "blocks": {
+        "blog-meta": {
+          "type": "blog-meta",
+          "settings": {}
+        },
+        "featured-image": {
+          "type": "featured-image",
+          "settings": {}
+        },
+        "content": {
+          "type": "content",
+          "settings": {}
+        },
+        "tags-and-sharing": {
+          "type": "tags-and-sharing",
+          "settings": {}
+        },
+        "divider": {
+          "type": "divider",
+          "settings": {},
+          "disabled": true
+        },
+        "previous-and-next-posts": {
+          "type": "previous-and-next-posts",
+          "settings": {}
+        },
+        "comments": {
+          "type": "comments",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "blog-meta",
+        "featured-image",
+        "content",
+        "tags-and-sharing",
+        "divider",
+        "previous-and-next-posts",
+        "comments"
+      ]
+    },
+    "related-posts": {
+      "type": "related-posts",
+      "settings": {
+        "desktop_alignment": "center",
+        "mobile_alignment": "center"
+      },
+      "blocks": {
+        "heading": {
+          "type": "heading",
+          "static": true,
+          "settings": {
+            "text": "<p>Related Posts</p>",
+            "html_tag": "h2",
+            "heading_size": "lg"
+          }
+        },
+        "blog-list": {
+          "type": "blog-list",
+          "static": true,
+          "settings": {
+            "blog": "",
+            "max_posts": 8,
+            "layout_type": "carousel",
+            "columns_desktop": "4",
+            "columns_mobile": "1",
+            "show_next_slide_preview_on_desktop": false,
+            "gap_desktop": 4,
+            "gap_mobile": 4,
+            "show_navigation_on_desktop": true,
+            "navigation_position": "inside",
+            "navigation_style": "secondary",
+            "navigation_icon": "chevron",
+            "navigation_behavior": "show_on_hover",
+            "show_pagination_on_desktop": false,
+            "pagination_type": "progress_bar",
+            "pagination_padding_desktop": 50,
+            "pagination_padding_mobile": 24,
+            "pagination_limit_width": true,
+            "pagination_max_width": 260,
+            "autoplay": false,
+            "autoplay_pause_on_hover": true,
+            "autoplay_speed": 4
+          },
+          "blocks": {
+            "blog-card": {
+              "type": "blog-card",
+              "static": true,
+              "settings": {
+                "ratio": "original",
+                "alignment": "left",
+                "desktop_gap": 8,
+                "mobile_gap": 8,
+                "border_thickness": 0,
+                "corner_radius": "inherit",
+                "shadow": "none",
+                "color_type": "inherit",
+                "color_scheme": "scheme-1",
+                "padding_top": 20,
+                "padding_bottom": 0,
+                "padding_left": 0,
+                "padding_right": 10,
+                "customize_mobile_padding": false
+              },
+              "blocks": {
+                "blog-card-title-1": {
+                  "type": "blog-card-title",
+                  "settings": {
+                    "line_limit": "no_limit",
+                    "heading_size": "md",
+                    "html_tag": "h3",
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "customize_mobile_padding": false
+                  }
+                },
+                "blog-card-description-2": {
+                  "type": "blog-card-description",
+                  "settings": {
+                    "text_limit": "two",
+                    "size": "md",
+                    "padding_top": 0,
+                    "padding_bottom": 6,
+                    "customize_mobile_padding": false
+                  }
+                },
+                "blog-card-meta-3": {
+                  "type": "blog-card-meta",
+                  "settings": {
+                    "show_date": true,
+                    "show_author": true,
+                    "show_comment_count": false,
+                    "details_order": "date_author_comment",
+                    "author_display_type": "text",
+                    "author_prefix": "",
+                    "show_date_icon": false,
+                    "date_icon": "calendar",
+                    "date_format": "long",
+                    "show_comment_icon": true,
+                    "comment_icon": "comment",
+                    "separator_icon": "dot",
+                    "layout": "horizontal",
+                    "gap": 8,
+                    "icon_size": 18,
+                    "icon_gap": 6,
+                    "size": "sm",
+                    "text_color": "",
+                    "padding_top": 0,
+                    "padding_bottom": 4,
+                    "customize_mobile_padding": false
+                  }
+                },
+                "blog-card-button-4": {
+                  "type": "blog-card-button",
+                  "settings": {
+                    "style": "tertiary",
+                    "show_icon": false,
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "customize_mobile_padding": false
+                  }
+                }
+              },
+              "block_order": [
+                "blog-card-title-1",
+                "blog-card-meta-3",
+                "blog-card-description-2",
+                "blog-card-button-4"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "order": [
+    "main",
+    "related-posts"
+  ]
+}

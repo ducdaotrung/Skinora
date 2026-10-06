@@ -1,0 +1,1089 @@
+{% doc %}
+  Shared Product callout presentation and hotspot controller, used by single
+  callouts, carousel slides, and gallery image items. Each data-product-callout
+  element owns its media bounds and open state; Shopify bundles this once.
+{% enddoc %}
+
+{% stylesheet %}
+  .product-callout {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    color: var(--body-color);
+    isolation: isolate;
+  }
+
+  .product-callout__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: var(--product-callout-ratio, 2.4);
+    overflow: visible;
+    background: var(--background-color);
+  }
+
+  .product-callout--desktop-adapt .product-callout__media { min-height: 0; }
+  .product-callout--desktop-extra_small .product-callout__media { min-height: 42rem; aspect-ratio: auto; }
+  .product-callout--desktop-small .product-callout__media { min-height: 56rem; aspect-ratio: auto; }
+  .product-callout--desktop-medium .product-callout__media { min-height: 72rem; aspect-ratio: auto; }
+  .product-callout--desktop-large .product-callout__media { min-height: 90rem; aspect-ratio: auto; }
+  .product-callout--desktop-extra_large .product-callout__media { min-height: 108rem; aspect-ratio: auto; }
+  .product-callout--desktop-full_screen .product-callout__media { min-height: 100svh; aspect-ratio: auto; }
+  @media (min-width: 768px) {
+    .product-callout--carousel {
+      height: 100%;
+    }
+
+    .product-callout--carousel .product-callout__media {
+      height: 100%;
+      min-height: 100%;
+      aspect-ratio: auto;
+    }
+
+    .product-callout--carousel.product-callout--desktop-adapt .product-callout__media {
+      height: auto;
+      min-height: 0;
+      aspect-ratio: var(--product-callout-ratio, 2.4);
+    }
+  }
+
+  .product-callout__media .background-media__image > img,
+  .product-callout__media .background-media__image > picture > img {
+    object-position: var(--product-callout-image-position, center center);
+  }
+
+  .product-callout__overlay {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: var(--product-callout-overlay-color);
+    pointer-events: none;
+  }
+
+  .product-callout__hotspots {
+    position: absolute;
+    z-index: 4;
+    inset: 0;
+    color: var(--body-color);
+    pointer-events: none;
+  }
+
+  .product-callout__hotspot-wrap {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: var(--product-callout-hotspot-y, 50%);
+    inset-inline-start: var(--product-callout-hotspot-x, 50%);
+    pointer-events: auto;
+    transform: translate(-50%, -50%);
+  }
+
+  @media (max-width: 767.98px) {
+    .product-callout.product-callout--layout-split {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-callout--layout-split .product-callout__media {
+      order: 0;
+    }
+
+    .product-callout--layout-split .product-callout__content {
+      order: 1;
+    }
+
+    .product-callout__hotspot-wrap {
+      inset-block-start: var(--product-callout-hotspot-y-mobile, var(--product-callout-hotspot-y, 50%));
+      inset-inline-start: var(--product-callout-hotspot-x-mobile, var(--product-callout-hotspot-x, 50%));
+    }
+  }
+
+  .product-callout__hotspot-wrap--active {
+    z-index: 5;
+  }
+
+  .product-callout__hotspot-wrap--closing {
+    z-index: 5;
+  }
+
+  .product-callout__content {
+    --product-callout-content-page-margin: var(--page-margin-current, var(--page-margin-desktop));
+    position: absolute;
+    z-index: 3;
+    inset-block: 0;
+    inset-inline-start: var(--product-callout-content-page-margin);
+    display: flex;
+    flex-direction: column;
+    gap: var(--product-callout-content-gap, 12px);
+    align-items: flex-start;
+    justify-content: flex-end;
+    width: min(calc(100% - var(--product-callout-content-page-margin) - var(--product-callout-content-page-margin)), 64rem);
+    max-width: 64rem;
+    padding-block: clamp(2.4rem, 5vw, 6.4rem);
+    padding-inline: 0;
+    color: var(--body-color);
+    pointer-events: none;
+  }
+
+  .product-callout__content > * {
+    pointer-events: auto;
+  }
+
+  .product-callout__content--top_left,
+  .product-callout__content--top_center,
+  .product-callout__content--top_right {
+    justify-content: flex-start;
+  }
+
+  .product-callout__content--center_left,
+  .product-callout__content--center_center,
+  .product-callout__content--center_right {
+    justify-content: center;
+  }
+
+  .product-callout__content--top_center,
+  .product-callout__content--center_center,
+  .product-callout__content--bottom_center {
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    transform: translateX(-50%);
+  }
+
+  .product-callout__content--top_right,
+  .product-callout__content--center_right,
+  .product-callout__content--bottom_right {
+    inset-inline-start: auto;
+    inset-inline-end: var(--product-callout-content-page-margin);
+  }
+
+  @media (min-width: 768px) {
+    .product-callout.product-callout--layout-split {
+      display: grid;
+      align-items: stretch;
+      height: auto;
+    }
+
+    .product-callout--layout-split.product-callout--content-position-last {
+      grid-template-columns: minmax(0, 1fr) minmax(0, var(--product-callout-content-panel-width, 30%));
+    }
+
+    .product-callout--layout-split.product-callout--content-position-first {
+      grid-template-columns: minmax(0, var(--product-callout-content-panel-width, 30%)) minmax(0, 1fr);
+    }
+
+    .product-callout--layout-split .product-callout__media {
+      grid-row: 1;
+      height: auto;
+    }
+
+    .product-callout--layout-split .product-callout__content {
+      position: relative;
+      inset: auto;
+      grid-row: 1;
+      width: auto;
+      max-width: none;
+      min-width: 0;
+      margin: 0;
+      transform: none;
+      justify-content: center;
+      padding: var(--product-callout-content-panel-padding-desktop, 40px);
+      background: var(--background-color);
+      pointer-events: auto;
+    }
+
+    .product-callout--carousel.product-callout--layout-split {
+      height: var(--hotspot-carousel-height, auto);
+    }
+
+    .product-callout--carousel.product-callout--layout-split .product-callout__media {
+      height: 100%;
+      min-height: 100%;
+      aspect-ratio: auto;
+    }
+
+    .product-callout--carousel.product-callout--layout-split.product-callout--desktop-adapt .product-callout__media {
+      height: auto;
+      min-height: 0;
+      aspect-ratio: var(--product-callout-ratio, 2.4);
+    }
+  }
+
+  .product-callout__content--align-left {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .product-callout__content--align-center {
+    align-items: center;
+    text-align: center;
+  }
+
+  .product-callout__content--align-right {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .product-callout__content :where(.product-callout__preheading, .product-callout__heading, .product-callout__text) {
+    width: 100%;
+    margin: 0;
+    color: currentColor;
+  }
+
+  .product-callout__preheading {
+    font-size: var(--font-body-sm);
+  }
+
+  .product-callout__content .product-callout__heading {
+    padding: 0;
+  }
+
+  .product-callout__content .product-callout__heading.heading-text {
+    color: var(--heading-color);
+  }
+
+  .product-callout__text {
+    --body-color: currentColor;
+  }
+
+  .product-callout__text :first-child {
+    margin-top: 0;
+  }
+
+  .product-callout__text :last-child {
+    margin-bottom: 0;
+  }
+
+  .product-callout__hotspot {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    width: clamp(3rem, 3.2vw, 4rem);
+    height: clamp(3rem, 3.2vw, 4rem);
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--background-color);
+    cursor: pointer;
+    font: inherit;
+    text-decoration: none;
+    pointer-events: auto;
+    transform: scale(1);
+    transition: transform var(--motion-duration-fast) var(--motion-ease-standard), box-shadow var(--motion-duration-fast) var(--motion-ease-standard);
+  }
+
+  .product-callout__hotspot::before,
+  .product-callout__hotspot::after {
+    position: absolute;
+    z-index: 0;
+    inset: 10%;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    content: '';
+    opacity: 0;
+    pointer-events: none;
+    animation: product-callout-hotspot-ring 2.4s ease-out infinite;
+  }
+
+  .product-callout__hotspot::after {
+    animation-delay: 1.2s;
+  }
+
+  .product-callout__hotspot:is(:hover, :focus-visible) {
+    transform: scale(1.08);
+  }
+
+  .product-callout__hotspot:focus-visible {
+    outline: 2px solid var(--heading-color);
+    outline-offset: 4px;
+  }
+
+  .product-callout__hotspot[aria-disabled='true'] {
+    cursor: default;
+  }
+
+  .product-callout__hotspot-icon {
+    position: relative;
+    z-index: 1;
+    display: none;
+    color: var(--heading-color);
+  }
+
+  .product-callout--icon-dot .product-callout__hotspot-icon--dot,
+  .product-callout--icon-plus .product-callout__hotspot-icon--plus,
+  .product-callout--icon-tag .product-callout__hotspot-icon--tag,
+  .product-callout--icon-bag .product-callout__hotspot-icon--bag {
+    display: grid;
+    place-items: center;
+  }
+
+  .product-callout__hotspot-icon--dot {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 0.1rem solid var(--heading-color);
+    border-radius: 50%;
+    background: var(--background-color);
+    box-shadow: 0 0 1.5rem rgb(0 0 0 / 28%);
+  }
+
+  .product-callout__hotspot-icon--plus,
+  .product-callout__hotspot-icon--tag,
+  .product-callout__hotspot-icon--bag {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--background-color);
+    color: var(--heading-color);
+    box-shadow: 0 0 1.5rem rgb(0 0 0 / 28%);
+  }
+
+  .product-callout__hotspot-icon--plus svg,
+  .product-callout__hotspot-icon--tag svg,
+  .product-callout__hotspot-icon--bag svg {
+    width: 42%;
+    height: 42%;
+  }
+
+  .product-callout__hotspot--placeholder .product-callout__hotspot-icon--dot,
+  .product-callout__hotspot--placeholder .product-callout__hotspot-icon--plus,
+  .product-callout__hotspot--placeholder .product-callout__hotspot-icon--tag,
+  .product-callout__hotspot--placeholder .product-callout__hotspot-icon--bag {
+    opacity: 0.88;
+  }
+
+  @keyframes product-callout-hotspot-ring {
+    0% {
+      opacity: 0.55;
+      transform: scale(0.85);
+    }
+
+    100% {
+      opacity: 0;
+      transform: scale(2);
+    }
+  }
+
+  .product-callout__popover {
+    --product-callout-popover-duration: var(--motion-duration-standard, 280ms);
+    --product-callout-popover-easing: var(--motion-ease-standard, cubic-bezier(0.2, 0.8, 0.2, 1));
+    --product-callout-popover-viewport-margin: var(--page-margin-current, var(--page-margin-desktop, 1.6rem));
+    --product-callout-popover-gap: 0.8rem;
+    --product-callout-popover-max-inline-size: 24rem;
+    --product-callout-popover-min-inline-size: 0px;
+    position: absolute;
+    z-index: 1;
+    inset-block-start: calc(100% + var(--product-callout-popover-gap));
+    inset-inline-start: 50%;
+    inline-size: min(var(--product-callout-popover-max-inline-size), calc(100vw - (2 * var(--product-callout-popover-viewport-margin))));
+    min-inline-size: min(var(--product-callout-popover-min-inline-size), calc(100vw - (2 * var(--product-callout-popover-viewport-margin))));
+    max-inline-size: calc(100vw - (2 * var(--product-callout-popover-viewport-margin)));
+    box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+    scale: 0.96;
+    translate: 0 0.5rem;
+    visibility: hidden;
+    transform: translateX(-50%);
+    transition:
+      opacity var(--product-callout-popover-duration) var(--product-callout-popover-easing),
+      scale var(--product-callout-popover-duration) var(--product-callout-popover-easing),
+      translate var(--product-callout-popover-duration) var(--product-callout-popover-easing),
+      visibility 0s linear var(--product-callout-popover-duration);
+  }
+
+  .product-callout__popover--visible {
+    opacity: 1;
+    pointer-events: auto;
+    scale: 1;
+    translate: 0 0;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .product-callout__popover:not(.product-callout__popover--visible) {
+    pointer-events: none;
+  }
+
+  .product-callout__popover--top {
+    inset-block-start: auto;
+    inset-block-end: calc(100% + var(--product-callout-popover-gap));
+  }
+
+  .product-callout__popover--content {
+    --product-callout-popover-max-inline-size: clamp(18rem, 23vw, 32rem);
+    --product-callout-popover-min-inline-size: 18rem;
+  }
+
+  .product-callout__popover[hidden] {
+    display: none;
+  }
+
+  .product-callout__product-card,
+  .product-callout__content-card {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid rgb(0 0 0 / 10%);
+    border-radius: var(--radius-square, 0);
+    background: var(--background-color, #fff);
+    color: var(--body-color, #1d2835);
+    box-shadow: 0 0.8rem 2.4rem rgb(0 0 0 / 18%);
+  }
+
+  .product-callout__product-card {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .product-callout__content-card {
+    --text-align-default: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.2rem;
+    text-align: center;
+  }
+
+  .product-callout__content-card-heading {
+    width: 100%;
+    margin: 0;
+  }
+
+  .product-callout__content-card-text {
+    width: 100%;
+  }
+
+  .product-callout__content-card-text :first-child {
+    margin-top: 0;
+  }
+
+  .product-callout__content-card-text :last-child {
+    margin-bottom: 0;
+  }
+
+  .product-callout__content-card-placeholder {
+    font-size: var(--font-body-sm);
+    opacity: 0.7;
+  }
+
+  .product-callout__product-card-media {
+    flex: 0 0 5.6rem;
+    width: 5.6rem;
+    height: 5.6rem;
+    overflow: hidden;
+    background: var(--background-color, #f3f3f3);
+  }
+
+  .product-callout__product-card-media img,
+  .product-callout__product-card-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-callout__product-card-placeholder {
+    color: var(--border-color, #cfcfcf);
+  }
+
+  .product-callout__product-card-details {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .product-callout__product-card-category,
+  .product-callout__product-card-action {
+    font-size: var(--font-body-xs);
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .product-callout__product-card-category {
+    color: var(--secondary-color, var(--body-color));
+    opacity: 0.7;
+  }
+
+  .product-callout__product-card-title,
+  .product-callout__product-card-price {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .product-callout__product-card-title {
+    margin-top: 0.25rem;
+    font-size: var(--font-body-sm);
+  }
+
+  .product-callout__product-card-price {
+    margin-top: 0.1rem;
+    font-size: var(--font-body-xs);
+  }
+
+  .product-callout__product-card-action {
+    margin-top: 0.45rem;
+    color: currentColor;
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  .product-callout__product-card-action:hover,
+  .product-callout__product-card-action:focus-visible {
+    opacity: 0.65;
+  }
+
+  .product-callout__product-card-action--disabled {
+    cursor: default;
+    opacity: 0.55;
+    text-decoration: none;
+  }
+
+  @media (max-width: 767.98px) {
+    .product-callout--mobile-adapt .product-callout__media { min-height: 0; aspect-ratio: var(--product-callout-ratio-mobile, var(--product-callout-ratio, 2.4)); }
+    .product-callout--mobile-extra_small .product-callout__media { min-height: 40rem; aspect-ratio: auto; }
+    .product-callout--mobile-small .product-callout__media { min-height: 48rem; aspect-ratio: auto; }
+    .product-callout--mobile-medium .product-callout__media { min-height: 62rem; aspect-ratio: auto; }
+    .product-callout--mobile-large .product-callout__media { min-height: 76rem; aspect-ratio: auto; }
+    .product-callout--mobile-extra_large .product-callout__media { min-height: 90rem; aspect-ratio: auto; }
+    .product-callout--mobile-full_screen .product-callout__media { min-height: 100svh; aspect-ratio: auto; }
+    .product-callout__media .background-media__image > img,
+    .product-callout__media .background-media__image > picture > img {
+      object-position: var(--product-callout-image-position-mobile, var(--product-callout-image-position, center center));
+    }
+
+    .product-callout__overlay {
+      display: none;
+    }
+
+    .product-callout__content {
+      position: relative;
+      inset: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--product-callout-content-gap-mobile, var(--product-callout-content-gap, 8px));
+      width: 100%;
+      max-width: 64rem;
+      margin-inline: auto;
+      transform: none;
+      padding: var(--product-callout-content-panel-padding-mobile, 24px);
+      background: var(--background-color);
+      color: var(--body-color);
+      pointer-events: auto;
+    }
+
+    .product-callout--layout-split .product-callout__content {
+      position: relative;
+      inset: auto;
+      width: 100%;
+      max-width: none;
+      margin-inline: 0;
+      transform: none;
+      padding: var(--product-callout-content-panel-padding-mobile, 24px);
+      background: var(--background-color);
+      pointer-events: auto;
+    }
+
+    .product-callout__content--top_center,
+    .product-callout__content--center_center,
+    .product-callout__content--bottom_center,
+    .product-callout__content--top_right,
+    .product-callout__content--center_right,
+    .product-callout__content--bottom_right {
+      inset-inline: auto;
+      transform: none;
+    }
+
+    .product-callout__content--align-center {
+      align-items: center;
+      text-align: center;
+    }
+
+    .product-callout__content--align-right {
+      align-items: flex-end;
+      text-align: right;
+    }
+
+    .product-callout__content--align-left {
+      align-items: flex-start;
+    }
+
+    .product-callout__popover,
+    .product-callout__popover--top {
+      --product-callout-popover-viewport-margin: var(--page-margin-current, var(--page-margin-mobile, 1.6rem));
+      --product-callout-popover-max-inline-size: 26rem;
+      --product-callout-popover-min-inline-size: 0px;
+      inset-block-start: calc(100% + var(--product-callout-popover-gap));
+      inset-block-end: auto;
+      inset-inline-start: 50%;
+      inset-inline-end: auto;
+      transform: translateX(-50%);
+    }
+
+    .product-callout__popover--content {
+      --product-callout-popover-max-inline-size: 20rem;
+      --product-callout-popover-min-inline-size: 0px;
+    }
+
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-callout__popover {
+      transition: none;
+    }
+
+    .product-callout__hotspot,
+    .product-callout__button {
+      transition: none;
+    }
+
+    .product-callout__hotspot::before,
+    .product-callout__hotspot::after {
+      animation: none;
+      opacity: 0.24;
+      transform: scale(1.6);
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    const instances = new WeakMap();
+
+    const transitionDuration = (element) => {
+      const style = getComputedStyle(element);
+      const toMilliseconds = (value) => {
+        const normalized = String(value || '').trim();
+        const amount = Number.parseFloat(normalized);
+        return Number.isFinite(amount) ? amount * (normalized.endsWith('ms') ? 1 : 1000) : 0;
+      };
+      const durations = String(style.transitionDuration || '0s').split(',').map(toMilliseconds);
+      const delays = String(style.transitionDelay || '0s').split(',').map(toMilliseconds);
+
+      return Math.max(0, ...durations.map((duration, index) => duration + (delays[index % delays.length] || 0)));
+    };
+
+    const parseCssLength = (value, fallback, element) => {
+      const normalized = String(value || '').trim();
+      const amount = Number.parseFloat(normalized);
+      if (!Number.isFinite(amount)) return fallback;
+
+      if (!normalized || normalized.endsWith('px')) return amount;
+      if (normalized.endsWith('vw')) return (window.innerWidth * amount) / 100;
+      if (normalized.endsWith('vh')) return (window.innerHeight * amount) / 100;
+
+      const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      if (normalized.endsWith('rem')) return rootFontSize * amount;
+      if (normalized.endsWith('em')) {
+        const fontSize = Number.parseFloat(getComputedStyle(element || document.documentElement).fontSize) || rootFontSize;
+        return fontSize * amount;
+      }
+
+      return fallback;
+    };
+
+    const clamp = (value, minimum, maximum) => {
+      if (maximum < minimum) return minimum;
+      return Math.min(Math.max(value, minimum), maximum);
+    };
+
+    const getPopoverBounds = (state, popover) => {
+      const media = state.callout.querySelector('.product-callout__media') || state.callout;
+      const mediaRect = media.getBoundingClientRect();
+      const style = getComputedStyle(popover);
+      const margin = Math.max(0, parseCssLength(style.getPropertyValue('--product-callout-popover-viewport-margin'), 16, popover));
+      const viewport = {
+        // The horizontal edge belongs to the media, not the page margin. A
+        // hotspot at either edge should let its card meet that edge instead
+        // of leaving a second, unrelated gutter inside the media.
+        left: 0,
+        top: margin,
+        right: window.innerWidth,
+        bottom: Math.max(margin, window.innerHeight - margin),
+      };
+
+      const bounds = {
+        left: Math.max(viewport.left, mediaRect.left),
+        top: Math.max(viewport.top, mediaRect.top),
+        right: Math.min(viewport.right, mediaRect.right),
+        bottom: Math.min(viewport.bottom, mediaRect.bottom),
+      };
+
+      if (bounds.right <= bounds.left || bounds.bottom <= bounds.top) return viewport;
+      return bounds;
+    };
+
+    const setAnchorProperties = (popover, triggerRect) => {
+      const properties = {
+        '--product-callout-popover-anchor-top': `${triggerRect.top}px`,
+        '--product-callout-popover-anchor-right': `${Math.max(0, window.innerWidth - triggerRect.right)}px`,
+        '--product-callout-popover-anchor-bottom': `${Math.max(0, window.innerHeight - triggerRect.bottom)}px`,
+        '--product-callout-popover-anchor-left': `${triggerRect.left}px`,
+        '--product-callout-popover-anchor-width': `${triggerRect.width}px`,
+        '--product-callout-popover-anchor-height': `${triggerRect.height}px`,
+      };
+
+      Object.entries(properties).forEach(([property, value]) => popover.style.setProperty(property, value));
+    };
+
+    const clearPopoverPosition = (popover) => {
+      [
+        'inset',
+        'inset-block-start',
+        'inset-block-end',
+        'inset-inline-start',
+        'inset-inline-end',
+        'top',
+        'right',
+        'bottom',
+        'left',
+        'inline-size',
+        'min-inline-size',
+        'max-inline-size',
+        'transform',
+      ].forEach((property) => popover.style.removeProperty(property));
+
+      [
+        '--product-callout-popover-anchor-top',
+        '--product-callout-popover-anchor-right',
+        '--product-callout-popover-anchor-bottom',
+        '--product-callout-popover-anchor-left',
+        '--product-callout-popover-anchor-width',
+        '--product-callout-popover-anchor-height',
+      ].forEach((property) => popover.style.removeProperty(property));
+    };
+
+    const getVerticalCandidate = (vertical, triggerRect, width, height, gap) => ({
+      left: triggerRect.left + (triggerRect.width - width) / 2,
+      top: vertical === 'top' ? triggerRect.top - gap - height : triggerRect.bottom + gap,
+    });
+
+    const getOverflow = (candidate, width, height, bounds) => {
+      return (
+        Math.max(0, bounds.left - candidate.left) +
+        Math.max(0, candidate.left + width - bounds.right) +
+        Math.max(0, bounds.top - candidate.top) +
+        Math.max(0, candidate.top + height - bounds.bottom)
+      );
+    };
+
+    const positionPopover = (state, record) => {
+      const { wrapper, trigger, popover } = record;
+      if (!wrapper.isConnected || !trigger.isConnected || !popover.isConnected) return;
+
+      const bounds = getPopoverBounds(state, popover);
+      const triggerRect = trigger.getBoundingClientRect();
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const style = getComputedStyle(popover);
+      const gap = Math.max(0, parseCssLength(style.getPropertyValue('--product-callout-popover-gap'), 8, popover));
+
+      setAnchorProperties(popover, triggerRect);
+      popover.style.removeProperty('inline-size');
+
+      let width = popover.offsetWidth;
+      if (width > bounds.right - bounds.left) {
+        popover.style.inlineSize = `${Math.max(1, bounds.right - bounds.left)}px`;
+        width = popover.offsetWidth;
+      }
+
+      const height = popover.offsetHeight;
+      const preferredVertical = popover.classList.contains('product-callout__popover--top') ? 'top' : 'bottom';
+      const oppositeVertical = preferredVertical === 'top' ? 'bottom' : 'top';
+
+      const candidates = [preferredVertical, oppositeVertical].map((vertical) => getVerticalCandidate(vertical, triggerRect, width, height, gap));
+      let candidate = candidates.find((item) => getOverflow(item, width, height, bounds) === 0);
+      if (!candidate) {
+        candidate = candidates.reduce((best, item) => {
+          if (!best) return item;
+          return getOverflow(item, width, height, bounds) < getOverflow(best, width, height, bounds) ? item : best;
+        }, null);
+      }
+
+      candidate.left = clamp(candidate.left, bounds.left, bounds.right - width);
+
+      candidate.top = clamp(candidate.top, bounds.top, bounds.bottom - height);
+
+      popover.style.setProperty('inset', 'auto');
+      popover.style.setProperty('left', `${candidate.left - wrapperRect.left}px`);
+      popover.style.setProperty('top', `${candidate.top - wrapperRect.top}px`);
+      popover.style.setProperty('right', 'auto');
+      popover.style.setProperty('bottom', 'auto');
+      popover.style.setProperty('transform', 'none');
+    };
+
+    const cancelPopoverClose = (state, popover) => {
+      const closing = state.closing.get(popover);
+      if (!closing) return;
+
+      clearTimeout(closing.timer);
+      state.closing.delete(popover);
+      closing.record.wrapper.classList.remove('product-callout__hotspot-wrap--closing');
+      popover.hidden = false;
+      popover.inert = false;
+      popover.removeAttribute('aria-hidden');
+      popover.removeAttribute('inert');
+    };
+
+    const closeActive = (state, restoreFocus = false, immediate = false) => {
+      const active = state.active;
+      if (!active) return;
+
+      active.popover.classList.remove('product-callout__popover--visible');
+      active.popover.inert = true;
+      active.popover.setAttribute('aria-hidden', 'true');
+      active.popover.setAttribute('inert', '');
+      active.wrapper.classList.remove('product-callout__hotspot-wrap--active');
+      active.trigger.setAttribute('aria-expanded', 'false');
+      state.active = null;
+
+      const finishClose = () => {
+        const closing = state.closing.get(active.popover);
+        if (closing?.record !== active) return;
+
+        clearTimeout(closing.timer);
+        state.closing.delete(active.popover);
+        active.popover.hidden = true;
+        clearPopoverPosition(active.popover);
+        active.wrapper.classList.remove('product-callout__hotspot-wrap--closing');
+      };
+
+      if (immediate) {
+        active.popover.hidden = true;
+        clearPopoverPosition(active.popover);
+        active.wrapper.classList.remove('product-callout__hotspot-wrap--closing');
+      } else {
+        active.wrapper.classList.add('product-callout__hotspot-wrap--closing');
+        const duration = transitionDuration(active.popover);
+        if (duration === 0) {
+          active.popover.hidden = true;
+          clearPopoverPosition(active.popover);
+          active.wrapper.classList.remove('product-callout__hotspot-wrap--closing');
+        } else {
+          const closing = { record: active, timer: null };
+          closing.timer = window.setTimeout(finishClose, duration + 20);
+          state.closing.set(active.popover, closing);
+        }
+      }
+
+      if (restoreFocus) active.trigger.focus({ preventScroll: true });
+    };
+
+    const openPopover = (state, trigger) => {
+      const wrapper = trigger.closest('[data-product-callout-hotspot-wrap]');
+      const popover = wrapper?.querySelector('[data-product-callout-popover]');
+      if (!wrapper || !popover) return;
+
+      const isActive = state.active?.trigger === trigger;
+      if (isActive) {
+        if (state.toggleOnClick) closeActive(state);
+        return;
+      }
+
+      closeActive(state);
+      cancelPopoverClose(state, popover);
+      clearPopoverPosition(popover);
+
+      popover.hidden = false;
+      popover.inert = false;
+      popover.removeAttribute('aria-hidden');
+      popover.removeAttribute('inert');
+      popover.classList.remove('product-callout__popover--visible');
+      wrapper.classList.add('product-callout__hotspot-wrap--active');
+      trigger.setAttribute('aria-expanded', 'true');
+      state.active = { trigger, wrapper, popover };
+      positionPopover(state, state.active);
+
+      // Establish the hidden visual state before transitioning to open. This
+      // keeps click and hover entrances consistent despite the native hidden attribute.
+      void popover.offsetWidth;
+      window.requestAnimationFrame(() => {
+        if (state.active?.popover === popover && popover.isConnected) {
+          popover.classList.add('product-callout__popover--visible');
+        }
+      });
+    };
+
+    const initialize = (callout) => {
+      if (!callout || instances.has(callout)) return;
+
+      const controller = new AbortController();
+      const state = {
+        callout,
+        controller,
+        active: null,
+        closing: new Map(),
+        positionFrame: null,
+        resizeObserver: null,
+        hotspotBehavior: callout.closest('[data-product-callout-hotspot-behavior]')?.dataset.productCalloutHotspotBehavior === 'hover' ? 'hover' : 'click',
+        toggleOnClick: true,
+      };
+      instances.set(callout, state);
+
+      const schedulePosition = () => {
+        if (!state.active || state.positionFrame !== null) return;
+
+        state.positionFrame = window.requestAnimationFrame(() => {
+          state.positionFrame = null;
+          if (state.active) positionPopover(state, state.active);
+        });
+      };
+
+      window.addEventListener('resize', schedulePosition, { signal: controller.signal });
+
+      const closeForScroll = () => {
+        if (state.active) closeActive(state, false, true);
+      };
+
+      window.addEventListener('scroll', closeForScroll, { passive: true, signal: controller.signal });
+      document.addEventListener('scroll', closeForScroll, { capture: true, passive: true, signal: controller.signal });
+
+      if (typeof window.ResizeObserver === 'function') {
+        state.resizeObserver = new window.ResizeObserver(schedulePosition);
+        state.resizeObserver.observe(callout);
+        callout.querySelectorAll('[data-product-callout-popover]').forEach((popover) => state.resizeObserver.observe(popover));
+      }
+
+      const openForHover = (event) => {
+        if (state.hotspotBehavior !== 'hover' || event.pointerType === 'touch') return;
+        const trigger = event.currentTarget.querySelector('[data-product-callout-hotspot]');
+        if (!trigger) return;
+
+        state.toggleOnClick = false;
+        openPopover(state, trigger);
+        state.toggleOnClick = true;
+      };
+
+      const closeForHover = (event) => {
+        if (state.hotspotBehavior !== 'hover') return;
+        const nextTarget = event.relatedTarget;
+        if (nextTarget instanceof Node && callout.contains(nextTarget)) return;
+        closeActive(state);
+      };
+
+      const openForFocus = (event) => {
+        if (state.hotspotBehavior !== 'hover' || event.target !== event.currentTarget.querySelector('[data-product-callout-hotspot]')) return;
+
+        state.toggleOnClick = false;
+        openPopover(state, event.target);
+        state.toggleOnClick = true;
+      };
+
+      const closeForFocus = (event) => {
+        if (state.hotspotBehavior !== 'hover') return;
+        const nextTarget = event.relatedTarget;
+        if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+        if (state.active?.wrapper === event.currentTarget) closeActive(state);
+      };
+
+      callout.querySelectorAll('[data-product-callout-hotspot-wrap]').forEach((wrapper) => {
+        wrapper.addEventListener('pointerenter', openForHover, { signal: controller.signal });
+        wrapper.addEventListener('focusin', openForFocus, { signal: controller.signal });
+        wrapper.addEventListener('focusout', closeForFocus, { signal: controller.signal });
+      });
+
+      callout.addEventListener('pointerleave', closeForHover, { signal: controller.signal });
+
+      if (callout.hasAttribute('data-hotspot-gallery-item')) {
+        callout.addEventListener('shopify:block:select', () => {
+          const trigger = callout.querySelector('[data-product-callout-hotspot]');
+          if (!trigger) return;
+          state.toggleOnClick = false;
+          openPopover(state, trigger);
+          state.toggleOnClick = true;
+        }, { signal: controller.signal });
+        callout.addEventListener('shopify:block:deselect', () => closeActive(state, false, true), { signal: controller.signal });
+      }
+
+      callout.addEventListener(
+        'click',
+        (event) => {
+          const trigger = event.target.closest?.('[data-product-callout-hotspot]');
+          if (!trigger || !callout.contains(trigger)) {
+            const clickedPopover = event.target instanceof Node && state.active?.popover.contains(event.target);
+            if (!clickedPopover) closeActive(state);
+            return;
+          }
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+          event.preventDefault();
+          state.toggleOnClick = true;
+          openPopover(state, trigger);
+        },
+        { signal: controller.signal },
+      );
+
+      document.addEventListener(
+        'click',
+        (event) => {
+          if (state.active && !callout.contains(event.target)) closeActive(state);
+        },
+        { signal: controller.signal },
+      );
+
+      document.addEventListener(
+        'keydown',
+        (event) => {
+          if (event.key !== 'Escape' || !state.active) return;
+          event.preventDefault();
+          closeActive(state, true);
+        },
+        { signal: controller.signal },
+      );
+
+      document.addEventListener(
+        'theme:carousel:slidechange',
+        (event) => {
+          const carouselRoot = event.detail?.root;
+          if (!carouselRoot?.contains?.(callout)) return;
+          closeActive(state, false, true);
+        },
+        { signal: controller.signal },
+      );
+    };
+
+    const destroy = (callout) => {
+      const state = instances.get(callout);
+      if (!state) return;
+      if (state.positionFrame !== null) window.cancelAnimationFrame(state.positionFrame);
+      state.positionFrame = null;
+      state.resizeObserver?.disconnect();
+      closeActive(state, false, true);
+      state.closing.forEach((closing, popover) => {
+        clearTimeout(closing.timer);
+        popover.hidden = true;
+        clearPopoverPosition(popover);
+        popover.classList.remove('product-callout__popover--visible');
+        closing.record.wrapper.classList.remove('product-callout__hotspot-wrap--closing');
+      });
+      state.closing.clear();
+      callout.querySelectorAll('[data-product-callout-popover]').forEach(clearPopoverPosition);
+      state.controller.abort();
+      instances.delete(callout);
+    };
+
+    const initializeRoot = (root = document) => {
+      if (root.matches?.('[data-product-callout]')) initialize(root);
+      root.querySelectorAll?.('[data-product-callout]').forEach(initialize);
+    };
+
+    const destroyRoot = (root) => {
+      if (root.matches?.('[data-product-callout]')) destroy(root);
+      root.querySelectorAll?.('[data-product-callout]').forEach(destroy);
+    };
+
+    document.addEventListener('shopify:section:load', (event) => initializeRoot(event.target));
+    document.addEventListener('shopify:section:unload', (event) => destroyRoot(event.target));
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => initializeRoot(), { once: true });
+    } else {
+      initializeRoot();
+    }
+  })();
+{% endjavascript %}

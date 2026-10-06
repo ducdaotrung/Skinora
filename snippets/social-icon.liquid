@@ -1,0 +1,27 @@
+{% doc %}
+  Renders a decorative social brand icon in currentColor. The social-links
+  snippet owns its accessible link name and the icon's dimensions.
+
+  @param {string} icon - facebook, instagram, tiktok, youtube, pinterest, x, or linkedin.
+{% enddoc %}
+
+<svg class="social-links__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+  {% case icon %}
+    {% when 'facebook' %}
+      <path d="M13.5 22v-9h3l.5-3.5h-3.5V7.3c0-1 .3-1.8 1.8-1.8H17V2.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.9H7.5V13h2.8v9z" />
+    {% when 'instagram' %}
+      <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2" />
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2" />
+      <circle cx="17.5" cy="6.5" r="1.2" />
+    {% when 'tiktok' %}
+      <path d="M16.6 2h-3.3v13.5a3 3 0 1 1-2.6-3v-3.4a6.4 6.4 0 1 0 5.9 6.4V8.8a8.4 8.4 0 0 0 4.9 1.6V7.1A5.4 5.4 0 0 1 16.6 2z" />
+    {% when 'youtube' %}
+      <path d="M21.6 6.4c-.2-.9-.9-1.6-1.8-1.8C18.2 4.2 12 4.2 12 4.2s-6.2 0-7.8.4c-.9.2-1.6.9-1.8 1.8C2 8 2 12 2 12s0 4 .4 5.6c.2.9.9 1.6 1.8 1.8 1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4c.9-.2 1.6-.9 1.8-1.8C22 16 22 12 22 12s0-4-.4-5.6ZM10 15.5v-7l6 3.5z" />
+    {% when 'pinterest' %}
+      <path d="M12 2a10 10 0 0 0-3.6 19.3c0-.8 0-1.8.2-2.7l1.3-5.5s-.3-.6-.3-1.5c0-1.4.8-2.4 1.8-2.4.9 0 1.3.7 1.3 1.5 0 .9-.6 2.2-.9 3.5-.3 1.1.5 2 1.6 2 1.9 0 3.3-2 3.3-4.8 0-2.5-1.8-4.2-4.3-4.2-3 0-4.8 2.2-4.8 4.5 0 .9.4 1.9.8 2.4l-.3 1.2c0 .2-.2.3-.4.2-1.3-.6-2.1-2.3-2.1-3.8 0-3.1 2.2-6 6.5-6 3.4 0 6 2.4 6 5.6 0 3.4-2.2 6.2-5.2 6.2-1 0-2-.5-2.4-1.1l-.7 2.7c-.3 1-.9 2.1-1.3 2.9A10 10 0 1 0 12 2z" />
+    {% when 'x' %}
+      <path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.6 5.5 22H2.3l7.4-8.5L1.8 2h6.5l4.5 6.8L18.9 2ZM17.4 20h1.8L7.3 4H5.4z" />
+    {% when 'linkedin' %}
+      <path d="M5.2 7.1a2.1 2.1 0 1 0 0-4.2 2.1 2.1 0 0 0 0 4.2ZM3.4 9h3.6v12H3.4V9Zm5.8 0h3.5v1.6c.5-.9 1.6-1.9 3.4-1.9 3.6 0 4.3 2.4 4.3 5.5V21h-3.6v-6c0-1.4 0-3.2-1.9-3.2s-2.1 1.5-2.1 3.1V21H9.2V9Z" />
+  {% endcase %}
+</svg>

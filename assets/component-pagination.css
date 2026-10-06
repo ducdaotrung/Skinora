@@ -1,0 +1,161 @@
+/* Shared pagination styles extracted from the collection component. */
+  .theme-pagination {
+    --pagination-control-height: var(--collection-control-size, var(--button-height, 44px));
+    display: flex;
+    min-height: 88px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-block: var(--pagination-padding-top, 40px) var(--pagination-padding-bottom, 0px);
+    padding-inline: var(--pagination-padding-left, 0px) var(--pagination-padding-right, 0px);
+  }
+
+  .theme-pagination :where(.page, .deco, .prev, .next) {
+    display: inline-flex;
+    min-width: 24px;
+    min-height: var(--pagination-control-height);
+    height: var(--pagination-control-height);
+    align-items: center;
+    justify-content: center;
+    color: var(--body-color);
+  }
+
+  .theme-pagination .page {
+    width: var(--pagination-control-height);
+    flex: 0 0 var(--pagination-control-height);
+  }
+
+  .theme-pagination :where(.page, .prev, .next) a {
+    display: inline-flex;
+    min-width: 24px;
+    min-height: var(--pagination-control-height);
+    height: var(--pagination-control-height);
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .theme-pagination .page a {
+    width: 100%;
+    padding-inline: 4px;
+    transition:
+      background-color var(--button-motion-duration, var(--motion-duration-standard)) var(--button-motion-ease, var(--motion-ease-standard)),
+      border-color var(--button-motion-duration, var(--motion-duration-standard)) var(--button-motion-ease, var(--motion-ease-standard)),
+      color var(--button-motion-duration, var(--motion-duration-standard)) var(--button-motion-ease, var(--motion-ease-standard));
+  }
+
+  .theme-pagination .page.current {
+    min-height: var(--pagination-control-height);
+    padding-inline: 4px;
+    color: var(--heading-color);
+    box-shadow: inset 0 -2px currentColor;
+  }
+
+  .theme-pagination :where(.prev, .next) a {
+    gap: 8px;
+    padding-inline: 12px;
+    color: var(--button-tertiary-text, var(--heading-color));
+    --link-underline-offset: calc(var(--button-tertiary-underline-offset, 4px) * -1);
+    --link-underline-display: var(--button-tertiary-underline-display, block);
+    --link-underline-duration: var(--motion-duration-fast);
+    --link-underline-hover-duration: calc(var(--button-motion-duration, var(--motion-duration-standard)) * 1.5);
+  }
+
+  .theme-pagination :where(.prev, .next) a:hover { color: var(--button-tertiary-hover-text, var(--button-tertiary-text, var(--heading-color))); }
+
+  .theme-pagination [data-collection-load-more] {
+    display: inline-flex;
+    min-height: var(--pagination-control-height);
+    align-items: center;
+  }
+
+  .theme-pagination[data-style='primary'] .page.current {
+    border: var(--button-primary-border-width, 1px) solid var(--button-primary-border, transparent);
+    border-radius: var(--button-radius, 0);
+    background: var(--button-primary-background);
+    color: var(--button-primary-text);
+    box-shadow: none;
+  }
+
+  .theme-pagination[data-style='secondary'] .page.current {
+    border: var(--button-secondary-border-width, 1px) solid var(--button-secondary-border, transparent);
+    border-radius: var(--button-radius, 0);
+    background: var(--button-secondary-background);
+    color: var(--button-secondary-text);
+    box-shadow: none;
+  }
+
+  .theme-pagination[data-style='tertiary'] .page.current {
+    border: var(--button-tertiary-border-width, 0) solid var(--button-tertiary-border, transparent);
+    border-radius: 0;
+    background: var(--button-tertiary-background, transparent);
+    color: var(--button-tertiary-text, var(--heading-color));
+    text-decoration: underline;
+    text-underline-offset: var(--button-tertiary-underline-offset, 4px);
+    box-shadow: none;
+  }
+
+  .theme-pagination[data-style='outline'] .page.current {
+    border: max(1px, var(--button-secondary-border-width, 1px)) solid var(--button-secondary-border, var(--border-color));
+    border-radius: var(--button-radius, 0);
+    background: transparent;
+    color: var(--button-secondary-text, var(--heading-color));
+    box-shadow: none;
+  }
+
+  .theme-pagination[data-style='outline'] [data-collection-load-more] {
+    --button-border-width: max(1px, var(--button-secondary-border-width));
+    --button-background: transparent;
+    --button-foreground: var(--button-secondary-text);
+    --button-border: var(--button-secondary-border);
+    --button-hover-background: transparent;
+  }
+
+  .theme-pagination[data-style='primary'] .page a:hover {
+    border: var(--button-primary-border-width, 1px) solid var(--button-primary-hover-border, var(--button-primary-border, transparent));
+    border-radius: var(--button-radius, 0);
+    background: var(--button-primary-hover-background);
+    color: var(--button-primary-hover-text);
+  }
+
+  .theme-pagination[data-style='secondary'] .page a:hover {
+    border: var(--button-secondary-border-width, 1px) solid var(--button-secondary-hover-border, var(--button-secondary-border, transparent));
+    border-radius: var(--button-radius, 0);
+    background: var(--button-secondary-hover-background);
+    color: var(--button-secondary-hover-text);
+  }
+
+  .theme-pagination[data-style='tertiary'] .page a:hover {
+    background: var(--button-tertiary-hover-background, transparent);
+    color: var(--button-tertiary-hover-text, var(--button-tertiary-text, var(--heading-color)));
+    text-decoration: underline;
+    text-underline-offset: var(--button-tertiary-underline-offset, 4px);
+  }
+
+  .theme-pagination[data-style='outline'] .page a:hover {
+    border: max(1px, var(--button-secondary-border-width, 1px)) solid var(--button-secondary-hover-border, var(--button-secondary-border, var(--border-color)));
+    border-radius: var(--button-radius, 0);
+    background: transparent;
+    color: var(--button-secondary-hover-text, var(--button-secondary-text, var(--heading-color)));
+  }
+
+  .theme-pagination-arrow {
+    width: 14px;
+    height: 14px;
+  }
+
+
+@media (max-width: 767.98px) {
+    .theme-pagination {
+      min-height: 72px;
+      --pagination-control-height: var(--collection-control-size, var(--button-height-mobile, var(--button-height, 44px)));
+      padding-block: var(--pagination-padding-top-mobile, var(--pagination-padding-top, 40px)) var(--pagination-padding-bottom-mobile, var(--pagination-padding-bottom, 0px));
+    }
+
+}
+.theme-pagination[data-height='extra_small'] { --pagination-control-height: 36px; }
+.theme-pagination[data-height='small'] { --pagination-control-height: 40px; }
+.theme-pagination[data-height='medium'] { --pagination-control-height: 48px; }
+.theme-pagination[data-height='large'] { --pagination-control-height: 56px; }
+.theme-pagination[data-height='extra_large'] { --pagination-control-height: 64px; }

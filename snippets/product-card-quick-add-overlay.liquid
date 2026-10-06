@@ -1,0 +1,81 @@
+{% doc %}
+  Renders the Product Card action that opens the Quick Add overlay for products
+  with more than one purchasable variant.
+
+  The action is intentionally a link so the product URL remains available as a
+  progressive enhancement. The overlay controller intercepts the click and
+  renders the product in the Quick Add section context.
+
+  @param {string} url - Product destination used by the overlay request
+  @param {string} label - Visible button label
+  @param {string} [product_title] - Product title used for the accessible name
+  @param {string} [style] - Button style: icon or text
+  @param {boolean} [full_width] - Whether the action fills its wrapper
+  @param {string} [color_scheme] - Color scheme class for the action
+  @param {string} [motion_speed] - Motion token: fast, standard, or slow
+
+  @example
+  {% render 'product-card-quick-add-overlay', url: product.url, label: 'Choose options', product_title: product.title %}
+{% enddoc %}
+
+{% liquid
+  assign quick_add_style = style | default: 'text'
+  unless quick_add_style == 'icon' or quick_add_style == 'text'
+    assign quick_add_style = 'text'
+  endunless
+
+  assign quick_add_motion_speed = motion_speed | default: 'standard'
+  case quick_add_motion_speed
+    when 'fast', 'slow'
+    when 'standard'
+    else
+      assign quick_add_motion_speed = 'standard'
+  endcase
+
+  assign quick_add_class = 'product-card__action product-card__quick-add product-card__action--motion-' | append: quick_add_motion_speed
+  if full_width != false
+    assign quick_add_class = quick_add_class | append: ' product-card__quick-add--full'
+  endif
+
+  assign quick_add_accessible_label = label
+  if product_title != blank
+    assign quick_add_accessible_label = label | append: ': ' | append: product_title
+  endif
+
+  capture quick_add_trigger_attributes
+    echo 'data-product-card-quick-add-overlay '
+    echo 'data-product-card-quick-add-url="'
+    echo url | escape
+    echo '" aria-haspopup="dialog" aria-expanded="false"'
+  endcapture
+  assign quick_add_trigger_attributes = quick_add_trigger_attributes | strip_newlines | strip
+%}
+
+<div class="{{ quick_add_class }}{% if color_scheme != blank %} {{ color_scheme }}{% endif %}" data-product-card-quick-add-overlay-wrapper>
+  {% if quick_add_style == 'icon' %}
+    {% render 'theme-button',
+      label: label,
+      url: url,
+      variant: 'primary',
+      aria_label: quick_add_accessible_label,
+      icon: 'cart',
+      icon_only: true,
+      loading_dots: true,
+      motion_speed: quick_add_motion_speed,
+      attributes: quick_add_trigger_attributes,
+      class: 'product-card__quick-add-button btn--icon'
+    %}
+  {% else %}
+    {% render 'theme-button',
+      label: label,
+      url: url,
+      variant: 'primary',
+      aria_label: quick_add_accessible_label,
+      icon: 'cart',
+      loading_dots: true,
+      motion_speed: quick_add_motion_speed,
+      attributes: quick_add_trigger_attributes,
+      class: 'product-card__quick-add-button product-card__quick-add-button--text'
+    %}
+  {% endif %}
+</div>

@@ -1,0 +1,164 @@
+{% doc %}
+  Resolves and renders product status and configured badges for a product card
+  or product details composition.
+
+  Sold-out status takes precedence over sale status. Collection rules and custom
+  badge tags are opt-in and only evaluated when the caller enables manual
+  badges. Empty labels and disabled badge states are omitted.
+
+  @param {product} product - Product represented by the card
+  @param {boolean} [show_sale_badge] - Whether sale status may be displayed
+  @param {boolean} [show_sold_out_badge] - Whether sold-out status may be displayed
+  @param {boolean} [show_manual_badges] - Whether configured badges may be displayed
+  @param {string} [context] - Rendering surface, product-card or product-page
+  @param {string} [attributes] - Attributes for the selectable block wrapper
+  @param {string} [sale_badge_type] - Optional resolved sale badge format
+
+  @example
+  {% render 'product-badges', product: product, show_sale_badge: true, show_sold_out_badge: true %}
+{% enddoc %}
+
+{% liquid
+  assign sold_out_label = 'products.sold_out' | t
+  assign sale_label = blank
+  assign sale_status = false
+  assign show_manual_badges = show_manual_badges | default: false
+  assign resolved_sale_badge_type = sale_badge_type | default: settings.badge_sale_type | default: 'text'
+  if product != blank and product.compare_at_price_max > product.price
+    assign sale_status = true
+    assign sale_discount = product.compare_at_price_max | minus: product.price
+    assign sale_percentage = sale_discount | times: 100.0 | divided_by: product.compare_at_price_max | round
+    case resolved_sale_badge_type
+      when 'percentage'
+        assign sale_label = 'products.sale_percentage' | t: percentage: sale_percentage
+      when 'percentage_only'
+        assign sale_label = 'products.sale_percentage_only' | t: percentage: sale_percentage
+      when 'amount_saved'
+        assign sale_amount = sale_discount | money
+        assign sale_label = 'products.sale_amount_saved' | t: amount: sale_amount
+      else
+        assign sale_label = 'products.sale' | t
+    endcase
+  endif
+
+  assign sold_out_status = false
+  if product != blank and product.available == false
+    assign sold_out_status = true
+  endif
+
+  assign collection_rule_1_visible = false
+  assign collection_rule_2_visible = false
+  assign collection_rule_3_visible = false
+  if show_manual_badges and product != blank
+    if settings.badge_collection_label_1 != blank and settings.badge_collection_list_1 != blank
+      for configured_collection in settings.badge_collection_list_1
+        for product_collection in product.collections
+          if product_collection.id == configured_collection.id or product_collection.handle == configured_collection.handle
+            assign collection_rule_1_visible = true
+            break
+          endif
+        endfor
+        if collection_rule_1_visible
+          break
+        endif
+      endfor
+    endif
+    if settings.badge_collection_label_2 != blank and settings.badge_collection_list_2 != blank
+      for configured_collection in settings.badge_collection_list_2
+        for product_collection in product.collections
+          if product_collection.id == configured_collection.id or product_collection.handle == configured_collection.handle
+            assign collection_rule_2_visible = true
+            break
+          endif
+        endfor
+        if collection_rule_2_visible
+          break
+        endif
+      endfor
+    endif
+    if settings.badge_collection_label_3 != blank and settings.badge_collection_list_3 != blank
+      for configured_collection in settings.badge_collection_list_3
+        for product_collection in product.collections
+          if product_collection.id == configured_collection.id or product_collection.handle == configured_collection.handle
+            assign collection_rule_3_visible = true
+            break
+          endif
+        endfor
+        if collection_rule_3_visible
+          break
+        endif
+      endfor
+    endif
+  endif
+
+  assign custom_tag_badges_visible = false
+  if show_manual_badges and settings.badge_custom_enabled and product != blank
+    for product_tag in product.tags limit: 12
+      assign clean_product_tag = product_tag | strip
+      assign normalized_tag = clean_product_tag | downcase
+      assign tag_prefix = normalized_tag | slice: 0, 6
+      if tag_prefix == 'badge:'
+        assign custom_tag_label = clean_product_tag | slice: 6, 255 | strip
+        if custom_tag_label != blank
+          assign custom_tag_badges_visible = true
+          break
+        endif
+      endif
+    endfor
+  endif
+
+  assign has_visible_badge = false
+  if sold_out_status and show_sold_out_badge != false
+    assign has_visible_badge = true
+  elsif sale_status and show_sale_badge != false
+    assign has_visible_badge = true
+  elsif collection_rule_1_visible or collection_rule_2_visible or collection_rule_3_visible or custom_tag_badges_visible
+    assign has_visible_badge = true
+  endif
+%}
+
+{% if has_visible_badge %}
+  {% assign badges_class = 'product-card__badges' %}
+  {% if context == 'product-page' %}
+    {% assign badges_class = 'product-badges' %}
+  {% endif %}
+  <div class="{{ badges_class }}"{% if attributes != blank %} {{ attributes }}{% endif %}>
+    {% if sold_out_status and show_sold_out_badge != false %}
+      {% render 'badge', text: sold_out_label, tone: 'sold-out' %}
+    {% elsif sale_status and show_sale_badge != false %}
+      {% render 'badge', text: sale_label, tone: 'sale' %}
+    {% endif %}
+    {% if collection_rule_1_visible %}
+      {% render 'badge', text: settings.badge_collection_label_1, tone: 'manual' %}
+    {% endif %}
+    {% if collection_rule_2_visible %}
+      {% render 'badge', text: settings.badge_collection_label_2, tone: 'manual' %}
+    {% endif %}
+    {% if collection_rule_3_visible %}
+      {% render 'badge', text: settings.badge_collection_label_3, tone: 'manual' %}
+    {% endif %}
+    {% if custom_tag_badges_visible %}
+      {% assign rendered_manual_labels = '|' %}
+      {% assign manual_tag_count = 0 %}
+      {% for product_tag in product.tags limit: 12 %}
+        {% if manual_tag_count < 3 %}
+          {% assign clean_product_tag = product_tag | strip %}
+          {% assign normalized_tag = clean_product_tag | downcase %}
+          {% assign tag_prefix = normalized_tag | slice: 0, 6 %}
+          {% if tag_prefix == 'badge:' %}
+            {% assign custom_tag_label = clean_product_tag | slice: 6, 255 | strip %}
+            {% assign normalized_label = custom_tag_label | downcase %}
+            {% assign manual_label_token = '|' | append: normalized_label | append: '|' %}
+            {% unless rendered_manual_labels contains manual_label_token %}
+              {% if custom_tag_label != blank and normalized_label != blank %}
+                {% render 'badge', text: custom_tag_label, tone: 'manual' %}
+                {% assign rendered_manual_labels = rendered_manual_labels | append: normalized_label | append: '|' %}
+                {% assign manual_tag_count = manual_tag_count | plus: 1 %}
+              {% endif %}
+            {% endunless %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </div>
+{% endif %}

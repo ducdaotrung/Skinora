@@ -1,0 +1,1258 @@
+{% doc %}
+  Renders the fixed-carousel timeline list. This list accepts Timeline Slide
+  blocks only and reuses the shared Swiper viewport and navigation controls.
+{% enddoc %}
+
+{% liquid
+  assign timeline_list_items = block.blocks | default: empty
+  assign timeline_list_count = timeline_list_items.size
+  assign timeline_list_carousel_id = 'TimelineCarousel-' | append: section.id | append: '-' | append: block.id
+  assign timeline_list_aria_label = 'timeline.carousel_label' | t
+  assign timeline_list_navigation_label = 'timeline.navigation_label' | t
+  assign timeline_list_label_template = 'timeline.show_milestone' | t: year: '__TIMELINE_YEAR__'
+  assign timeline_list_previous_label = 'timeline.previous' | t
+  assign timeline_list_next_label = 'timeline.next' | t
+
+  assign timeline_list_gap_desktop = block.settings.gap_desktop | default: 16 | plus: 0
+  if timeline_list_gap_desktop < 0 or timeline_list_gap_desktop > 100
+    assign timeline_list_gap_desktop = 16
+  endif
+  assign timeline_list_gap_mobile = block.settings.gap_mobile | default: 12 | plus: 0
+  if timeline_list_gap_mobile < 0 or timeline_list_gap_mobile > 100
+    assign timeline_list_gap_mobile = 12
+  endif
+  assign timeline_list_controls_spacing_desktop = block.settings.controls_spacing_desktop | default: 32 | plus: 0
+  assign timeline_list_controls_spacing_mobile = block.settings.controls_spacing_mobile | default: 24 | plus: 0
+  if timeline_list_controls_spacing_mobile > 40
+    assign timeline_list_controls_spacing_mobile = 40
+  endif
+
+  assign timeline_list_preview = false
+  if block.settings.show_next_slide_preview
+    assign timeline_list_preview = true
+  endif
+
+  assign timeline_list_transition = block.settings.transition_style | default: 'slide'
+  unless timeline_list_transition == 'slide' or timeline_list_transition == 'fade'
+    assign timeline_list_transition = 'slide'
+  endunless
+  assign timeline_list_pagination_style = block.settings.pagination_style | default: 'dots_with_progress'
+  case timeline_list_pagination_style
+    when 'timeline'
+      assign timeline_list_pagination_style = 'dots_with_progress'
+    when 'text'
+      assign timeline_list_pagination_style = 'tabs'
+    when 'progress_bar'
+      assign timeline_list_pagination_style = 'progress'
+    when 'sliding_progress_bar'
+      assign timeline_list_pagination_style = 'progress_slider'
+    when 'inline_tabs'
+      assign timeline_list_pagination_style = 'tabs'
+  endcase
+  unless timeline_list_pagination_style == 'dots' or timeline_list_pagination_style == 'dots_with_progress' or timeline_list_pagination_style == 'progress' or timeline_list_pagination_style == 'progress_slider' or timeline_list_pagination_style == 'tabs'
+    assign timeline_list_pagination_style = 'dots_with_progress'
+  endunless
+  assign timeline_list_pagination_class = timeline_list_pagination_style | replace: '_', '-'
+  assign timeline_list_navigation_position = block.settings.navigation_position | default: 'outside'
+  unless timeline_list_navigation_position == 'outside' or timeline_list_navigation_position == 'inside'
+    assign timeline_list_navigation_position = 'outside'
+  endunless
+  assign timeline_list_navigation_centered = false
+  if timeline_list_navigation_position == 'inside'
+    assign timeline_list_navigation_centered = true
+  endif
+  assign timeline_list_navigation_behavior = 'always'
+  if timeline_list_navigation_position == 'inside' and block.settings.navigation_behavior == 'show_on_hover'
+    assign timeline_list_navigation_behavior = 'show_on_hover'
+  endif
+  assign timeline_list_navigation_style = block.settings.navigation_style | default: 'secondary'
+  unless timeline_list_navigation_style == 'primary' or timeline_list_navigation_style == 'secondary' or timeline_list_navigation_style == 'outline' or timeline_list_navigation_style == 'icon_only'
+    assign timeline_list_navigation_style = 'secondary'
+  endunless
+  assign timeline_list_navigation_icon = block.settings.navigation_icon | default: 'chevron'
+  unless timeline_list_navigation_icon == 'chevron' or timeline_list_navigation_icon == 'arrow' or timeline_list_navigation_icon == 'long_arrow'
+    assign timeline_list_navigation_icon = 'chevron'
+  endunless
+  assign timeline_list_position = block.settings.position | default: 'bottom'
+  unless timeline_list_position == 'left' or timeline_list_position == 'top' or timeline_list_position == 'bottom'
+    assign timeline_list_position = 'bottom'
+  endunless
+
+  assign timeline_list_navigation_desktop = false
+  if block.settings.show_navigation_on_desktop
+    assign timeline_list_navigation_desktop = true
+  endif
+  assign timeline_list_show_navigation = timeline_list_navigation_desktop
+
+  capture timeline_list_style
+    echo '--timeline-list-controls-spacing-desktop: ' | append: timeline_list_controls_spacing_desktop | append: 'px;'
+    echo '--timeline-list-controls-spacing-mobile: ' | append: timeline_list_controls_spacing_mobile | append: 'px;'
+    if block.settings.active_color != blank
+      echo '--timeline-list-active-color: ' | append: block.settings.active_color | append: ';'
+    endif
+    if block.settings.inactive_color != blank
+      echo '--timeline-list-inactive-color: ' | append: block.settings.inactive_color | append: ';'
+    endif
+  endcapture
+%}
+
+<link rel="stylesheet" href="{{ 'swiper-12.2.0-effect-fade.min.css' | asset_url }}" media="print" onload="this.media='all'">
+<noscript>{{ 'swiper-12.2.0-effect-fade.min.css' | asset_url | stylesheet_tag }}</noscript>
+{% unless request.design_mode %}
+  <script type="module" src="{{ 'timeline-list.js' | asset_url }}"></script>
+{% endunless %}
+
+<div
+  class="timeline-list"
+  data-timeline-list
+  data-timeline-position="{{ timeline_list_position }}"
+  data-timeline-gap-desktop="{{ timeline_list_gap_desktop }}"
+  data-timeline-gap-mobile="{{ timeline_list_gap_mobile }}"
+  data-timeline-preview-desktop="{{ timeline_list_preview }}"
+  data-timeline-preview-mobile="{{ timeline_list_preview }}"
+  data-timeline-transition="{{ timeline_list_transition }}"
+  data-timeline-navigation-desktop="{{ timeline_list_navigation_desktop }}"
+  style="{{ timeline_list_style | strip | escape }}"
+  {{ block.shopify_attributes }}
+>
+  {% if timeline_list_count > 0 %}
+    {% capture timeline_list_slides %}{% content_for 'blocks' %}{% endcapture %}
+    {% capture timeline_list_arrows %}
+      {% render 'swiper-navigation',
+        show: timeline_list_show_navigation,
+        position: timeline_list_navigation_position,
+        style: timeline_list_navigation_style,
+        icon: timeline_list_navigation_icon,
+        behavior: timeline_list_navigation_behavior,
+        centered: timeline_list_navigation_centered,
+        wrapper_class: 'timeline-list__arrows',
+        wrapper_attributes: 'data-timeline-arrows hidden',
+        previous_attribute: 'data-timeline-previous',
+        next_attribute: 'data-timeline-next',
+        previous_label: timeline_list_previous_label,
+        next_label: timeline_list_next_label
+      %}
+    {% endcapture %}
+    {% if timeline_list_navigation_position == 'inside' %}<div class="timeline-list__media swiper-carousel__container">{% endif %}
+    {% render 'swiper-carousel',
+      id: timeline_list_carousel_id,
+      content: timeline_list_slides,
+      root_class: 'timeline-list__viewport',
+      root_attributes: 'data-timeline-carousel',
+      aria_label: timeline_list_aria_label,
+      show_next_slide_preview: timeline_list_preview,
+      show_next_slide_preview_on_mobile: timeline_list_preview
+    %}
+    {% if timeline_list_navigation_position == 'inside' %}
+      {{ timeline_list_arrows }}
+    </div>{% endif %}
+
+    <div class="timeline-list__controls" data-timeline-controls hidden>
+      <nav
+        class="timeline-list__navigation timeline-list__navigation--{{ timeline_list_pagination_class }} scrollbar{% if timeline_list_position == 'left' %} scrollbar--vertical{% else %} scrollbar--horizontal scrollbar--hidden-mobile{% endif %}"
+        aria-label="{{ timeline_list_navigation_label | escape }}"
+        data-timeline-navigation
+        data-timeline-label-template="{{ timeline_list_label_template | escape }}"
+        hidden
+      >
+        <ol class="timeline-list__navigation-list" data-timeline-navigation-list></ol>
+      </nav>
+      {% if timeline_list_navigation_position == 'outside' %}{{ timeline_list_arrows }}{% endif %}
+    </div>
+  {% elsif request.design_mode %}
+    <p class="timeline-list__empty">{{ 'timeline.add_milestone' | t | escape }}</p>
+  {% endif %}
+</div>
+
+{% stylesheet %}
+  .timeline-list {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .timeline-list__viewport {
+    width: 100%;
+    min-width: 0;
+  }
+
+  @media (min-width: 768px) {
+    .timeline-list[data-timeline-position='left']
+      .timeline-list__viewport[data-swiper-next-slide-preview='true'] {
+      clip-path: inset(0 calc(-1 * var(--swiper-carousel-preview-size)) 0 0);
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .timeline-list[data-timeline-position='left']
+      .timeline-list__viewport[data-swiper-next-slide-preview-mobile='true'] {
+      clip-path: inset(0 calc(-1 * var(--swiper-carousel-preview-size)) 0 0);
+    }
+  }
+
+  /* Fade owns each slide's opacity and transform instead of the entrance animation. */
+  .timeline-list__viewport.swiper-fade > .swiper-wrapper > .carousel-slide {
+    animation: none;
+  }
+
+  .timeline-list__media {
+    position: relative;
+    min-width: 0;
+  }
+
+  .timeline-list__viewport:not(.swiper-initialized) {
+    overflow: visible;
+  }
+
+  .timeline-list__viewport:not(.swiper-initialized) > .swiper-wrapper {
+    display: flex;
+    flex-direction: column;
+    transform: none !important;
+  }
+
+  .timeline-list__viewport:not(.swiper-initialized) > .swiper-wrapper > .carousel-slide {
+    width: 100% !important;
+  }
+
+  .timeline-list__controls {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 16px;
+    margin-block-start: var(--timeline-list-controls-spacing-desktop, 32px);
+  }
+
+  .timeline-list__controls[hidden] {
+    display: none !important;
+  }
+
+  .timeline-list__navigation {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .timeline-list__navigation[hidden],
+  .timeline-list__arrows[hidden] {
+    display: none !important;
+  }
+
+  .timeline-list__navigation-list {
+    position: relative;
+    display: flex;
+    align-items: start;
+    width: 100%;
+    min-width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .timeline-list__navigation-list::before,
+  .timeline-list__navigation-list::after {
+    position: absolute;
+    top: 6px;
+    left: var(--timeline-list-track-start, 0px);
+    width: var(--timeline-list-track-length, 100%);
+    height: 1px;
+    content: '';
+    pointer-events: none;
+  }
+
+  .timeline-list__navigation-list::before {
+    background-color: var(--timeline-list-inactive-color, var(--border-color));
+  }
+
+  .timeline-list__navigation-list::after {
+    background-color: var(--timeline-list-active-color, var(--heading-color));
+    width: var(--timeline-list-progress-length, 0px);
+    transition:
+      left var(--motion-duration-standard, 300ms) var(--motion-ease-standard, ease),
+      top var(--motion-duration-standard, 300ms) var(--motion-ease-standard, ease),
+      width var(--motion-duration-slow, 420ms) var(--motion-ease-standard, ease),
+      height var(--motion-duration-slow, 420ms) var(--motion-ease-standard, ease);
+  }
+
+  .timeline-list__navigation-item {
+    position: relative;
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .timeline-list__control {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 0 0 4px;
+    border: 0;
+    border-radius: var(--navigation-radius, var(--radius-square));
+    background: transparent;
+    color: var(--timeline-list-inactive-color, var(--accent-color));
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .timeline-list__control::before {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 12px;
+    height: 12px;
+    flex: 0 0 12px;
+    border: 1px solid var(--timeline-list-inactive-color, var(--border-color));
+    border-radius: 50%;
+    background-color: var(--background-color);
+    content: '';
+  }
+
+  .timeline-list__control.is-active {
+    color: var(--timeline-list-active-color, var(--heading-color));
+  }
+
+  .timeline-list__control.is-active::before {
+    border-color: var(--timeline-list-active-color, var(--heading-color));
+    background-color: var(--timeline-list-active-color, var(--heading-color));
+  }
+
+  .timeline-list__control:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  .timeline-list__control > span {
+    color: inherit;
+  }
+
+  .timeline-list__navigation--dots .timeline-list__navigation-list::after,
+  .timeline-list__navigation--tabs .timeline-list__navigation-list::before,
+  .timeline-list__navigation--progress .timeline-list__control::before,
+  .timeline-list__navigation--progress-slider .timeline-list__control::before,
+  .timeline-list__navigation--tabs .timeline-list__control::before {
+    display: none;
+    content: none;
+  }
+
+  .timeline-list__navigation--progress .timeline-list__navigation-list::before,
+  .timeline-list__navigation--progress .timeline-list__navigation-list::after {
+    top: 0;
+    right: auto;
+    left: var(--timeline-list-track-start, 0px);
+  }
+
+  .timeline-list__navigation--progress .timeline-list__control {
+    min-height: 44px;
+    gap: 0;
+    padding: 12px 8px 4px;
+  }
+
+  .timeline-list__navigation--progress-slider .timeline-list__navigation-list::before,
+  .timeline-list__navigation--progress-slider .timeline-list__navigation-list::after {
+    top: 0;
+    right: auto;
+    bottom: auto;
+    left: 0;
+    width: 100%;
+  }
+
+  .timeline-list__navigation--progress-slider .timeline-list__navigation-list::after {
+    transform: translate3d(var(--timeline-list-slider-start, 0px), 0, 0);
+    width: var(--timeline-list-slider-length, 0px);
+    transition:
+      transform var(--motion-duration-standard, 300ms) var(--motion-ease-standard, ease),
+      width var(--motion-duration-standard, 300ms) var(--motion-ease-standard, ease),
+      height var(--motion-duration-standard, 300ms) var(--motion-ease-standard, ease);
+  }
+
+  .timeline-list__navigation--progress-slider .timeline-list__control {
+    min-height: 44px;
+    justify-content: center;
+    gap: 0;
+    padding: 12px 8px 4px;
+  }
+
+  .timeline-list__navigation--tabs .timeline-list__navigation-list::after {
+    top: 0;
+    right: auto;
+    bottom: auto;
+    left: 0;
+    width: var(--timeline-list-tab-length, 0px);
+    height: 1px;
+    transition:
+      transform var(--motion-duration-fast, 180ms) var(--motion-ease-standard, ease),
+      width var(--motion-duration-fast, 180ms) var(--motion-ease-standard, ease);
+    transform: translate3d(var(--timeline-list-tab-start, 0px), var(--timeline-list-tab-top, 0px), 0);
+  }
+
+  .timeline-list__navigation--tabs .timeline-list__control {
+    min-height: 44px;
+    justify-content: center;
+    gap: 0;
+    padding: 8px 12px 12px;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .timeline-list__navigation--tabs .timeline-list__control.is-active {
+    color: var(--timeline-list-active-color, var(--heading-color));
+  }
+
+  .timeline-list__navigation--tabs .timeline-list__navigation-list {
+    align-items: stretch;
+  }
+
+  .timeline-list[data-timeline-position='top'] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .timeline-list[data-timeline-position='top'] .timeline-list__controls {
+    order: -1;
+    margin-block: 0 var(--timeline-list-controls-spacing-desktop, 32px);
+  }
+
+  .timeline-list[data-timeline-position='left'] {
+    display: grid;
+    grid-template-columns: fit-content(12rem) minmax(0, 1fr);
+    align-items: stretch;
+    column-gap: var(--timeline-list-controls-spacing-desktop, 32px);
+  }
+
+  .timeline-list[data-timeline-position='left'] > .timeline-list__viewport,
+  .timeline-list[data-timeline-position='left'] > .timeline-list__media {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__controls {
+    grid-column: 1;
+    grid-row: 1;
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0;
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation-list {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
+    grid-auto-rows: minmax(44px, 1fr);
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation-list::before,
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation-list::after {
+    top: var(--timeline-list-track-start, 0px);
+    bottom: auto;
+    left: 14px;
+    width: 1px;
+    height: var(--timeline-list-track-length, 100%);
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation-list::after {
+    height: var(--timeline-list-progress-length, 0px);
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation--progress-slider .timeline-list__navigation-list::before {
+    top: 0;
+    bottom: auto;
+    left: 14px;
+    width: 1px;
+    height: 100%;
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation--progress-slider .timeline-list__navigation-list::after {
+    top: 0;
+    bottom: auto;
+    left: 14px;
+    width: 1px;
+    height: var(--timeline-list-slider-length, 0px);
+    transform: translate3d(0, var(--timeline-list-slider-start, 0px), 0);
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation--tabs .timeline-list__navigation-list::after {
+    top: 0;
+    bottom: auto;
+    left: 0;
+    width: var(--timeline-list-tab-length, 0px);
+    height: 1px;
+    transform: translate3d(var(--timeline-list-tab-start, 0px), var(--timeline-list-tab-top, 0px), 0);
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__control {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 0 8px;
+    text-align: left;
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation--progress .timeline-list__control,
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation--progress-slider .timeline-list__control {
+    padding-left: 28px;
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__control > span {
+    min-width: 0;
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__navigation--tabs .timeline-list__control {
+    justify-content: flex-start;
+    padding: 8px 12px;
+  }
+
+  .timeline-list__arrows {
+    position: static;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .timeline-list[data-timeline-position='left'] .timeline-list__controls > .timeline-list__arrows {
+    justify-content: center;
+  }
+
+  .timeline-list__media > .timeline-list__arrows {
+    position: absolute;
+    z-index: 2;
+    inset: 50% 0 auto;
+    justify-content: space-between;
+    padding-inline: 0.5rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .timeline-list__media > .timeline-list__arrows .swiper-nav-button {
+    pointer-events: auto;
+  }
+
+  .timeline-list__media > .timeline-list__arrows .swiper-nav-button.swiper-button-disabled {
+    pointer-events: none;
+  }
+
+  .timeline-list__empty {
+    margin: 0;
+    color: var(--body-color);
+  }
+
+  @media (min-width: 768px) {
+    .timeline-list:not([data-timeline-position='left'])
+      .timeline-list__controls:has(> .timeline-list__arrows:not([hidden])):has(
+        .timeline-list__navigation:not(.timeline-list__navigation--tabs)
+      ) {
+      align-items: flex-start;
+    }
+
+    .timeline-list:not([data-timeline-position='left'])
+      .timeline-list__controls:has(> .timeline-list__arrows:not([hidden]))
+      .timeline-list__navigation:is(.timeline-list__navigation--dots, .timeline-list__navigation--dots-with-progress) {
+      padding-block-start: max(0px, calc(var(--timeline-list-arrow-height, var(--button-height, 44px)) * 0.5 - 6px));
+    }
+
+    .timeline-list:not([data-timeline-position='left'])
+      .timeline-list__controls:has(> .timeline-list__arrows:not([hidden]))
+      .timeline-list__navigation:is(.timeline-list__navigation--progress, .timeline-list__navigation--progress-slider) {
+      padding-block-start: calc(var(--timeline-list-arrow-height, var(--button-height, 44px)) * 0.5);
+    }
+
+    .timeline-list[data-timeline-navigation-desktop='false'] .timeline-list__arrows {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .timeline-list__controls {
+      gap: 8px;
+      margin-block-start: var(--timeline-list-controls-spacing-mobile, 24px);
+    }
+
+    .timeline-list:not([data-timeline-position='left']) .timeline-list__navigation {
+      max-width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .timeline-list:not([data-timeline-position='left']) .timeline-list__navigation-list {
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .timeline-list:not([data-timeline-position='left']) .timeline-list__navigation-item {
+      flex: 1 0 4.5rem;
+      min-width: 4.5rem;
+    }
+
+    .timeline-list__arrows {
+      display: none !important;
+    }
+
+    .timeline-list[data-timeline-position='top'] .timeline-list__controls {
+      margin-block-end: var(--timeline-list-controls-spacing-mobile, 24px);
+    }
+
+    .timeline-list[data-timeline-position='left'] {
+      grid-template-columns: fit-content(5rem) minmax(0, 1fr);
+      column-gap: var(--timeline-list-controls-spacing-mobile, 24px);
+    }
+
+    .timeline-list[data-timeline-position='left'] .timeline-list__controls {
+      gap: 12px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .timeline-list__control,
+    .timeline-list__navigation-list::after {
+      scroll-behavior: auto;
+      transition-duration: 0.01ms;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.timeline",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "timeline-slide"
+    }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "transition_style",
+      "label": "Transition style",
+      "options": [
+        {
+          "value": "slide",
+          "label": "Slide"
+        },
+        {
+          "value": "fade",
+          "label": "Fade"
+        }
+      ],
+      "default": "slide",
+      "visible_if": "{{ block.settings.show_next_slide_preview == false }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_next_slide_preview",
+      "label": "t:labels.show_next_slide_preview",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:general.navigation"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_navigation_on_desktop",
+      "label": "t:labels.show_navigation_on_desktop",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "navigation_position",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "outside", "label": "t:options.collection_navigation_position.outside" },
+        { "value": "inside", "label": "t:options.collection_navigation_position.inside" }
+      ],
+      "default": "outside"
+    },
+    {
+      "type": "select",
+      "id": "navigation_style",
+      "label": "t:labels.style",
+      "options": [
+        {
+          "value": "primary",
+          "label": "t:options.button_variant.primary"
+        },
+        {
+          "value": "secondary",
+          "label": "t:options.button_variant.secondary"
+        },
+        {
+          "value": "outline",
+          "label": "t:options.button_variant.outline"
+        },
+        {
+          "value": "icon_only",
+          "label": "t:options.button_variant.icon_only"
+        }
+      ],
+      "default": "secondary"
+    },
+    {
+      "type": "select",
+      "id": "navigation_icon",
+      "label": "t:labels.icon",
+      "options": [
+        {
+          "value": "arrow",
+          "label": "t:options.collection_navigation_icon.arrow"
+        },
+        {
+          "value": "long_arrow",
+          "label": "t:options.collection_navigation_icon.long_arrow"
+        },
+        {
+          "value": "chevron",
+          "label": "t:options.collection_navigation_icon.chevron"
+        }
+      ],
+      "default": "chevron"
+    },
+    {
+      "type": "select",
+      "id": "navigation_behavior",
+      "label": "t:labels.behavior",
+      "options": [
+        { "value": "always", "label": "t:options.collection_navigation_behavior.always" },
+        { "value": "show_on_hover", "label": "t:options.collection_navigation_behavior.show_on_hover" }
+      ],
+      "default": "always",
+      "visible_if": "{{ block.settings.navigation_position == 'inside' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.controls"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:labels.position",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "top",
+          "label": "t:options.position.top"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.position.bottom"
+        }
+      ],
+      "default": "bottom"
+    },
+    {
+      "type": "select",
+      "id": "pagination_style",
+      "label": "t:labels.style",
+      "options": [
+        {
+          "value": "dots",
+          "label": "t:options.timeline_pagination.dots"
+        },
+        {
+          "value": "dots_with_progress",
+          "label": "t:options.timeline_pagination.dots_with_progress"
+        },
+        {
+          "value": "progress",
+          "label": "t:options.timeline_pagination.progress"
+        },
+        {
+          "value": "progress_slider",
+          "label": "t:options.timeline_pagination.progress_slider"
+        },
+        {
+          "value": "tabs",
+          "label": "t:options.timeline_pagination.tabs"
+        }
+      ],
+      "default": "dots_with_progress"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "active_color",
+      "label": "t:labels.active_color"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "inactive_color",
+      "label": "t:labels.inactive_color"
+    },
+    {
+      "type": "range",
+      "id": "controls_spacing_desktop",
+      "label": "t:labels.timeline_controls_spacing_desktop",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "controls_spacing_mobile",
+      "label": "t:labels.timeline_controls_spacing_mobile",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "t:general.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:options.device.desktop",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:options.device.mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.timeline",
+      "category": "Text",
+      "blocks": [
+        {
+          "type": "timeline-slide",
+          "settings": {
+            "timeline_label": "2014",
+            "direction": "horizontal",
+            "position_horizontal": "center",
+            "horizontal_alignment": "left",
+            "customize_mobile_alignment": false,
+            "alignment_mobile": "left",
+            "alignment": "left",
+            "gap_desktop": 24,
+            "gap_mobile": 16,
+            "height": "fill",
+            "appearance_type": "inherit",
+            "color_scheme": "scheme-1",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none",
+            "customize_mobile_padding": false
+          },
+          "blocks": [
+            {
+              "type": "group",
+              "settings": {
+                "direction": "vertical",
+                "alignment": "left",
+                "width": "fill",
+                "height": "fill",
+                "gap_desktop": 16,
+                "gap_mobile": 12,
+                "appearance_type": "inherit",
+                "border_type": "none",
+                "corner_radius": "square",
+                "shadow": "none"
+              },
+              "blocks": [
+                {
+                  "type": "eyebrow",
+                  "settings": {
+                    "text": "<p>SECTION TAG</p>"
+                  }
+                },
+                {
+                  "type": "heading",
+                  "settings": {
+                    "text": "<p>The beginning</p>",
+                    "heading_size": "lg",
+                    "html_tag": "h3"
+                  }
+                },
+                {
+                  "type": "text",
+                  "settings": {
+                    "text": "<p>Share the moment that made this year important. Add a short story to support the heading above.</p>",
+                    "text_size": "md"
+                  }
+                },
+                {
+                  "type": "buttons",
+                  "settings": {
+                    "button_1_label": "Button label",
+                    "button_1_link": "/",
+                    "button_1_style": "primary",
+                    "direction": "row",
+                    "width": "fit",
+                    "gap": 12,
+                    "gap_mobile": 12
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "wide",
+                "width_desktop": "fill",
+                "image_ratio_mobile": "wide",
+                "width_mobile": "fill"
+              }
+            }
+          ]
+        },
+        {
+          "type": "timeline-slide",
+          "settings": {
+            "timeline_label": "2016",
+            "direction": "horizontal",
+            "position_horizontal": "center",
+            "horizontal_alignment": "left",
+            "customize_mobile_alignment": false,
+            "alignment_mobile": "left",
+            "alignment": "left",
+            "gap_desktop": 24,
+            "gap_mobile": 16,
+            "height": "fill",
+            "appearance_type": "inherit",
+            "color_scheme": "scheme-1",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none",
+            "customize_mobile_padding": false
+          },
+          "blocks": [
+            {
+              "type": "group",
+              "settings": {
+                "direction": "vertical",
+                "alignment": "left",
+                "width": "fill",
+                "height": "fill",
+                "gap_desktop": 16,
+                "gap_mobile": 12,
+                "appearance_type": "inherit",
+                "border_type": "none",
+                "corner_radius": "square",
+                "shadow": "none"
+              },
+              "blocks": [
+                {
+                  "type": "eyebrow",
+                  "settings": {
+                    "text": "<p>SECTION TAG</p>"
+                  }
+                },
+                {
+                  "type": "heading",
+                  "settings": {
+                    "text": "<p>Our first milestone</p>",
+                    "heading_size": "lg",
+                    "html_tag": "h3"
+                  }
+                },
+                {
+                  "type": "text",
+                  "settings": {
+                    "text": "<p>Share the moment that made this year important. Add a short story to support the heading above.</p>",
+                    "text_size": "md"
+                  }
+                },
+                {
+                  "type": "buttons",
+                  "settings": {
+                    "button_1_label": "Button label",
+                    "button_1_link": "/",
+                    "button_1_style": "primary",
+                    "direction": "row",
+                    "width": "fit",
+                    "gap": 12,
+                    "gap_mobile": 12
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "wide",
+                "width_desktop": "fill",
+                "image_ratio_mobile": "wide",
+                "width_mobile": "fill"
+              }
+            }
+          ]
+        },
+        {
+          "type": "timeline-slide",
+          "settings": {
+            "timeline_label": "2018",
+            "direction": "horizontal",
+            "position_horizontal": "center",
+            "horizontal_alignment": "left",
+            "customize_mobile_alignment": false,
+            "alignment_mobile": "left",
+            "alignment": "left",
+            "gap_desktop": 24,
+            "gap_mobile": 16,
+            "height": "fill",
+            "appearance_type": "inherit",
+            "color_scheme": "scheme-1",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none",
+            "customize_mobile_padding": false
+          },
+          "blocks": [
+            {
+              "type": "group",
+              "settings": {
+                "direction": "vertical",
+                "alignment": "left",
+                "width": "fill",
+                "height": "fill",
+                "gap_desktop": 16,
+                "gap_mobile": 12,
+                "appearance_type": "inherit",
+                "border_type": "none",
+                "corner_radius": "square",
+                "shadow": "none"
+              },
+              "blocks": [
+                {
+                  "type": "eyebrow",
+                  "settings": {
+                    "text": "<p>SECTION TAG</p>"
+                  }
+                },
+                {
+                  "type": "heading",
+                  "settings": {
+                    "text": "<p>Growing together</p>",
+                    "heading_size": "lg",
+                    "html_tag": "h3"
+                  }
+                },
+                {
+                  "type": "text",
+                  "settings": {
+                    "text": "<p>Share the moment that made this year important. Add a short story to support the heading above.</p>",
+                    "text_size": "md"
+                  }
+                },
+                {
+                  "type": "buttons",
+                  "settings": {
+                    "button_1_label": "Button label",
+                    "button_1_link": "/",
+                    "button_1_style": "primary",
+                    "direction": "row",
+                    "width": "fit",
+                    "gap": 12,
+                    "gap_mobile": 12
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "wide",
+                "width_desktop": "fill",
+                "image_ratio_mobile": "wide",
+                "width_mobile": "fill"
+              }
+            }
+          ]
+        },
+        {
+          "type": "timeline-slide",
+          "settings": {
+            "timeline_label": "2020",
+            "direction": "horizontal",
+            "position_horizontal": "center",
+            "horizontal_alignment": "left",
+            "customize_mobile_alignment": false,
+            "alignment_mobile": "left",
+            "alignment": "left",
+            "gap_desktop": 24,
+            "gap_mobile": 16,
+            "height": "fill",
+            "appearance_type": "inherit",
+            "color_scheme": "scheme-1",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none",
+            "customize_mobile_padding": false
+          },
+          "blocks": [
+            {
+              "type": "group",
+              "settings": {
+                "direction": "vertical",
+                "alignment": "left",
+                "width": "fill",
+                "height": "fill",
+                "gap_desktop": 16,
+                "gap_mobile": 12,
+                "appearance_type": "inherit",
+                "border_type": "none",
+                "corner_radius": "square",
+                "shadow": "none"
+              },
+              "blocks": [
+                {
+                  "type": "eyebrow",
+                  "settings": {
+                    "text": "<p>SECTION TAG</p>"
+                  }
+                },
+                {
+                  "type": "heading",
+                  "settings": {
+                    "text": "<p>A new chapter</p>",
+                    "heading_size": "lg",
+                    "html_tag": "h3"
+                  }
+                },
+                {
+                  "type": "text",
+                  "settings": {
+                    "text": "<p>Share the moment that made this year important. Add a short story to support the heading above.</p>",
+                    "text_size": "md"
+                  }
+                },
+                {
+                  "type": "buttons",
+                  "settings": {
+                    "button_1_label": "Button label",
+                    "button_1_link": "/",
+                    "button_1_style": "primary",
+                    "direction": "row",
+                    "width": "fit",
+                    "gap": 12,
+                    "gap_mobile": 12
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "wide",
+                "width_desktop": "fill",
+                "image_ratio_mobile": "wide",
+                "width_mobile": "fill"
+              }
+            }
+          ]
+        },
+        {
+          "type": "timeline-slide",
+          "settings": {
+            "timeline_label": "2022",
+            "direction": "horizontal",
+            "position_horizontal": "center",
+            "horizontal_alignment": "left",
+            "customize_mobile_alignment": false,
+            "alignment_mobile": "left",
+            "alignment": "left",
+            "gap_desktop": 24,
+            "gap_mobile": 16,
+            "height": "fill",
+            "appearance_type": "inherit",
+            "color_scheme": "scheme-1",
+            "border_type": "none",
+            "corner_radius": "square",
+            "shadow": "none",
+            "customize_mobile_padding": false
+          },
+          "blocks": [
+            {
+              "type": "group",
+              "settings": {
+                "direction": "vertical",
+                "alignment": "left",
+                "width": "fill",
+                "height": "fill",
+                "gap_desktop": 16,
+                "gap_mobile": 12,
+                "appearance_type": "inherit",
+                "border_type": "none",
+                "corner_radius": "square",
+                "shadow": "none"
+              },
+              "blocks": [
+                {
+                  "type": "eyebrow",
+                  "settings": {
+                    "text": "<p>SECTION TAG</p>"
+                  }
+                },
+                {
+                  "type": "heading",
+                  "settings": {
+                    "text": "<p>The journey continues</p>",
+                    "heading_size": "lg",
+                    "html_tag": "h3"
+                  }
+                },
+                {
+                  "type": "text",
+                  "settings": {
+                    "text": "<p>Share the moment that made this year important. Add a short story to support the heading above.</p>",
+                    "text_size": "md"
+                  }
+                },
+                {
+                  "type": "buttons",
+                  "settings": {
+                    "button_1_label": "Button label",
+                    "button_1_link": "/",
+                    "button_1_style": "primary",
+                    "direction": "row",
+                    "width": "fit",
+                    "gap": 12,
+                    "gap_mobile": 12
+                  }
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "settings": {
+                "image_ratio_desktop": "wide",
+                "width_desktop": "fill",
+                "image_ratio_mobile": "wide",
+                "width_mobile": "fill"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

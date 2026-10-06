@@ -1,0 +1,59 @@
+{% doc %}
+  Renders the inventory status for one product variant.
+
+  @param {variant} variant - Variant whose inventory should be described
+  @param {number} low_stock_threshold - Quantity at or below which the low-stock state is used
+  @param {string} display_mode - Either `status` or `status_and_count`
+{% enddoc %}
+
+{% liquid
+  assign inventory_state = 'unavailable'
+  assign inventory_message = 'products.unavailable' | t
+  assign inventory_quantity = blank
+
+  if variant != blank
+    assign inventory_quantity = variant.inventory_quantity
+
+    if variant.available
+      if variant.inventory_management == blank
+        assign inventory_state = 'in_stock'
+        assign inventory_message = 'products.inventory_in_stock' | t
+      elsif inventory_quantity == blank
+        assign inventory_state = 'in_stock'
+        assign inventory_message = 'products.inventory_in_stock' | t
+      elsif inventory_quantity <= 0
+        if variant.inventory_policy == 'continue'
+          assign inventory_state = 'backorder'
+          assign inventory_message = 'products.inventory_available_to_order' | t
+        elsif low_stock_threshold > 0
+          assign inventory_state = 'low_stock'
+          assign inventory_message = 'products.inventory_low_stock_short' | t
+        else
+          assign inventory_state = 'in_stock'
+          assign inventory_message = 'products.inventory_in_stock' | t
+        endif
+      elsif low_stock_threshold > 0 and inventory_quantity <= low_stock_threshold
+        assign inventory_state = 'low_stock'
+        if display_mode == 'status_and_count'
+          assign inventory_message = 'products.inventory_low_stock' | t: count: inventory_quantity
+        else
+          assign inventory_message = 'products.inventory_low_stock_short' | t
+        endif
+      else
+        assign inventory_state = 'in_stock'
+        if display_mode == 'status_and_count'
+          assign inventory_message = 'products.inventory_in_stock_count' | t: count: inventory_quantity
+        else
+          assign inventory_message = 'products.inventory_in_stock' | t
+        endif
+      endif
+    else
+      assign inventory_state = 'sold_out'
+      assign inventory_message = 'products.sold_out' | t
+    endif
+  endif
+%}
+
+<span class="product-inventory__status product-inventory__status--{{ inventory_state }} body-sm">
+  {{ inventory_message | escape }}
+</span>

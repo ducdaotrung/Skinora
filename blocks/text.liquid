@@ -1,0 +1,377 @@
+{% doc %}
+  Renders rich text with a body typography role, responsive layout and spacing.
+
+  The block owns editorial text, body-size role, local color override, size and
+  padding. Width is configurable while text alignment is inherited from the
+  parent composition.
+
+  @example
+  {% content_for 'block', type: 'text', id: 'text' %}
+{% enddoc %}
+
+{% liquid
+  assign text_size = block.settings.text_size | default: 'md'
+  unless text_size == 'xs' or text_size == 'sm' or text_size == 'md' or text_size == 'lg' or text_size == 'xl' or text_size == 'xxl'
+    assign text_size = 'md'
+  endunless
+
+  assign text_width_mode = block.settings.width | default: 'fit'
+  unless text_width_mode == 'fit' or text_width_mode == 'fill' or text_width_mode == 'custom'
+    assign text_width_mode = 'fit'
+  endunless
+
+  assign text_width = '100%'
+  if text_width_mode == 'fit'
+    assign text_width = 'fit-content'
+  endif
+  assign text_max_width = block.settings.max_width | default: 640 | plus: 0
+
+  assign text_width_mobile_mode = text_width_mode
+  assign text_width_mobile = text_width
+  assign text_max_width_mobile = text_max_width
+  if block.settings.customize_mobile_size
+    assign text_width_mobile_mode = block.settings.width_mobile | default: text_width_mode
+    unless text_width_mobile_mode == 'fit' or text_width_mobile_mode == 'fill' or text_width_mobile_mode == 'custom'
+      assign text_width_mobile_mode = text_width_mode
+    endunless
+    assign text_width_mobile = '100%'
+    if text_width_mobile_mode == 'fit'
+      assign text_width_mobile = 'fit-content'
+    endif
+    assign text_max_width_mobile = block.settings.max_width_mobile | default: text_max_width
+    assign text_max_width_mobile = text_max_width_mobile | plus: 0
+  endif
+  assign text_size_max_width = blank
+  if text_width_mode == 'custom'
+    assign text_size_max_width = text_max_width | append: 'px'
+  endif
+  assign text_size_width_mobile = blank
+  assign text_size_max_width_mobile = blank
+  if block.settings.customize_mobile_size
+    assign text_size_width_mobile = text_width_mobile
+    if text_width_mobile_mode == 'custom'
+      assign text_size_max_width_mobile = text_max_width_mobile | append: 'px'
+    elsif text_width_mode == 'custom'
+      assign text_size_max_width_mobile = '100%'
+    endif
+  endif
+
+  assign padding_top = block.settings.padding_top | default: 0
+  assign padding_top = padding_top | plus: 0
+  assign padding_bottom = block.settings.padding_bottom | default: 0
+  assign padding_bottom = padding_bottom | plus: 0
+  assign padding_left = block.settings.padding_left | default: 0
+  assign padding_left = padding_left | plus: 0
+  assign padding_right = block.settings.padding_right | default: 0
+  assign padding_right = padding_right | plus: 0
+  assign padding_top_mobile = block.settings.padding_top_mobile | default: 0
+  assign padding_top_mobile = padding_top_mobile | plus: 0
+  assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: 0
+  assign padding_bottom_mobile = padding_bottom_mobile | plus: 0
+  assign padding_left_mobile = block.settings.padding_left_mobile | default: 0
+  assign padding_left_mobile = padding_left_mobile | plus: 0
+  assign padding_right_mobile = block.settings.padding_right_mobile | default: 0
+  assign padding_right_mobile = padding_right_mobile | plus: 0
+  assign text_class = 'text-block size-style motion-block body-text body-' | append: text_size
+%}
+
+{% capture text_style %}
+  {% render 'size-style',
+    width: text_width,
+    max_width: text_size_max_width,
+    width_mobile: text_size_width_mobile,
+    max_width_mobile: text_size_max_width_mobile
+  %}
+  {% if padding_top != 0 %}--text-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 0 %}--text-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if padding_left != 0 %}--text-padding-left: {{ padding_left }}px;{% endif %}
+  {% if padding_right != 0 %}--text-padding-right: {{ padding_right }}px;{% endif %}
+  {% if block.settings.customize_mobile_padding %}
+    {% if padding_top_mobile != padding_top %}--text-padding-top-mobile: {{ padding_top_mobile }}px;{% endif %}
+    {% if padding_bottom_mobile != padding_bottom %}--text-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% endif %}
+    {% if padding_left_mobile != padding_left %}--text-padding-left-mobile: {{ padding_left_mobile }}px;{% endif %}
+    {% if padding_right_mobile != padding_right %}--text-padding-right-mobile: {{ padding_right_mobile }}px;{% endif %}
+  {% endif %}
+  {% if block.settings.text_color != blank %}--text-block-color: {{ block.settings.text_color | escape }};{% endif %}
+{% endcapture %}
+{% assign text_style = text_style | strip %}
+
+{% if block.settings.text != blank or request.design_mode %}
+  <div
+    class="{{ text_class }}"
+    {% if text_style != blank %}style="{{ text_style }}"{% endif %}
+    {{ block.shopify_attributes }}
+  >
+    {% if block.settings.height_limit != blank and block.settings.height_limit != 'none' %}
+      {% liquid
+        assign text_height = 200
+        case block.settings.height_limit
+          when 'small'
+            assign text_height = 100
+          when 'large'
+            assign text_height = 300
+        endcase
+        assign text_content_id = 'TextContent-' | append: section.id | append: '-' | append: block.id
+      %}
+      <script src="{{ 'product-description.js' | asset_url }}" type="module"></script>
+      <product-description class="text-block__collapse" data-description-height="{{ block.settings.height_limit }}" style="--product-description-collapsed-height: {{ text_height }}px">
+        <div id="{{ text_content_id }}" class="text-block__collapse-content" data-description-content>
+          <div data-description-flow>{{ block.settings.text }}</div>
+        </div>
+        <button class="btn btn-tertiary text-block__collapse-toggle" type="button" aria-controls="{{ text_content_id }}" aria-expanded="false" data-description-toggle data-more-label="{{ 'collection.read_more' | t | escape }}" data-less-label="{{ 'collection.read_less' | t | escape }}" hidden>
+          <span data-description-toggle-label>{{ 'collection.read_more' | t }}</span>
+        </button>
+      </product-description>
+    {% else %}
+      {{ block.settings.text }}
+    {% endif %}
+  </div>
+{% endif %}
+
+{% stylesheet %}
+  .text-block__collapse { display: block; min-width: 0; }
+  .text-block__collapse[data-description-state='collapsed'] .text-block__collapse-content { max-height: var(--product-description-collapsed-height); overflow: hidden; }
+  .text-block__collapse-toggle { margin-top: 16px; }
+  .text-block__collapse-toggle[hidden] { display: none; }
+  .text-block {
+    display: block;
+    padding-top: var(--text-padding-top, 0px);
+    padding-right: var(--text-padding-right, 0px);
+    padding-bottom: var(--text-padding-bottom, 0px);
+    padding-left: var(--text-padding-left, 0px);
+    color: var(--text-block-color, var(--body-color));
+    text-align: var(--text-align-default, inherit);
+    overflow-wrap: anywhere;
+  }
+
+  .text-block a {
+    color: inherit;
+  }
+
+  .text-block :where(ul, ol) {
+    padding-inline-start: 1.5em;
+  }
+
+  @media (max-width: 767.98px) {
+    .text-block {
+      padding-top: var(--text-padding-top-mobile, var(--text-padding-top, 0px));
+      padding-right: var(--text-padding-right-mobile, var(--text-padding-right, 0px));
+      padding-bottom: var(--text-padding-bottom-mobile, var(--text-padding-bottom, 0px));
+      padding-left: var(--text-padding-left-mobile, var(--text-padding-left, 0px));
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.text",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:general.content"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:labels.text"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "t:labels.text_size",
+      "options": [
+        { "value": "xs", "label": "t:options.text_size.xs" },
+        { "value": "sm", "label": "t:options.text_size.sm" },
+        { "value": "md", "label": "t:options.text_size.md" },
+        { "value": "lg", "label": "t:options.text_size.lg" },
+        { "value": "xl", "label": "t:options.text_size.xl" },
+        { "value": "xxl", "label": "t:options.text_size.xxl" }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "height_limit",
+      "label": "t:labels.height_limit",
+      "options": [
+        { "value": "none", "label": "t:options.product_description_height.none" },
+        { "value": "small", "label": "t:options.product_description_height.small" },
+        { "value": "medium", "label": "t:options.product_description_height.medium" },
+        { "value": "large", "label": "t:options.product_description_height.large" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_color",
+      "label": "t:labels.text_color"
+    },
+    {
+      "type": "header",
+      "content": "t:general.size"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:labels.width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" },
+        { "value": "custom", "label": "t:options.width.custom" }
+      ],
+      "default": "fit"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "t:labels.max_width",
+      "min": 320,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 640,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_size",
+      "label": "t:labels.customize_mobile_size",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "width_mobile",
+      "label": "t:labels.mobile_width",
+      "options": [
+        { "value": "fit", "label": "t:options.width.fit" },
+        { "value": "fill", "label": "t:options.width.fill" },
+        { "value": "custom", "label": "t:options.width.custom" }
+      ],
+      "default": "fit",
+      "visible_if": "{{ block.settings.customize_mobile_size }}"
+    },
+    {
+      "type": "range",
+      "id": "max_width_mobile",
+      "label": "t:labels.mobile_max_width",
+      "min": 240,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 480,
+      "visible_if": "{{ block.settings.customize_mobile_size and block.settings.width_mobile == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mobile",
+      "label": "t:labels.mobile_left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mobile",
+      "label": "t:labels.mobile_right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:general.text",
+      "category": "t:general.basic",
+      "settings": {
+        "text": "<p>Text</p>",
+        "text_size": "md",
+        "width": "fit",
+        "customize_mobile_size": false,
+        "max_width": 640,
+        "width_mobile": "fit",
+        "max_width_mobile": 480
+      }
+    }
+  ]
+}
+{% endschema %}

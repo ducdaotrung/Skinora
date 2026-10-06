@@ -1,0 +1,192 @@
+{% liquid
+  assign section_width = section.settings.section_width | default: 'page_width'
+  assign container_width = 'page-width'
+  assign container_no_padding = false
+  if section_width == 'full_width'
+    assign container_width = 'full-width'
+  elsif section_width == 'full_width_no_padding'
+    assign container_width = 'full-width'
+    assign container_no_padding = true
+  endif
+
+  assign color_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign color_scheme = section.settings.color_scheme.id
+  endif
+
+  assign direction = section.settings.direction | default: 'vertical'
+  unless direction == 'horizontal' or direction == 'vertical'
+    assign direction = 'vertical'
+  endunless
+  assign position = section.settings.position | default: 'center'
+  unless position == 'top' or position == 'center' or position == 'bottom'
+    assign position = 'center'
+  endunless
+  assign horizontal_alignment = section.settings.horizontal_alignment | default: 'space-between'
+  unless horizontal_alignment == 'left' or horizontal_alignment == 'center' or horizontal_alignment == 'right' or horizontal_alignment == 'space-between'
+    assign horizontal_alignment = 'space-between'
+  endunless
+  assign alignment = section.settings.alignment | default: 'left'
+  unless alignment == 'left' or alignment == 'center' or alignment == 'right'
+    assign alignment = 'left'
+  endunless
+  assign alignment_mobile = alignment
+  if section.settings.customize_mobile_alignment
+    assign alignment_mobile = section.settings.alignment_mobile | default: alignment
+  endif
+  unless alignment_mobile == 'left' or alignment_mobile == 'center' or alignment_mobile == 'right'
+    assign alignment_mobile = alignment
+  endunless
+  assign flex_align = 'flex-start'
+  if alignment == 'center'
+    assign flex_align = 'center'
+  elsif alignment == 'right'
+    assign flex_align = 'flex-end'
+  endif
+  assign flex_align_mobile = 'flex-start'
+  if alignment_mobile == 'center'
+    assign flex_align_mobile = 'center'
+  elsif alignment_mobile == 'right'
+    assign flex_align_mobile = 'flex-end'
+  endif
+  assign flex_justify = 'space-between'
+  if horizontal_alignment == 'left'
+    assign flex_justify = 'flex-start'
+  elsif horizontal_alignment == 'center'
+    assign flex_justify = 'center'
+  elsif horizontal_alignment == 'right'
+    assign flex_justify = 'flex-end'
+  endif
+  assign flex_position = 'center'
+  if position == 'top'
+    assign flex_position = 'flex-start'
+  elsif position == 'bottom'
+    assign flex_position = 'flex-end'
+  endif
+  assign mobile_direction = direction
+  if direction == 'horizontal' and section.settings.customize_mobile_alignment
+    assign mobile_direction = 'vertical'
+  endif
+  assign content_gap = section.settings.content_gap | default: 48 | plus: 0
+  assign content_gap_mobile = content_gap
+  if section.settings.customize_mobile_gap
+    assign content_gap_mobile = section.settings.content_gap_mobile | default: content_gap | plus: 0
+  endif
+  assign padding_top = section.settings.padding_top | default: 0 | plus: 0
+  assign padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
+  assign padding_top_mobile = padding_top
+  assign padding_bottom_mobile = padding_bottom
+  if section.settings.customize_mobile_padding
+    assign padding_top_mobile = section.settings.padding_top_mobile | default: padding_top | plus: 0
+    assign padding_bottom_mobile = section.settings.padding_bottom_mobile | default: padding_bottom | plus: 0
+  endif
+  assign background_color = section.settings.background_color
+%}
+
+<div class="gallery-carousel gallery-carousel--{{ section_width }}">
+  <div
+    class="section-spacing gallery-carousel__spacing color-scheme section-color-scope {{ color_scheme | handleize }}"
+    style="--gallery-carousel-content-gap: {{ content_gap }}px; --gallery-carousel-content-gap-mobile: {{ content_gap_mobile }}px; --gallery-carousel-section-padding-top: {{ padding_top }}px; --gallery-carousel-section-padding-bottom: {{ padding_bottom }}px; --gallery-carousel-section-padding-top-mobile: {{ padding_top_mobile }}px; --gallery-carousel-section-padding-bottom-mobile: {{ padding_bottom_mobile }}px;{% if background_color != blank %} --gallery-carousel-section-background: {{ background_color | escape }};{% endif %}"
+  >
+    {% if section.settings.background_image != blank %}
+      <div class="gallery-carousel__background" aria-hidden="true">
+        {{ section.settings.background_image | image_url: width: 2400 | image_tag }}
+      </div>
+    {% endif %}
+    <div class="container {{ container_width }} gallery-carousel__container{% if container_no_padding %} gallery-carousel__container--no-padding{% endif %}">
+      <div class="gallery-carousel__content gallery-carousel__content--{{ direction }}{% if mobile_direction == 'vertical' %} gallery-carousel__content--mobile-vertical{% endif %}" style="--gallery-carousel-align: {{ flex_align }}; --gallery-carousel-align-mobile: {{ flex_align_mobile }}; --gallery-carousel-text-align: {{ alignment }}; --gallery-carousel-text-align-mobile: {{ alignment_mobile }}; --gallery-carousel-justify: {{ flex_justify }}; --gallery-carousel-position: {{ flex_position }};">
+        {% content_for 'blocks' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .gallery-carousel { width: 100%; min-width: 0; }
+  .gallery-carousel__spacing { position: relative; overflow: hidden; padding-top: var(--gallery-carousel-section-padding-top, 0px); padding-bottom: var(--gallery-carousel-section-padding-bottom, 0px); background-color: var(--gallery-carousel-section-background, var(--background-color)); }
+  .gallery-carousel__background { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .gallery-carousel__background img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .gallery-carousel__container { position: relative; z-index: 1; }
+  .container.full-width.gallery-carousel__container--no-padding { padding-inline: 0; }
+  .gallery-carousel__content { display: flex; flex-direction: column; align-items: var(--gallery-carousel-align, flex-start); justify-content: var(--gallery-carousel-position, center); gap: var(--gallery-carousel-content-gap, 48px); min-width: 0; }
+  .gallery-carousel__content--horizontal { flex-direction: row; align-items: var(--gallery-carousel-position, center); justify-content: var(--gallery-carousel-justify, space-between); }
+  .gallery-carousel__content > * { min-width: 0; max-width: 100%; }
+  .gallery-carousel__content > .gallery-header-group { align-items: var(--gallery-carousel-align, flex-start); text-align: var(--gallery-carousel-text-align, left); }
+  .gallery-carousel__content--horizontal > .gallery-header-group { flex: 1 1 0%; }
+  .gallery-carousel__content--horizontal > .carousel-block--width-fill { flex: 1 1 0%; }
+  .gallery-carousel__content--horizontal > .carousel-block--width-custom { flex: 0 1 var(--carousel-width); }
+  @media (max-width: 767.98px) {
+    .gallery-carousel__spacing { padding-top: var(--gallery-carousel-section-padding-top-mobile, var(--gallery-carousel-section-padding-top, 0px)); padding-bottom: var(--gallery-carousel-section-padding-bottom-mobile, var(--gallery-carousel-section-padding-bottom, 0px)); }
+    .gallery-carousel__content { align-items: var(--gallery-carousel-align-mobile, var(--gallery-carousel-align, flex-start)); gap: var(--gallery-carousel-content-gap-mobile, var(--gallery-carousel-content-gap, 32px)); }
+    .gallery-carousel__content--horizontal.gallery-carousel__content--mobile-vertical { flex-direction: column; }
+    .gallery-carousel__content--horizontal:not(.gallery-carousel__content--mobile-vertical) { flex-direction: row; }
+    .gallery-carousel__content--mobile-vertical > .gallery-header-group,
+    .gallery-carousel__content--mobile-vertical > .carousel-block { flex: 0 1 auto; }
+    .gallery-carousel__content > .gallery-header-group { align-items: var(--gallery-carousel-align-mobile, var(--gallery-carousel-align, flex-start)); text-align: var(--gallery-carousel-text-align-mobile, var(--gallery-carousel-text-align, left)); }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Gallery Carousel",
+  "class": "section-kernel",
+  "enabled_on": { "templates": ["*"] },
+  "blocks": [
+    { "type": "gallery-header-group" },
+    { "type": "carousel" }
+  ],
+  "settings": [
+    { "type": "header", "content": "Layout" },
+    { "type": "select", "id": "section_width", "label": "t:labels.section_width", "options": [{ "value": "page_width", "label": "t:options.section_width.page_width" }, { "value": "full_width", "label": "t:options.section_width.full_width" }, { "value": "full_width_no_padding", "label": "Full width (no padding)" }], "default": "page_width" },
+    { "type": "select", "id": "direction", "label": "Direction", "options": [{ "value": "horizontal", "label": "Horizontal" }, { "value": "vertical", "label": "Vertical" }], "default": "vertical" },
+    { "type": "select", "id": "position", "label": "Vertical position", "options": [{ "value": "top", "label": "Top" }, { "value": "center", "label": "Center" }, { "value": "bottom", "label": "Bottom" }], "default": "center", "visible_if": "{{ section.settings.direction == 'horizontal' }}" },
+    { "type": "select", "id": "horizontal_alignment", "label": "Horizontal alignment", "options": [{ "value": "left", "label": "Left" }, { "value": "center", "label": "Center" }, { "value": "right", "label": "Right" }, { "value": "space-between", "label": "Space between" }], "default": "space-between", "visible_if": "{{ section.settings.direction == 'horizontal' }}" },
+    { "type": "text_alignment", "id": "alignment", "label": "Alignment", "default": "left" },
+    { "type": "checkbox", "id": "customize_mobile_alignment", "label": "Vertical on mobile", "default": true, "visible_if": "{{ section.settings.direction == 'horizontal' }}" },
+    { "type": "text_alignment", "id": "alignment_mobile", "label": "Mobile alignment", "default": "left", "visible_if": "{{ section.settings.customize_mobile_alignment }}" },
+    { "type": "header", "content": "Gap" },
+    { "type": "range", "id": "content_gap", "label": "Content gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 48 },
+    { "type": "checkbox", "id": "customize_mobile_gap", "label": "Customize mobile gap", "default": false },
+    { "type": "range", "id": "content_gap_mobile", "label": "Mobile content gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 32, "visible_if": "{{ section.settings.customize_mobile_gap }}" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "t:labels.color_scheme", "default": "scheme-1" },
+    { "type": "color", "alpha": true, "id": "background_color", "label": "Background" },
+    { "type": "image_picker", "id": "background_image", "label": "Background image" },
+    { "type": "header", "content": "Padding" },
+    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0 },
+    { "type": "checkbox", "id": "customize_mobile_padding", "label": "t:labels.customize_mobile_padding", "default": false },
+    { "type": "range", "id": "padding_top_mobile", "label": "t:labels.mobile_top_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ section.settings.customize_mobile_padding }}" },
+    { "type": "range", "id": "padding_bottom_mobile", "label": "t:labels.mobile_bottom_padding", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 0, "visible_if": "{{ section.settings.customize_mobile_padding }}" }
+  ],
+  "presets": [
+    {
+      "name": "Gallery carousel",
+      "category": "Storytelling",
+      "settings": {
+        "direction": "vertical",
+        "position": "center",
+        "horizontal_alignment": "space-between",
+        "alignment": "left",
+        "customize_mobile_alignment": true,
+        "alignment_mobile": "left",
+        "customize_mobile_gap": false,
+        "content_gap": 48,
+        "content_gap_mobile": 32
+      },
+      "blocks": [
+        { "type": "gallery-header-group", "settings": { "alignment": "left", "gap": 8 }, "blocks": [
+          { "type": "eyebrow", "settings": { "text": "<p>Section TAG</p>" } },
+          { "type": "heading", "settings": { "text": "<p>Follow Us On Instagram</p>", "html_tag": "h2" } }
+        ] },
+        { "type": "carousel", "settings": { "columns_desktop": "4", "columns_mobile": "1", "gap_desktop": 24, "gap_mobile": 16, "navigation_style": "secondary", "navigation_icon": "chevron", "navigation_behavior": "always", "pagination_type": "progress_bar", "show_pagination_on_desktop": true, "show_pagination_on_mobile": true }, "blocks": [
+          { "type": "gallery-item", "settings": { "text": "@pam_sam", "social_network": "instagram" } },
+          { "type": "gallery-item", "settings": { "text": "@pam_sam", "social_network": "instagram" } },
+          { "type": "gallery-item", "settings": { "text": "@pam_sam", "social_network": "instagram" } },
+          { "type": "gallery-item", "settings": { "text": "@pam_sam", "social_network": "instagram" } }
+        ] }
+      ]
+    }
+  ]
+}
+{% endschema %}

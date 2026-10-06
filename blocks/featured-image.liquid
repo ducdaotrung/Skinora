@@ -1,0 +1,181 @@
+{% doc %}
+  Renders the featured image for the current article.
+{% enddoc %}
+
+{% liquid
+  assign article_image_sizes = 'min(calc(100vw - 2 * 16px), ' | append: section.settings.max_width | append: 'px)'
+  if block.settings.width == 'full' or block.settings.width == 'full-no-padding'
+    assign article_image_sizes = '100vw'
+  elsif block.settings.width == 'page'
+    assign article_image_sizes = '(max-width: 767.98px) calc(100vw - 32px), min(100vw, ' | append: settings.page_width | append: 'px)'
+  endif
+%}
+{% if article.image %}
+  <div class="article-featured-image article-featured-image--{{ block.settings.width | default: 'default' }} article-featured-image--height-{{ block.settings.height | default: 'adapt' }}" style="--article-image-padding-top: {{ block.settings.padding_top }}px; --article-image-padding-bottom: {{ block.settings.padding_bottom }}px; --article-image-padding-left: {{ block.settings.padding_left | default: 24 }}px; --article-image-padding-right: {{ block.settings.padding_right | default: 24 }}px; {% if block.settings.custom_mobile_padding %}--article-image-padding-top-mobile: {{ block.settings.padding_top_mobile }}px;{% endif %} {% if block.settings.custom_mobile_padding %}--article-image-padding-bottom-mobile: {{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
+    {{ article.image | image_url: width: 1600 | image_tag: loading: 'eager', sizes: article_image_sizes }}
+  </div>
+{% elsif request.design_mode %}
+  <div class="article-featured-image__empty" {{ block.shopify_attributes }}>{{ 'blog.featured_image_empty' | t }}</div>
+{% endif %}
+
+{% stylesheet %}
+  .article-featured-image { overflow: hidden; padding-top: var(--article-image-padding-top, 0px); padding-bottom: var(--article-image-padding-bottom, 0px); }
+  .article-featured-image img { display: block; width: 100%; height: auto; object-fit: cover; border-radius: var(--media-radius); }
+  .article-featured-image--page { width: min(100%, var(--page-width, 100%)); margin-inline: auto; }
+  .article-featured-image--full { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); padding-inline-start: var(--article-image-padding-left, 24px); padding-inline-end: var(--article-image-padding-right, 24px); box-sizing: border-box; }
+  .article-featured-image--full-no-padding { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); }
+  .article-featured-image--height-extra-small img { aspect-ratio: 3 / 1; }
+  .article-featured-image--height-small img { aspect-ratio: 3 / 2; }
+  .article-featured-image--height-medium img { aspect-ratio: 4 / 3; }
+  .article-featured-image--height-large img { aspect-ratio: 16 / 9; }
+  .article-featured-image--height-extra-large img { aspect-ratio: 1 / 1; }
+  .article-featured-image__empty { padding: 2rem; border: 1px dashed currentColor; text-align: center; }
+  @media (max-width: 767.98px) {
+    .article-featured-image { padding-top: var(--article-image-padding-top-mobile, var(--article-image-padding-top, 0px)); padding-bottom: var(--article-image-padding-bottom-mobile, var(--article-image-padding-bottom, 0px)); }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Featured image",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Width",
+      "options": [
+        {
+          "value": "default",
+          "label": "Default"
+        },
+        {
+          "value": "page",
+          "label": "Page"
+        },
+        {
+          "value": "full",
+          "label": "Full"
+        },
+        {
+          "value": "full-no-padding",
+          "label": "Full width without padding"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height",
+      "options": [
+        {
+          "value": "adapt",
+          "label": "Adapt to image"
+        },
+        {
+          "value": "extra-small",
+          "label": "Extra small"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "extra-large",
+          "label": "Extra large"
+        }
+      ],
+      "default": "adapt"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "label": "t:labels.left_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.width == 'full' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "label": "t:labels.right_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24,
+      "visible_if": "{{ block.settings.width == 'full' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "custom_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.custom_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.custom_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured image",
+      "category": "Blog"
+    }
+  ]
+}
+{% endschema %}

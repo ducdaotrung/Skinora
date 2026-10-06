@@ -1,0 +1,62 @@
+{% liquid
+  assign breadcrumb_scheme = section.settings.color_scheme.id | default: section.settings.color_scheme | default: 'scheme-1' | handleize
+  assign current_label = collection.title
+  if section.settings.current_label_source == 'custom' and section.settings.current_label != blank
+    assign current_label = section.settings.current_label
+  endif
+%}
+
+<div class="collection-page-breadcrumb color-scheme section-color-scope {{ breadcrumb_scheme }}{% if section.settings.text_case == 'uppercase' %} collection-page-breadcrumb--uppercase{% endif %}" style="--collection-page-breadcrumb-gap: {{ section.settings.item_gap }}px; --collection-page-breadcrumb-top: {{ section.settings.padding_top }}px; --collection-page-breadcrumb-bottom: {{ section.settings.padding_bottom }}px; --collection-page-breadcrumb-align: {{ section.settings.alignment }};">
+  <nav class="collection-page-breadcrumb__nav{% if section.settings.section_width == 'page' %} container page-width{% endif %}" aria-label="{{ 'breadcrumbs.navigation_label' | t | escape }}">
+    {% if section.settings.show_home_link %}
+      <a href="{{ routes.root_url }}">{{ section.settings.home_label | escape }}</a>
+      <span aria-hidden="true">{% if section.settings.separator_style == 'chevron' %}{% render 'icon', icon: 'chevron-right', bare: true %}{% elsif section.settings.separator_style == 'dot' %}•{% else %}/{% endif %}</span>
+    {% endif %}
+    {% if section.settings.show_collections_link %}
+      <a href="{{ routes.collections_url }}">{{ section.settings.collections_label | escape }}</a>
+      <span aria-hidden="true">{% if section.settings.separator_style == 'chevron' %}{% render 'icon', icon: 'chevron-right', bare: true %}{% elsif section.settings.separator_style == 'dot' %}•{% else %}/{% endif %}</span>
+    {% endif %}
+    <span aria-current="page">{{ current_label | escape }}</span>
+  </nav>
+</div>
+
+{% stylesheet %}
+  .collection-page-breadcrumb { background: var(--background-color); color: var(--body-color); }
+  .collection-page-breadcrumb__nav { display: flex; align-items: center; justify-content: var(--collection-page-breadcrumb-align, flex-start); flex-wrap: wrap; gap: var(--collection-page-breadcrumb-gap, 8px); padding: var(--collection-page-breadcrumb-top, 20px) var(--page-margin) var(--collection-page-breadcrumb-bottom, 20px); font-size: var(--font-body-sm); }
+  .collection-page-breadcrumb__nav a { color: inherit; text-decoration: none; }
+  .collection-page-breadcrumb__nav a:hover { text-decoration: underline; }
+  .collection-page-breadcrumb__nav a:focus-visible { outline: 2px solid currentcolor; outline-offset: 3px; }
+  .collection-page-breadcrumb__nav svg { width: 12px; height: 12px; }
+  .collection-page-breadcrumb--uppercase { text-transform: uppercase; }
+  @media (max-width: 767.98px) { .collection-page-breadcrumb__nav { padding-block: calc(var(--collection-page-breadcrumb-top, 20px) * .5) calc(var(--collection-page-breadcrumb-bottom, 20px) * .5); } }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection breadcrumb",
+  "tag": "section",
+  "class": "section-collection-page-breadcrumb",
+  "enabled_on": { "templates": ["collection"] },
+  "settings": [
+    { "type": "header", "content": "Layout" },
+    { "type": "select", "id": "alignment", "label": "Alignment", "options": [{ "value": "flex-start", "label": "Left" }, { "value": "center", "label": "Center" }, { "value": "flex-end", "label": "Right" }], "default": "flex-start" },
+    { "type": "select", "id": "section_width", "label": "Section width", "options": [{ "value": "page", "label": "Page width" }, { "value": "full", "label": "Full width" }], "default": "full" },
+    { "type": "select", "id": "text_case", "label": "Text case", "options": [{ "value": "normal", "label": "Normal" }, { "value": "uppercase", "label": "Uppercase" }], "default": "normal" },
+    { "type": "range", "id": "item_gap", "label": "Item gap", "min": 4, "max": 24, "step": 2, "unit": "px", "default": 8 },
+    { "type": "header", "content": "Content" },
+    { "type": "checkbox", "id": "show_home_link", "label": "Show home link", "default": true },
+    { "type": "text", "id": "home_label", "label": "Home label", "default": "Home", "visible_if": "{{ section.settings.show_home_link }}" },
+    { "type": "checkbox", "id": "show_collections_link", "label": "Show collections link", "default": true },
+    { "type": "text", "id": "collections_label", "label": "Collections label", "default": "Collections", "visible_if": "{{ section.settings.show_collections_link }}" },
+    { "type": "select", "id": "current_label_source", "label": "Current page label", "options": [{ "value": "collection", "label": "Collection title" }, { "value": "custom", "label": "Custom text" }], "default": "collection" },
+    { "type": "text", "id": "current_label", "label": "Custom current page label", "visible_if": "{{ section.settings.current_label_source == 'custom' }}" },
+    { "type": "select", "id": "separator_style", "label": "Separator style", "options": [{ "value": "slash", "label": "Slash" }, { "value": "chevron", "label": "Chevron" }, { "value": "dot", "label": "Dot" }], "default": "slash" },
+    { "type": "header", "content": "Appearance" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Section padding" },
+    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 80, "step": 4, "unit": "px", "default": 20 },
+    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 80, "step": 4, "unit": "px", "default": 20 }
+  ],
+  "presets": [{ "name": "Collection breadcrumb" }]
+}
+{% endschema %}

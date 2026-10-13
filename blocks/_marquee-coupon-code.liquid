@@ -1,0 +1,134 @@
+<marquee-coupon-code data-copied-label="{{ 'marquee.copied' | t | escape }}" data-failed-label="{{ 'marquee.copy_failed' | t | escape }}" class="marquee-coupon-code body-text body-{{ block.settings.text_size | default: 'md' }}{% if block.settings.show_background %} marquee-coupon-code--background{% endif %}{% if block.settings.bold %} marquee-coupon-code--bold{% endif %}" style="--mq-pad-top:{{ block.settings.padding_top | default: 0 }}px;{% if block.settings.customize_mobile_padding %}--mq-pad-top-mobile:{{ block.settings.padding_top_mobile | default: 0 }}px;{% endif %}--mq-pad-bottom:{{ block.settings.padding_bottom | default: 0 }}px;{% if block.settings.customize_mobile_padding %}--mq-pad-bottom-mobile:{{ block.settings.padding_bottom_mobile | default: 0 }}px;{% endif %}" {% if block.settings.code == blank %}data-content-empty{% endif %} {{ block.shopify_attributes }}>
+ <button type="button" data-coupon-copy data-coupon-code="{{ block.settings.code | escape }}"><span>{{ block.settings.code | escape }}</span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></svg></button>
+ <span class="visually-hidden" role="status" data-coupon-status></span>
+</marquee-coupon-code>
+{% javascript %}
+if (!customElements.get('marquee-coupon-code')) {
+ customElements.define('marquee-coupon-code', class extends HTMLElement {
+  connectedCallback() { this.abort?.abort();this.abort=new AbortController();this.querySelector('[data-coupon-copy]')?.addEventListener('click',async (event)=>{const button=event.currentTarget;try{await navigator.clipboard.writeText(button.dataset.couponCode);this.querySelector('[data-coupon-status]').textContent=this.dataset.copiedLabel;}catch{this.querySelector('[data-coupon-status]').textContent=this.dataset.failedLabel;}},{signal:this.abort.signal}); }
+  disconnectedCallback(){this.abort?.abort();}
+ });
+}
+{% endjavascript %}
+{% stylesheet %}
+.marquee-coupon-code{display:block;flex:0 0 auto;width:max-content;} .marquee-coupon-code button{display:flex;align-items:center;gap:8px;font:inherit;color:inherit;background:transparent;border:0;padding:0;cursor:pointer;} .marquee-coupon-code--bold button{font-weight:700;} .marquee-coupon-code--background button{padding:8px 12px;background:color-mix(in srgb,var(--body-color) 8%,transparent);border-radius:var(--radius-slight,4px);}.marquee-coupon-code{padding-top:var(--mq-pad-top,0px);padding-bottom:var(--mq-pad-bottom,0px);}
+@media(max-width:767.98px){.marquee-coupon-code{padding-top:var(--mq-pad-top-mobile,var(--mq-pad-top,0px));padding-bottom:var(--mq-pad-bottom-mobile,var(--mq-pad-bottom,0px));}}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Coupon Code",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "code",
+      "label": "Coupon code",
+      "default": "PROMO CODE"
+    },
+    {
+      "type": "checkbox",
+      "id": "bold",
+      "label": "Bold coupon code",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_background",
+      "label": "Show background",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Size",
+      "options": [
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "md",
+          "label": "Medium"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        },
+        {
+          "value": "xl",
+          "label": "Extra large"
+        },
+        {
+          "value": "xxl",
+          "label": "Double extra large"
+        }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "Custom for mobile",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Top mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "unit": "px",
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Bottom mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "unit": "px",
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Coupon Code",
+      "category": "t:general.basic",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

@@ -552,18 +552,26 @@ const initialize = (root) => {
   const paginationType = root.dataset.swiperPaginationType === 'progress_bar' ? 'progressbar' : 'bullets';
   const autoplay = root.dataset.swiperAutoplay === 'true';
   const fractionControls = root.dataset.carouselControlsStyle === 'fraction';
+  const communityVideoSection = root.closest('[data-community-videos]');
   const loop = root.dataset.carouselLoop === 'true';
-  const manualLoopRequested = root.dataset.carouselManualLoop === 'true';
+  const pressTestimonialSection = root.closest('[data-press-testimonials]');
+  const manualLoopRequested = root.dataset.carouselManualLoop === 'true' || Boolean(communityVideoSection) || Boolean(pressTestimonialSection);
   const showNextSlidePreview = viewport.dataset.swiperNextSlidePreview === 'true';
   const desktopColumns = number(root.dataset.swiperColumnsDesktop, 4);
+  const mobileColumns = number(root.dataset.swiperColumnsMobile, 1);
+  const mobilePreviewRequested = viewport.dataset.swiperNextSlidePreviewMobile === 'true';
   const slideCount = Array.from(wrapper.children).filter((slide) => slide.classList.contains('swiper-slide')).length;
   const previewEnabled = showNextSlidePreview && slideCount > desktopColumns;
   viewport.dataset.swiperNextSlidePreview = String(previewEnabled);
-  // The shared Swiper preview attribute is a CSS-only overflow hook. Sections
-  // that require centered-slide runtime must opt in explicitly on their root.
-  const useCenteredSlidePreview = root.dataset.showNextSlidePreviewOnDesktop === 'true';
+  // The shared Swiper preview attribute is a CSS-only overflow hook. Community
+  // videos and explicitly opted-in carousels also center the desktop preview.
+  const useCenteredSlidePreview = root.dataset.showNextSlidePreviewOnDesktop === 'true' || Boolean(communityVideoSection);
+  const centerActiveSlide = root.dataset.carouselCentered === 'true';
   const transition = root.dataset.transition === 'fade' ? 'fade' : 'slide';
   const fade = transition === 'fade' && !useCenteredSlidePreview;
+  if (fade) viewport.dataset.swiperNextSlidePreview = 'false';
+  const mobilePreviewEnabled = !fade && mobilePreviewRequested && mobileColumns === 1 && slideCount > 1;
+  viewport.dataset.swiperNextSlidePreviewMobile = String(mobilePreviewEnabled);
   const manualLoop = manualLoopRequested && loop ? createManualLoop(viewport) : null;
   const paginationModules = pagination && !manualLoop ? [Pagination] : [];
   const modules = fade ? [EffectFade, ...paginationModules] : paginationModules;
@@ -571,16 +579,17 @@ const initialize = (root) => {
     loop: loop && !manualLoop,
     initialSlide: manualLoop?.initialSlide || 0,
     effect: fade ? 'fade' : 'slide',
+    centeredSlides: centerActiveSlide,
     ...(fade ? { fadeEffect: { crossFade: true } } : {}),
     preventInteractionOnTransition: true,
     speed: prefersReducedMotion() ? 0 : 600,
-    slidesPerView: number(root.dataset.swiperColumnsMobile, 1),
-    spaceBetween: number(root.dataset.swiperGapMobile, 12),
+    slidesPerView: fade ? 1 : (pressTestimonialSection ? 'auto' : (mobilePreviewEnabled ? 1.2 : mobileColumns)),
+    spaceBetween: fade ? 0 : number(root.dataset.swiperGapMobile, 12),
     breakpoints: {
       [desktopBreakpoint]: {
-        slidesPerView: desktopColumns,
-        spaceBetween: number(root.dataset.swiperGapDesktop, 16),
-        ...(useCenteredSlidePreview ? { centeredSlides: true, spaceBetween: 24 } : {})
+        slidesPerView: fade ? 1 : desktopColumns,
+        spaceBetween: fade ? 0 : number(root.dataset.swiperGapDesktop, 16),
+        ...(useCenteredSlidePreview ? { centeredSlides: true } : {})
       }
     },
     controls: {
@@ -597,6 +606,15 @@ const initialize = (root) => {
   if (!swiper) {
     manualLoop?.destroy();
     return;
+  }
+  if (pressTestimonialSection) {
+    const updateTestimonialSlideWidths = () => {
+      window.requestAnimationFrame(() => {
+        if (!swiper.destroyed) swiper.update();
+      });
+    };
+    swiper.on('slideChange', updateTestimonialSlideWidths);
+    updateTestimonialSlideWidths();
   }
   let hotspotContentSchemeCleanup = null;
   if (root.hasAttribute('data-hotspot-full-width-carousel')) {
@@ -674,8 +692,51 @@ const initialize = (root) => {
     updateFraction();
     fractionCleanup = () => swiper.off('init slideChange update', updateFraction);
   }
+  const pressSection = pressTestimonialSection;
+  const videoSection = root.closest('[data-community-videos]');
+  const syncActiveContent = () => {
+    if (swiper.destroyed) return;
+    const activeSlide = swiper.slides[swiper.activeIndex];
+    if (pressSection) {
+      const panel = pressSection.querySelector('[data-press-content]');
+      const quote = activeSlide?.querySelector('[data-press-quote]');
+      if (panel && quote) panel.innerHTML = quote.innerHTML;
+      root.querySelectorAll('[data-press-logo]').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.closest('.swiper-slide') === activeSlide));
+      });
+    }
+    if (videoSection) {
+      root.querySelectorAll('.swiper-slide').forEach((slide) => {
+        const active = slide === activeSlide;
+        slide.querySelectorAll('video').forEach((video) => { if (!active) video.pause(); });
+        slide.querySelectorAll('[data-community-product]').forEach((panel) => { panel.inert = !active; });
+      });
+    }
+  };
+  if (pressSection || videoSection) {
+    swiper.on('slideChange update breakpoint', syncActiveContent);
+    syncActiveContent();
+  }
+  const selectPressLogo = (event) => {
+    if (!pressSection) return;
+    const button = event.target.closest('[data-press-logo]');
+    const slide = button?.closest('.swiper-slide');
+    if (!slide) return;
+    const cloneIndex = Number(slide.dataset.carouselLoopSource);
+    const physicalIndex = swiper.slides.indexOf(slide);
+    const logicalIndex = Number.isInteger(cloneIndex) ? cloneIndex : manualLoop?.logicalIndex(physicalIndex);
+    if (Number.isInteger(logicalIndex) && manualLoop) swiper.slideTo(manualLoop.originalIndex(logicalIndex), swiper.params.speed);
+    else if (Number.isInteger(logicalIndex) && swiper.params.loop) swiper.slideToLoop(logicalIndex, swiper.params.speed);
+    else if (physicalIndex >= 0) swiper.slideTo(physicalIndex, swiper.params.speed);
+  };
+  if (pressSection) root.addEventListener('click', selectPressLogo);
+  const activeContentCleanup = () => {
+    swiper.off('slideChange update breakpoint', syncActiveContent);
+    if (pressSection) root.removeEventListener('click', selectPressLogo);
+  };
   const state = {
     swiper,
+    activeContentCleanup,
     testimonialGapCleanup,
     hotspotContentSchemeCleanup,
     lockedCleanup,
@@ -698,6 +759,7 @@ const initialize = (root) => {
 const destroy = (root) => {
   const state = instances.get(root);
   if (!state) return;
+  state.activeContentCleanup?.();
   state.autoplayCleanup?.();
   state.testimonialGapCleanup?.();
   state.hotspotContentSchemeCleanup?.();
@@ -753,7 +815,7 @@ document.addEventListener('shopify:block:select', (event) => {
 
   initialize(root);
   const state = instances.get(root);
-  const slide = target.closest('.carousel-slide, .testimonial-item, .press-item, .product-callout');
+  const slide = target.closest('.swiper-slide, .carousel-slide, .testimonial-item, .press-item, .product-callout');
   const paginationButton = target.closest('[data-carousel-pagination-button]');
   if (!state) return;
 

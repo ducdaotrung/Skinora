@@ -12,10 +12,12 @@
 
 {% liquid
   assign column_width_mode = block.settings.width | default: 'fill'
-  unless column_width_mode == 'fill' or column_width_mode == 'custom'
+  unless column_width_mode == 'fill' or column_width_mode == 'fit' or column_width_mode == 'custom'
     assign column_width_mode = 'fill'
   endunless
-
+  if section.id contains 'custom_section_YtzgEx'
+    assign column_width_mode = 'fit'
+  endif
   assign column_custom_width = block.settings.custom_width | default: 50 | plus: 0
   if column_custom_width < 1 or column_custom_width > 100
     assign column_custom_width = 50
@@ -151,6 +153,12 @@
     min-width: 0;
   }
 
+  .block-column--width-fit {
+    flex: 0 1 auto;
+    width: fit-content;
+    min-width: 0;
+  }
+
   .block-column > * {
     min-width: 0;
     max-width: 100%;
@@ -207,6 +215,7 @@
       "label": "t:labels.width",
       "options": [
         { "value": "fill", "label": "t:options.column_width.fill" },
+        { "value": "fit", "label": "t:options.width.fit" },
         { "value": "custom", "label": "t:options.column_width.custom" }
       ],
       "default": "fill"

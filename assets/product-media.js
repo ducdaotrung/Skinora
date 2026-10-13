@@ -5,6 +5,7 @@ import { createSwiperCarousel, destroySwiperCarousel } from './swiper-carousel.j
 const LIGHTBOX_ZOOM_SCALE = 3;
 const LIGHTBOX_MAX_IMAGE_SIZE = 2000;
 const LIGHTBOX_DRAG_THRESHOLD = 4;
+const QUICK_ADD_STRIP_DRAG_THRESHOLD = 6;
 const LIGHTBOX_DISMISS_AXIS_RATIO = 1.15;
 const LIGHTBOX_DISMISS_ANIMATION_MS = 240;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -238,13 +239,15 @@ class ProductMediaGallery extends HTMLElement {
       this.variantIdsFor(slide).includes(normalizedVariantId),
     );
 
+    let visibilityChanged = false;
     slides.forEach((slide) => {
       const variantIds = this.variantIdsFor(slide);
       const hidden = hasLinkedMedia && variantIds.length > 0 && !variantIds.includes(normalizedVariantId);
+      if (slide.hidden !== hidden) visibilityChanged = true;
       this.setMediaVisibility(slide, hidden);
     });
 
-    return true;
+    return visibilityChanged;
   }
 
   destroyGallery() {
@@ -374,7 +377,7 @@ class ProductMediaGallery extends HTMLElement {
     const deltaX = event.clientX - drag.startX;
     const deltaY = event.clientY - drag.startY;
     if (!drag.axis) {
-      if (Math.hypot(deltaX, deltaY) < 6) return;
+      if (Math.hypot(deltaX, deltaY) < QUICK_ADD_STRIP_DRAG_THRESHOLD) return;
       if (Math.abs(deltaY) > Math.abs(deltaX)) {
         this.finishQuickAddStripDrag(event, false);
         return;
@@ -452,21 +455,29 @@ class ProductMediaGallery extends HTMLElement {
     const variantId = String(event.detail?.variantId || event.detail?.variant?.id || '');
     const featuredMediaId = event.detail?.variant?.featured_media?.id;
     window.requestAnimationFrame(() => {
+      const previousVariantMediaId = this.dataset.currentVariantMediaId || '';
+      const activeMediaId = this.activeMediaId();
+      const preserveActiveMedia = this.productInformation?.hasAttribute('data-featured-product')
+        && (!featuredMediaId || String(featuredMediaId) === previousVariantMediaId);
       this.dataset.currentVariantId = variantId;
-      const filtersVariantMedia = this.applyVariantMediaFilter(variantId);
+      const visibilityChanged = this.applyVariantMediaFilter(variantId);
       this.syncThumbnailVisibility();
       this.syncGalleryOverflow();
       const visibleMediaIds = new Set(this.visibleSlides().map((slide) => String(slide.dataset.mediaId)));
-      const mediaId = featuredMediaId && visibleMediaIds.has(String(featuredMediaId))
+      const mediaId = preserveActiveMedia && visibleMediaIds.has(activeMediaId)
+        ? activeMediaId
+        : featuredMediaId && visibleMediaIds.has(String(featuredMediaId))
         ? String(featuredMediaId)
         : this.activeMediaId();
-      this.dataset.currentVariantMediaId = mediaId || '';
+      this.dataset.currentVariantMediaId = featuredMediaId ? String(featuredMediaId) : previousVariantMediaId;
 
-      if (filtersVariantMedia) {
+      if (visibilityChanged) {
         this.destroyGallery();
         this.initializeGallery(mediaId, { instant: false });
         return;
       }
+
+      if (preserveActiveMedia || (this.mainSwiper && mediaId === activeMediaId)) return;
 
       if (this.galleryMode === 'desktop-static') {
         if (mediaId) this.scrollToMedia(String(mediaId), true);
@@ -615,7 +626,12 @@ class ProductMediaGallery extends HTMLElement {
     if (state.mediaPointerId === event.pointerId) {
       const deltaX = event.clientX - state.mediaStartX;
       const deltaY = event.clientY - state.mediaStartY;
-      if (!state.mediaMoved && Math.hypot(deltaX, deltaY) >= LIGHTBOX_DRAG_THRESHOLD) {
+      // The strip owns a larger click tolerance than lightbox panning. Both
+      // gallery listeners must agree or ordinary pointer jitter blocks zoom.
+      const threshold = this.galleryMode === 'quick-add-strip'
+        ? QUICK_ADD_STRIP_DRAG_THRESHOLD
+        : LIGHTBOX_DRAG_THRESHOLD;
+      if (!state.mediaMoved && Math.hypot(deltaX, deltaY) >= threshold) {
         state.mediaMoved = true;
       }
       if (state.mediaMoved) state.mediaSuppressClickUntil = performance.now() + 300;
@@ -991,7 +1007,9 @@ class ProductMediaGallery extends HTMLElement {
   showMedia(mediaId, instant = false) {
     const slides = Array.from(this.mainSwiper?.slides || []);
     const index = slides.findIndex((slide) => String(slide.dataset.mediaId) === String(mediaId));
-    if (index >= 0) this.mainSwiper.slideTo(index, instant ? 0 : undefined);
+    if (index >= 0 && index !== this.mainSwiper.activeIndex) {
+      this.mainSwiper.slideTo(index, instant ? 0 : undefined);
+    }
   }
 
   scrollToMedia(mediaId, instant = false) {

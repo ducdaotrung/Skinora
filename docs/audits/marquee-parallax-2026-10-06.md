@@ -1,0 +1,13 @@
+# Marquee scroll influence — 2026-10-06
+
+- Scope: `blocks/marquee.liquid`; reuse the existing scrolling-text loop-phase effect for every animated marquee placement. Autoplay, forward/backward direction, pause on hover/focus, speed zero, and reduced-motion handling retain their existing contracts. No schema, merchant settings, template, CSS, or locale changes.
+- Upstream: fetched `theme-base/dev` (`8169f12c`) and `origin/codex/spinel-chieutt-dev` (`582c3a77`). Upstream dev was already an ancestor and its marquee implementation identical. Its parallax handler was limited to `.text-marquee-custom`; standalone marquee placements were excluded. No missing upstream commit to merge.
+- History: no commit or push. Origin editor history overlaps other in-progress Contact/FAQ edits, so no broad merge or stash was performed. Those edits were preserved. This shared-block fix is an outbound base-sync candidate only upon explicit request.
+- Implementation: remove only the section-ancestor condition; retain existing clamped scroll delta, downward influence 0.35, upward influence 0.7, and seamless modulo animation-time wrap. Speed-zero blocks still do not register scroll listeners.
+- Validation PASS: `git diff --check`; extracted JavaScript syntax; Shopify Theme Check zero errors and no offenses in the changed block. Existing repository warnings remain.
+- Runtime harness PASS: generic block receives the scroll listener; downward phase 1000→1196 and upward 1196→804 for 20px scroll; negative time wraps to27608ms; editor unload removes listener; speed zero remains static; initial and toggled reduced motion prevent/remove the handler.
+- Theme Editor PASS: unpublished development theme144448127024 (`spinel-theme/codex/spinel-chieutt-dev`), About us marquee selection and existing controls/defaults visible, Save remains disabled. Live marquee `.marquee--ready` with measured loop1023.046875px and moving CSS transform. Down/up preview scrolling changed position and animation transform. Mobile preview width343px, measured loop693.0859375px and active transform; desktop preview restored. No settings were changed or saved.
+- Not tested in browser: adding a generic marquee instance (covered by runtime harness), reduced-motion OS toggle (covered by harness), exhaustive unrelated setting mutation/add/remove/reorder paths because schema and composition are unchanged.
+- Deployment PASS: uploaded only `blocks/marquee.liquid` using `--only` and `--nodelete`; CLI response confirms development ID/name/unpublished role. No live-theme upload or publish.
+- Preview: no watcher started; port9292 checked with no listener.
+- Overall: PASS for scoped motion fix, with browser limitations listed above.

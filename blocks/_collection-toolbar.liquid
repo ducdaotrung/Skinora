@@ -1,4 +1,6 @@
 {% doc %}
+  @param {boolean} [empty_search_results] - Hide count, sort and columns for an empty filtered search
+  @param {object} [search_resource] - Native search drop when used in Search results
   Fixed collection toolbar. Its root is the Theme Editor selection surface for
   the filter, count, sort, and column controls.
 {% enddoc %}
@@ -14,10 +16,12 @@
   endcase
 %}
 <div class="main-collection__toolbar{% if block.settings.sticky_on_mobile %} main-collection__toolbar--sticky-mobile{% endif %}" style="--collection-toolbar-gap:{{ block.settings.gap }}px;--collection-toolbar-button-height:{{ toolbar_height }};--collection-toolbar-padding-top:{{ block.settings.padding_top }}px;--collection-toolbar-padding-bottom:{{ block.settings.padding_bottom }}px;{% if block.settings.customize_mobile_padding %}--collection-toolbar-padding-top-mobile:{{ block.settings.padding_top_mobile }}px;--collection-toolbar-padding-bottom-mobile:{{ block.settings.padding_bottom_mobile }}px;{% endif %}" {{ block.shopify_attributes }}>
-  {% content_for 'block', type: '_collection-filter', id: 'filter' %}
-  {% content_for 'block', type: '_collection-count', id: 'count' %}
-  {% content_for 'block', type: '_collection-sort', id: 'sort' %}
+  {% content_for 'block', type: '_collection-filter', id: 'filter', search_resource: search_resource %}
+  {% unless empty_search_results %}
+  {% content_for 'block', type: '_collection-count', id: 'count', search_resource: search_resource %}
+  {% content_for 'block', type: '_collection-sort', id: 'sort', search_resource: search_resource %}
   {% content_for 'block', type: '_collection-columns', id: 'columns' %}
+  {% endunless %}
 </div>
 {% schema %}
 {

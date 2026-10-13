@@ -7,6 +7,18 @@ const path = require('node:path');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 const response = (data, ok = true) => ({ ok, json: async () => data });
 
+function loadOverlayController(file, className, context) {
+  // VM scripts cannot parse static ESM imports. Execute the real shared helper
+  // in the same context, then remove only the import whose binding it supplies.
+  const dependency = fs.readFileSync(path.join(__dirname, '../assets/button-loading.js'), 'utf8');
+  assert.match(dependency, /^export function setButtonLoadingState\(/);
+  vm.runInContext(dependency.replace(/^export /, ''), context);
+  const source = fs.readFileSync(path.join(__dirname, `../assets/${file}.js`), 'utf8');
+  const dependencyImport = "import { setButtonLoadingState } from './button-loading.js';";
+  assert.equal(source.split(dependencyImport).length, 2);
+  vm.runInContext(`${source.replace(dependencyImport, '')}\nwindow.Controller = ${className};`, context);
+}
+
 // Exercise the real delegated submit controller with deferred network responses.
 // Native dialog/layout behavior is covered separately and needs browser QA.
 function fixture({ assertReady = true, recommendationsEnabled = false } = {}) {
@@ -158,6 +170,36 @@ test('sold out response stays in form, announces error, and permits retry', asyn
   assert.equal(f.requests.length, 2);
 });
 
+test('tracked inventory replaces generic cart errors with the remaining quantity', async () => {
+  const f = fixture();
+  f.drawer.dataset.cartInventoryError = 'Only __COUNT__ left in stock.';
+  f.form.dataset.inventoryQuantity = '3';
+  f.form.dataset.inventoryManagement = 'shopify';
+  f.form.dataset.inventoryPolicy = 'deny';
+  f.submit();
+  f.requests[0].resolve(response({ message: 'Cart Error' }, false));
+  await tick();
+  assert.equal(f.form.children[0].textContent, 'Only 3 left in stock.');
+  assert.doesNotMatch(f.form.children[0].textContent, /Cart Error/);
+});
+
+test('tracked inventory reports the quantity still available after existing cart units', async () => {
+  const f = fixture();
+  const existingLine = {
+    dataset: { variantId: '42', lineKey: 'existing-line' },
+    querySelector: () => ({ value: '2' }),
+  };
+  f.drawer.querySelectorAll = (selector) => selector.includes('[data-cart-line]') ? [existingLine] : [];
+  f.drawer.dataset.cartInventoryError = 'Only __COUNT__ left in stock.';
+  f.form.dataset.inventoryQuantity = '3';
+  f.form.dataset.inventoryManagement = 'shopify';
+  f.form.dataset.inventoryPolicy = 'deny';
+  f.submit();
+  f.requests[0].resolve(response({ message: 'Cart Error' }, false));
+  await tick();
+  assert.equal(f.form.children[0].textContent, 'Only 1 left in stock.');
+});
+
 test('network or cart refresh failure never opens the drawer and clears busy state', async () => {
   for (const failCart of [false, true]) {
     const f = fixture();
@@ -229,7 +271,7 @@ test('Quick Add and Quick View close only on cart readiness and hand off the ext
     document.querySelector = () => null;
     const window = {};
     const context = vm.createContext({ document, window, AbortController });
-    vm.runInContext(`${fs.readFileSync(path.join(__dirname, `../assets/${file}.js`), 'utf8')}\nwindow.Controller = ${className};`, context);
+    loadOverlayController(file, className, context);
     const form = { querySelector: () => ({ value: '42' }) };
     const calls = [];
     const opener = {};
@@ -258,7 +300,7 @@ test('Quick Add trigger dots clear when its overlay controller is destroyed', ()
   document.querySelector = () => null;
   const window = { ThemeOverlay: { get: () => ({ destroy() {} }) } };
   const context = vm.createContext({ document, window, AbortController });
-  vm.runInContext(`${fs.readFileSync(path.join(__dirname, '../assets/quick-add.js'), 'utf8')}\nwindow.Controller = QuickAddController;`, context);
+  loadOverlayController('quick-add', 'QuickAddController', context);
 
   const classes = new Set(['hidden']);
   const dots = {
@@ -266,12 +308,15 @@ test('Quick Add trigger dots clear when its overlay controller is destroyed', ()
     classList: {
       add: (name) => classes.add(name),
       remove: (name) => classes.delete(name),
+      toggle: (name, enabled) => enabled ? classes.add(name) : classes.delete(name),
     },
   };
   const wrapper = { dataset: {} };
   const attributes = {};
+  const triggerClasses = new Set();
   const trigger = {
     dataset: {},
+    classList: { toggle: (name, enabled) => enabled ? triggerClasses.add(name) : triggerClasses.delete(name) },
     closest: () => wrapper,
     querySelector: (selector) => selector === '[data-loading-dots]' ? dots : null,
     getAttribute: (name) => attributes[name] ?? null,
@@ -289,6 +334,8 @@ test('Quick Add trigger dots clear when its overlay controller is destroyed', ()
   assert.equal(dots.hidden, false);
   assert.equal(classes.has('hidden'), false);
   assert.equal(wrapper.dataset.quickAddLoading, 'true');
+  assert.equal(attributes['aria-busy'], 'true');
+  assert.equal(triggerClasses.has('btn--loading'), true);
 
   controller.destroy();
   assert.equal(aborted, true);
@@ -296,4 +343,6 @@ test('Quick Add trigger dots clear when its overlay controller is destroyed', ()
   assert.equal(classes.has('hidden'), true);
   assert.equal(trigger.dataset.quickAddLoading, undefined);
   assert.equal(wrapper.dataset.quickAddLoading, undefined);
+  assert.equal(attributes['aria-busy'], undefined);
+  assert.equal(triggerClasses.has('btn--loading'), false);
 });

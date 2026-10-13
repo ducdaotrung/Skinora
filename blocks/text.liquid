@@ -9,11 +9,17 @@
   {% content_for 'block', type: 'text', id: 'text' %}
 {% enddoc %}
 
+{% assign block_plain_text = block.settings.text | strip_html | replace: '&nbsp;', '' | replace: '&#160;', '' | strip %}
+
 {% liquid
-  assign text_size = block.settings.text_size | default: 'md'
-  unless text_size == 'xs' or text_size == 'sm' or text_size == 'md' or text_size == 'lg' or text_size == 'xl' or text_size == 'xxl'
-    assign text_size = 'md'
+  assign text_size = block.settings.text_size | default: 'display'
+  unless text_size == 'display' or text_size == 'xs' or text_size == 'sm' or text_size == 'md' or text_size == 'lg' or text_size == 'xl' or text_size == 'xxl' or text_size == 'custom'
+    assign text_size = 'display'
   endunless
+  assign text_custom_size = block.settings.custom_text_size | default: 16 | plus: 0
+  if text_custom_size < 10 or text_custom_size > 100
+    assign text_custom_size = 16
+  endif
 
   assign text_width_mode = block.settings.width | default: 'fit'
   unless text_width_mode == 'fit' or text_width_mode == 'fill' or text_width_mode == 'custom'
@@ -72,10 +78,11 @@
   assign padding_left_mobile = padding_left_mobile | plus: 0
   assign padding_right_mobile = block.settings.padding_right_mobile | default: 0
   assign padding_right_mobile = padding_right_mobile | plus: 0
-  assign text_class = 'text-block size-style motion-block body-text body-' | append: text_size
+  assign text_class = 'text-block size-style motion-block typography-content body-text body-' | append: text_size
 %}
 
 {% capture text_style %}
+  {% if text_size == 'custom' %}--text-block-custom-size: {{ text_custom_size }}px;{% endif %}
   {% render 'size-style',
     width: text_width,
     max_width: text_size_max_width,
@@ -100,9 +107,10 @@
   <div
     class="{{ text_class }}"
     {% if text_style != blank %}style="{{ text_style }}"{% endif %}
+    {% if block_plain_text == blank %}data-content-empty{% endif %}
     {{ block.shopify_attributes }}
   >
-    {% if block.settings.height_limit != blank and block.settings.height_limit != 'none' %}
+    {% if block_plain_text != blank and block.settings.height_limit != blank and block.settings.height_limit != 'none' %}
       {% liquid
         assign text_height = 200
         case block.settings.height_limit
@@ -144,7 +152,7 @@
     overflow-wrap: anywhere;
   }
 
-  .text-block a {
+  .text-block a:not(.btn) {
     color: inherit;
   }
 
@@ -180,15 +188,29 @@
       "type": "select",
       "id": "text_size",
       "label": "t:labels.text_size",
+      "info": "Display uses the desktop and mobile paragraph sizes from Theme Settings.",
       "options": [
+        { "value": "display", "label": "t:options.text_size.display" },
         { "value": "xs", "label": "t:options.text_size.xs" },
         { "value": "sm", "label": "t:options.text_size.sm" },
         { "value": "md", "label": "t:options.text_size.md" },
         { "value": "lg", "label": "t:options.text_size.lg" },
         { "value": "xl", "label": "t:options.text_size.xl" },
-        { "value": "xxl", "label": "t:options.text_size.xxl" }
+        { "value": "xxl", "label": "t:options.text_size.xxl" },
+        { "value": "custom", "label": "t:options.text_size.custom" }
       ],
-      "default": "md"
+      "default": "display"
+    },
+    {
+      "type": "range",
+      "id": "custom_text_size",
+      "label": "t:labels.font_size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.text_size == 'custom' }}"
     },
     {
       "type": "select",
@@ -364,7 +386,7 @@
       "category": "t:general.basic",
       "settings": {
         "text": "<p>Text</p>",
-        "text_size": "md",
+        "text_size": "display",
         "width": "fit",
         "customize_mobile_size": false,
         "max_width": 640,

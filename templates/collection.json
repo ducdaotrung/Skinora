@@ -23,7 +23,8 @@
             "content_position": "bottom",
             "focal_point": "center center",
             "color_scheme": "scheme-3",
-            "overlay_opacity": 20
+            "overlay_color": "#0000000A",
+            "show_overlay": true
           }
         },
         "collection_card_cmVa8G": {
@@ -37,7 +38,8 @@
             "content_position": "bottom",
             "focal_point": "center center",
             "color_scheme": "scheme-3",
-            "overlay_opacity": 20
+            "overlay_color": "#0000000A",
+            "show_overlay": true
           }
         },
         "collection_card_TXYgm4": {
@@ -51,7 +53,8 @@
             "content_position": "bottom",
             "focal_point": "center center",
             "color_scheme": "scheme-3",
-            "overlay_opacity": 20
+            "overlay_color": "#0000000A",
+            "show_overlay": true
           }
         },
         "collection_card_hFAJVc": {
@@ -65,7 +68,8 @@
             "content_position": "bottom",
             "focal_point": "center center",
             "color_scheme": "scheme-3",
-            "overlay_opacity": 20
+            "overlay_color": "#0000000A",
+            "show_overlay": true
           }
         }
       },
@@ -81,7 +85,9 @@
         "column_gap": 20,
         "color_scheme": "scheme-1",
         "padding_top": 12,
-        "padding_bottom": 12
+        "padding_bottom": 12,
+        "overlay_color": "#0000000A",
+        "show_overlay": true
       }
     },
     "collection_breadcrumb": {

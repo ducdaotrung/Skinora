@@ -36,7 +36,7 @@
   --parallax-padding-top-fluid: calc({{ top_slope }}vw + {{ top_intercept }}px);
   --parallax-padding-bottom-fluid: calc({{ bottom_slope }}vw + {{ bottom_intercept }}px);
 {% endcapture %}
-<div class="parallax-section section-spacing color-scheme section-color-scope {{ scheme }}"
+<div class="parallax-section section-content-scope section-spacing color-scheme section-color-scope {{ scheme }}"
   style="--section-padding-top: {{ section.settings.padding_top }}px; --section-padding-bottom: {{ section.settings.padding_bottom }}px; --parallax-header-gap: {{ section.settings.gap_desktop }}px; --parallax-header-gap-mobile: {{ section.settings.gap_mobile }}px; --parallax-content-gap: {{ section.settings.content_gap_desktop }}px; --parallax-content-gap-mobile: {{ section.settings.content_gap_mobile }}px; {{ responsive_style | strip }}">
   {% if section.settings.background_media != 'none' %}
     {% render 'media-background', media_type: section.settings.background_media, image: section.settings.background_image, video: section.settings.background_video, sizes: '100vw', aria_hidden: true %}

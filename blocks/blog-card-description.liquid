@@ -1,3 +1,4 @@
+{%- capture theme_size_size -%}{%- render 'typography-size-token', size: block.settings.size, role: 'body', fallback: 'sm' -%}{%- endcapture -%}
 {% doc %}
   Renders article description copy inside Blog Card.
 
@@ -19,8 +20,8 @@
   unless blog_card_description_limit == 'no_limit' or blog_card_description_limit == 'one' or blog_card_description_limit == 'two' or blog_card_description_limit == 'three'
     assign blog_card_description_limit = 'two'
   endunless
-  assign blog_card_description_size = block.settings.size | default: 'md'
-  unless blog_card_description_size == 'xs' or blog_card_description_size == 'sm' or blog_card_description_size == 'md' or blog_card_description_size == 'lg' or blog_card_description_size == 'xl' or blog_card_description_size == 'xxl'
+  assign blog_card_description_size = theme_size_size | default: 'md'
+  unless blog_card_description_size == 'display' or blog_card_description_size == 'xs' or blog_card_description_size == 'sm' or blog_card_description_size == 'md' or blog_card_description_size == 'lg' or blog_card_description_size == 'xl' or blog_card_description_size == 'xxl'
     assign blog_card_description_size = 'md'
   endunless
 
@@ -42,7 +43,7 @@
 
 {% if blog_card_description_text != blank or request.design_mode %}
   <div
-    class="blog-card-description blog-card-description--limit-{{ blog_card_description_limit }} body-{{ blog_card_description_size }}"
+    class="blog-card-description blog-card-description--limit-{{ blog_card_description_limit }} body-text body-{{ blog_card_description_size }} typography-content"
     {% if blog_card_description_style != blank %}style="{{ blog_card_description_style }}"{% endif %}
     {{ block.shopify_attributes }}
   >
@@ -107,6 +108,7 @@
       "id": "size",
       "label": "Font size",
       "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xs", "label": "Extra small" },
         { "value": "sm", "label": "Small" },
         { "value": "md", "label": "Medium" },
@@ -114,7 +116,7 @@
         { "value": "xl", "label": "Extra large" },
         { "value": "xxl", "label": "2X large" }
       ],
-      "default": "sm"
+      "default": "display"
     },
     {
       "type": "header",
@@ -175,7 +177,7 @@
       "category": "Blog",
       "settings": {
         "text_limit": "two",
-        "size": "sm",
+        "size": "display",
         "padding_top": 0,
         "padding_bottom": 6,
         "customize_mobile_padding": false,

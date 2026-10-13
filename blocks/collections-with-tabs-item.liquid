@@ -1,3 +1,5 @@
+{% capture item_title_size %}{% render 'heading-size-token', size: section.settings.title_size, fallback: 'xl' %}{% endcapture %}
+{% assign item_title_size = item_title_size | strip %}
 {% liquid
   assign item_collection = block.settings.collection
   assign item_title = block.settings.custom_title | default: item_collection.title | default: 'Collection title'
@@ -8,8 +10,6 @@
   endif
   assign item_id = block.id
   assign item_title_tag = section.settings.title_tag | default: 'div'
-  assign item_title_size = section.settings.title_size | default: 'heading_2'
-  assign item_title_size = item_title_size | replace: 'heading_1', 'display' | replace: 'heading_2', 'xl' | replace: 'heading_3', 'lg' | replace: 'heading_4', 'md'
   assign image_ratio = section.settings.image_ratio | default: 'auto'
   if image_ratio == 'auto'
     if item_image != blank and item_image.aspect_ratio > 0

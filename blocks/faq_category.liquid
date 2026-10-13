@@ -43,8 +43,10 @@
   {% if faq_category_show_title and faq_category_title != blank %}
     <{{ faq_category_tag }} class="heading-text heading-{{ faq_category_heading_size }} faq-category__title">{{ faq_category_title | escape }}</{{ faq_category_tag }}>
   {% endif %}
-  {% if block.blocks.size > 0 %}
-    <div class="faq-category__items">{% content_for 'blocks' %}</div>
+  {% capture faq_category_items %}{% content_for 'blocks' %}{% endcapture %}
+  {% assign faq_category_items = faq_category_items | strip %}
+  {% if faq_category_items != blank %}
+    <div class="faq-category__items">{{ faq_category_items }}</div>
   {% elsif request.design_mode %}
     <div class="faq-category__empty">Add FAQ items to this category.</div>
   {% endif %}

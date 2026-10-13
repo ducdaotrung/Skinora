@@ -20,8 +20,15 @@
 {% endcapture %}
 
 <div class="text-block size-style announcement-text-block motion-block body-text"{% if text_style != blank %} style="{{ text_style | strip }}"{% endif %} {{ block.shopify_attributes }}>
-  {{ block.settings.text | escape }}
+  <span>{{ block.settings.text | escape }}</span>
+  {% if block.settings.show_chevron %}
+    {% render 'icon', icon: 'chevron-right', width: 18, class: 'announcement-text-block__chevron' %}
+  {% endif %}
 </div>
+
+{% stylesheet %}
+  .announcement-text-block__chevron { flex: 0 0 auto; margin-inline-start: 0.8rem; }
+{% endstylesheet %}
 
 {% schema %}
 {
@@ -30,11 +37,12 @@
   "settings": [
     { "type": "header", "content": "t:general.content" },
     { "type": "text", "id": "text", "label": "t:labels.text", "default": "Announcement text" },
+    { "type": "checkbox", "id": "show_chevron", "label": "Show chevron", "default": false },
     { "type": "color", "alpha": true, "id": "text_color", "label": "t:labels.text_color" },
     { "type": "header", "content": "t:general.size" },
     { "type": "select", "id": "width", "label": "t:labels.width", "options": [{ "value": "fit", "label": "t:options.width.fit" }, { "value": "fill", "label": "t:options.width.fill" }, { "value": "custom", "label": "t:options.width.custom" }], "default": "fit" },
     { "type": "range", "id": "max_width", "label": "t:labels.max_width", "min": 320, "max": 1600, "step": 20, "unit": "px", "default": 640, "visible_if": "{{ block.settings.width == 'custom' }}" }
   ],
-  "presets": [{ "name": "Text" }]
+  "presets": [{ "name": "Text", "category": "t:general.header" }]
 }
 {% endschema %}

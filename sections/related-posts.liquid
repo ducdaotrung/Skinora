@@ -8,14 +8,16 @@
 {% style %}
   #shopify-section-{{ section.id }} { background: {% if section.settings.background_color != blank %}{{ section.settings.background_color }}{% else %}var(--background-color){% endif %}; }
 {% endstyle %}
-<div class="related-posts section-spacing section-color-scope {{ related_posts_scheme }}" style="--related-posts-gap: {{ section.settings.gap_desktop }}px; --related-posts-gap-mobile: {{ section.settings.gap_mobile }}px; --related-posts-padding-top: {{ section.settings.padding_top }}px; --related-posts-padding-bottom: {{ section.settings.padding_bottom }}px; --flex-align: {{ section.settings.desktop_alignment }}; --flex-align-mobile: {{ section.settings.mobile_alignment }};{% if section.settings.customize_mobile_padding %} --related-posts-padding-top-mobile: {{ section.settings.padding_top_mobile }}px; --related-posts-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile }}px;{% endif %}">
+<div class="section-content-scope section-content-surface related-posts section-spacing section-color-scope {{ related_posts_scheme }}" style="--related-posts-gap: {{ section.settings.gap_desktop }}px; --related-posts-gap-mobile: {{ section.settings.gap_mobile }}px; --related-posts-padding-top: {{ section.settings.padding_top }}px; --related-posts-padding-bottom: {{ section.settings.padding_bottom }}px; --flex-align: {{ section.settings.desktop_alignment }}; --flex-align-mobile: {{ section.settings.mobile_alignment }};{% if section.settings.customize_mobile_padding %} --related-posts-padding-top-mobile: {{ section.settings.padding_top_mobile }}px; --related-posts-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile }}px;{% endif %}">
   {% if section.settings.background_media != 'none' and section.settings.background_media != blank %}
     {% render 'media-background', media_type: section.settings.background_media, image: section.settings.background_image, video: section.settings.background_video, aria_hidden: true, sizes: '100vw' %}
   {% endif %}
   {% if section.settings.show_top_divider %}<div class="related-posts__divider{% if section.settings.divider_full_width %} related-posts__divider--full{% endif %}" aria-hidden="true"></div>{% endif %}
   <div class="container {{ related_posts_width }} related-posts__container">
-    <div class="align-content">{% content_for 'block', type: 'heading', id: 'heading' %}</div>
-    {% content_for 'block', type: 'blog-list', id: 'blog-list', closest.blog: blog, excluded_article: article, mobile_pagination: true %}
+    {% capture related_posts_heading_content %}{% content_for 'block', type: 'heading', id: 'heading' %}{% endcapture %}
+    {% render 'section-content-slot', content: related_posts_heading_content, class: 'align-content' %}
+    {% capture related_posts_list_content %}{% content_for 'block', type: 'blog-list', id: 'blog-list', closest.blog: blog, excluded_article: article, mobile_pagination: true %}{% endcapture %}
+    {% render 'section-content-slot', content: related_posts_list_content, class: 'related-posts__list' %}
   </div>
   {% if section.settings.show_bottom_divider %}<div class="related-posts__divider related-posts__divider--bottom{% if section.settings.divider_full_width %} related-posts__divider--full{% endif %}" aria-hidden="true"></div>{% endif %}
 </div>

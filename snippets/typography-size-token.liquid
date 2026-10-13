@@ -1,0 +1,22 @@
+{% doc %}
+  Resolve Display to a typography token supplied by global Theme Settings.
+  @param {string} [size] - Selected visual size.
+  @param {string} role - Heading or body typography.
+  @param {string} [tag] - Semantic heading tag.
+  @param {string} [fallback] - Heading role for text without a heading tag.
+{% enddoc %}
+{%- assign selected_size = size | default: 'display' -%}
+{%- if selected_size != 'display' -%}
+  {{- selected_size -}}
+{%- elsif role == 'heading' -%}
+  {%- case tag -%}
+    {%- when 'h1' -%}display
+    {%- when 'h2', 'div' -%}xl
+    {%- when 'h3' -%}lg
+    {%- when 'h4' -%}md
+    {%- when 'h5' -%}sm
+    {%- when 'h6' -%}xs
+    {%- else -%}{{- fallback | default: 'xl' -}}
+  {%- endcase -%}
+{%- else -%}display
+{%- endif -%}

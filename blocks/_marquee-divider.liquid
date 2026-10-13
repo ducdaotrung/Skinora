@@ -1,0 +1,149 @@
+{% liquid
+ assign length = '100%'
+ if block.settings.length == 'custom'
+   assign length = block.settings.custom_length | append: '%'
+ elsif block.settings.length == 'max'
+   assign length = '300px'
+ endif
+%}
+<div class="marquee-divider" style="--mq-rule-length:{{ length }};--mq-rule-thickness:{{ block.settings.thickness | default: 1 }}px;{% if block.settings.color_type == 'custom' %}--mq-rule-color:{{ block.settings.border_color }};{% endif %}--mq-pad-top:{{ block.settings.padding_top | default: 0 }}px;{% if block.settings.customize_mobile_padding %}--mq-pad-top-mobile:{{ block.settings.padding_top_mobile | default: 0 }}px;{% endif %}--mq-pad-bottom:{{ block.settings.padding_bottom | default: 0 }}px;{% if block.settings.customize_mobile_padding %}--mq-pad-bottom-mobile:{{ block.settings.padding_bottom_mobile | default: 0 }}px;{% endif %}" {{ block.shopify_attributes }}><hr></div>
+{% stylesheet %}
+.marquee-divider{flex:0 0 auto;width:var(--mq-rule-length);min-width:24px;max-width:100%;} .marquee-divider hr{margin:0;border:0;border-top:var(--mq-rule-thickness) solid var(--mq-rule-color,var(--border-color));}.marquee-divider{padding-top:var(--mq-pad-top,0px);padding-bottom:var(--mq-pad-bottom,0px);}
+@media(max-width:767.98px){.marquee-divider{padding-top:var(--mq-pad-top-mobile,var(--mq-pad-top,0px));padding-bottom:var(--mq-pad-bottom-mobile,var(--mq-pad-bottom,0px));}}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Divider",
+  "tag": null,
+  "settings": [
+    {
+      "type": "range",
+      "id": "thickness",
+      "label": "Thickness",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 1,
+      "unit": "px"
+    },
+    {
+      "type": "select",
+      "id": "length",
+      "label": "Length",
+      "options": [
+        {
+          "value": "fill",
+          "label": "Fill"
+        },
+        {
+          "value": "max",
+          "label": "Max length"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "fill"
+    },
+    {
+      "type": "range",
+      "id": "custom_length",
+      "label": "Custom length",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "default": 100,
+      "unit": "%",
+      "visible_if": "{{ block.settings.length == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "Inherit"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border",
+      "default": "#303030",
+      "visible_if": "{{ block.settings.color_type == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "Custom for mobile",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Top mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "unit": "px",
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Bottom mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "unit": "px",
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Divider",
+      "category": "t:general.layout",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

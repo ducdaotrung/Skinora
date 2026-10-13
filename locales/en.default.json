@@ -187,7 +187,10 @@
   },
   "contact": {
     "form": {
-      "post_success": "Thanks for contacting us. We'll get back to you as soon as possible."
+      "post_success": "Thanks for contacting us. We'll get back to you as soon as possible.",
+      "name": "Name",
+      "email": "Email",
+      "message": "Message"
     }
   },
   "customers": {
@@ -206,6 +209,7 @@
     "no_policies": "Add store policies in Shopify admin to show policy links."
   },
   "collection_tabs": {
+    "load_error": "Unable to load these products. Please try again.",
     "default_tab": "Collection tab",
     "empty_collection": "This collection has no products.",
     "previous": "Previous slide",
@@ -297,7 +301,12 @@
     "close_back_in_stock": "Close back-in-stock form",
     "back_in_stock_success": "Thanks — we'll let you know when it's back in stock.",
     "read_more": "Read more",
-    "read_less": "Read less"
+    "read_less": "Read less",
+    "inventory_low_stock_urgency_html": {
+      "one": "Hurry up, <span class=\"product-inventory__count\">only {{ count }} item</span> left in stock.",
+      "other": "Hurry up, <span class=\"product-inventory__count\">only {{ count }} items</span> left in stock."
+    },
+    "inventory_low_stock_urgency_short": "Hurry! Just a few left"
   },
   "collection": {
     "apply_filters": "Apply ({{ count }})",
@@ -361,14 +370,25 @@
   "password": {
     "title": "This shop is private",
     "password": "Password",
-    "enter": "Enter"
+    "enter": "Enter",
+    "enter_using_password": "Enter using password",
+    "dialog_title": "Enter store using password",
+    "powered_by": "This shop will be powered by",
+    "owner": "Are you the store owner?",
+    "owner_login": "Log in here"
   },
   "search": {
+    "recent_searches": "Recent searches",
+    "clear_recent_searches": "Clear all",
+    "predictive_error": "Search is temporarily unavailable. Press Enter to see all results.",
+    "results_title": "Search results",
     "title": "Search",
     "placeholder": "Search articles, pages, or products",
     "overlay_placeholder": "Search for...",
     "submit": "Search",
     "close": "Close search",
+    "clear": "Clear search",
+    "recently_viewed": "Recently viewed",
     "suggestions": "Suggestions",
     "products": "Products",
     "collections": "Collections",
@@ -418,5 +438,9 @@
     "pinterest": "Pinterest",
     "x": "X",
     "linkedin": "LinkedIn"
+  },
+  "marquee": {
+    "copied": "Coupon code copied",
+    "copy_failed": "Could not copy. Select and copy the code."
   }
 }

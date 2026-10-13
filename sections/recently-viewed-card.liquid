@@ -1,0 +1,38 @@
+{% comment %}
+  Internal static endpoint for recently viewed search cards. The inert template
+  avoids rendering a second visible card or downloading its media on product pages.
+{% endcomment %}
+{% if product != blank %}
+  <template data-recently-viewed-card data-product-url="{{ product.url | escape }}">
+    {% render 'product-card', product: product, class: 'search-page__product-card', heading_tag: 'h3' %}
+  </template>
+  <template data-recently-viewed-row>
+    <article class="search-overlay__recent-row">
+      <a class="search-overlay__recent-image" href="{{ product.url }}">
+        {% if product.featured_image %}{{ product.featured_image | image_url: width: 160 | image_tag: loading: 'lazy', alt: product.title }}{% endif %}
+      </a>
+      <div class="search-overlay__recent-info">
+        <a href="{{ product.url }}" class="body-text body-sm">{{ product.title | escape }}</a>
+        {% render 'product-card-price', item: product %}
+      </div>
+      {% if product.available %}
+        {% if product.variants.size > 1 %}
+          {% assign action_label = 'products.choose_options' | t %}
+          {% render 'product-card-quick-add-overlay', url: product.url, label: action_label, product_title: product.title, style: 'icon', full_width: false %}
+        {% else %}
+          {% assign action_label = 'products.add_to_cart' | t %}
+          {% render 'product-card-quick-add', variant_id: product.selected_or_first_available_variant.id, label: action_label, product_title: product.title, style: 'icon', full_width: false %}
+        {% endif %}
+      {% endif %}
+    </article>
+  </template>
+{% endif %}
+{% schema %}
+{
+  "name": "Recently viewed endpoint",
+  "tag": "div",
+  "class": "recently-viewed-endpoint",
+  "enabled_on": { "templates": ["product"] },
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,8 @@
+{% doc %}
+  Preserve the native Search query across facet and sort forms.
+  @param {object} search_resource - Native search drop
+{% enddoc %}
+<input type="hidden" name="q" value="{{ search_resource.terms | escape }}">
+<input type="hidden" name="options[prefix]" value="last">
+{% assign query_types = search_resource.types | join: ',' %}
+{% if query_types != blank %}<input type="hidden" name="type" value="{{ query_types | escape }}">{% endif %}

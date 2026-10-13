@@ -1,0 +1,638 @@
+{
+  "sections": {
+    "header": {
+      "type": "rich-text",
+      "settings": {
+        "section_width": "page_width",
+        "alignment": "center",
+        "color_scheme": "scheme-1",
+        "padding_top": 70,
+        "padding_bottom": 40,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 70,
+        "padding_bottom_mobile": 30
+      },
+      "blocks": {
+        "eyebrow": {
+          "type": "eyebrow",
+          "settings": {
+            "text": "<p>[ FAQS ]</p>"
+          },
+          "static": true
+        },
+        "heading": {
+          "type": "heading",
+          "settings": {
+            "text": "<p>Frequently asked questions</p>",
+            "html_tag": "h1",
+            "heading_size": "xl"
+          },
+          "static": true
+        },
+        "text": {
+          "type": "text",
+          "settings": {
+            "text": ""
+          },
+          "static": true
+        }
+      },
+      "block_order": []
+    },
+    "faq": {
+      "type": "faq-accordion",
+      "settings": {
+        "section_width": "page_width",
+        "layout": "vertical",
+        "alignment": "center",
+        "gap_desktop": 40,
+        "gap_mobile": 30,
+        "color_scheme": "scheme-1",
+        "padding_top": 0,
+        "padding_bottom": 100
+      },
+      "blocks": {
+        "category_1": {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "width": "fill",
+            "gap_desktop": 24,
+            "gap_mobile": 24,
+            "limit_width": true,
+            "max_width": 1100,
+            "show_overlay": false
+          },
+          "name": "Jewelry & Materials",
+          "blocks": {
+            "heading": {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Jewelry & Materials</p>",
+                "html_tag": "h2",
+                "heading_size": "lg"
+              }
+            },
+            "accordion": {
+              "type": "faq_accordion",
+              "settings": {
+                "style": "simple",
+                "icon": "chevron",
+                "dividers": true,
+                "question_font_size": "sm",
+                "answer_font_size": "md",
+                "width": "fill"
+              },
+              "blocks": {
+                "question_1": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "1. What materials are your jewelry pieces made from?",
+                    "show_question_icon": false,
+                    "initially_open": true
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Our pieces are crafted from carefully selected materials, including precious metals, gemstones, and quality finishes. Each product page includes detailed information about the materials used.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_2": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "2. Are your gemstones genuine?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Gemstone details vary by piece. Please refer to the individual product description for information about the stones, including their type and characteristics.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_3": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "3. Is your jewelry suitable for everyday wear?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Many of our pieces are designed for everyday wear. However, we recommend following our care guidelines to help preserve their beauty and finish over time.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                }
+              },
+              "block_order": [
+                "question_1",
+                "question_2",
+                "question_3"
+              ]
+            }
+          },
+          "block_order": [
+            "heading",
+            "accordion"
+          ]
+        },
+        "category_2": {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "width": "fill",
+            "gap_desktop": 24,
+            "gap_mobile": 24,
+            "limit_width": true,
+            "max_width": 1100,
+            "show_overlay": false
+          },
+          "name": "Ring Sizing",
+          "blocks": {
+            "heading": {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Ring Sizing</p>",
+                "html_tag": "h2",
+                "heading_size": "lg"
+              }
+            },
+            "accordion": {
+              "type": "faq_accordion",
+              "settings": {
+                "style": "simple",
+                "icon": "chevron",
+                "dividers": true,
+                "question_font_size": "sm",
+                "answer_font_size": "md",
+                "width": "fill"
+              },
+              "blocks": {
+                "question_1": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "1. How do I find my ring size?",
+                    "show_question_icon": false,
+                    "initially_open": true
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Use a ring that fits comfortably on your desired finger and measure its internal diameter in millimeters. Compare your measurement with our [Ring Size Guide] to find your corresponding size.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_2": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "2. What if I'm between two sizes?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>If your measurement falls between two sizes, we generally recommend choosing the larger size for a more comfortable fit.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_3": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "3. Do you offer different ring sizes?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Available sizes vary by design. Please check the product page for the sizing options available for each ring.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                }
+              },
+              "block_order": [
+                "question_1",
+                "question_2",
+                "question_3"
+              ]
+            }
+          },
+          "block_order": [
+            "heading",
+            "accordion"
+          ]
+        },
+        "category_3": {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "width": "fill",
+            "gap_desktop": 24,
+            "gap_mobile": 24,
+            "limit_width": true,
+            "max_width": 1100,
+            "show_overlay": false
+          },
+          "name": "Orders & Shipping",
+          "blocks": {
+            "heading": {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Orders & Shipping</p>",
+                "html_tag": "h2",
+                "heading_size": "lg"
+              }
+            },
+            "accordion": {
+              "type": "faq_accordion",
+              "settings": {
+                "style": "simple",
+                "icon": "chevron",
+                "dividers": true,
+                "question_font_size": "sm",
+                "answer_font_size": "md",
+                "width": "fill"
+              },
+              "blocks": {
+                "question_1": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "1. When will my order be shipped?",
+                    "show_question_icon": false,
+                    "initially_open": true
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Orders are carefully prepared and dispatched within the timeframe stated at checkout. Once your order ships, you'll receive a confirmation email with tracking information.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_2": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "2. How can I track my order?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Once your order has been dispatched, we'll send you a tracking link by email so you can follow its journey.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_3": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "3. Can I change or cancel my order?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>If you need to make a change, please contact us as soon as possible after placing your order. While we cannot guarantee changes or cancellations, we'll do our best to accommodate your request before the order is processed.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                }
+              },
+              "block_order": [
+                "question_1",
+                "question_2",
+                "question_3"
+              ]
+            }
+          },
+          "block_order": [
+            "heading",
+            "accordion"
+          ]
+        },
+        "category_4": {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "width": "fill",
+            "gap_desktop": 24,
+            "gap_mobile": 24,
+            "limit_width": true,
+            "max_width": 1100,
+            "show_overlay": false
+          },
+          "name": "Returns & Exchanges",
+          "blocks": {
+            "heading": {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Returns & Exchanges</p>",
+                "html_tag": "h2",
+                "heading_size": "lg"
+              }
+            },
+            "accordion": {
+              "type": "faq_accordion",
+              "settings": {
+                "style": "simple",
+                "icon": "chevron",
+                "dividers": true,
+                "question_font_size": "sm",
+                "answer_font_size": "md",
+                "width": "fill"
+              },
+              "blocks": {
+                "question_1": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "1. What is your return policy?",
+                    "show_question_icon": false,
+                    "initially_open": true
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>We accept eligible returns within the timeframe stated in our return policy. Items must be returned in their original condition and packaging.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_2": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "2. Can I exchange my ring for another size?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Eligible rings may be exchanged for a different size, subject to availability. Please contact our team before sending your item back.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_3": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "3. Are personalized pieces eligible for return?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Personalized, engraved, or made-to-order pieces may not be eligible for return unless they arrive damaged or defective. Please check our full return policy before placing your order.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                }
+              },
+              "block_order": [
+                "question_1",
+                "question_2",
+                "question_3"
+              ]
+            }
+          },
+          "block_order": [
+            "heading",
+            "accordion"
+          ]
+        },
+        "category_5": {
+          "type": "group",
+          "settings": {
+            "direction": "vertical",
+            "alignment": "left",
+            "width": "fill",
+            "gap_desktop": 24,
+            "gap_mobile": 24,
+            "limit_width": true,
+            "max_width": 1100,
+            "show_overlay": false
+          },
+          "name": "Jewelry Care",
+          "blocks": {
+            "heading": {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Jewelry Care</p>",
+                "html_tag": "h2",
+                "heading_size": "lg"
+              }
+            },
+            "accordion": {
+              "type": "faq_accordion",
+              "settings": {
+                "style": "simple",
+                "icon": "chevron",
+                "dividers": true,
+                "question_font_size": "sm",
+                "answer_font_size": "md",
+                "width": "fill"
+              },
+              "blocks": {
+                "question_1": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "1. How should I care for my jewelry?",
+                    "show_question_icon": false,
+                    "initially_open": true
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Store each piece separately in a clean, dry place and avoid prolonged exposure to water, perfumes, lotions, and harsh chemicals. Gently clean your jewelry with a soft, lint-free cloth.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_2": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "2. Can I wear my jewelry in the shower or while swimming?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>We recommend removing your jewelry before showering, swimming, exercising, or entering a hot tub. Regular exposure to moisture and chemicals can affect certain metals, finishes, and gemstones.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                },
+                "question_3": {
+                  "type": "faq_item",
+                  "settings": {
+                    "question": "3. How should I store my jewelry?",
+                    "show_question_icon": false,
+                    "initially_open": false
+                  },
+                  "blocks": {
+                    "answer": {
+                      "type": "faq_answer_text",
+                      "settings": {
+                        "text": "<p>Keep your pieces in a soft-lined jewelry box or pouch, ideally stored separately to prevent scratching and tangling.</p>"
+                      }
+                    }
+                  },
+                  "block_order": [
+                    "answer"
+                  ]
+                }
+              },
+              "block_order": [
+                "question_1",
+                "question_2",
+                "question_3"
+              ]
+            }
+          },
+          "block_order": [
+            "heading",
+            "accordion"
+          ]
+        }
+      },
+      "block_order": [
+        "category_1",
+        "category_2",
+        "category_3",
+        "category_4",
+        "category_5"
+      ]
+    },
+    "support": {
+      "type": "rich-text",
+      "settings": {
+        "section_width": "page_width",
+        "alignment": "center",
+        "color_scheme": "scheme-2",
+        "padding_top": 70,
+        "padding_bottom": 70,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 50,
+        "padding_bottom_mobile": 50
+      },
+      "blocks": {
+        "eyebrow": {
+          "type": "eyebrow",
+          "settings": {
+            "text": ""
+          },
+          "static": true
+        },
+        "heading": {
+          "type": "heading",
+          "settings": {
+            "text": "<p>We're Here to Help</p>",
+            "html_tag": "h2",
+            "heading_size": "lg"
+          },
+          "static": true
+        },
+        "text": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Can't find what you're looking for? Our team is always happy to help with questions about our pieces, sizing, orders, or anything else.</p>",
+            "width": "custom",
+            "max_width": 640
+          },
+          "static": true
+        },
+        "contact": {
+          "type": "button",
+          "settings": {
+            "button_label": "Contact us",
+            "button_link": "shopify://pages/contact",
+            "button_style": "primary",
+            "show_icon": false,
+            "padding_top": 16
+          }
+        }
+      },
+      "block_order": [
+        "contact"
+      ]
+    }
+  },
+  "order": [
+    "header",
+    "faq",
+    "support"
+  ]
+}

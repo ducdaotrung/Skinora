@@ -1,3 +1,5 @@
+{%- assign theme_typography_tag = block.settings.html_tag | default: 'h3' -%}
+{%- capture theme_size_heading_size -%}{%- render 'typography-size-token', size: block.settings.heading_size, role: 'heading', fallback: 'sm', tag: theme_typography_tag -%}{%- endcapture -%}
 {% doc %}
   Renders the article title inside Blog Card.
 
@@ -10,7 +12,7 @@
   assign blog_card_title_text = blog_card_title_article.title | default: 'Blog Title Heading Will Go Here'
   assign blog_card_title_url = blog_card_title_article.url
 
-  assign blog_card_title_size = block.settings.heading_size | default: block.settings.size | default: 'sm'
+  assign blog_card_title_size = theme_size_heading_size | default: block.settings.size | default: 'sm'
   case blog_card_title_size
     when 'heading_1', 'h1', 'display'
       assign blog_card_title_size = 'display'
@@ -150,7 +152,7 @@
         { "value": "xs", "label": "t:options.heading_size.xs" },
         { "value": "custom", "label": "t:options.heading_size.custom" }
       ],
-      "default": "sm"
+      "default": "display"
     },
     {
       "type": "range",
@@ -238,7 +240,7 @@
       "category": "Blog",
       "settings": {
         "line_limit": "no_limit",
-        "heading_size": "sm",
+        "heading_size": "display",
         "html_tag": "h3",
         "padding_top": 8,
         "padding_bottom": 0,

@@ -1,0 +1,80 @@
+{% doc %} Video slide with an active-only product form. {% enddoc %}
+<article class="community-video-card swiper-slide" {{ block.shopify_attributes }}>
+  <div class="community-video-card__media">{% content_for 'blocks' %}</div>
+  <div class="community-video-card__product" data-community-product>
+    {% assign selected_product = block.settings.product %}
+    {% if selected_product != blank %}
+      {% assign product_unavailable = false %}{% unless selected_product.available %}{% assign product_unavailable = true %}{% endunless %}
+      {% assign card_form_id = 'CommunityProduct-' | append: section.id | append: '-' | append: block.id %}
+      {% form 'product', selected_product, id: card_form_id %}
+        {% render 'product-summary', product: selected_product, shop_look: true, price_in_content: true %}
+        {% render 'theme-button', label: 'Add to cart', aria_label: 'Add to cart', type: 'submit', icon: 'cart', icon_only: true, disabled: product_unavailable, class: 'community-video-card__add-to-cart' %}
+      {% endform %}
+    {% else %}
+      {% render 'product-summary', placeholder_title: 'Select a product', price_in_content: true %}
+      {% render 'theme-button', label: 'Add to cart', aria_label: 'Add to cart', icon: 'cart', icon_only: true, disabled: true, class: 'community-video-card__add-to-cart' %}
+    {% endif %}
+  </div>
+</article>
+{% stylesheet %}
+.community-video-card { min-width:0; }
+.community-video-card__media { overflow:hidden; border-radius:16px; }
+.community-video-card__product { visibility:hidden; margin-top:12px; padding:12px 6px; border:1px solid #B3B3B3; border-radius:12px; }
+.carousel-block__viewport:not(.swiper-initialized) .community-video-card:first-child .community-video-card__product { visibility:visible; }
+.swiper-slide-active > .community-video-card__product { visibility:visible; }
+.community-video-card__product form,
+.community-video-card__product:not(:has(form)) { display:grid; grid-template-columns:minmax(0,1fr) 32px; align-items:center; gap:8px; }
+.community-video-card__product .product-summary { align-items:flex-start; gap:16px; }
+.community-video-card__product .product-summary__image { width:40px; height:40px; flex-basis:40px; }
+.community-video-card__product .product-summary__image,
+.community-video-card__product .product-summary__image :is(img,svg) { border-radius:8px; }
+.community-video-card__product .product-summary__content { display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
+.community-video-card__product .product-summary__content > :is(a,span:not(.shop-the-look-variant-select)) { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:capitalize; }
+.community-video-card__product .shop-the-look-variant-select { position:relative; display:inline-flex; align-self:flex-start; max-width:100%; margin-top:2px; padding:0; }
+.community-video-card__product .shop-the-look-variant-select::after { position:absolute; top:50%; right:2px; width:6px; height:6px; border-right:1px solid currentColor; border-bottom:1px solid currentColor; content:""; pointer-events:none; transform:translateY(-70%) rotate(45deg); }
+.community-video-card__product .product-summary__content select { width:fit-content; max-width:100%; min-height:0; margin:0; padding:0 14px 0 0; border:0; border-radius:0; background:transparent; outline:none; box-shadow:none; font:inherit; }
+.community-video-card__product .product-summary__content select:focus,
+.community-video-card__product .product-summary__content select:focus-visible { outline:none; box-shadow:none; }
+.community-video-card__product .price { color:var(--body-color); font-size:var(--price-font-size); font-weight:var(--price-font-weight); }
+.community-video-card__product .community-video-card__add-to-cart { display:grid; width:32px; min-width:32px; height:32px; min-height:32px; padding:0; place-items:center; border:0; border-radius:50%; }
+.community-video-card__product .community-video-card__add-to-cart .btn__label { width:100%; height:100%; justify-content:center; }
+.community-video-card__product .community-video-card__add-to-cart .btn__icon { width:16px; height:16px; }
+.community-video-card__product .community-video-card__add-to-cart svg { width:16px; height:16px; }
+{% endstylesheet %}
+{% schema %}
+{
+  "name": "Video and product",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "video"
+    }
+  ],
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Video and product",
+      "category": "Trust & social proof",
+      "blocks": [
+        {
+          "type": "video",
+          "settings": {
+            "aspect_ratio_desktop": "custom",
+            "custom_aspect_ratio_desktop": 0.6,
+            "aspect_ratio_mobile": "custom",
+            "custom_aspect_ratio_mobile": 0.6,
+            "width_desktop": "fill",
+            "width_mobile": "fill"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

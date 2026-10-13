@@ -9,15 +9,31 @@
   assign inventory_product = closest.product | default: product
   assign inventory_variant = inventory_product.selected_or_first_available_variant
 
-  assign inventory_display_mode = block.settings.display_mode | default: 'status'
-  unless inventory_display_mode == 'status' or inventory_display_mode == 'status_and_count'
-    assign inventory_display_mode = 'status'
-  endunless
-
-  assign inventory_low_stock_threshold = block.settings.low_stock_threshold | plus: 0
-  if block.settings.low_stock_threshold == blank or inventory_low_stock_threshold < 0 or inventory_low_stock_threshold > 20
-    assign inventory_low_stock_threshold = 5
+  assign inventory_show_quantity = block.settings.show_low_stock_quantity
+  if inventory_show_quantity == nil
+    assign inventory_show_quantity = true
+    if block.settings.display_mode == 'status'
+      assign inventory_show_quantity = false
+    endif
   endif
+  assign inventory_show_bar = block.settings.show_progress_bar
+  if inventory_show_bar == nil
+    assign inventory_show_bar = true
+  endif
+  assign inventory_low_stock_threshold = block.settings.low_stock_threshold | default: 5 | at_least: 0 | at_most: 50
+  assign inventory_font = block.settings.font | default: 'body'
+  assign inventory_size = block.settings.font_size | default: 'md'
+  assign inventory_tracking = block.settings.letter_spacing | default: 'normal'
+  assign inventory_in_stock_color = 'var(--heading-color)'
+  assign inventory_low_color = 'var(--heading-color)'
+  case block.settings.low_stock_color
+    when 'text'
+      assign inventory_in_stock_color = 'var(--body-color)'
+      assign inventory_low_color = 'var(--body-color)'
+    when 'custom', nil
+      assign inventory_in_stock_color = block.settings.in_stock_custom_color | default: '#15803d'
+      assign inventory_low_color = block.settings.low_stock_custom_color | default: '#cf2828'
+  endcase
 
   assign inventory_padding_top = block.settings.padding_top | default: 0 | plus: 0
   assign inventory_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
@@ -57,6 +73,11 @@
 %}
 
 {% capture inventory_style %}
+  --product-inventory-in-stock-color: {{ inventory_in_stock_color }};
+  --product-inventory-low-color: {{ inventory_low_color }};
+  --product-inventory-low-ring-color: {{ inventory_low_color }};
+  {% if block.settings.progress_bar_color != blank %}--product-inventory-bar-color: {{ block.settings.progress_bar_color }};{% endif %}
+  {% if block.settings.gap != blank and block.settings.gap != 16 %}--product-inventory-gap: {{ block.settings.gap | at_least: 0 | at_most: 100 }}px;{% endif %}
   {% if inventory_padding_top != 0 %}--product-inventory-padding-top: {{ inventory_padding_top }}px;{% endif %}
   {% if inventory_padding_bottom != 0 %}--product-inventory-padding-bottom: {{ inventory_padding_bottom }}px;{% endif %}
   {% if inventory_padding_left != 0 %}--product-inventory-padding-left: {{ inventory_padding_left }}px;{% endif %}
@@ -72,7 +93,7 @@
 
 {% if inventory_product != blank and inventory_variant != blank %}
   <product-inventory
-    class="product-inventory"
+    class="product-inventory product-inventory--font-{{ inventory_font }} product-inventory--size-{{ inventory_size }} product-inventory--tracking-{{ inventory_tracking }}"
     data-product-inventory
     data-current-variant-id="{{ inventory_variant_id }}"
     {% if inventory_style != blank %}style="{{ inventory_style }}"{% endif %}
@@ -82,7 +103,9 @@
       {% render 'product-inventory-status',
         variant: inventory_variant,
         low_stock_threshold: inventory_low_stock_threshold,
-        display_mode: inventory_display_mode
+        show_low_stock_quantity: inventory_show_quantity,
+        show_inventory_ring: block.settings.show_inventory_ring,
+        show_progress_bar: inventory_show_bar
       %}
     </div>
 
@@ -93,7 +116,9 @@
             {% render 'product-inventory-status',
               variant: variant,
               low_stock_threshold: inventory_low_stock_threshold,
-              display_mode: inventory_display_mode
+              show_low_stock_quantity: inventory_show_quantity,
+              show_inventory_ring: block.settings.show_inventory_ring,
+              show_progress_bar: inventory_show_bar
             %}
           </template>
         {% endfor %}
@@ -102,7 +127,9 @@
         {% render 'product-inventory-status',
           variant: blank,
           low_stock_threshold: inventory_low_stock_threshold,
-          display_mode: inventory_display_mode
+          show_low_stock_quantity: inventory_show_quantity,
+          show_inventory_ring: block.settings.show_inventory_ring,
+          show_progress_bar: inventory_show_bar
         %}
       </template>
     </div>
@@ -115,33 +142,186 @@
   "tag": null,
   "settings": [
     {
-      "type": "header",
-      "content": "t:general.inventory_options"
-    },
-    {
-      "type": "paragraph",
-      "content": "t:info.product_inventory"
-    },
-    {
-      "type": "select",
-      "id": "display_mode",
-      "label": "t:labels.inventory_display",
-      "options": [
-        { "value": "status", "label": "t:options.product_inventory_display.status" },
-        { "value": "status_and_count", "label": "t:options.product_inventory_display.status_and_count" }
-      ],
-      "default": "status"
-    },
-    {
       "type": "range",
       "id": "low_stock_threshold",
       "label": "t:labels.low_stock_threshold",
-      "info": "t:info.low_stock_threshold",
+      "info": "Set to 0 to always show as in stock",
       "min": 0,
-      "max": 20,
+      "max": 50,
       "step": 1,
-      "unit": "pcs",
       "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "show_low_stock_quantity",
+      "label": "Show low inventory quantity",
+      "default": true,
+      "visible_if": "{{ block.settings.low_stock_threshold > 0 }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_inventory_ring",
+      "label": "Show inventory ring",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_progress_bar",
+      "label": "Show low inventory progress bar",
+      "default": true,
+      "visible_if": "{{ block.settings.low_stock_threshold > 0 }}"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:general.gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.low_stock_threshold > 0 and block.settings.show_progress_bar }}"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:labels.font",
+      "options": [
+        {
+          "value": "body",
+          "label": "t:options.product_price_font.body"
+        },
+        {
+          "value": "heading",
+          "label": "t:options.product_price_font.heading"
+        },
+        {
+          "value": "accent",
+          "label": "t:options.product_price_font.accent"
+        }
+      ],
+      "default": "body"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:labels.font_size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "t:options.product_price_size.xs"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.product_price_size.sm"
+        },
+        {
+          "value": "md",
+          "label": "t:options.product_price_size.md"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.product_price_size.lg"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.product_price_size.xl"
+        },
+        {
+          "value": "xxl",
+          "label": "t:options.product_price_size.xxl"
+        }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        {
+          "value": "tighter",
+          "label": "Tighter"
+        },
+        {
+          "value": "tight",
+          "label": "t:options.letter_spacing.tight"
+        },
+        {
+          "value": "normal",
+          "label": "t:options.letter_spacing.normal"
+        },
+        {
+          "value": "relaxed",
+          "label": "t:options.letter_spacing.relaxed"
+        },
+        {
+          "value": "loose",
+          "label": "t:options.letter_spacing.loose"
+        },
+        {
+          "value": "extra_loose",
+          "label": "t:options.letter_spacing.extra_loose"
+        },
+        {
+          "value": "ultra_loose",
+          "label": "Ultra loose"
+        },
+        {
+          "value": "mega_loose",
+          "label": "Mega loose"
+        }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "low_stock_color",
+      "label": "Inventory text color",
+      "options": [
+        {
+          "value": "heading",
+          "label": "Heading"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "custom"
+    },
+    {
+      "type": "color",
+      "id": "in_stock_custom_color",
+      "label": "Custom in stock inventory text color",
+      "default": "#15803d",
+      "visible_if": "{{ block.settings.low_stock_color == 'custom' }}"
+    },
+    {
+      "type": "color",
+      "id": "low_stock_custom_color",
+      "label": "Custom low inventory text color",
+      "default": "#cf2828",
+      "visible_if": "{{ block.settings.low_stock_threshold > 0 and block.settings.low_stock_color == 'custom' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "progress_bar_color",
+      "label": "Progress bar color",
+      "default": "linear-gradient(90deg, rgba(207, 40, 40, 1) 0%, rgba(207, 40, 40, 1) 100%)",
+      "visible_if": "{{ block.settings.low_stock_threshold > 0 and block.settings.show_progress_bar }}"
     },
     {
       "type": "header",

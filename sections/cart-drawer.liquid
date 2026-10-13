@@ -79,8 +79,10 @@
   assign cart_drawer_padding_desktop = 'var(--overlay-drawer-content-padding-desktop)'
   assign cart_drawer_padding_mobile = 'var(--overlay-drawer-content-padding-mobile)'
   assign cart_drawer_inset_desktop = '0px'
+  assign cart_drawer_edge_radius_desktop = '0px'
   if section.settings.enable_padding_desktop != false
     assign cart_drawer_inset_desktop = 'var(--overlay-drawer-padding-desktop)'
+    assign cart_drawer_edge_radius_desktop = 'var(--overlay-drawer-edge-radius-desktop)'
   endif
   capture cart_drawer_remove_icon
     render 'icon', icon: 'trash', bare: true
@@ -138,13 +140,15 @@
   hidden
   data-cart-drawer
   data-section-id="{{ section.id }}"
-  style="--component-overlay-width: {{ section.settings.desktop_width | default: 550 }}px; --cart-drawer-padding-desktop: {{ cart_drawer_padding_desktop }}; --cart-drawer-padding-mobile: {{ cart_drawer_padding_mobile }}; --cart-drawer-inset-desktop: {{ cart_drawer_inset_desktop }}; --cart-drawer-shipping-progress-color: {{ section.settings.progress_bar_color | default: 'var(--sale-price-color)' }}; --cart-drawer-shipping-success-color: {{ section.settings.free_shipping_success_color | default: '#5d874f' }};"
+  style="--component-overlay-width: {{ section.settings.desktop_width | default: 550 }}px; --cart-drawer-padding-desktop: {{ cart_drawer_padding_desktop }}; --cart-drawer-padding-mobile: {{ cart_drawer_padding_mobile }}; --cart-drawer-inset-desktop: {{ cart_drawer_inset_desktop }}; --cart-drawer-edge-radius-desktop: {{ cart_drawer_edge_radius_desktop }}; --cart-drawer-shipping-progress-color: {{ section.settings.progress_bar_color | default: 'var(--sale-price-color)' }}; --cart-drawer-shipping-success-color: {{ section.settings.free_shipping_success_color | default: '#5d874f' }};"
   data-cart-add-url="{{ routes.cart_add_url }}"
   data-cart-change-url="{{ routes.cart_change_url }}"
   data-cart-update-url="{{ routes.cart_update_url }}"
   data-currency="{{ cart.currency.iso_code | default: shop.currency }}"
   data-cart-add-error="{{ 'cart.add_error' | t | escape }}"
   data-cart-update-error="{{ 'cart.update_error' | t | escape }}"
+  data-cart-inventory-error="{{ 'products.inventory_low_stock' | t: count: '__COUNT__' | escape }}"
+  data-cart-inventory-sold-out="{{ 'products.sold_out' | t | escape }}"
   data-cart-note-saved="{{ 'cart_drawer.note_saved' | t | escape }}"
   data-cart-note-error="{{ 'cart_drawer.note_error' | t | escape }}"
   data-cart-discount-applied="{{ 'cart_drawer.discount_applied' | t | escape }}"
@@ -258,7 +262,16 @@
               {% if line_original_price > line_current_price %}
                 {% assign line_is_sale = true %}
               {% endif %}
-              <article class="cart-drawer__item{% if line_is_sale %} is-sale{% endif %}" data-cart-line data-line-key="{{ item.key | escape }}" data-variant-id="{{ item.variant_id }}" data-compare-price="{{ line_original_price }}">
+              <article
+                class="cart-drawer__item{% if line_is_sale %} is-sale{% endif %}"
+                data-cart-line
+                data-line-key="{{ item.key | escape }}"
+                data-variant-id="{{ item.variant_id }}"
+                data-compare-price="{{ line_original_price }}"
+                {% if item.variant.inventory_quantity != blank %}data-inventory-quantity="{{ item.variant.inventory_quantity }}"{% endif %}
+                {% if item.variant.inventory_management != blank %}data-inventory-management="{{ item.variant.inventory_management | escape }}"{% endif %}
+                {% if item.variant.inventory_policy != blank %}data-inventory-policy="{{ item.variant.inventory_policy | escape }}"{% endif %}
+              >
                 <a class="cart-drawer__item-media" href="{{ item.url }}" aria-label="{{ item.product.title | escape }}">
                   {% render 'image', image: item.image, class: 'cart-drawer__image', width: 240, widths: '120, 180, 240', sizes: '7rem', placeholder: 'product-1' %}
                 </a>
@@ -855,6 +868,7 @@
     --cart-drawer-padding: var(--cart-drawer-padding-desktop, var(--overlay-drawer-content-padding-desktop, 1.5rem));
     --cart-drawer-inset: var(--cart-drawer-inset-desktop, 0px);
     --overlay-drawer-inset: var(--cart-drawer-inset, 0px);
+    --overlay-drawer-edge-radius: var(--cart-drawer-edge-radius-desktop, 0px);
     color: var(--body-color);
   }
 

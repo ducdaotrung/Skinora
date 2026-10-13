@@ -1,6 +1,9 @@
 {% doc %}
   Renders one collection panel and its corresponding tab trigger for Collections background.
 {% enddoc %}
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: block.settings, color_id: 'overlay_color', enabled_id: 'show_overlay', style_id: 'overlay_style' %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
+
 {% liquid
   assign item_collection = block.settings.collection
   assign item_title = block.settings.custom_title | strip
@@ -12,10 +15,6 @@
   endif
   assign item_image = block.settings.image | default: item_collection.image
   assign item_mobile_image = block.settings.mobile_image | default: item_image
-  assign item_overlay_color = block.settings.overlay_color | default: '#0000001A'
-  if item_overlay_color.size == 7
-    assign item_overlay_color = item_overlay_color | append: '73'
-  endif
   assign item_media_is_placeholder = false
   if block.settings.media_type == 'video'
     if block.settings.video == blank
@@ -45,11 +44,103 @@
           {{ item_placeholder | placeholder_svg_tag }}
         {% endif %}
       </div>
-      {% if block.settings.show_overlay %}<div class="overlay collection-background-item__overlay" style="--overlay-color: {{ item_overlay_color }};" aria-hidden="true"></div>{% endif %}
+      {% if block.settings.show_overlay %}<div class="overlay collection-background-item__overlay" style="--overlay-color: {{ effective_overlay | default: 'transparent' | escape }};" aria-hidden="true"></div>{% endif %}
     </div>
     <{{ section.settings.heading_tag }} class="collection-background-item__mobile-title">{{ item_title | escape }}{% if section.settings.show_product_count and item_collection != blank %}<span class="collection-background-item__count">{{ item_collection.all_products_count }}</span>{% endif %}</{{ section.settings.heading_tag }}>
   </div>
 </div>
 {% schema %}
-{"name":"Collection","tag":null,"settings":[{"type":"collection","id":"collection","label":"Collection"},{"type":"text","id":"custom_title","label":"Custom title"},{"type":"select","id":"media_type","label":"Media type","options":[{"value":"image","label":"Image"},{"value":"video","label":"Video"}],"default":"image"},{"type":"image_picker","id":"image","label":"Custom image","visible_if":"{{ block.settings.media_type == 'image' }}"},{"type":"image_picker","id":"mobile_image","label":"Custom image mobile (optional)","visible_if":"{{ block.settings.media_type == 'image' }}"},{"type":"video","id":"video","label":"Custom video","visible_if":"{{ block.settings.media_type == 'video' }}"},{"type":"checkbox","id":"show_overlay","label":"Overlay","default":true},{"type":"color","id":"overlay_color","label":"Overlay color","alpha":true,"default":"#0000001A","visible_if":"{{ block.settings.show_overlay }}"}],"presets":[{"name":"Collection"}]}
+{
+  "name": "Collection",
+  "tag": null,
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "text",
+      "id": "custom_title",
+      "label": "Custom title"
+    },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Media type",
+      "options": [
+        {
+          "value": "image",
+          "label": "Image"
+        },
+        {
+          "value": "video",
+          "label": "Video"
+        }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Custom image",
+      "visible_if": "{{ block.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Custom image mobile (optional)",
+      "visible_if": "{{ block.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Custom video",
+      "visible_if": "{{ block.settings.media_type == 'video' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "t:labels.show_overlay",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ block.settings.show_overlay }}"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "t:labels.overlay_color",
+      "alpha": true,
+      "default": "#0000001A",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'gradient' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection"
+    }
+  ]
+}
 {% endschema %}

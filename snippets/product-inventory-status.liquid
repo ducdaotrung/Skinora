@@ -3,7 +3,9 @@
 
   @param {variant} variant - Variant whose inventory should be described
   @param {number} low_stock_threshold - Quantity at or below which the low-stock state is used
-  @param {string} display_mode - Either `status` or `status_and_count`
+  @param {boolean} show_low_stock_quantity - Show the tracked low-stock count
+  @param {boolean} [show_inventory_ring] - Show a ring for in-stock and low-stock states, independently of the bar
+  @param {boolean} show_progress_bar - Show a bar for positive tracked low stock
 {% enddoc %}
 
 {% liquid
@@ -34,26 +36,44 @@
         endif
       elsif low_stock_threshold > 0 and inventory_quantity <= low_stock_threshold
         assign inventory_state = 'low_stock'
-        if display_mode == 'status_and_count'
+        if show_low_stock_quantity
           assign inventory_message = 'products.inventory_low_stock' | t: count: inventory_quantity
         else
           assign inventory_message = 'products.inventory_low_stock_short' | t
         endif
       else
         assign inventory_state = 'in_stock'
-        if display_mode == 'status_and_count'
-          assign inventory_message = 'products.inventory_in_stock_count' | t: count: inventory_quantity
-        else
-          assign inventory_message = 'products.inventory_in_stock' | t
-        endif
+        assign inventory_message = 'products.inventory_in_stock' | t
       endif
     else
       assign inventory_state = 'sold_out'
       assign inventory_message = 'products.sold_out' | t
     endif
   endif
+  assign inventory_has_ring = false
+  if show_inventory_ring
+    if inventory_state == 'in_stock' or inventory_state == 'low_stock'
+      assign inventory_has_ring = true
+    endif
+  endif
 %}
 
-<span class="product-inventory__status product-inventory__status--{{ inventory_state }} body-sm">
-  {{ inventory_message | escape }}
+<span class="product-inventory__status product-inventory__status--{{ inventory_state }}{% if inventory_has_ring %} product-inventory__status--with-ring{% endif %}">
+  {% if inventory_has_ring %}<span class="product-inventory__ring" aria-hidden="true"></span>{% endif %}
+  <span class="product-inventory__copy">
+  {% if inventory_state == 'low_stock' and inventory_quantity > 0 %}
+    {% if show_low_stock_quantity %}
+      {{ 'products.inventory_low_stock_urgency_html' | t: count: inventory_quantity }}
+    {% else %}
+      <span class="product-inventory__count">{{ 'products.inventory_low_stock_urgency_short' | t | escape }}</span>
+    {% endif %}
+  {% else %}
+    {{ inventory_message | escape }}
+  {% endif %}
+  </span>
 </span>
+{% if show_progress_bar and inventory_state == 'low_stock' and inventory_quantity > 0 and low_stock_threshold > 0 %}
+  <div class="product-inventory__bar" aria-hidden="true">
+    <span class="product-inventory__bar-fill"></span>
+  </div>
+{% endif %}

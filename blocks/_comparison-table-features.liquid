@@ -175,7 +175,10 @@
       {% assign comparison_column_header = comparison_column_native | split: '<!-- comparison-column-rows -->' | first %}
       {% assign comparison_column_key = comparison_column_header | split: 'data-comparison-column-key="' | last | split: '"' | first %}
       {% assign comparison_column_product_id = comparison_column_header | split: 'id="comparison-product-' | last | split: '"' | first | prepend: 'comparison-product-' | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id %}
-      {{ comparison_column_header | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id }}
+      {% assign comparison_column_open = comparison_column_header | split: '>' | first | append: '>' %}
+      {% assign comparison_column_header_content = comparison_column_header | remove_first: comparison_column_open %}
+      {% capture comparison_column_rows %}
+      {{ comparison_column_header_content | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id }}
       {% for comparison_row in block.blocks %}
         {% assign comparison_row_start = '<!-- comparison-native-row-' | append: forloop.index | append: '-start -->' %}
       {% assign comparison_row_end = '<!-- comparison-native-row-' | append: forloop.index | append: '-end -->' %}
@@ -192,7 +195,9 @@
           {% endif %}
         </div>
       {% endfor %}
-      </div>
+      {% endcapture %}
+      {% assign comparison_column_attributes = comparison_column_open | remove_first: '<div' | remove_last: '>' | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id %}
+      {% render 'comparison-table-column-shell', attributes: comparison_column_attributes, content: comparison_column_rows %}
     {% else %}
       {{ comparison_column_native | replace: '__TABLE_NAMESPACE__', comparison_table_dom_id }}
     {% endif %}

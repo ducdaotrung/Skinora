@@ -1,32 +1,231 @@
-{% comment %}
-  This section is used in the 404 template to render page shown when customers
-  enter an invalid store URL.
+{% liquid
+  assign container_width = 'page-width'
+  if section.settings.section_width == 'full_width'
+    assign container_width = 'full-width'
+  endif
+  assign content_alignment = 'center'
+  case section.settings.alignment
+    when 'left'
+      assign content_alignment = 'start'
+    when 'right'
+      assign content_alignment = 'end'
+  endcase
+  assign color_scheme = section.settings.color_scheme | default: 'scheme-1'
+  if section.settings.color_scheme.id != blank
+    assign color_scheme = section.settings.color_scheme.id
+  endif
+  assign minimum_height = 'auto'
+  case section.settings.height
+    when 'full_screen'
+      assign minimum_height = '100svh'
+    when 'custom'
+      assign minimum_height = section.settings.custom_height | default: 100 | append: 'svh'
+  endcase
+%}
 
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/404
-{% endcomment %}
+{% style %}
+  #shopify-section-{{ section.id }} {
+    background-color: {% if section.settings.background_color != blank %}{{ section.settings.background_color }}{% else %}var(--background-color){% endif %};
+  }
+{% endstyle %}
 
-<div class="container page-width section-color-scope {{ section.settings.color_scheme | default: 'scheme-1' }}">
-  <h1 class="heading-text heading-xl">{{ '404.title' | t }}</h1>
-
-  <p class="body-text body-md">
-    {{ '404.not_found' | t }}
-  </p>
-
-  <a class="btn btn--primary" href="{{ routes.all_products_collection_url }}">
-    {{ '404.back_to_shopping' | t }}
-  </a>
+<div
+  class="not-found section-spacing color-scheme section-color-scope {{ color_scheme | handleize }}"
+  style="--flex-align: {{ content_alignment }}; --not-found-min-height: {{ minimum_height }}; --not-found-gap: {{ section.settings.gap_desktop | default: 12 }}px; --not-found-gap-mobile: {{ section.settings.gap_mobile | default: 12 }}px; --not-found-padding-top: {{ section.settings.padding_top | default: 120 }}px; --not-found-padding-bottom: {{ section.settings.padding_bottom | default: 120 }}px;{% if section.settings.background_color != blank %} --not-found-background: {{ section.settings.background_color | escape }};{% endif %}"
+>
+  {% if section.settings.background_media == 'image' and section.settings.background_image != blank %}
+    {% render 'media-background', media_type: 'image', image: section.settings.background_image, alt: '', aria_hidden: true, sizes: '100vw' %}
+  {% elsif section.settings.background_media == 'video' and section.settings.background_video != blank %}
+    {% render 'media-background', media_type: 'video', video: section.settings.background_video, aria_hidden: true %}
+  {% endif %}
+  <div class="container {{ container_width }} not-found__container">
+    <div class="not-found__content align-content">
+      {% content_for 'block', type: 'heading', id: 'heading' %}
+      {% content_for 'block', type: 'text', id: 'text' %}
+      {% content_for 'block', type: 'button', id: 'button' %}
+    </div>
+  </div>
 </div>
+
+{% stylesheet %}
+  .not-found {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    min-height: var(--not-found-min-height, auto);
+    padding-block: var(--not-found-padding-top, 120px) var(--not-found-padding-bottom, 120px);
+    background-color: var(--not-found-background, var(--background-color));
+  }
+  .not-found__container { position: relative; z-index: 1; }
+  .not-found__content { min-width: 0; gap: var(--not-found-gap, 12px); overflow-wrap: anywhere; }
+  @media (min-width: 768px) and (max-width: 1149.98px) {
+    .not-found { padding-block: calc(var(--not-found-padding-top, 120px) * .75) calc(var(--not-found-padding-bottom, 120px) * .75); }
+  }
+  @media (max-width: 767.98px) {
+    .not-found { padding-block: calc(var(--not-found-padding-top, 120px) * .5) calc(var(--not-found-padding-bottom, 120px) * .5); }
+    .not-found__content { gap: var(--not-found-gap-mobile, var(--not-found-gap, 12px)); }
+  }
+{% endstylesheet %}
 
 {% schema %}
 {
   "name": "t:general.404",
-  "enabled_on": { "templates": ["404"] },
+  "class": "section-not-found",
+  "enabled_on": {
+    "templates": [
+      "404"
+    ]
+  },
   "settings": [
+    {
+      "type": "header",
+      "content": "t:general.layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        {
+          "value": "page_width",
+          "label": "t:options.section_width.page_width"
+        },
+        {
+          "value": "full_width",
+          "label": "t:options.section_width.full_width"
+        }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "t:labels.height",
+      "options": [
+        {
+          "value": "auto",
+          "label": "t:options.section_height.auto"
+        },
+        {
+          "value": "full_screen",
+          "label": "t:options.section_height.full_screen"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.section_height.custom"
+        }
+      ],
+      "default": "auto"
+    },
+    {
+      "type": "range",
+      "id": "custom_height",
+      "label": "t:labels.height",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 100,
+      "visible_if": "{{ section.settings.height == 'custom' }}"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "default": "center"
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "t:labels.desktop_gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.gap_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "t:general.appearance"
+    },
     {
       "type": "color_scheme",
       "id": "color_scheme",
       "label": "t:labels.color_scheme",
       "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "background_color",
+      "label": "Background color"
+    },
+    {
+      "type": "select",
+      "id": "background_media",
+      "label": "t:general.media",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.background_media.none"
+        },
+        {
+          "value": "image",
+          "label": "t:general.image"
+        },
+        {
+          "value": "video",
+          "label": "t:general.video"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "t:labels.background_image",
+      "visible_if": "{{ section.settings.background_media == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "background_video",
+      "label": "t:labels.background_video",
+      "visible_if": "{{ section.settings.background_media == 'video' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.section_padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 120
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "default": 120
     }
   ]
 }

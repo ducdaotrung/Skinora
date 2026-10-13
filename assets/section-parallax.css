@@ -63,7 +63,6 @@
   z-index: -1;
   border-radius: inherit;
   background: var(--parallax-item-overlay, transparent);
-  opacity: var(--parallax-item-overlay-opacity, 0);
   pointer-events: none;
 }
 .parallax-item__content { position: relative; min-width: 0; }

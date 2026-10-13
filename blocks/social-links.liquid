@@ -1,3 +1,4 @@
+{%- capture theme_size_text_size -%}{%- render 'typography-size-token', size: block.settings.text_size, role: 'body', fallback: 'md' -%}{%- endcapture -%}
 {% doc %}
   Renders the global social media settings through the shared social-links
   snippet. The snippet omits the block's navigation when no social URL is
@@ -56,7 +57,7 @@
     direction: block.settings.direction,
     shadow: block.settings.shadow,
     text_color: block.settings.text_color,
-    text_size: block.settings.text_size
+    text_size: theme_size_text_size
   %}
 </div>
 
@@ -149,6 +150,7 @@
       "id": "text_size",
       "label": "t:labels.text_size",
       "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xs", "label": "t:options.text_size.xs" },
         { "value": "sm", "label": "t:options.text_size.sm" },
         { "value": "md", "label": "t:options.text_size.md" },
@@ -156,7 +158,7 @@
         { "value": "xl", "label": "t:options.text_size.xl" },
         { "value": "xxl", "label": "t:options.text_size.xxl" }
       ],
-      "default": "md",
+      "default": "display",
       "visible_if": "{{ block.settings.display_mode == 'text' }}"
     },
     {

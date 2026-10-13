@@ -24,6 +24,7 @@ function fixture() {
     slideNext() { next++; }, slidePrev() { next--; },
   };
   const media = {
+    dataset: { mediaId: '42' },
     classList: { contains() { return true; } },
     closest(selector) { return selector === '[data-product-media-content]' ? this : null; },
   };
@@ -59,6 +60,49 @@ test('minor pointer movement still behaves as a click', () => {
   f.gallery.handleQuickAddStripPointerUp(f.event(203, 102));
   assert.equal(f.next, 0);
   assert.equal(f.gallery.lightboxZoomState.mediaSuppressClickUntil, 0);
+});
+
+test('Quick add click tolerance matches the strip gesture across the full pointer sequence', () => {
+  for (const delta of [0, 3, 4, 5, 5.9]) {
+    const f = fixture();
+    f.gallery.dataset.zoom = 'open_lightbox';
+    const down = f.event();
+    f.gallery.handleLightboxPointerDown(down);
+    f.gallery.handleQuickAddStripPointerDown(down);
+    const move = f.event(200 + delta);
+    f.gallery.handleLightboxPointerMove(move);
+    f.gallery.handleQuickAddStripPointerMove(move);
+    const up = f.event(200 + delta);
+    up.type = 'pointerup';
+    f.gallery.handleLightboxPointerUp(up);
+    f.gallery.handleQuickAddStripPointerUp(up);
+    let opened;
+    f.gallery.openLightbox = (id) => { opened = id; };
+    f.gallery.handleClick(f.event(200 + delta));
+    assert.equal(opened, '42', `movement of ${delta}px should open the clicked image`);
+    assert.equal(f.captures.length, 0);
+    assert.equal(f.next, 0);
+  }
+});
+
+test('a Quick add drag suppresses lightbox through both pointer controllers', () => {
+  const f = fixture();
+  const down = f.event();
+  f.gallery.handleLightboxPointerDown(down);
+  f.gallery.handleQuickAddStripPointerDown(down);
+  const move = f.event(100);
+  f.gallery.handleLightboxPointerMove(move);
+  f.gallery.handleQuickAddStripPointerMove(move);
+  const up = f.event(100);
+  up.type = 'pointerup';
+  f.gallery.handleLightboxPointerUp(up);
+  f.gallery.handleQuickAddStripPointerUp(up);
+  f.gallery.openLightbox = () => assert.fail('swiping must not open zoom');
+  f.gallery.dataset.zoom = 'open_lightbox';
+  const click = f.event(100);
+  f.gallery.handleClick(click);
+  assert.equal(click.prevented, true);
+  assert.equal(f.next, 1);
 });
 
 test('horizontal drag captures after the threshold, slides and suppresses its click', () => {

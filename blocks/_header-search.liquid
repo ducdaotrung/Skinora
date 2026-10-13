@@ -1,3 +1,4 @@
+{%- capture theme_size_font_size -%}{%- render 'typography-size-token', size: block.settings.font_size, role: 'body', fallback: 'md' -%}{%- endcapture -%}
 {% liquid
   assign search_type = block.settings.type | default: 'text'
   unless search_type == 'icon' or search_type == 'text' or search_type == 'icon_with_text' or search_type == 'search_bar'
@@ -11,8 +12,8 @@
     assign search_font = 'accent'
   endunless
 
-  assign search_font_size = block.settings.font_size | default: 'md'
-  unless search_font_size == 'sm' or search_font_size == 'md' or search_font_size == 'lg' or search_font_size == 'xl' or search_font_size == 'xxl'
+  assign search_font_size = theme_size_font_size | default: 'md'
+  unless search_font_size == 'display' or search_font_size == 'sm' or search_font_size == 'md' or search_font_size == 'lg' or search_font_size == 'xl' or search_font_size == 'xxl'
     assign search_font_size = 'md'
   endunless
 
@@ -259,13 +260,14 @@
       "id": "font_size",
       "label": "Font size",
       "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "sm", "label": "Small" },
         { "value": "md", "label": "Medium" },
         { "value": "lg", "label": "Large" },
         { "value": "xl", "label": "Extra large" },
         { "value": "xxl", "label": "Double extra large" }
       ],
-      "default": "md"
+      "default": "display"
     },
     {
       "type": "select",

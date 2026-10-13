@@ -1,6 +1,10 @@
 {% liquid
   assign primary_font = settings.type_primary_font
   assign body_font = primary_font
+  assign button_font_weight = settings.button_font_weight | default: 'inherit'
+  unless button_font_weight == '300' or button_font_weight == '400' or button_font_weight == '500' or button_font_weight == '600' or button_font_weight == '700' or button_font_weight == '800' or button_font_weight == '900'
+    assign button_font_weight = 'inherit'
+  endunless
   assign heading_font = settings.type_heading_font
   assign accent_font = settings.type_accent_font
   if heading_font == blank
@@ -26,14 +30,14 @@
   assign default_border = settings.color_border | default: '#D8D8D8'
   assign default_shadow = default_body
   assign default_sale_price = '#D82727'
-  assign default_primary_background = default_accent
-  assign default_primary_text = default_background
+  assign default_primary_background = settings.button_primary_background_color | default: default_accent
+  assign default_primary_text = settings.button_primary_text_color | default: default_background
   assign default_primary_border = default_accent
   assign default_primary_hover_background = '#000000'
   assign default_primary_hover_text = '#FFFFFF'
   assign default_primary_hover_border = '#000000'
-  assign default_secondary_background = '#ECECEC'
-  assign default_secondary_text = default_accent
+  assign default_secondary_background = settings.button_secondary_background_color | default: '#ECECEC'
+  assign default_secondary_text = settings.button_secondary_text_color | default: default_accent
   assign default_secondary_border = '#ECECEC'
   assign default_secondary_hover_background = '#D8D8D8'
   assign default_secondary_hover_text = default_accent
@@ -68,6 +72,7 @@
       assign default_secondary_hover_border = scheme.settings.button_secondary_hover_border | default: default_secondary_hover_border
       assign default_tertiary_text = scheme.settings.button_tertiary_text | default: default_tertiary_text
       assign default_tertiary_hover_text = scheme.settings.button_tertiary_hover_text | default: default_tertiary_hover_text
+      break
     endif
   endfor
 
@@ -89,6 +94,7 @@
       assign overlay_border_color = scheme.settings.border | default: overlay_border_color
       assign overlay_shadow_color = scheme.settings.shadow | default: overlay_shadow_color
       assign overlay_color = overlay_shadow_color
+      break
     endif
   endfor
 
@@ -117,6 +123,7 @@
   assign section_gap = 48
   assign grid_gap = 24
   assign body_size = settings.type_body_size | default: 16
+  assign body_size_mobile = settings.type_body_size_mobile | default: body_size
   assign body_xs_size = 12
   assign body_sm_size = 14
   assign body_lg_size = 18
@@ -262,6 +269,7 @@
   endif
 
   assign eyebrow_size = settings.type_eyebrow_size | default: 12
+  assign eyebrow_size_mobile = settings.type_eyebrow_size_mobile | default: eyebrow_size
   assign eyebrow_line_height = '1.5'
   case settings.type_eyebrow_line_height
     when 'tight'
@@ -440,16 +448,28 @@
   endcase
 
   assign button_primary_font_family = 'var(--font-body-family)'
+  assign button_primary_font_style = 'var(--font-body-style)'
+  assign button_primary_font_weight = 'var(--font-body-weight)'
   if settings.button_primary_font == 'heading'
     assign button_primary_font_family = 'var(--font-heading-family)'
+    assign button_primary_font_style = 'var(--font-heading-style)'
+    assign button_primary_font_weight = 'var(--font-heading-weight)'
   endif
   assign button_secondary_font_family = 'var(--font-body-family)'
+  assign button_secondary_font_style = 'var(--font-body-style)'
+  assign button_secondary_font_weight = 'var(--font-body-weight)'
   if settings.button_secondary_font == 'heading'
     assign button_secondary_font_family = 'var(--font-heading-family)'
+    assign button_secondary_font_style = 'var(--font-heading-style)'
+    assign button_secondary_font_weight = 'var(--font-heading-weight)'
   endif
   assign button_tertiary_font_family = 'var(--font-body-family)'
+  assign button_tertiary_font_style = 'var(--font-body-style)'
+  assign button_tertiary_font_weight = 'var(--font-body-weight)'
   if settings.button_tertiary_font == 'heading'
     assign button_tertiary_font_family = 'var(--font-heading-family)'
+    assign button_tertiary_font_style = 'var(--font-heading-style)'
+    assign button_tertiary_font_weight = 'var(--font-heading-weight)'
   endif
 
   assign button_primary_text_case = 'uppercase'
@@ -805,8 +825,10 @@
       assign overlay_popover_shadow = '0 1rem 2rem color-mix(in srgb, var(--overlay-shadow-color) 24%, transparent)'
   endcase
   assign overlay_drawer_padding_desktop = '0px'
+  assign overlay_drawer_edge_radius_desktop = '0px'
   if settings.overlay_drawer_padding_desktop
     assign overlay_drawer_padding_desktop = '1.5rem'
+    assign overlay_drawer_edge_radius_desktop = drawer_radius
   endif
   assign overlay_drawer_padding_mobile = '0px'
   if settings.overlay_drawer_padding_mobile
@@ -837,21 +859,7 @@
 %}
 
 {% style %}
-  {% # Loads font variants with display: swap. %}
-  {% if body_font != blank %}
-    {{ body_font | font_face: font_display: 'swap' }}
-    {{ body_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
-    {{ body_font | font_modify: 'weight', 'bold' | font_modify: 'style', 'italic' | font_face: font_display: 'swap' }}
-    {{ body_font | font_modify: 'style', 'italic' | font_face: font_display: 'swap' }}
-  {% endif %}
-  {% if heading_font != blank %}
-    {{ heading_font | font_face: font_display: 'swap' }}
-    {{ heading_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
-  {% endif %}
-  {% if accent_font != blank %}
-    {{ accent_font | font_face: font_display: 'swap' }}
-    {{ accent_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
-  {% endif %}
+  {% render 'font-faces', body_font: body_font, heading_font: heading_font, accent_font: accent_font, button_font_weight: button_font_weight %}
 
   :root {
     --header-height: 0px;
@@ -902,6 +910,7 @@
     --font-body-xs: {{ body_xs_size }}px;
     --font-body-sm: {{ body_sm_size }}px;
     --font-body-md: {{ body_size }}px;
+    --font-body-display: {{ body_size }}px;
     --font-body-lg: {{ body_lg_size }}px;
     --font-body-xl: {{ body_xl_size }}px;
     --font-body-xxl: {{ body_xxl_size }}px;
@@ -941,7 +950,7 @@
     --font-eyebrow-line-height: {{ eyebrow_line_height }};
     --font-eyebrow-letter-spacing: {{ eyebrow_letter_spacing }};
     --font-eyebrow-text-transform: {{ eyebrow_text_case }};
-    --font-eyebrow-weight: 500;
+    --font-eyebrow-weight: var(--font-accent-weight);
     --type-body-size: var(--font-body-md);
     --type-body-leading: var(--font-body-line-height);
     --type-heading-1-size: var(--font-heading-display);
@@ -1039,19 +1048,26 @@
     --button-font-size: {{ button_font_size }};
     --button-font-size-mobile: {{ button_font_size_mobile }};
     --button-letter-spacing: {{ button_letter_spacing }};
-    --button-font-weight: var(--font-body-weight);
+    --button-font-weight: {% if button_font_weight == 'inherit' %}var(--font-body-weight){% else %}{{ button_font_weight }}{% endif %};
     --button-font-family: {{ button_primary_font_family }};
+    --button-font-style: {{ button_primary_font_style }};
     --button-text-case: {{ button_primary_text_case }};
     --button-border-width: {{ button_primary_border_width }}px;
     --button-tertiary-underline-offset: {{ button_tertiary_underline_offset }}px;
     --button-tertiary-underline-space: {{ button_tertiary_underline_space }}px;
     --button-primary-font-family: {{ button_primary_font_family }};
+    --button-primary-font-style: {{ button_primary_font_style }};
+    --button-primary-font-weight: {% if button_font_weight == 'inherit' %}{{ button_primary_font_weight }}{% else %}{{ button_font_weight }}{% endif %};
     --button-primary-text-case: {{ button_primary_text_case }};
     --button-primary-border-width: {{ button_primary_border_width }}px;
     --button-secondary-font-family: {{ button_secondary_font_family }};
+    --button-secondary-font-style: {{ button_secondary_font_style }};
+    --button-secondary-font-weight: {% if button_font_weight == 'inherit' %}{{ button_secondary_font_weight }}{% else %}{{ button_font_weight }}{% endif %};
     --button-secondary-text-case: {{ button_secondary_text_case }};
     --button-secondary-border-width: {{ button_secondary_border_width }}px;
     --button-tertiary-font-family: {{ button_tertiary_font_family }};
+    --button-tertiary-font-style: {{ button_tertiary_font_style }};
+    --button-tertiary-font-weight: {% if button_font_weight == 'inherit' %}{{ button_tertiary_font_weight }}{% else %}{{ button_font_weight }}{% endif %};
     --button-tertiary-text-case: {{ button_tertiary_text_case }};
     --button-tertiary-border-width: 0px;
     --button-tertiary-text-decoration: {{ button_tertiary_underline }};
@@ -1183,6 +1199,7 @@
     --overlay-popover-shadow: {{ overlay_popover_shadow }};
     --overlay-title-size: {{ overlay_title_size }};
     --overlay-drawer-padding-desktop: {{ overlay_drawer_padding_desktop }};
+    --overlay-drawer-edge-radius-desktop: {{ overlay_drawer_edge_radius_desktop }};
     --overlay-drawer-padding-mobile: {{ overlay_drawer_padding_mobile }};
     --overlay-drawer-content-padding-desktop: {{ overlay_drawer_content_padding_desktop }};
     --overlay-drawer-content-padding-mobile: {{ overlay_drawer_content_padding_mobile }};
@@ -1205,6 +1222,8 @@
 
   @media (max-width: 767.98px) {
     :root {
+      --font-body-display: {{ body_size_mobile }}px;
+      --font-eyebrow-size: {{ eyebrow_size_mobile }}px;
       --font-heading-xs: {{ heading_6_size_mobile }}px;
       --font-heading-sm: {{ heading_5_size_mobile }}px;
       --font-heading-md: {{ heading_4_size_mobile }}px;
@@ -1295,4 +1314,5 @@
       --button-hover-border: var(--button-{{ button_default_variant }}-hover-border);
     }
   {% endfor %}
+
 {% endstyle %}

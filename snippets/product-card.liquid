@@ -248,6 +248,9 @@
       {% else %}
         {% render 'product-card-quick-add',
           variant_id: current_variant.id,
+          inventory_quantity: current_variant.inventory_quantity,
+          inventory_management: current_variant.inventory_management,
+          inventory_policy: current_variant.inventory_policy,
           label: quick_add_label,
           product_title: product.title,
           style: quick_add_style,
@@ -275,6 +278,7 @@
     {% endif %}
 
     <div class="product-card__details">
+      {% render 'product-card-rating', product: product %}
       {% if show_vendor_enabled and product.vendor != blank %}
         <p class="product-card__vendor body-sm">{{ product.vendor | escape }}</p>
       {% endif %}

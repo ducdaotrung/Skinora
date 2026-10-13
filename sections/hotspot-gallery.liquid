@@ -8,11 +8,15 @@
   unless gallery_header_vertical_alignment == 'top' or gallery_header_vertical_alignment == 'middle' or gallery_header_vertical_alignment == 'bottom'
     assign gallery_header_vertical_alignment = 'middle'
   endunless
+  assign gallery_header_position = section.settings.header_position | default: 'beside'
+  unless gallery_header_position == 'above' or gallery_header_position == 'beside'
+    assign gallery_header_position = 'beside'
+  endunless
   assign gallery_scheme = section.settings.color_scheme.id | default: section.settings.color_scheme | default: 'scheme-1'
 %}
 
 <div
-  class="hotspot-gallery section-spacing section-color-scope color-scheme {{ gallery_scheme | handleize }}"
+  class="section-content-scope hotspot-gallery section-spacing section-color-scope color-scheme {{ gallery_scheme | handleize }}"
   style="
     --section-padding-top: {{ section.settings.padding_top | default: 40 }}px;
     --section-padding-bottom: {{ section.settings.padding_bottom | default: 40 }}px;
@@ -37,10 +41,10 @@
       class: 'hotspot-gallery__background'
     %}
   {% endif %}
-  <div class="hotspot-gallery__layout container {{ gallery_container }}{% if gallery_width == 'full_width_no_padding' %} hotspot-gallery__layout--no-padding{% endif %}">
-    <div class="hotspot-gallery__header hotspot-gallery__header--{{ gallery_header_vertical_alignment }}{% if section.settings.enable_header_sticky %} hotspot-gallery__header--sticky{% endif %}">
-      {% content_for 'block', type: 'header', id: 'header' %}
-    </div>
+  <div class="hotspot-gallery__layout container {{ gallery_container }}{% if gallery_width == 'full_width_no_padding' %} hotspot-gallery__layout--no-padding{% endif %}" data-header-position="{{ gallery_header_position }}">
+    {% capture hotspot_gallery_header_content %}{% content_for 'block', type: 'header', id: 'header' %}{% endcapture %}
+    {% capture hotspot_gallery_header_class %}hotspot-gallery__header hotspot-gallery__header--{{ gallery_header_vertical_alignment }}{% if section.settings.enable_header_sticky %} hotspot-gallery__header--sticky{% endif %}{% endcapture %}
+    {% render 'section-content-slot', content: hotspot_gallery_header_content, class: hotspot_gallery_header_class %}
     {% content_for 'block', type: 'product-callout-gallery', id: 'product-callout' %}
   </div>
 </div>
@@ -62,6 +66,14 @@
     grid-template-columns: fit-content(50%) minmax(0, 1fr);
     align-items: center;
     gap: var(--hotspot-gallery-content-gap, 40px);
+  }
+
+  .hotspot-gallery__layout[data-header-position="above"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hotspot-gallery__layout[data-header-position="above"] .hotspot-gallery__header--sticky {
+    position: static;
   }
 
   .hotspot-gallery__header {
@@ -87,11 +99,11 @@
     }
   }
 
-  .hotspot-gallery__header:not(:has(.block-header)) {
+  .hotspot-gallery__header:not(:has(.block-header:not([data-content-empty]))) {
     display: none;
   }
 
-  .hotspot-gallery__layout:not(:has(.block-header)) {
+  .hotspot-gallery__layout:not(:has(.block-header:not([data-content-empty]))) {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -147,6 +159,22 @@
         }
       ],
       "default": "full_width"
+    },
+    {
+      "type": "select",
+      "id": "header_position",
+      "label": "Header position",
+      "options": [
+        {
+          "value": "above",
+          "label": "Above section"
+        },
+        {
+          "value": "beside",
+          "label": "Beside images"
+        }
+      ],
+      "default": "beside"
     },
     {
       "type": "range",
@@ -354,7 +382,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Main Heading Text Placeholder</p>",
-                "heading_size": "lg",
+                "heading_size": "display",
                 "html_tag": "h2"
               }
             },

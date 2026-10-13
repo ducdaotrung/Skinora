@@ -1,0 +1,11 @@
+{% doc %}
+  Loads non-critical CSS without blocking storefront paint. Keep editor loads
+  synchronous so section selection and re-rendering have styles immediately.
+  @param {string} filename - Theme CSS asset filename
+{% enddoc %}
+{% if request.design_mode %}
+  {{ filename | asset_url | stylesheet_tag }}
+{% else %}
+  <link rel="stylesheet" href="{{ filename | asset_url }}" media="print" onload="this.media='all'">
+  <noscript>{{ filename | asset_url | stylesheet_tag }}</noscript>
+{% endif %}

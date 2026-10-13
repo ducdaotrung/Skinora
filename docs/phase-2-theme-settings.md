@@ -268,6 +268,10 @@ Body scale giữ nguyên theo breakpoint và được tính từ base size. Font
 fallback về body font đối với heading/accent, sau đó về system-ui. Font loading
 dùng `font_display: swap`. Text transform không thay đổi accessible name.
 
+Theme Editor hiển thị sáu profile bằng cùng tên với Heading size: Display,
+Extra large, Large, Medium, Small, Extra small. ID `type_heading_1_*` đến
+`type_heading_6_*` được giữ để bảo toàn dữ liệu; H1–H6 chỉ là lựa chọn HTML Tag.
+
 ### Setting Contract
 
 | ID | Type | Values | Default | Mapping / constraint |

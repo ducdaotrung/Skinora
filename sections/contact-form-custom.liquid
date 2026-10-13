@@ -1,3 +1,5 @@
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: section.settings, color_id: 'background_overlay_color', enabled_id: 'show_overlay', style_id: 'overlay_style' %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
 {% liquid
   assign contact_form_custom_direction = section.settings.direction | default: 'horizontal'
   unless contact_form_custom_direction == 'horizontal' or contact_form_custom_direction == 'vertical'
@@ -70,7 +72,7 @@
   --contact-form-custom-align-mobile: {{ contact_form_custom_alignment_mobile }};
   --contact-form-custom-align-items: {{ contact_form_custom_align_items }};
   {% if contact_form_custom_background_type == 'color' and section.settings.background_color != blank %}--contact-form-custom-background-color: {{ section.settings.background_color | escape }};{% endif %}
-  {% if contact_form_custom_background_type == 'image' and section.settings.background_overlay_color != blank %}--contact-form-custom-overlay-color: {{ section.settings.background_overlay_color | escape }};{% endif %}
+  {% if contact_form_custom_background_type == 'image' and effective_overlay != blank %}--contact-form-custom-overlay-color: {{ effective_overlay | default: 'transparent' | escape }};{% endif %}
   {% if padding_top != 0 %}--contact-form-custom-padding-top: {{ padding_top }}px;{% endif %}
   {% if padding_bottom != 0 %}--contact-form-custom-padding-bottom: {{ padding_bottom }}px;{% endif %}
   --contact-form-custom-gap-desktop: {{ contact_form_custom_gap_desktop }}px;
@@ -99,7 +101,7 @@
         {% endif %}
       </div>
     {% endif %}
-    {% if contact_form_custom_background_type == 'image' and section.settings.background_overlay_color != blank %}
+    {% if contact_form_custom_background_type == 'image' and effective_overlay != blank %}
       <div class="contact-form-custom__overlay" aria-hidden="true"></div>
     {% endif %}
 
@@ -248,10 +250,18 @@
 {
   "name": "t:general.contact_form_custom",
   "class": "section-kernel",
-  "enabled_on": { "templates": ["*"] },
+  "enabled_on": {
+    "templates": [
+      "*"
+    ]
+  },
   "blocks": [
-    { "type": "image" },
-    { "type": "group" }
+    {
+      "type": "image"
+    },
+    {
+      "type": "group"
+    }
   ],
   "settings": [
     {
@@ -279,8 +289,14 @@
       "id": "direction",
       "label": "t:labels.direction",
       "options": [
-        { "value": "horizontal", "label": "t:options.direction.horizontal" },
-        { "value": "vertical", "label": "t:options.direction.vertical" }
+        {
+          "value": "horizontal",
+          "label": "t:options.direction.horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "t:options.direction.vertical"
+        }
       ],
       "default": "horizontal"
     },
@@ -289,9 +305,18 @@
       "id": "align_items",
       "label": "t:labels.align_items",
       "options": [
-        { "value": "top", "label": "t:options.align_items.top" },
-        { "value": "center", "label": "t:options.align_items.center" },
-        { "value": "bottom", "label": "t:options.align_items.bottom" }
+        {
+          "value": "top",
+          "label": "t:options.align_items.top"
+        },
+        {
+          "value": "center",
+          "label": "t:options.align_items.center"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.align_items.bottom"
+        }
       ],
       "default": "center",
       "visible_if": "{{ section.settings.direction == 'horizontal' }}"
@@ -359,8 +384,14 @@
       "id": "background_type",
       "label": "t:general.media",
       "options": [
-        { "value": "color", "label": "t:labels.color" },
-        { "value": "image", "label": "t:labels.image" }
+        {
+          "value": "color",
+          "label": "t:labels.color"
+        },
+        {
+          "value": "image",
+          "label": "t:labels.image"
+        }
       ],
       "default": "color"
     },
@@ -384,12 +415,43 @@
       "visible_if": "{{ section.settings.background_type == 'image' }}"
     },
     {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "default": true,
+      "label": "t:labels.show_overlay",
+      "visible_if": "{{ section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ section.settings.background_type == 'image' and section.settings.show_overlay }}"
+    },
+    {
       "type": "color",
       "id": "background_overlay_color",
       "label": "t:labels.overlay_color",
       "alpha": true,
       "default": "#00000000",
-      "visible_if": "{{ section.settings.background_type == 'image' }}"
+      "visible_if": "{{ section.settings.background_type == 'image' and section.settings.show_overlay and section.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ section.settings.background_type == 'image' and section.settings.show_overlay and section.settings.overlay_style == 'gradient' }}"
     },
     {
       "type": "header",
@@ -463,7 +525,8 @@
         "padding_top": 80,
         "padding_bottom": 80,
         "padding_top_mobile": 56,
-        "padding_bottom_mobile": 56
+        "padding_bottom_mobile": 56,
+        "show_overlay": true
       },
       "blocks": [
         {
@@ -482,7 +545,8 @@
             "direction": "vertical",
             "width": "fill",
             "gap_desktop": 40,
-            "gap_mobile": 32
+            "gap_mobile": 32,
+            "show_overlay": false
           },
           "blocks": [
             {
@@ -497,7 +561,7 @@
                   "type": "heading",
                   "settings": {
                     "text": "<p>Do you have any question? &#x20;</p>",
-                    "heading_size": "md",
+                    "heading_size": "display",
                     "html_tag": "h3"
                   }
                 },

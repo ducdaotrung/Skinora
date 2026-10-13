@@ -1,11 +1,17 @@
 {% doc %}
+  @param {object} [search_resource] - Optional native Search context; Collection remains default
   Fixed native collection sorting with keyboard-accessible enhanced listbox.
 {% enddoc %}
 {% liquid
- assign sort_by = collection.sort_by | default: collection.default_sort_by
+ assign facet_resource = search_resource | default: collection
+ assign facet_action = collection.url
+ if search_resource != blank
+  assign facet_action = routes.search_url
+ endif
+ assign sort_by = facet_resource.sort_by | default: facet_resource.default_sort_by
  assign sort_label = 'collection.sort_by' | t | remove: ':' | strip
  assign active_filter_count = 0
- for filter in collection.filters
+ for filter in facet_resource.filters
   assign active_filter_count = active_filter_count | plus: filter.active_values.size
   if filter.type == 'price_range'
    if filter.min_value.value != nil or filter.max_value.value != nil
@@ -14,8 +20,9 @@
   endif
  endfor
 %}
-            <form class="main-collection__sort-form main-collection__sort-form--mobile-hidden body-text body-sm" action="{{ collection.url | escape }}" method="get" data-collection-sort-form data-style="{{ block.settings.style }}" {{ block.shopify_attributes }}>
-            {% for filter in collection.filters %}
+            <form class="main-collection__sort-form main-collection__sort-form--mobile-hidden body-text body-sm" action="{{ facet_action | escape }}" method="get" data-collection-sort-form data-style="{{ block.settings.style }}" {{ block.shopify_attributes }}>
+            {% if search_resource != blank %}{% render 'search-query-fields', search_resource: search_resource %}{% endif %}
+            {% for filter in facet_resource.filters %}
               {% for value in filter.active_values %}
                 <input type="hidden" name="{{ value.param_name }}" value="{{ value.value }}">
               {% endfor %}
@@ -45,7 +52,7 @@
                 data-collection-sort
                 data-collection-sort-native
               >
-                {% for option in collection.sort_options %}
+                {% for option in facet_resource.sort_options %}
                   <option value="{{ option.value }}"{% if option.value == sort_by %} selected{% endif %}>
                     {{ option.name }}
                   </option>
@@ -61,7 +68,7 @@
                 data-collection-sort-trigger
               >
                 <span id="CollectionSortValue-{{ section.id }}" data-collection-sort-value>
-                  {% for option in collection.sort_options %}
+                  {% for option in facet_resource.sort_options %}
                     {% if option.value == sort_by %}{{ option.name }}{% endif %}
                   {% endfor %}
                 </span>
@@ -75,7 +82,7 @@
                 data-collection-sort-listbox
                 hidden
               >
-                {% for option in collection.sort_options %}
+                {% for option in facet_resource.sort_options %}
                   <button
                     class="main-collection__sort-option-button"
                     type="button"

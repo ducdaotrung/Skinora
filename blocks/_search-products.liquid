@@ -1,0 +1,150 @@
+{% doc %}
+  @param {number} [results_per_page] - Page size supplied by the Search composition
+  Native Search list. Static Product Card kernel is reused for each product. Promo cards occupy the curated dynamic Add block slot; pagination uses the shared native adapter.{% enddoc %}
+<div class="main-collection__products search-page__product-list{% if block.settings.full_width %} main-collection__products--full-width{% endif %}" id="CollectionProducts-{{ section.id }}" data-columns-desktop="{{ block.settings.columns_desktop }}" data-columns-tablet="2" data-columns-mobile="{{ block.settings.columns_mobile }}" style="--main-collection-columns-desktop:{{ block.settings.columns_desktop }};--main-collection-columns-tablet:2;--main-collection-columns-mobile:{{ block.settings.columns_mobile }};--main-collection-column-gap:{{ block.settings.column_gap_desktop }}px;--main-collection-row-gap:{{ block.settings.row_gap_desktop }}px;--main-collection-mobile-column-gap:{{ block.settings.column_gap_mobile }}px;--main-collection-mobile-row-gap:{{ block.settings.row_gap_mobile }}px" {{ block.shopify_attributes }}>
+{% capture search_promo_blocks %}{% content_for 'blocks' %}{% endcapture %}
+{% assign search_page_size = results_per_page | default: block.settings.results_per_page | default: 50 %}
+{% paginate search.results by search_page_size, window_size: 2 %}
+{% liquid
+ assign products_count = 0
+ assign articles_count = 0
+ assign pages_count = 0
+ for item in search.results
+  case item.object_type
+   when 'product'
+    assign products_count = products_count | plus: 1
+   when 'article'
+    assign articles_count = articles_count | plus: 1
+   when 'page'
+    assign pages_count = pages_count | plus: 1
+  endcase
+ endfor
+ assign escaped_terms = search.terms | escape
+ assign active_type = 'products'
+ if products_count == 0
+  if articles_count > 0
+   assign active_type = 'articles'
+  else
+   assign active_type = 'pages'
+  endif
+ endif
+%}
+{% if search.performed %}
+ {% if search.results_count == 0 %}<p class="search-page__empty body-text body-md">{{ 'search.no_results_html' | t: terms: escaped_terms }}</p>{% else %}
+ <p class="search-page__summary body-text body-md" role="status">{{ 'search.results_for_html' | t: terms: escaped_terms, count: search.results_count }}</p>
+ <div data-search-results-tabs>
+  <div class="search-page__tabs" role="tablist" aria-label="{{ 'search.title' | t | escape }}">
+   {% if products_count > 0 %}<button class="search-page__tab eyebrow-text" role="tab" type="button" id="SearchTabProducts-{{ section.id }}" data-search-page-tab="products" aria-controls="SearchPanelProducts-{{ section.id }}" aria-selected="{% if active_type == 'products' %}true{% else %}false{% endif %}">{{ 'search.products' | t }}</button>{% endif %}
+   {% if articles_count > 0 %}<button class="search-page__tab eyebrow-text" role="tab" type="button" id="SearchTabArticles-{{ section.id }}" data-search-page-tab="articles" aria-controls="SearchPanelArticles-{{ section.id }}" aria-selected="{% if active_type == 'articles' %}true{% else %}false{% endif %}">{{ 'search.blog_posts' | t }}</button>{% endif %}
+   {% if pages_count > 0 %}<button class="search-page__tab eyebrow-text" role="tab" type="button" id="SearchTabPages-{{ section.id }}" data-search-page-tab="pages" aria-controls="SearchPanelPages-{{ section.id }}" aria-selected="{% if active_type == 'pages' %}true{% else %}false{% endif %}">{{ 'search.pages' | t }}</button>{% endif %}
+  </div>
+  {% if products_count > 0 %}<div role="tabpanel" id="SearchPanelProducts-{{ section.id }}" data-search-page-panel="products" aria-labelledby="SearchTabProducts-{{ section.id }}"><ul class="main-collection__grid" role="list">
+   {% for item in search.results %}{% if item.object_type == 'product' %}<li class="main-collection__product" style="order:{{ forloop.index | times: 10 }}">{% content_for 'block', type: 'product-card', id: 'product-card', closest.product: item %}</li>{% endif %}{% endfor %}
+   {% if paginate.current_page == 1 %}{{ search_promo_blocks }}{% endif %}
+  </ul></div>{% endif %}
+  {% if articles_count > 0 %}<div role="tabpanel" id="SearchPanelArticles-{{ section.id }}" data-search-page-panel="articles" aria-labelledby="SearchTabArticles-{{ section.id }}"><ul class="search-page__page-list">{% for item in search.results %}{% if item.object_type == 'article' %}<li><a href="{{ item.url }}" class="body-text body-md">{{ item.title | escape }}</a></li>{% endif %}{% endfor %}</ul></div>{% endif %}
+  {% if pages_count > 0 %}<div role="tabpanel" id="SearchPanelPages-{{ section.id }}" data-search-page-panel="pages" aria-labelledby="SearchTabPages-{{ section.id }}"><ul class="search-page__page-list">{% for item in search.results %}{% if item.object_type == 'page' %}<li><a href="{{ item.url }}" class="body-text body-md">{{ item.title | escape }}</a></li>{% endif %}{% endfor %}</ul></div>{% endif %}
+ </div>
+ {% endif %}
+{% elsif request.design_mode %}
+ <ul class="main-collection__grid" role="list"><li class="main-collection__product">{% content_for 'block', type: 'product-card', id: 'product-card', placeholder: true %}</li>{{ search_promo_blocks }}</ul>
+{% endif %}
+{% capture search_page_links %}{% render 'pagination-pages', paginate: paginate %}{% endcapture %}
+{% content_for 'block', type: 'pagination', id: 'pagination', native_page_links: search_page_links, native_page_count: paginate.pages %}
+{% endpaginate %}
+</div>
+{% schema %}
+{
+  "name": "t:general.product_list",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "Desktop columns",
+      "options": [
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        },
+        {
+          "value": "5",
+          "label": "5"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Mobile columns",
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "column_gap_desktop",
+      "label": "Desktop column gap",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "default": 4,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "row_gap_desktop",
+      "label": "Desktop row gap",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "default": 4,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "column_gap_mobile",
+      "label": "Mobile column gap",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "default": 4,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "row_gap_mobile",
+      "label": "Mobile row gap",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "default": 4,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "Full width",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection-promo"
+    }
+  ]
+}
+{% endschema %}

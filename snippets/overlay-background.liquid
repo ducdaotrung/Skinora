@@ -1,0 +1,30 @@
+{% doc %}
+  Resolves a media overlay background from its owner's settings. Outputs a CSS
+  color/gradient, or nothing when disabled. Callers capture and strip the result.
+
+  @param {object} overlay_settings - Section or block settings
+  @param {string} [color_id] - Saved solid-color ID; defaults to overlay_color
+  @param {string} [enabled_id] - Saved checkbox ID; defaults to show_overlay
+  @param {boolean} [as_image] - Wrap solid colors for CSS background-image layers
+  @param {string} [style_id] - Saved style ID; defaults to overlay_style
+{% enddoc %}
+{%- liquid
+  assign color_id = color_id | default: 'overlay_color'
+  assign enabled_id = enabled_id | default: 'show_overlay'
+  assign style_id = style_id | default: 'overlay_style'
+  if overlay_settings[enabled_id] != false
+    if overlay_settings[style_id] == 'gradient'
+      echo overlay_settings.overlay_gradient | default: 'linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))'
+    else
+      if as_image and overlay_settings[color_id] != blank
+        echo 'linear-gradient('
+        echo overlay_settings[color_id]
+        echo ', '
+        echo overlay_settings[color_id]
+        echo ')'
+      else
+        echo overlay_settings[color_id]
+      endif
+    endif
+  endif
+-%}

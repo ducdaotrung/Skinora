@@ -18,7 +18,7 @@
     const surface = hero.querySelector('[data-hero-surface]') || hero;
     const effect = hero.dataset.heroParallax;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!(media instanceof HTMLElement) || !effect || effect === 'fixed') return;
+    if (!(media instanceof HTMLElement) || !effect || effect === 'fixed' || reduceMotion) return;
 
     const update = () => {
       if (effect && media instanceof HTMLElement && !reduceMotion) {

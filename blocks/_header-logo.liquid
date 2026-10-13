@@ -4,6 +4,13 @@
     assign logo_position = 'center'
   endunless
 
+  assign logo_position_mobile = block.settings.position_mobile | default: 'inherit'
+  if block.settings.customize_mobile_position != true
+    assign logo_position_mobile = logo_position
+  elsif logo_position_mobile != 'left' and logo_position_mobile != 'center'
+    assign logo_position_mobile = logo_position
+  endif
+
   assign logo_width = settings.logo_width | default: 180 | plus: 0
   assign logo_width_mobile = settings.logo_width_mobile | default: 140 | plus: 0
   assign logo_sizes = '(min-width: 992px) ' | append: logo_width | append: 'px, ' | append: logo_width_mobile | append: 'px'
@@ -18,6 +25,7 @@
 
 <a
   class="{{ logo_class }}"
+  data-logo-position-mobile="{{ logo_position_mobile }}"
   href="{{ routes.root_url }}"
   aria-label="{{ shop.name | escape }}"
   {{ block.shopify_attributes }}
@@ -119,6 +127,23 @@
       "type": "select",
       "id": "position",
       "label": "t:labels.position",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_position",
+      "label": "Customize for mobile",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "position_mobile",
+      "label": "Position (mobile)",
+      "visible_if": "{{ block.settings.customize_mobile_position }}",
       "options": [
         { "value": "left", "label": "t:options.alignment.left" },
         { "value": "center", "label": "t:options.alignment.center" }

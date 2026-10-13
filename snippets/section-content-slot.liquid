@@ -1,0 +1,13 @@
+{% doc %}
+  Renders a composition wrapper only when captured block output is present.
+  Use inside section-content-scope to collapse empty block kernels as well.
+  Capture content_for in the owning section so Shopify context stays intact.
+
+  @param {string} content - Captured block markup
+  @param {string} [class] - Section and composition classes
+  @param {string} [attributes] - Trusted, section-owned HTML attributes
+{% enddoc %}
+{% assign slot_content = content | strip %}
+{% if slot_content != blank %}
+  <div class="section-content-slot {{ class }}"{% if attributes != blank %} {{ attributes }}{% endif %}>{{ slot_content }}</div>
+{% endif %}

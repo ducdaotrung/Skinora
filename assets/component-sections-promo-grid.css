@@ -1,0 +1,46 @@
+.promo-grid {
+  position: relative;
+  padding-block: var(--promo-top, 0px) var(--promo-bottom, 0px);
+  background: var(--promo-background, var(--background-color));
+  --promo-row-height: 352px;
+  --promo-columns-current: var(--promo-columns, 3);
+}
+.promo-grid[data-height-desktop='small'] { --promo-row-height: 240px; }
+.promo-grid[data-height-desktop='large'] { --promo-row-height: 480px; }
+.promo-grid > .container { position: relative; }
+.promo-grid__no-padding { padding-inline: 0; }
+.promo-grid__carousel { min-width: 0; overflow: hidden; }
+.promo-grid__items {
+  display: grid;
+  grid-template-columns: repeat(var(--promo-columns-current, 3), minmax(0, 1fr));
+  grid-auto-rows: var(--promo-row-height);
+  gap: var(--promo-gap, 24px);
+}
+.promo-grid .promo-grid__items > .image-card {
+  grid-column: span min(var(--promo-card-columns, 1), var(--promo-columns-current, 3));
+  grid-row: span var(--promo-card-rows, 1);
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  min-width: 0;
+}
+@media (min-width: 768px) {
+  .promo-grid__carousel > .promo-grid__items { transform: none; }
+  .promo-grid__carousel > .swiper-pagination { display: none; }
+}
+@media (min-width: 768px) and (max-width: 1149.98px) {
+  .promo-grid { --promo-columns-current: var(--promo-columns-tablet, 2); }
+}
+@media (max-width: 767.98px) {
+  .promo-grid {
+    --promo-columns-current: var(--promo-columns-mobile, 1);
+    --promo-row-height: 320px;
+    padding-block: var(--promo-top-mobile, var(--promo-top, 0px)) var(--promo-bottom-mobile, var(--promo-bottom, 0px));
+  }
+  .promo-grid[data-height-mobile='small'] { --promo-row-height: 240px; }
+  .promo-grid[data-height-mobile='large'] { --promo-row-height: 400px; }
+  .promo-grid__items { gap: var(--promo-gap-mobile, 16px); }
+  .promo-grid .promo-grid__items > .image-card { grid-column: auto; grid-row: auto; height: var(--promo-row-height); }
+  .promo-grid__carousel.swiper-initialized > .promo-grid__items { display: flex; gap: 0; }
+}

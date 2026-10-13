@@ -5,6 +5,9 @@
   visual treatment to the shared theme-button snippet.
 
   @param {number} variant_id - Variant ID submitted to the cart endpoint
+  @param {number} [inventory_quantity] - Tracked inventory for the submitted variant
+  @param {string} [inventory_management] - Inventory service for the submitted variant
+  @param {string} [inventory_policy] - Inventory policy for the submitted variant
   @param {string} label - Accessible and visible button label
   @param {string} [product_title] - Product title for the accessible name
   @param {string} [style] - Button style: icon or text
@@ -42,7 +45,14 @@
 %}
 
 <div class="{{ quick_add_class }}{% if color_scheme != blank %} {{ color_scheme }}{% endif %}" data-product-card-quick-add-wrapper>
-  <form action="{{ routes.cart_add_url }}" method="post" data-product-card-quick-add>
+  <form
+    action="{{ routes.cart_add_url }}"
+    method="post"
+    data-product-card-quick-add
+    {% if inventory_quantity != blank %}data-inventory-quantity="{{ inventory_quantity }}"{% endif %}
+    {% if inventory_management != blank %}data-inventory-management="{{ inventory_management | escape }}"{% endif %}
+    {% if inventory_policy != blank %}data-inventory-policy="{{ inventory_policy | escape }}"{% endif %}
+  >
     <input type="hidden" name="id" value="{{ variant_id }}">
     {% if quick_add_style == 'icon' %}
       {% render 'theme-button',

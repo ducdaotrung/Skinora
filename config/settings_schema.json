@@ -332,7 +332,17 @@
         "max": 20,
         "step": 1,
         "unit": "px",
-        "label": "t:labels.base_size",
+        "label": "t:labels.font_size_desktop",
+        "default": 16
+      },
+      {
+        "type": "range",
+        "id": "type_body_size_mobile",
+        "min": 14,
+        "max": 20,
+        "step": 1,
+        "unit": "px",
+        "label": "t:labels.font_size_mobile",
         "default": 16
       },
       {
@@ -363,7 +373,7 @@
       },
       {
         "type": "header",
-        "content": "t:general.heading_1"
+        "content": "t:options.heading_size.display"
       },
       {
         "type": "range",
@@ -419,7 +429,7 @@
       },
       {
         "type": "header",
-        "content": "t:general.heading_2"
+        "content": "t:options.heading_size.xl"
       },
       {
         "type": "range",
@@ -475,7 +485,7 @@
       },
       {
         "type": "header",
-        "content": "t:general.heading_3"
+        "content": "t:options.heading_size.lg"
       },
       {
         "type": "range",
@@ -531,7 +541,7 @@
       },
       {
         "type": "header",
-        "content": "t:general.heading_4"
+        "content": "t:options.heading_size.md"
       },
       {
         "type": "range",
@@ -577,7 +587,7 @@
       },
       {
         "type": "header",
-        "content": "t:general.heading_5"
+        "content": "t:options.heading_size.sm"
       },
       {
         "type": "range",
@@ -633,7 +643,7 @@
       },
       {
         "type": "header",
-        "content": "t:general.heading_6"
+        "content": "t:options.heading_size.xs"
       },
       {
         "type": "range",
@@ -688,7 +698,17 @@
         "max": 18,
         "step": 1,
         "unit": "px",
-        "label": "t:labels.font_size",
+        "label": "t:labels.font_size_desktop",
+        "default": 12
+      },
+      {
+        "type": "range",
+        "id": "type_eyebrow_size_mobile",
+        "min": 10,
+        "max": 18,
+        "step": 1,
+        "unit": "px",
+        "label": "t:labels.font_size_mobile",
         "default": 12
       },
       {
@@ -954,6 +974,22 @@
       },
       {
         "type": "select",
+        "id": "button_font_weight",
+        "label": "Font weight",
+        "options": [
+          { "value": "inherit", "label": "Default" },
+          { "value": "300", "label": "Light (300)" },
+          { "value": "400", "label": "Regular (400)" },
+          { "value": "500", "label": "Medium (500)" },
+          { "value": "600", "label": "Semibold (600)" },
+          { "value": "700", "label": "Bold (700)" },
+          { "value": "800", "label": "Extra bold (800)" },
+          { "value": "900", "label": "Black (900)" }
+        ],
+        "default": "inherit"
+      },
+      {
+        "type": "select",
         "id": "button_font_size_mobile",
         "label": "t:labels.button_font_size_tablet_mobile",
         "options": [
@@ -981,6 +1017,19 @@
       {
         "type": "header",
         "content": "t:general.primary_button"
+      },
+      {
+        "type": "color",
+        "id": "button_primary_background_color",
+        "label": "t:labels.background",
+        "alpha": true,
+        "info": "Fallback color when the active color scheme has no value."
+      },
+      {
+        "type": "color",
+        "id": "button_primary_text_color",
+        "label": "Text color",
+        "info": "Fallback color when the active color scheme has no value."
       },
       {
         "type": "select",
@@ -1015,6 +1064,19 @@
       {
         "type": "header",
         "content": "t:general.secondary_button"
+      },
+      {
+        "type": "color",
+        "id": "button_secondary_background_color",
+        "label": "t:labels.background",
+        "alpha": true,
+        "info": "Fallback color when the active color scheme has no value."
+      },
+      {
+        "type": "color",
+        "id": "button_secondary_text_color",
+        "label": "Text color",
+        "info": "Fallback color when the active color scheme has no value."
       },
       {
         "type": "select",

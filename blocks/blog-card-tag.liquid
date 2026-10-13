@@ -1,3 +1,4 @@
+{%- capture theme_size_font_size -%}{%- render 'typography-size-token', size: block.settings.font_size, role: 'body', fallback: 'sm' -%}{%- endcapture -%}
 {% doc %}
   Renders article tags inside Blog Card.
 
@@ -19,8 +20,8 @@
     assign blog_card_tag_font = 'accent'
   endunless
 
-  assign blog_card_tag_size = block.settings.font_size | default: 'sm'
-  unless blog_card_tag_size == 'xs' or blog_card_tag_size == 'sm' or blog_card_tag_size == 'md' or blog_card_tag_size == 'lg' or blog_card_tag_size == 'xl' or blog_card_tag_size == 'xxl'
+  assign blog_card_tag_size = theme_size_font_size | default: 'sm'
+  unless blog_card_tag_size == 'display' or blog_card_tag_size == 'xs' or blog_card_tag_size == 'sm' or blog_card_tag_size == 'md' or blog_card_tag_size == 'lg' or blog_card_tag_size == 'xl' or blog_card_tag_size == 'xxl'
     assign blog_card_tag_size = 'sm'
   endunless
 
@@ -214,6 +215,7 @@
       "id": "font_size",
       "label": "t:labels.font_size",
       "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xs", "label": "t:options.product_price_size.xs" },
         { "value": "sm", "label": "t:options.product_price_size.sm" },
         { "value": "md", "label": "t:options.product_price_size.md" },
@@ -221,7 +223,7 @@
         { "value": "xl", "label": "t:options.product_price_size.xl" },
         { "value": "xxl", "label": "t:options.product_price_size.xxl" }
       ],
-      "default": "sm"
+      "default": "display"
     },
     {
       "type": "select",
@@ -301,7 +303,7 @@
         "text_case": "uppercase",
         "max_tag": 3,
         "font": "accent",
-        "font_size": "sm",
+        "font_size": "display",
         "letter_spacing": "normal",
         "style": "text",
         "text_color": "",

@@ -1,3 +1,6 @@
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: block.settings, color_id: 'overlay_background', enabled_id: 'enable_overlay', style_id: 'overlay_style' %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
+{% render 'gallery-strip-item-styles' %}
 {% liquid
   assign image = block.settings.image
   assign mobile_image = block.settings.mobile_image
@@ -8,10 +11,10 @@
   unless show_overlay == 'always' or show_overlay == 'hover'
     assign show_overlay = 'always'
   endunless
-  assign overlay_background = block.settings.overlay_background | default: '#00000061'
+  assign overlay_background = effective_overlay | default: 'transparent'
 %}
 
-<div class="gallery-strip-item gallery-strip-feature-item gallery-strip-feature-item--overlay-{{ show_overlay }}" style="--gallery-strip-feature-overlay-background: {{ overlay_background | escape }}; --gallery-strip-feature-overlay-opacity: 1;" {{ block.shopify_attributes }}>
+<div class="gallery-strip-item gallery-strip-feature-item gallery-strip-feature-item--overlay-{{ show_overlay }}" style="--gallery-strip-feature-overlay-background: {{ overlay_background | escape }};" {{ block.shopify_attributes }}>
   {% render 'image',
     image: image,
     mobile_image: mobile_image,
@@ -50,7 +53,7 @@
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: color-mix(in srgb, var(--gallery-strip-feature-overlay-background, #000) calc(var(--gallery-strip-feature-overlay-opacity, 0.38) * 100%), transparent);
+    background: var(--gallery-strip-feature-overlay-background, transparent);
     opacity: 1;
     transition: opacity 280ms ease;
   }
@@ -75,23 +78,107 @@
 {
   "name": "Strip feature",
   "tag": null,
-  "blocks": [{ "type": "gallery-strip-overlay-group" }],
+  "blocks": [
+    {
+      "type": "gallery-strip-overlay-group"
+    }
+  ],
   "settings": [
-    { "type": "image_picker", "id": "image", "label": "Image" },
-    { "type": "image_picker", "id": "mobile_image", "label": "Mobile image" },
-    { "type": "text", "id": "alt_text", "label": "Alt text" },
-    { "type": "url", "id": "link", "label": "Link" },
-    { "type": "checkbox", "id": "open_in_new_tab", "label": "Open link in new tab", "default": false },
-    { "type": "header", "content": "Overlay" },
-    { "type": "select", "id": "show_overlay", "label": "Show overlay", "options": [{ "value": "always", "label": "Always" }, { "value": "hover", "label": "On hover" }], "default": "always" },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile image"
+    },
+    {
+      "type": "text",
+      "id": "alt_text",
+      "label": "Alt text"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Link"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "Open link in new tab",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "select",
+      "id": "show_overlay",
+      "label": "Overlay visibility",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always"
+        },
+        {
+          "value": "hover",
+          "label": "On hover"
+        }
+      ],
+      "default": "always"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay",
+      "default": true,
+      "label": "t:labels.show_overlay"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ block.settings.enable_overlay }}"
+    },
     {
       "type": "color",
       "id": "overlay_background",
-      "label": "Overlay background",
+      "label": "t:labels.overlay_color",
       "alpha": true,
-      "default": "#00000061"
+      "default": "#00000061",
+      "visible_if": "{{ block.settings.enable_overlay and block.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ block.settings.enable_overlay and block.settings.overlay_style == 'gradient' }}"
     }
   ],
-  "presets": [{ "name": "Strip feature", "category": "Gallery", "blocks": [{ "type": "gallery-strip-overlay-group" }] }]
+  "presets": [
+    {
+      "name": "Strip feature",
+      "category": "Gallery",
+      "blocks": [
+        {
+          "type": "gallery-strip-overlay-group"
+        }
+      ]
+    }
+  ]
 }
 {% endschema %}

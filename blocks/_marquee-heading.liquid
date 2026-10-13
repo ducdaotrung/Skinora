@@ -1,0 +1,231 @@
+{% liquid
+  assign size = block.settings.heading_size | default: 'xl'
+  assign role = block.settings.color_role | default: 'heading'
+  assign font_role = block.settings.font | default: 'body'
+  assign font_size = block.settings.custom_heading_size | default: 14
+  assign mobile_size = font_size
+  if block.settings.custom_mobile
+    assign mobile_size = block.settings.custom_heading_size_mobile | default: 14
+  endif
+  assign opacity = block.settings.opacity | default: 50 | divided_by: 100.0
+  assign text_case = block.settings.text_case | default: 'none'
+  assign plain_text = block.settings.text | strip_html | strip
+%}
+<div class="marquee-heading-block heading-text heading-{{ size }}{% if block.settings.outline %} marquee-heading-block--outline{% endif %}" style="--mq-color:var(--{% if role == 'heading' %}heading{% else %}body{% endif %}-color);--mq-opacity:{{ opacity }};{% if size == 'custom' %}--mq-font:var(--font-{{ font_role }}-family);--mq-font-style:var(--font-{{ font_role }}-style);--mq-font-weight:var(--font-{{ font_role }}-weight);--mq-size:{{ font_size }}px;--mq-size-mobile:{{ mobile_size }}px;--mq-case:{{ text_case }};{% render 'marquee-letter-spacing', value: block.settings.letter_spacing %}{% endif %}" {% if plain_text == blank %}data-content-empty{% endif %} {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+{% stylesheet %}
+.marquee-heading-block{flex:0 0 auto;width:max-content;max-width:none;margin:0;overflow-wrap:normal;color:var(--mq-color);opacity:var(--mq-opacity,1);} .marquee-heading-block.heading-custom{font-family:var(--mq-font);font-style:var(--mq-font-style);font-weight:var(--mq-font-weight);font-size:var(--mq-size);line-height:1.2;letter-spacing:var(--mq-tracking,0em);text-transform:var(--mq-case);} .marquee-heading-block--outline{-webkit-text-stroke:1px var(--mq-color);color:transparent;} .marquee-heading-block a{color:inherit;} @media(max-width:767.98px){.marquee-heading-block.heading-custom{font-size:var(--mq-size-mobile);}}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Heading",
+  "tag": null,
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "Welcome to our store"
+    },
+    {
+      "type": "checkbox",
+      "id": "outline",
+      "label": "Outline text",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Size",
+      "options": [
+        {
+          "value": "display",
+          "label": "XXL"
+        },
+        {
+          "value": "xl",
+          "label": "XL"
+        },
+        {
+          "value": "lg",
+          "label": "L"
+        },
+        {
+          "value": "md",
+          "label": "M"
+        },
+        {
+          "value": "sm",
+          "label": "S"
+        },
+        {
+          "value": "xs",
+          "label": "XS"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "xl"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "Text style",
+      "options": [
+        {
+          "value": "heading",
+          "label": "Heading"
+        },
+        {
+          "value": "body",
+          "label": "Body"
+        },
+        {
+          "value": "accent",
+          "label": "Accent"
+        }
+      ],
+      "default": "body",
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 200,
+      "step": 2,
+      "default": 14,
+      "unit": "px",
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "Letter spacing",
+      "options": [
+        {
+          "value": "tighter",
+          "label": "Tighter"
+        },
+        {
+          "value": "tight",
+          "label": "Tight"
+        },
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "relaxed",
+          "label": "Relaxed"
+        },
+        {
+          "value": "loose",
+          "label": "Loose"
+        },
+        {
+          "value": "extra_loose",
+          "label": "Extra loose"
+        },
+        {
+          "value": "ultra_loose",
+          "label": "Ultra loose"
+        },
+        {
+          "value": "mega_loose",
+          "label": "Mega loose"
+        }
+      ],
+      "default": "normal",
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "text_case",
+      "label": "Text case",
+      "options": [
+        {
+          "value": "none",
+          "label": "Original"
+        },
+        {
+          "value": "capitalize",
+          "label": "Capitalize"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        },
+        {
+          "value": "lowercase",
+          "label": "Lowercase"
+        }
+      ],
+      "default": "none",
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "custom_mobile",
+      "label": "Custom for mobile",
+      "default": false,
+      "visible_if": "{{ block.settings.heading_size == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "custom_heading_size_mobile",
+      "label": "Font size mobile",
+      "min": 10,
+      "max": 80,
+      "step": 1,
+      "default": 14,
+      "unit": "px",
+      "visible_if": "{{ block.settings.heading_size == 'custom' and block.settings.custom_mobile }}"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_role",
+      "label": "Text color",
+      "options": [
+        {
+          "value": "heading",
+          "label": "Heading"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "heading"
+    },
+    {
+      "type": "range",
+      "id": "opacity",
+      "label": "Opacity",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "default": 50,
+      "unit": "%"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Heading",
+      "category": "t:general.basic",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

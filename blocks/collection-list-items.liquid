@@ -163,7 +163,7 @@
       icon: collection_list_navigation_icon,
       behavior: collection_list_navigation_behavior,
       centered: false,
-      wrapper_class: 'collection-card-list__navigation collection-card-list__navigation--top',
+      wrapper_class: 'collection-card-list__navigation collection-card-list__navigation--top section-list-layout__navigation',
       wrapper_attributes: 'data-collection-list-navigation',
       button_class: 'collection-card-list__carousel-button',
       previous_attribute: 'data-collection-list-previous',
@@ -197,7 +197,7 @@
 {% endif %}
 
 <div
-  class="collection-card-list"
+  class="collection-card-list section-list-layout__bridge"
   data-collection-card-list
   data-layout="{{ collection_list_layout }}"
   {{ block.shopify_attributes }}
@@ -233,7 +233,7 @@
       %}
     {% endcapture %}
 
-    <div class="collection-card-list__carousel-wrap swiper-carousel__container">
+    <div class="collection-card-list__carousel-wrap section-list-layout__main swiper-carousel__container">
       {% render 'swiper-carousel',
         id: collection_list_carousel_id,
         content: collection_list_items,
@@ -252,7 +252,7 @@
     </div>
   {% else %}
     <div
-      class="collection-card-list__grid"
+      class="collection-card-list__grid section-list-layout__main"
       style="--cards: {{ collection_list_desktop_columns }}; --cards-mobile: {{ collection_list_mobile_columns }}; --gap: {{ collection_list_gap_desktop }}px; --gap-mobile: {{ collection_list_gap_mobile }}px;"
     >
       {{ collection_list_items }}

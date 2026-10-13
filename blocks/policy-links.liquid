@@ -19,8 +19,8 @@
     assign policy_links_gap_mobile = 12
   endif
 
-  assign policy_links_text_size = block.settings.text_size | default: 'md'
-  unless policy_links_text_size == 'xs' or policy_links_text_size == 'sm' or policy_links_text_size == 'md' or policy_links_text_size == 'lg' or policy_links_text_size == 'xl' or policy_links_text_size == 'xxl'
+  assign policy_links_text_size = block.settings.text_size | default: 'display'
+  unless policy_links_text_size == 'display' or policy_links_text_size == 'xs' or policy_links_text_size == 'sm' or policy_links_text_size == 'md' or policy_links_text_size == 'lg' or policy_links_text_size == 'xl' or policy_links_text_size == 'xxl'
     assign policy_links_text_size = 'md'
   endunless
 
@@ -32,6 +32,8 @@
   endfor
 
   assign policy_links_class = 'policy-links-block body-text body-' | append: policy_links_text_size
+  assign policy_links_link_class = 'policy-links-block__link link-underline body-text body-' | append: policy_links_text_size
+  assign policy_links_font_size = 'var(--font-body-' | append: policy_links_text_size | append: ')'
 %}
 
 {% capture policy_links_style %}
@@ -63,13 +65,22 @@
         style="{{ policy_links_list_style }}"
         role="list"
       >
-        {% for policy in shop.policies %}
-          {% if policy != blank and policy.url != blank and policy.title != blank %}
-            <li class="policy-links-block__item">
-              <a class="policy-links-block__link link-underline" data-underline="persistent" href="{{ policy.url | escape }}">{{ policy.title | escape }}</a>
-            </li>
-          {% endif %}
-        {% endfor %}
+        {% if block.settings.show_terms_privacy_only %}
+          <li class="policy-links-block__item">
+            <a class="{{ policy_links_link_class }}" style="font-size: {{ policy_links_font_size }};" data-underline="persistent" href="{{ shop.terms_of_service.url | default: '/policies/terms-of-service' }}">Terms of Service</a>
+          </li>
+          <li class="policy-links-block__item">
+            <a class="{{ policy_links_link_class }}" style="font-size: {{ policy_links_font_size }};" data-underline="persistent" href="{{ shop.privacy_policy.url | default: '/policies/privacy-policy' }}">Privacy Policy</a>
+          </li>
+        {% else %}
+          {% for policy in shop.policies %}
+            {% if policy != blank and policy.url != blank and policy.title != blank %}
+              <li class="policy-links-block__item">
+                <a class="{{ policy_links_link_class }}" style="font-size: {{ policy_links_font_size }};" data-underline="persistent" href="{{ policy.url | escape }}">{{ policy.title | escape }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
       </ul>
     {% else %}
       <p class="policy-links-block__empty">{{ 'policies.no_policies' | t }}</p>
@@ -121,6 +132,12 @@
       "content": "t:info.policy_links"
     },
     {
+      "type": "checkbox",
+      "id": "show_terms_privacy_only",
+      "label": "Show only Terms of Service and Privacy Policy",
+      "default": false
+    },
+    {
       "type": "header",
       "content": "t:general.gap"
     },
@@ -153,6 +170,7 @@
       "id": "text_size",
       "label": "t:labels.text_size",
       "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xs", "label": "t:options.text_size.xs" },
         { "value": "sm", "label": "t:options.text_size.sm" },
         { "value": "md", "label": "t:options.text_size.md" },
@@ -160,7 +178,7 @@
         { "value": "xl", "label": "t:options.text_size.xl" },
         { "value": "xxl", "label": "t:options.text_size.xxl" }
       ],
-      "default": "md"
+      "default": "display"
     },
     {
       "type": "color",
@@ -176,7 +194,7 @@
       "settings": {
         "gap_desktop": 25,
         "gap_mobile": 12,
-        "text_size": "md"
+        "text_size": "display"
       }
     }
   ]

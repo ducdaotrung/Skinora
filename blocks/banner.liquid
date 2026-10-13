@@ -111,6 +111,38 @@
       "default": false
     },
     {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "gradient",
+      "visible_if": "{{ block.settings.show_overlay }}"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "default": "#00000033",
+      "alpha": true,
+      "label": "t:labels.overlay_color",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'gradient' }}"
+    },
+    {
       "type": "header",
       "content": "t:general.size"
     },
@@ -119,8 +151,14 @@
       "id": "device",
       "label": "t:labels.device",
       "options": [
-        { "value": "desktop", "label": "t:options.device.desktop" },
-        { "value": "mobile", "label": "t:options.device.mobile" }
+        {
+          "value": "desktop",
+          "label": "t:options.device.desktop"
+        },
+        {
+          "value": "mobile",
+          "label": "t:options.device.mobile"
+        }
       ],
       "default": "desktop"
     },
@@ -129,13 +167,34 @@
       "id": "image_ratio_desktop",
       "label": "t:labels.image_ratio",
       "options": [
-        { "value": "full_screen", "label": "t:options.section_height.full_screen" },
-        { "value": "auto", "label": "t:options.image_ratio.auto" },
-        { "value": "square", "label": "t:options.image_ratio.square" },
-        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
-        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
-        { "value": "wide", "label": "t:options.image_ratio.wide" },
-        { "value": "custom", "label": "t:options.image_ratio.custom" }
+        {
+          "value": "full_screen",
+          "label": "t:options.section_height.full_screen"
+        },
+        {
+          "value": "auto",
+          "label": "t:options.image_ratio.auto"
+        },
+        {
+          "value": "square",
+          "label": "t:options.image_ratio.square"
+        },
+        {
+          "value": "portrait",
+          "label": "t:options.image_ratio.portrait"
+        },
+        {
+          "value": "landscape",
+          "label": "t:options.image_ratio.landscape"
+        },
+        {
+          "value": "wide",
+          "label": "t:options.image_ratio.wide"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.image_ratio.custom"
+        }
       ],
       "default": "square",
       "visible_if": "{{ block.settings.device == 'desktop' }}"
@@ -159,12 +218,30 @@
       "id": "image_ratio_mobile",
       "label": "t:labels.image_ratio_mobile",
       "options": [
-        { "value": "auto", "label": "t:options.image_ratio.auto" },
-        { "value": "square", "label": "t:options.image_ratio.square" },
-        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
-        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
-        { "value": "wide", "label": "t:options.image_ratio.wide" },
-        { "value": "custom", "label": "t:options.image_ratio.custom" }
+        {
+          "value": "auto",
+          "label": "t:options.image_ratio.auto"
+        },
+        {
+          "value": "square",
+          "label": "t:options.image_ratio.square"
+        },
+        {
+          "value": "portrait",
+          "label": "t:options.image_ratio.portrait"
+        },
+        {
+          "value": "landscape",
+          "label": "t:options.image_ratio.landscape"
+        },
+        {
+          "value": "wide",
+          "label": "t:options.image_ratio.wide"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.image_ratio.custom"
+        }
       ],
       "default": "square",
       "visible_if": "{{ block.settings.device == 'mobile' }}"
@@ -467,7 +544,7 @@
           "type": "heading",
           "settings": {
             "text": "<p>Your Main Heading Goes Here</p>",
-            "heading_size": "lg",
+            "heading_size": "display",
             "html_tag": "h2"
           }
         },

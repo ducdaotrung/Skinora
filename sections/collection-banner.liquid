@@ -1,3 +1,5 @@
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: section.settings, color_id: 'overlay_color', enabled_id: 'show_overlay', style_id: 'overlay_style' %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
 {% liquid
   assign banner_image = collection.featured_image | default: collection.products.first.featured_image
   if section.settings.image_source == 'custom'
@@ -87,7 +89,7 @@
 <div
   class="collection-banner collection-banner--width-{{ banner_width }}{% if section.settings.limit_description_width %} collection-banner--limit-description{% endif %} collection-banner--{{ banner_layout }}{% if section.settings.image_position == 'right' %} collection-banner--image-right{% endif %}{% if section.settings.height_desktop == 'adapt' %} collection-banner--adapt{% endif %}{% if section.settings.height_mobile == 'adapt' %} collection-banner--adapt-mobile{% endif %}{% if section.settings.show_overlay %} collection-banner--overlay{% endif %}{% if section.settings.show_top_divider %} collection-banner--divider-top{% endif %}{% if section.settings.show_bottom_divider %} collection-banner--divider-bottom{% endif %} color-scheme section-color-scope {{ banner_scheme }} section-spacing"
   {% if banner_layout == 'background' and section.settings.transparent_header %}data-collection-transparent-header{% endif %}
-  style="--banner-height:{{ banner_height_desktop }}px;--banner-height-mobile:{{ banner_height_mobile }}px;--banner-ratio:{{ banner_ratio }};--banner-ratio-mobile:{{ banner_ratio_mobile }};--banner-gap:{{ section.settings.gap_desktop }}px;--banner-gap-mobile:{{ section.settings.gap_mobile }}px;--banner-overlay-color:{{ section.settings.overlay_color }};--banner-position-x:{{ banner_position_x }};--banner-position-y:{{ banner_position_y }};--text-align-default:{{ banner_text_align }};--banner-description-max-width:{{ section.settings.description_max_width }}px;--section-padding-top:{{ banner_padding_top }}px;--section-padding-bottom:{{ banner_padding_bottom }}px;{% if banner_layout == 'classic' %}--section-padding-top-mobile:{{ banner_padding_top }}px;--section-padding-bottom-mobile:{{ banner_padding_bottom }}px;{% endif %}{% if section.settings.customize_mobile_padding %}--section-padding-top-mobile:{{ section.settings.padding_top_mobile }}px;--section-padding-bottom-mobile:{{ section.settings.padding_bottom_mobile }}px;{% endif %}"
+  style="--banner-height:{{ banner_height_desktop }}px;--banner-height-mobile:{{ banner_height_mobile }}px;--banner-ratio:{{ banner_ratio }};--banner-ratio-mobile:{{ banner_ratio_mobile }};--banner-gap:{{ section.settings.gap_desktop }}px;--banner-gap-mobile:{{ section.settings.gap_mobile }}px;--banner-overlay-color:{{ effective_overlay | default: 'transparent' | escape }};--banner-position-x:{{ banner_position_x }};--banner-position-y:{{ banner_position_y }};--text-align-default:{{ banner_text_align }};--banner-description-max-width:{{ section.settings.description_max_width }}px;--section-padding-top:{{ banner_padding_top }}px;--section-padding-bottom:{{ banner_padding_bottom }}px;{% if banner_layout == 'classic' %}--section-padding-top-mobile:{{ banner_padding_top }}px;--section-padding-bottom-mobile:{{ banner_padding_bottom }}px;{% endif %}{% if section.settings.customize_mobile_padding %}--section-padding-top-mobile:{{ section.settings.padding_top_mobile }}px;--section-padding-bottom-mobile:{{ section.settings.padding_bottom_mobile }}px;{% endif %}"
 >
   <div class="container{% if banner_width == 'page' %} page-width{% elsif banner_width == 'full' %} full-width{% endif %}">
     <div class="collection-banner__surface">
@@ -501,12 +503,36 @@
       "visible_if": "{{ section.settings.layout == 'background' }}"
     },
     {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ section.settings.layout == 'background' and section.settings.show_overlay }}"
+    },
+    {
       "type": "color",
       "id": "overlay_color",
-      "label": "Overlay color",
+      "label": "t:labels.overlay_color",
       "alpha": true,
       "default": "#00000033",
-      "visible_if": "{{ section.settings.layout == 'background' and section.settings.show_overlay }}"
+      "visible_if": "{{ section.settings.layout == 'background' and section.settings.show_overlay and section.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ section.settings.layout == 'background' and section.settings.show_overlay and section.settings.overlay_style == 'gradient' }}"
     },
     {
       "type": "header",

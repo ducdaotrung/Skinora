@@ -31,6 +31,16 @@
 
   assign blog_posts_source = section.settings.blog
 
+  assign blog_posts_list_block = section.blocks | where: 'type', 'blog-list' | first
+  assign blog_posts_display_limit = blog_posts_list_block.settings.max_posts | default: 4 | plus: 0
+  if blog_posts_display_limit < 1 or blog_posts_display_limit > 24
+    assign blog_posts_display_limit = 4
+  endif
+  assign blog_posts_show_view_all = false
+  if blog_posts_list_block != blank and blog_posts_source != blank and blog_posts_source.articles_count > blog_posts_display_limit
+    assign blog_posts_show_view_all = true
+  endif
+
   assign blog_posts_padding_top = section.settings.padding_top | default: 0 | plus: 0
   assign blog_posts_padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
   assign blog_posts_padding_top_mobile = section.settings.padding_top_mobile | default: 0 | plus: 0
@@ -62,9 +72,11 @@
     <div class="blog-posts__header">
       {% content_for 'block', type: 'header', id: 'header' %}
     </div>
-    <div class="blog-posts__actions">
-      {% content_for 'block', type: 'view-all-button', id: 'blog-posts-view-all', closest.blog: blog_posts_source %}
-    </div>
+    {% if blog_posts_show_view_all %}
+      <div class="blog-posts__actions">
+        {% content_for 'block', type: 'view-all-button', id: 'blog-posts-view-all', closest.blog: blog_posts_source %}
+      </div>
+    {% endif %}
     <div class="blog-posts__list">
       {% content_for 'block', type: 'blog-list', id: 'blog-list', closest.blog: blog_posts_source, use_section_blog: true %}
     </div>
@@ -208,9 +220,12 @@
       width: 100%;
     }
 
-    .blog-posts__actions .collection-list-view-all,
-    .blog-posts__actions .collection-list-view-all__button--mobile {
-      width: 100%;
+    .blog-posts__actions .collection-list-view-all {
+      width: auto;
+    }
+
+    .blog-posts__actions .collection-list-view-all .collection-list-view-all__button--mobile {
+      width: auto;
     }
 
     .blog-posts__list > .blog-list > .blog-list__navigation--top {
@@ -433,7 +448,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Main Heading</p>",
-                "heading_size": "lg",
+                "heading_size": "display",
                 "html_tag": "h2"
               }
             },
@@ -520,7 +535,7 @@
                   "type": "blog-card-title",
                   "settings": {
                     "line_limit": "no_limit",
-                    "heading_size": "sm",
+                    "heading_size": "display",
                     "html_tag": "h3",
                     "padding_top": 8,
                     "padding_bottom": 0,
@@ -531,7 +546,7 @@
                   "type": "blog-card-description",
                   "settings": {
                     "text_limit": "two",
-                    "size": "sm",
+                    "size": "display",
                     "padding_top": 0,
                     "padding_bottom": 6,
                     "customize_mobile_padding": false
@@ -556,7 +571,7 @@
                     "gap": 12,
                     "icon_size": 18,
                     "icon_gap": 6,
-                    "size": "xs",
+                    "size": "display",
                     "text_color": "",
                     "padding_top": 0,
                     "padding_bottom": 4,

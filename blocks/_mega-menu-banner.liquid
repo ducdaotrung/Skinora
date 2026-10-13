@@ -1,13 +1,19 @@
+{%- capture theme_size_heading_size -%}{%- render 'typography-size-token', size: block.settings.heading_size, role: 'heading', fallback: 'lg' -%}{%- endcapture -%}
+{%- capture theme_size_text_size -%}{%- render 'typography-size-token', size: block.settings.text_size, role: 'body', fallback: 'md' -%}{%- endcapture -%}
 {% liquid
   assign banner_scheme = block.settings.color_scheme | default: 'scheme-1'
   if block.settings.color_scheme.id != blank
     assign banner_scheme = block.settings.color_scheme.id
   endif
   assign banner_target = '_self'
+  assign banner_media_tag = 'div'
+  if block.settings.link != blank
+    assign banner_media_tag = 'a'
+  endif
   if block.settings.open_new_tab
     assign banner_target = '_blank'
   endif
-  assign banner_heading_size = block.settings.heading_size | default: 'lg'
+  assign banner_heading_size = theme_size_heading_size | default: 'lg'
   unless banner_heading_size == 'display' or banner_heading_size == 'xl' or banner_heading_size == 'lg' or banner_heading_size == 'md' or banner_heading_size == 'sm' or banner_heading_size == 'xs' or banner_heading_size == 'custom'
     assign banner_heading_size = 'lg'
   endunless
@@ -15,8 +21,8 @@
   if banner_heading_custom_size < 10 or banner_heading_custom_size > 100
     assign banner_heading_custom_size = 24
   endif
-  assign banner_text_size = block.settings.text_size | default: 'md'
-  unless banner_text_size == 'xs' or banner_text_size == 'sm' or banner_text_size == 'md' or banner_text_size == 'lg' or banner_text_size == 'xl' or banner_text_size == 'xxl'
+  assign banner_text_size = theme_size_text_size | default: 'md'
+  unless banner_text_size == 'display' or banner_text_size == 'xs' or banner_text_size == 'sm' or banner_text_size == 'md' or banner_text_size == 'lg' or banner_text_size == 'xl' or banner_text_size == 'xxl'
     assign banner_text_size = 'md'
   endunless
   assign banner_subheading = block.settings.subheading
@@ -52,17 +58,17 @@
 {% endcapture %}
 {% assign banner_style = banner_style | strip %}
 <article class="header-mega-menu__banner header-mega-menu__banner--{{ block.settings.layout | default: 'content_on_image' }} section-color-scope {{ banner_scheme }}{% if block.settings.limit_width %} header-mega-menu__banner--limited{% endif %}{% if block.settings.overlay %} header-mega-menu__banner--overlay{% endif %}"{% if banner_style != blank %} style="{{ banner_style }}"{% endif %} {{ block.shopify_attributes }}>
-  <{% if block.settings.link != blank %}a{% else %}div{% endif %} class="header-mega-menu__banner-media{% if block.settings.image == blank %} placeholder-image{% endif %}" {% if block.settings.link != blank %}href="{{ block.settings.link | escape }}" target="{{ banner_target }}"{% if block.settings.open_new_tab %} rel="noopener noreferrer"{% endif %}{% endif %}>
+  <{{ banner_media_tag }} class="header-mega-menu__banner-media{% if block.settings.image == blank %} placeholder-image{% endif %}" {% if block.settings.link != blank %}href="{{ block.settings.link | escape }}" target="{{ banner_target }}"{% if block.settings.open_new_tab %} rel="noopener noreferrer"{% endif %}{% endif %}>
     {% if block.settings.image != blank %}
       {{ block.settings.image | image_url: width: 1000 | image_tag: class: 'header-mega-menu__banner-image', widths: '240, 360, 480, 720, 1000', alt: banner_heading }}
     {% else %}
       {{ 'image' | placeholder_svg_tag: 'header-mega-menu__banner-image' }}
     {% endif %}
-  </{% if block.settings.link != blank %}a{% else %}div{% endif %}>
+  </{{ banner_media_tag }}>
   <div class="header-mega-menu__banner-content header-mega-menu__banner-content--{{ block.settings.alignment | default: 'left' }} header-mega-menu__banner-content--{{ block.settings.content_position | default: 'bottom' }}">
-    {% if banner_subheading != blank %}<div class="header-mega-menu__banner-subheading">{{ banner_subheading }}</div>{% endif %}
-  {% if banner_heading != blank %}<div class="header-mega-menu__banner-title {{ banner_heading_class }}">{{ banner_heading }}</div>{% endif %}
-  {% if banner_text != blank %}<div class="header-mega-menu__banner-text {{ banner_text_class }}">{{ banner_text }}</div>{% endif %}
+    {% if banner_subheading != blank %}<div class="header-mega-menu__banner-subheading eyebrow-text typography-content">{{ banner_subheading }}</div>{% endif %}
+  {% if banner_heading != blank %}<div class="header-mega-menu__banner-title {{ banner_heading_class }} typography-content">{{ banner_heading }}</div>{% endif %}
+  {% if banner_text != blank %}<div class="header-mega-menu__banner-text {{ banner_text_class }} typography-content">{{ banner_text }}</div>{% endif %}
     {% if block.settings.label != blank and block.settings.link != blank %}<a class="btn btn--{{ block.settings.button_style | default: 'primary' }}{% if block.settings.button_style == 'tertiary' %} link-underline{% endif %} header-mega-menu__banner-button{% if block.settings.full_width %} header-mega-menu__banner-button--full-width{% endif %}"{% if block.settings.button_style == 'tertiary' %} data-underline="persistent" data-underline-target="text"{% endif %} href="{{ block.settings.link | escape }}" target="{{ banner_target }}"{% if block.settings.open_new_tab %} rel="noopener noreferrer"{% endif %}>{% if block.settings.show_icon and block.settings.icon_position == 'left' %}{% render 'icon', icon: block.settings.icon, bare: true, class: 'header-mega-menu__banner-button-icon' %}{% endif %}<span class="btn__text">{{ block.settings.label | escape }}</span>{% if block.settings.show_icon and block.settings.icon_position == 'right' %}{% render 'icon', icon: block.settings.icon, bare: true, class: 'header-mega-menu__banner-button-icon' %}{% endif %}</a>{% endif %}
   </div>
 </article>
@@ -97,9 +103,10 @@
     { "type": "text_alignment", "id": "alignment", "label": "t:labels.alignment", "default": "left" },
     { "type": "select", "id": "content_position", "label": "Position", "options": [{ "value": "top", "label": "Top" }, { "value": "center", "label": "Center" }, { "value": "bottom", "label": "Bottom" }], "default": "bottom" },
     { "type": "header", "content": "t:general.typography" },
-    { "type": "select", "id": "heading_size", "label": "t:labels.heading_size", "options": [{ "value": "display", "label": "t:options.heading_size.display" }, { "value": "xl", "label": "t:options.heading_size.xl" }, { "value": "lg", "label": "t:options.heading_size.lg" }, { "value": "md", "label": "t:options.heading_size.md" }, { "value": "sm", "label": "t:options.heading_size.sm" }, { "value": "xs", "label": "t:options.heading_size.xs" }, { "value": "custom", "label": "t:options.heading_size.custom" }], "default": "lg" },
+    { "type": "select", "id": "heading_size", "label": "t:labels.heading_size", "options": [{ "value": "display", "label": "t:options.heading_size.display" }, { "value": "xl", "label": "t:options.heading_size.xl" }, { "value": "lg", "label": "t:options.heading_size.lg" }, { "value": "md", "label": "t:options.heading_size.md" }, { "value": "sm", "label": "t:options.heading_size.sm" }, { "value": "xs", "label": "t:options.heading_size.xs" }, { "value": "custom", "label": "t:options.heading_size.custom" }], "default": "display" },
     { "type": "range", "id": "custom_heading_size", "label": "Custom size", "min": 10, "max": 100, "step": 1, "unit": "px", "default": 24, "visible_if": "{{ block.settings.heading_size == 'custom' }}" },
-    { "type": "select", "id": "text_size", "label": "t:labels.text_size", "options": [{ "value": "xs", "label": "t:options.text_size.xs" }, { "value": "sm", "label": "t:options.text_size.sm" }, { "value": "md", "label": "t:options.text_size.md" }, { "value": "lg", "label": "t:options.text_size.lg" }, { "value": "xl", "label": "t:options.text_size.xl" }, { "value": "xxl", "label": "t:options.text_size.xxl" }], "default": "md" },
+    { "type": "select", "id": "text_size", "label": "t:labels.text_size", "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },{ "value": "xs", "label": "t:options.text_size.xs" }, { "value": "sm", "label": "t:options.text_size.sm" }, { "value": "md", "label": "t:options.text_size.md" }, { "value": "lg", "label": "t:options.text_size.lg" }, { "value": "xl", "label": "t:options.text_size.xl" }, { "value": "xxl", "label": "t:options.text_size.xxl" }], "default": "display" },
     { "type": "header", "content": "t:general.button" },
     { "type": "text", "id": "label", "label": "t:labels.button_label" },
     { "type": "select", "id": "button_style", "label": "t:labels.style", "options": [{ "value": "primary", "label": "t:options.button_variant.primary" }, { "value": "secondary", "label": "t:options.button_variant.secondary" }, { "value": "tertiary", "label": "t:options.button_variant.tertiary" }], "default": "primary" },

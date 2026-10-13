@@ -237,9 +237,15 @@
 {
   "name": "t:general.image_cards",
   "class": "section-image-cards",
-  "enabled_on": { "templates": ["*"] },
+  "enabled_on": {
+    "templates": [
+      "*"
+    ]
+  },
   "blocks": [
-    { "type": "image-card" }
+    {
+      "type": "image-card"
+    }
   ],
   "settings": [
     {
@@ -302,8 +308,14 @@
       "id": "direction",
       "label": "t:labels.direction",
       "options": [
-        { "value": "horizontal", "label": "t:options.direction.horizontal" },
-        { "value": "vertical", "label": "t:options.direction.vertical" }
+        {
+          "value": "horizontal",
+          "label": "t:options.direction.horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "t:options.direction.vertical"
+        }
       ],
       "default": "horizontal"
     },
@@ -453,7 +465,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Heading</p>",
-                "heading_size": "lg",
+                "heading_size": "display",
                 "html_tag": "h2"
               }
             },
@@ -497,7 +509,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Heading</p>",
-                "heading_size": "lg",
+                "heading_size": "display",
                 "html_tag": "h2"
               }
             },

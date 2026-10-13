@@ -1,0 +1,140 @@
+{% liquid
+  assign role = block.settings.color_role | default: 'text'
+  assign font_role = block.settings.font | default: 'body'
+  assign size = block.settings.text_size | default: 'md'
+  assign plain_text = block.settings.text | strip_html | strip
+%}
+<div class="marquee-text-block body-text body-{{ size }}" style="--mq-font:var(--font-{{ font_role }}-family);--mq-font-style:var(--font-{{ font_role }}-style);--mq-font-weight:var(--font-{{ font_role }}-weight);--mq-color:var(--{% if role == 'heading' %}heading{% else %}body{% endif %}-color);{% render 'marquee-letter-spacing', value: block.settings.letter_spacing %}" {% if plain_text == blank %}data-content-empty{% endif %} {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+{% stylesheet %}
+.marquee-text-block{flex:0 0 auto;width:max-content;max-width:none;margin:0;overflow-wrap:normal;font-family:var(--mq-font);font-style:var(--mq-font-style);font-weight:var(--mq-font-weight);color:var(--mq-color);letter-spacing:var(--mq-tracking,0em);} .marquee-text-block p{margin:0;} .marquee-text-block a{color:inherit;}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Text",
+  "tag": null,
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Welcome to our store</p>"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "Font",
+      "options": [
+        {
+          "value": "body",
+          "label": "Body"
+        },
+        {
+          "value": "accent",
+          "label": "Accent"
+        }
+      ],
+      "default": "body"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Font size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "Extra small"
+        },
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "md",
+          "label": "Medium"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        },
+        {
+          "value": "xl",
+          "label": "Extra large"
+        },
+        {
+          "value": "xxl",
+          "label": "Double extra large"
+        }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "Letter spacing",
+      "options": [
+        {
+          "value": "tighter",
+          "label": "Tighter"
+        },
+        {
+          "value": "tight",
+          "label": "Tight"
+        },
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "relaxed",
+          "label": "Relaxed"
+        },
+        {
+          "value": "loose",
+          "label": "Loose"
+        },
+        {
+          "value": "extra_loose",
+          "label": "Extra loose"
+        },
+        {
+          "value": "ultra_loose",
+          "label": "Ultra loose"
+        },
+        {
+          "value": "mega_loose",
+          "label": "Mega loose"
+        }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "select",
+      "id": "color_role",
+      "label": "Text color",
+      "options": [
+        {
+          "value": "heading",
+          "label": "Heading"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "text"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Text",
+      "category": "t:general.basic",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

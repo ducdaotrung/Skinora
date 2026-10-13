@@ -85,6 +85,14 @@ class SwatchesVariantPickerComponent extends HTMLElement {
 
     const id = card.querySelector('form[action*="/cart/add"] [name="id"]');
     if (id) id.value = variantId;
+    const quickAddForm = card.querySelector('form[data-product-card-quick-add]');
+    if (quickAddForm) {
+      ['inventoryQuantity', 'inventoryManagement', 'inventoryPolicy'].forEach((key) => {
+        const value = input.dataset[key];
+        if (value == null || value === '') delete quickAddForm.dataset[key];
+        else quickAddForm.dataset[key] = value;
+      });
+    }
     card.dataset.selectedVariantId = variantId;
   }
 

@@ -6,91 +6,75 @@
 
   assign marquee_speed = block.settings.animation_speed
   if marquee_speed == blank
-    assign marquee_speed = 1
+    assign marquee_speed = 0.6
   else
     assign marquee_speed = marquee_speed | plus: 0
   endif
-  if marquee_speed < 0 or marquee_speed > 3
-    assign marquee_speed = 1
+  if marquee_speed < 0 or marquee_speed > 2
+    assign marquee_speed = 0.6
   endif
-  assign marquee_duration = 28.0
-  if marquee_speed > 0
-    assign marquee_duration = 28.0 | divided_by: marquee_speed
-  endif
-
-  assign marquee_background = block.settings.background_color
-
   assign padding_top = block.settings.padding_top
   if padding_top == blank
-    assign padding_top = 24
+    assign padding_top = 0
   else
     assign padding_top = padding_top | plus: 0
   endif
   assign padding_bottom = block.settings.padding_bottom
   if padding_bottom == blank
-    assign padding_bottom = 24
+    assign padding_bottom = 0
   else
     assign padding_bottom = padding_bottom | plus: 0
   endif
-  assign padding_left = block.settings.padding_left
-  if padding_left == blank
-    assign padding_left = 0
-  else
-    assign padding_left = padding_left | plus: 0
-  endif
-  assign padding_right = block.settings.padding_right
-  if padding_right == blank
-    assign padding_right = 0
-  else
-    assign padding_right = padding_right | plus: 0
-  endif
   assign marquee_gap_desktop = block.settings.gap_desktop
   if marquee_gap_desktop == blank
-    assign marquee_gap_desktop = 48
+    assign marquee_gap_desktop = 40
   else
     assign marquee_gap_desktop = marquee_gap_desktop | plus: 0
   endif
   assign marquee_gap_mobile = block.settings.gap_mobile
   if marquee_gap_mobile == blank
-    assign marquee_gap_mobile = 32
+    assign marquee_gap_mobile = 30
   else
     assign marquee_gap_mobile = marquee_gap_mobile | plus: 0
   endif
   assign padding_top_mobile = block.settings.padding_top_mobile | default: padding_top | plus: 0
   assign padding_bottom_mobile = block.settings.padding_bottom_mobile | default: padding_bottom | plus: 0
-  assign padding_left_mobile = block.settings.padding_left_mobile | default: padding_left | plus: 0
-  assign padding_right_mobile = block.settings.padding_right_mobile | default: padding_right | plus: 0
 %}
 
 {% capture marquee_style %}
-  --marquee-duration: {{ marquee_duration }}s;
-  {% if marquee_background != blank %}--marquee-background-color: {{ marquee_background | escape }};{% endif %}
-  {% if padding_top != 24 %}--marquee-padding-top: {{ padding_top }}px;{% endif %}
-  {% if padding_bottom != 24 %}--marquee-padding-bottom: {{ padding_bottom }}px;{% endif %}
-  {% if padding_left != 0 %}--marquee-padding-left: {{ padding_left }}px;{% endif %}
-  {% if padding_right != 0 %}--marquee-padding-right: {{ padding_right }}px;{% endif %}
-  {% if marquee_gap_desktop != 48 %}--marquee-gap: {{ marquee_gap_desktop }}px;{% endif %}
-  {% if marquee_gap_mobile != 32 %}--marquee-gap-mobile: {{ marquee_gap_mobile }}px;{% endif %}
+  --marquee-align: {% case block.settings.alignment %}{% when 'top' %}flex-start{% when 'bottom' %}flex-end{% else %}center{% endcase %};
+  {% if block.settings.width == 'custom' %}--marquee-width: {{ block.settings.custom_width | default: 50 }}%;{% endif %}
+  {% if padding_top != 0 %}--marquee-padding-top: {{ padding_top }}px;{% endif %}
+  {% if padding_bottom != 0 %}--marquee-padding-bottom: {{ padding_bottom }}px;{% endif %}
+  {% if marquee_gap_desktop != 40 %}--marquee-gap: {{ marquee_gap_desktop }}px;{% endif %}
+  {% if marquee_gap_mobile != 30 %}--marquee-gap-mobile: {{ marquee_gap_mobile }}px;{% endif %}
   {% if block.settings.customize_mobile_padding %}
     --marquee-padding-top-mobile: {{ padding_top_mobile }}px;
     --marquee-padding-bottom-mobile: {{ padding_bottom_mobile }}px;
-    --marquee-padding-left-mobile: {{ padding_left_mobile }}px;
-    --marquee-padding-right-mobile: {{ padding_right_mobile }}px;
   {% endif %}
 {% endcapture %}
 {% assign marquee_style = marquee_style | strip | replace: '\n', ' ' %}
 
-{% assign marquee_class = 'section-spacing marquee marquee--block marquee--' | append: marquee_direction | append: ' section-color-scope' %}
+{% liquid
+  assign marquee_class = 'marquee marquee--block marquee--' | append: marquee_direction
+  if block.settings.color_type == 'scheme'
+    assign marquee_class = marquee_class | append: ' section-color-scope color-scheme ' | append: block.settings.color_scheme
+  endif %}
 {% if marquee_speed == 0 %}
   {% assign marquee_class = marquee_class | append: ' marquee--static' %}
 {% endif %}
 
 <div
   class="{{ marquee_class }}"
+  data-marquee-speed="{{ marquee_speed }}"
+  data-marquee-parallax="{{ block.settings.enable_parallax | default: true, allow_false: true }}"
+  {% if block.settings.show_top_divider %}data-marquee-top-divider{% endif %}
+  {% if block.settings.show_bottom_divider %}data-marquee-bottom-divider{% endif %}
+  {% if block.settings.show_blurred_edges %}data-marquee-blurred-edges{% endif %}
   {{ block.shopify_attributes }}
   {% if marquee_style != blank %}style="{{ marquee_style }}"{% endif %}
 >
-  <div class="container full-width marquee__container">
+  <div class="marquee__container">
     <div class="marquee__viewport" role="region" aria-label="Marquee">
       <div class="marquee__track">
         {% content_for 'blocks' %}
@@ -100,22 +84,34 @@
 </div>
 
 {% stylesheet %}
+  .marquee--block .marquee__track > .marquee-item-layout { width: fit-content; max-width: max-content; --group-background-color: transparent; }
+  .marquee--block .marquee__track > .marquee-item-layout--horizontal { flex-wrap: nowrap; }
+  .marquee--block .marquee__track > .marquee-item-layout--horizontal > * { width: fit-content; flex: 0 0 auto; }
+
   .marquee--block {
     --marquee-duration: 28s;
     --marquee-loop-distance: 0px;
-    width: 100%;
-    overflow: hidden;
-    background-color: var(--marquee-background-color, var(--background-color));
-    padding-top: var(--marquee-padding-top, 24px);
-    padding-bottom: var(--marquee-padding-bottom, 24px);
-  }
-
-  .marquee--block .container.full-width.marquee__container {
+    width: var(--marquee-width, 100%);
+    max-width: 100%;
     min-width: 0;
-    padding-right: var(--marquee-padding-right, 0px);
-    padding-left: var(--marquee-padding-left, 0px);
+    overflow: hidden;
+    background-color: var(--background-color);
+    padding-top: var(--marquee-padding-top, 0px);
+    padding-bottom: var(--marquee-padding-bottom, 0px);
   }
 
+  .marquee--block .marquee__container {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .marquee--block[data-marquee-top-divider] { border-top: 1px solid var(--border-color); }
+  .marquee--block[data-marquee-bottom-divider] { border-bottom: 1px solid var(--border-color); }
+  .marquee--block[data-marquee-blurred-edges] .marquee__viewport {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  }
+  .marquee--block:focus-within .marquee__viewport { -webkit-mask-image: none; mask-image: none; }
   .marquee--block .marquee__viewport {
     width: 100%;
     overflow: hidden;
@@ -123,15 +119,21 @@
 
   .marquee--block .marquee__track {
     display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
+    flex-wrap: wrap;
+    align-items: var(--marquee-align, center);
     justify-content: flex-start;
-    gap: var(--marquee-gap, 48px);
-    width: max-content;
+    gap: var(--marquee-gap, 40px);
+    width: 100%;
     min-width: 0;
     max-width: none;
     animation: none;
     will-change: transform;
+  }
+
+  .marquee--block.marquee--measuring .marquee__track,
+  .marquee--block.marquee--ready .marquee__track {
+    width: max-content;
+    flex-wrap: nowrap;
   }
 
   .marquee--block.marquee--ready .marquee__track {
@@ -153,15 +155,14 @@
 
   @media (max-width: 767.98px) {
     .marquee--block {
-      padding-top: var(--marquee-padding-top-mobile, var(--marquee-padding-top, 24px));
-      padding-bottom: var(--marquee-padding-bottom-mobile, var(--marquee-padding-bottom, 24px));
+      width: 100%;
+      padding-top: var(--marquee-padding-top-mobile, var(--marquee-padding-top, 0px));
+      padding-bottom: var(--marquee-padding-bottom-mobile, var(--marquee-padding-bottom, 0px));
     }
-    .marquee--block .container.full-width.marquee__container {
-      padding-left: var(--marquee-padding-left-mobile, var(--marquee-padding-left, 0px));
-      padding-right: var(--marquee-padding-right-mobile, var(--marquee-padding-right, 0px));
+    .marquee--block .marquee__container {
     }
     .marquee--block .marquee__track {
-      gap: var(--marquee-gap-mobile, var(--marquee-gap, 48px));
+      gap: var(--marquee-gap-mobile, var(--marquee-gap, 40px));
     }
   }
 
@@ -169,28 +170,21 @@
     flex: 0 0 auto;
   }
 
-  .marquee--block .marquee__track > .marquee-item-layout {
-    width: fit-content;
-    max-width: max-content;
+  /* Every Basic block is a direct track child; no item/group wrapper. */
+  .marquee--block .marquee__track > [data-content-empty] { display: none; }
+
+  .marquee--block.marquee--inspector-hover .marquee__track {
+    animation-play-state: paused;
   }
 
-  .marquee--block .marquee__track > .marquee-item-layout--horizontal {
-    flex-wrap: nowrap;
-  }
-
-  /* Percentage widths are circular inside a fit-content horizontal item. */
-  .marquee--block .marquee__track > .marquee-item-layout--horizontal > * {
-    width: fit-content;
-    flex: 0 0 auto;
-  }
-
-  /* Marquee items are transparent by default; an Item background setting can override this. */
-  .marquee--block .marquee__track > .marquee-item-layout {
-    --group-background-color: transparent;
+  .marquee--block.marquee--static .marquee__track {
+    width: 100%;
+    flex-wrap: wrap;
+    will-change: auto;
   }
 
   .marquee--block:hover .marquee__track,
-  .marquee--block:focus-within .marquee__track {
+  .marquee--block:not(.marquee--editor):focus-within .marquee__track {
     animation-play-state: paused;
   }
 
@@ -205,15 +199,35 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .marquee--block .marquee__track,
+    .marquee--block.marquee--forward .marquee__track,
+    .marquee--block.marquee--backward .marquee__track,
     .marquee--block.marquee--ready .marquee__track {
       animation: none;
       transform: none;
+      width: 100%;
+      flex-wrap: wrap;
+      will-change: auto;
     }
   }
+  [data-marquee-animation='fade']{animation:mq-enter-fade .6s ease both;}
+  [data-marquee-animation='scale']{animation:mq-enter-scale .6s ease both;}
+  [data-marquee-animation='slide_left']{animation:mq-enter-left .6s ease both;}
+  [data-marquee-animation='slide_right']{animation:mq-enter-right .6s ease both;}
+  [data-marquee-animation='slide_bottom']{animation:mq-enter-bottom .6s ease both;}
+  @keyframes mq-enter-fade{from{opacity:0;}to{opacity:1;}}
+  @keyframes mq-enter-scale{from{scale:.85;opacity:0;}to{scale:1;opacity:1;}}
+  @keyframes mq-enter-left{from{translate:-24px 0;opacity:0;}to{translate:0;opacity:1;}}
+  @keyframes mq-enter-right{from{translate:24px 0;opacity:0;}to{translate:0;opacity:1;}}
+  @keyframes mq-enter-bottom{from{translate:0 24px;opacity:0;}to{translate:0;opacity:1;}}
+  @media(prefers-reduced-motion:reduce){[data-marquee-animation]{animation:none;}}
 {% endstylesheet %}
 
 {% javascript %}
   (() => {
+    const runtimeKey = Symbol.for('theme.marquee.runtime');
+    if (window[runtimeKey]) return;
+    window[runtimeKey] = true;
     const instances = new WeakMap();
     const selector = '.marquee--block';
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -227,6 +241,8 @@
         // Hidden/inert copies cannot enter the shared reveal lifecycle.
         // Render their content immediately instead of inheriting opacity: 0.
         element.classList.remove('reveal-pending');
+        element.removeAttribute('data-marquee-animation');
+        if (element.hasAttribute('data-countdown-announcement')) element.removeAttribute('aria-live');
         if (element.hasAttribute('data-block-animation') || element.hasAttribute('data-component-reveal')) {
           element.setAttribute('data-block-animation', 'none');
           element.removeAttribute('data-component-reveal');
@@ -238,7 +254,7 @@
     };
 
     const initialize = (marquee) => {
-      if (!marquee || instances.has(marquee) || reducedMotion.matches) return;
+      if (!marquee || instances.has(marquee) || reducedMotion.matches || marquee.classList.contains('marquee--static')) return;
 
       const track = marquee.querySelector('.marquee__track');
       const viewport = marquee.querySelector('.marquee__viewport');
@@ -246,7 +262,12 @@
 
       let frame = 0;
       let scrollFrame = 0;
+      let pointerFrame = 0;
+      let inspectorActive = Boolean(window.Shopify?.inspectMode);
+      let pointerPosition = null;
       let lastScrollY = window.scrollY;
+      let parallaxPixels = 0;
+      let lastParallaxFrame = 0;
       let destroyed = false;
       let measuredLayout = '';
       const originalItems = () => [...track.children].filter((item) => !item.hasAttribute('data-marquee-clone'));
@@ -260,18 +281,25 @@
       const syncClones = () => {
         if (destroyed) return;
         mutationObserver.disconnect();
+        const previousAnimation = track.getAnimations().find((animation) => animation.animationName?.startsWith('marquee-scroll-'));
+        const previousDuration = Number(previousAnimation?.effect?.getComputedTiming().duration);
+        const previousPhase = previousDuration && previousAnimation.currentTime !== null ? Number(previousAnimation.currentTime) / previousDuration : 0;
+        marquee.classList.add('marquee--measuring');
         track.querySelectorAll('[data-marquee-clone]').forEach((clone) => clone.remove());
-        const items = originalItems();
+        const items = originalItems().filter((item) => item.getClientRects().length && item.getBoundingClientRect().width > 0);
         resizeObserver.disconnect();
         resizeObserver.observe(viewport);
         items.forEach((item) => resizeObserver.observe(item));
 
         const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
         // Include the trailing gap so the next cycle starts at the exact seam.
-        const distance = items.reduce((width, item) => width + item.getBoundingClientRect().width + gap, 0);
+        const distance = items.reduce((width, item) => {
+          const style = getComputedStyle(item);
+          return width + item.getBoundingClientRect().width + (parseFloat(style.marginLeft) || 0) + (parseFloat(style.marginRight) || 0) + gap;
+        }, 0);
         measuredLayout = layoutSignature();
         if (items.length === 0 || distance <= 0 || viewport.clientWidth === 0) {
-          marquee.classList.remove('marquee--ready');
+          marquee.classList.remove('marquee--ready', 'marquee--measuring');
           track.style.removeProperty('--marquee-loop-distance');
           observeMutations();
           return;
@@ -290,7 +318,13 @@
         }
         track.appendChild(fragment);
         track.style.setProperty('--marquee-loop-distance', `${distance}px`);
+        // Keep speed in pixels/second so adding content does not accelerate it.
+        const speed = Math.max(0.1, Math.min(2, Number(marquee.dataset.marqueeSpeed) || 0.6));
+        track.style.setProperty('--marquee-duration', `${distance / (60 * speed)}s`);
         marquee.classList.add('marquee--ready');
+        marquee.classList.remove('marquee--measuring');
+        const animation = track.getAnimations().find((entry) => entry.animationName?.startsWith('marquee-scroll-'));
+        if (animation && previousAnimation) animation.currentTime = previousPhase * distance / (60 * speed) * 1000;
         observeMutations();
       };
 
@@ -310,6 +344,7 @@
         if (mutations.some((mutation) => {
           const element = mutation.target.nodeType === Node.ELEMENT_NODE ? mutation.target : mutation.target.parentElement;
           if (element?.closest('[data-marquee-clone]')) return false;
+          if (element?.closest('[data-countdown-value], [data-countdown-announcement], [data-coupon-status]')) return false;
           if (mutation.type === 'attributes') {
             if (mutation.target === track) return false;
             if (mutation.attributeName.startsWith('data-shopify-editor')) return false;
@@ -321,31 +356,91 @@
         if (layoutSignature() !== measuredLayout) scheduleSync();
       });
 
-      const handleScroll = () => {
-        if (scrollFrame || destroyed) return;
-        scrollFrame = requestAnimationFrame(() => {
-          scrollFrame = 0;
-          const scrollY = window.scrollY;
-          const delta = Math.max(-50, Math.min(50, scrollY - lastScrollY));
-          lastScrollY = scrollY;
-          const bounds = viewport.getBoundingClientRect();
-          const distance = parseFloat(track.style.getPropertyValue('--marquee-loop-distance'));
-          if (!delta || !distance || bounds.bottom <= 0 || bounds.top >= window.innerHeight) return;
-
-          // Move the existing loop's phase, keeping autoplay and the seamless seam.
-          // Upward scrolling has extra influence so it visibly reverses the text.
-          const pixels = delta * (delta < 0 ? 0.7 : 0.35);
-          track.getAnimations().forEach((animation) => {
-            if (!['marquee-scroll-left', 'marquee-scroll-right'].includes(animation.animationName)) return;
-            const duration = Number(animation.effect?.getComputedTiming().duration);
-            if (!duration || animation.currentTime === null) return;
-            const time = Number(animation.currentTime) + pixels / distance * duration;
-            animation.currentTime = ((time % duration) + duration) % duration;
-          });
+      // Inspector overlays can receive the pointer instead of a marquee child.
+      // Capture its coordinates in the preview document, then test this instance.
+      const updateInspectorHover = () => {
+        if (!inspectorActive || !pointerPosition) {
+          marquee.classList.remove('marquee--inspector-hover');
+          return;
+        }
+        const bounds = marquee.getBoundingClientRect();
+        const { x, y } = pointerPosition;
+        marquee.classList.toggle('marquee--inspector-hover',
+          x >= bounds.left && x < bounds.right && y >= bounds.top && y < bounds.bottom);
+      };
+      const handlePointerMove = (event) => {
+        if (event.pointerType === 'touch') return;
+        pointerPosition = { x: event.clientX, y: event.clientY };
+        if (!inspectorActive || pointerFrame) return;
+        pointerFrame = requestAnimationFrame(() => {
+          pointerFrame = 0;
+          if (!destroyed) updateInspectorHover();
         });
       };
-      // Scrolling text owns this effect; other placements keep their existing motion.
-      const scrollReactive = marquee.closest('.text-marquee-custom') && !marquee.classList.contains('marquee--static');
+      const clearPointer = () => {
+        pointerPosition = null;
+        marquee.classList.remove('marquee--inspector-hover');
+      };
+      const handlePointerOut = (event) => {
+        if (!event.relatedTarget) clearPointer();
+      };
+      const activateInspector = () => {
+        inspectorActive = true;
+        updateInspectorHover();
+      };
+      const deactivateInspector = () => {
+        inspectorActive = false;
+        updateInspectorHover();
+      };
+      const editorMode = Boolean(window.Shopify?.designMode);
+      if (editorMode) {
+        // Inspector selection/focus must not hold motion after the pointer leaves.
+        marquee.classList.add('marquee--editor');
+        document.addEventListener('pointermove', handlePointerMove, true);
+        document.addEventListener('pointerout', handlePointerOut, true);
+        document.addEventListener('shopify:inspector:activate', activateInspector);
+        document.addEventListener('shopify:inspector:deactivate', deactivateInspector);
+        window.addEventListener('blur', clearPointer);
+        window.addEventListener('resize', updateInspectorHover);
+      }
+
+      const isPaused = () => marquee.matches(':hover') ||
+        (!editorMode && marquee.matches(':focus-within')) || marquee.classList.contains('marquee--inspector-hover');
+      const smoothParallax = (timestamp) => {
+        scrollFrame = 0;
+        if (destroyed) return;
+        if (editorMode) updateInspectorHover();
+        const bounds = viewport.getBoundingClientRect();
+        if (isPaused() || bounds.bottom <= 0 || bounds.top >= window.innerHeight) {
+          parallaxPixels = 0;
+          lastParallaxFrame = 0;
+          return;
+        }
+        const elapsed = lastParallaxFrame ? Math.min(32, timestamp - lastParallaxFrame) : 16;
+        lastParallaxFrame = timestamp;
+        // Drain scroll displacement over frames instead of jumping on every wheel event.
+        const pixels = parallaxPixels * (1 - Math.exp(-elapsed / 100));
+        parallaxPixels -= pixels;
+        const distance = parseFloat(track.style.getPropertyValue('--marquee-loop-distance'));
+        if (distance) track.getAnimations().forEach((animation) => {
+          if (!['marquee-scroll-left', 'marquee-scroll-right'].includes(animation.animationName)) return;
+          const duration = Number(animation.effect?.getComputedTiming().duration);
+          if (!duration || animation.currentTime === null) return;
+          const time = Number(animation.currentTime) + pixels / distance * duration;
+          animation.currentTime = ((time % duration) + duration) % duration;
+        });
+        if (Math.abs(parallaxPixels) > 0.05) scrollFrame = requestAnimationFrame(smoothParallax);
+        else { parallaxPixels = 0; lastParallaxFrame = 0; }
+      };
+      const handleScroll = () => {
+        const delta = Math.max(-100, Math.min(100, window.scrollY - lastScrollY));
+        lastScrollY = window.scrollY;
+        if (destroyed || isPaused()) return;
+        parallaxPixels = Math.max(-200, Math.min(200, parallaxPixels + delta * (delta < 0 ? 0.7 : 0.35)));
+        if (!scrollFrame) scrollFrame = requestAnimationFrame(smoothParallax);
+      };
+      // Reuse the scrolling-text phase shift wherever the marquee block is placed.
+      const scrollReactive = marquee.dataset.marqueeParallax !== 'false';
       if (scrollReactive) window.addEventListener('scroll', handleScroll, { passive: true });
 
       instances.set(marquee, {
@@ -353,10 +448,24 @@
           destroyed = true;
           cancelAnimationFrame(frame);
           cancelAnimationFrame(scrollFrame);
+          cancelAnimationFrame(pointerFrame);
+          clearPointer();
+          if (editorMode) {
+            marquee.classList.remove('marquee--editor');
+            document.removeEventListener('pointermove', handlePointerMove, true);
+            document.removeEventListener('pointerout', handlePointerOut, true);
+            document.removeEventListener('shopify:inspector:activate', activateInspector);
+            document.removeEventListener('shopify:inspector:deactivate', deactivateInspector);
+            window.removeEventListener('blur', clearPointer);
+            window.removeEventListener('resize', updateInspectorHover);
+          }
           if (scrollReactive) window.removeEventListener('scroll', handleScroll);
           resizeObserver.disconnect();
           mutationObserver.disconnect();
         }
+      });
+      document.fonts?.ready.then(() => {
+        if (!destroyed && layoutSignature() !== measuredLayout) scheduleSync();
       });
       syncClones();
     };
@@ -366,8 +475,10 @@
       if (!state) return;
       state.destroy();
       marquee.querySelectorAll('[data-marquee-clone]').forEach((clone) => clone.remove());
-      marquee.querySelector('.marquee__track')?.style.removeProperty('--marquee-loop-distance');
-      marquee.classList.remove('marquee--ready');
+      const track = marquee.querySelector('.marquee__track');
+      track?.style.removeProperty('--marquee-loop-distance');
+      track?.style.removeProperty('--marquee-duration');
+      marquee.classList.remove('marquee--ready', 'marquee--measuring');
       instances.delete(marquee);
     };
 
@@ -402,94 +513,202 @@
   "name": "t:general.marquee",
   "tag": null,
   "blocks": [
-    { "type": "marquee-item" }
+    {
+      "type": "_marquee-heading"
+    },
+    {
+      "type": "_marquee-text"
+    },
+    {
+      "type": "_marquee-image"
+    },
+    {
+      "type": "_marquee-icon"
+    },
+    {
+      "type": "_marquee-button"
+    },
+    {
+      "type": "_marquee-countdown-timer"
+    },
+    {
+      "type": "_marquee-coupon-code"
+    },
+    {
+      "type": "_marquee-divider"
+    },
+    {
+      "type": "_marquee-group"
+    },
+    {
+      "type": "marquee-item"
+    }
   ],
   "settings": [
     {
-      "type": "header",
-      "content": "t:general.animation"
+      "type": "checkbox",
+      "id": "show_top_divider",
+      "label": "Show top divider",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_bottom_divider",
+      "label": "Show bottom divider",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_blurred_edges",
+      "label": "Show blurred edges",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_parallax",
+      "label": "Enable parallax effect",
+      "default": true
     },
     {
       "type": "select",
-      "id": "animation_direction",
-      "label": "t:labels.animation_direction",
+      "id": "alignment",
+      "label": "Alignment",
       "options": [
-        { "value": "forward", "label": "t:options.animation_direction.forward" },
-        { "value": "backward", "label": "t:options.animation_direction.backward" }
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        }
       ],
-      "default": "backward"
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Motion"
     },
     {
       "type": "range",
       "id": "animation_speed",
-      "label": "t:labels.animation_speed",
-      "min": 0,
-      "max": 3,
-      "step": 1,
-      "default": 1
+      "label": "Speed",
+      "min": 0.1,
+      "max": 2,
+      "step": 0.1,
+      "default": 0.6,
+      "unit": "x"
+    },
+    {
+      "type": "select",
+      "id": "animation_direction",
+      "label": "Motion direction",
+      "options": [
+        {
+          "value": "backward",
+          "label": "Left"
+        },
+        {
+          "value": "forward",
+          "label": "Right"
+        }
+      ],
+      "default": "backward"
     },
     {
       "type": "header",
-      "content": "t:general.appearance"
-    },
-    {
-      "type": "color",
-      "alpha": true,
-      "id": "background_color",
-      "label": "t:labels.background"
-    },
-    {
-      "type": "header",
-      "content": "t:general.gap"
+      "content": "Gap"
     },
     {
       "type": "range",
       "id": "gap_desktop",
-      "label": "t:labels.desktop_gap",
+      "label": "Desktop",
       "min": 0,
-      "max": 100,
-      "step": 1,
+      "max": 200,
+      "step": 2,
       "unit": "px",
-      "default": 48
+      "default": 40
     },
     {
       "type": "range",
       "id": "gap_mobile",
-      "label": "t:labels.mobile_gap",
+      "label": "Mobile",
       "min": 0,
       "max": 100,
       "step": 1,
       "unit": "px",
-      "default": 32
+      "default": 30
     },
     {
       "type": "header",
-      "content": "t:general.padding"
+      "content": "Size"
+    },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Desktop width",
+      "options": [
+        {
+          "value": "fill",
+          "label": "Fill"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "fill"
+    },
+    {
+      "type": "range",
+      "id": "custom_width",
+      "label": "Custom width",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "Color"
+    },
+    {
+      "type": "select",
+      "id": "color_type",
+      "label": "Type",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "Inherit"
+        },
+        {
+          "value": "scheme",
+          "label": "Color scheme"
+        }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.color_type == 'scheme' }}"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
     },
     {
       "type": "range",
       "id": "padding_top",
-      "label": "Top padding",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 24
-    },
-    {
-      "type": "range",
-      "id": "padding_bottom",
-      "label": "Bottom padding",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 24
-    },
-    {
-      "type": "range",
-      "id": "padding_left",
-      "label": "Left padding",
+      "label": "Top",
       "min": 0,
       "max": 100,
       "step": 1,
@@ -498,8 +717,8 @@
     },
     {
       "type": "range",
-      "id": "padding_right",
-      "label": "Right padding",
+      "id": "padding_bottom",
+      "label": "Bottom",
       "min": 0,
       "max": 100,
       "step": 1,
@@ -509,7 +728,7 @@
     {
       "type": "checkbox",
       "id": "customize_mobile_padding",
-      "label": "t:labels.customize_mobile_padding",
+      "label": "Custom for mobile",
       "default": false
     },
     {
@@ -520,35 +739,13 @@
       "max": 100,
       "step": 1,
       "unit": "px",
-      "default": 24,
+      "default": 0,
       "visible_if": "{{ block.settings.customize_mobile_padding }}"
     },
     {
       "type": "range",
       "id": "padding_bottom_mobile",
       "label": "Mobile bottom padding",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 24,
-      "visible_if": "{{ block.settings.customize_mobile_padding }}"
-    },
-    {
-      "type": "range",
-      "id": "padding_left_mobile",
-      "label": "Mobile left padding",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "px",
-      "default": 0,
-      "visible_if": "{{ block.settings.customize_mobile_padding }}"
-    },
-    {
-      "type": "range",
-      "id": "padding_right_mobile",
-      "label": "Mobile right padding",
       "min": 0,
       "max": 100,
       "step": 1,
@@ -563,31 +760,103 @@
       "category": "t:general.content",
       "blocks": [
         {
-          "type": "marquee-item",
-          "name": "t:general.item",
-          "settings": { "direction": "horizontal", "position": "center" },
-          "blocks": [
-            { "type": "heading", "settings": { "text": "<p>Diamond statement</p>", "heading_size": "md", "html_tag": "div" } },
-            { "type": "image", "settings": { "image_ratio_desktop": "custom", "image_ratio_custom_width_desktop": 2, "image_ratio_custom_height_desktop": 1, "width_desktop": "fill", "corner_radius": "square" } }
-          ]
+          "type": "_marquee-heading",
+          "settings": {
+            "text": "Diamond statement",
+            "heading_size": "md",
+            "color_role": "heading",
+            "opacity": 100
+          }
         },
         {
-          "type": "marquee-item",
-          "name": "t:general.item",
-          "settings": { "direction": "horizontal", "position": "center" },
-          "blocks": [
-            { "type": "heading", "settings": { "text": "<p>Birthstone</p>", "heading_size": "md", "html_tag": "div" } },
-            { "type": "image", "settings": { "image_ratio_desktop": "custom", "image_ratio_custom_width_desktop": 2, "image_ratio_custom_height_desktop": 1, "width_desktop": "fill", "corner_radius": "square" } }
-          ]
+          "type": "_marquee-image",
+          "settings": {
+            "corner_radius": "square",
+            "width_custom_desktop": 120,
+            "width_custom_mobile": 80,
+            "image_ratio": "original"
+          }
         },
         {
-          "type": "marquee-item",
-          "name": "t:general.item",
-          "settings": { "direction": "horizontal", "position": "center" },
-          "blocks": [
-            { "type": "heading", "settings": { "text": "<p>Diamond statement</p>", "heading_size": "md", "html_tag": "div" } },
-            { "type": "image", "settings": { "image_ratio_desktop": "custom", "image_ratio_custom_width_desktop": 2, "image_ratio_custom_height_desktop": 1, "width_desktop": "fill", "corner_radius": "square" } }
-          ]
+          "type": "_marquee-heading",
+          "settings": {
+            "text": "Birthstone",
+            "heading_size": "md",
+            "color_role": "heading",
+            "opacity": 100
+          }
+        },
+        {
+          "type": "_marquee-image",
+          "settings": {
+            "corner_radius": "square",
+            "width_custom_desktop": 120,
+            "width_custom_mobile": 80,
+            "image_ratio": "original"
+          }
+        },
+        {
+          "type": "_marquee-heading",
+          "settings": {
+            "text": "Diamond statement",
+            "heading_size": "md",
+            "color_role": "heading",
+            "opacity": 100
+          }
+        },
+        {
+          "type": "_marquee-image",
+          "settings": {
+            "corner_radius": "square",
+            "width_custom_desktop": 120,
+            "width_custom_mobile": 80,
+            "image_ratio": "original"
+          }
+        }
+      ],
+      "settings": {
+        "show_top_divider": false,
+        "show_bottom_divider": false,
+        "show_blurred_edges": false,
+        "enable_parallax": true,
+        "alignment": "center",
+        "animation_speed": 0.6,
+        "animation_direction": "backward",
+        "gap_desktop": 40,
+        "gap_mobile": 30,
+        "width": "fill",
+        "color_type": "inherit",
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    {
+      "name": "Marquee - Heading",
+      "category": "t:general.content",
+      "settings": {
+        "show_top_divider": false,
+        "show_bottom_divider": false,
+        "show_blurred_edges": false,
+        "enable_parallax": true,
+        "alignment": "center",
+        "animation_speed": 0.6,
+        "animation_direction": "backward",
+        "gap_desktop": 40,
+        "gap_mobile": 30,
+        "width": "fill",
+        "color_type": "inherit",
+        "padding_top": 0,
+        "padding_bottom": 0
+      },
+      "blocks": [
+        {
+          "type": "_marquee-heading",
+          "settings": {
+            "text": "Welcome to our store",
+            "heading_size": "xl",
+            "color_role": "heading",
+            "opacity": 100
+          }
         }
       ]
     }

@@ -1,0 +1,162 @@
+{% liquid
+  assign style = block.settings.button_style | default: 'primary'
+  assign variant = 'secondary'
+  if style == 'primary'
+    assign variant = 'primary'
+  elsif style == 'text'
+    assign variant = 'tertiary'
+  endif
+  assign desktop_height = block.settings.height_desktop | default: 'inherit'
+  assign mobile_height = block.settings.height_mobile | default: 'inherit'
+  assign tag = 'span'
+  if block.settings.button_link != blank
+    assign tag = 'a'
+  endif
+%}
+<div class="marquee-button-block marquee-button-block--{{ style }}" style="--mq-height:var(--mq-height-{{ desktop_height }});--mq-height-mobile:var(--mq-height-{{ mobile_height }});" {% if block.settings.button_label == blank %}data-content-empty{% endif %} {{ block.shopify_attributes }}>
+<{{ tag }} class="btn btn-{{ variant }}" {% if tag == 'a' %}href="{{ block.settings.button_link | escape }}"{% if block.settings.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}{% endif %}><span>{{ block.settings.button_label }}</span>{% if block.settings.show_icon %}{% render 'icon', icon: 'arrow-right', bare: true %}{% endif %}</{{ tag }}>
+</div>
+{% stylesheet %}
+.marquee-button-block{flex:0 0 auto;width:max-content;--mq-height-inherit:var(--button-height);--mq-height-xs:28px;--mq-height-sm:36px;--mq-height-md:44px;--mq-height-lg:52px;--mq-height-xl:60px;}
+.marquee-button-block .btn{min-height:var(--mq-height,var(--button-height));display:inline-flex;gap:8px;}
+.marquee-button-block .btn>svg{width:20px;height:20px;flex-shrink:0;}
+.marquee-button-block--outline .btn{background:transparent;border:1px solid currentColor;color:var(--body-color);}
+.marquee-button-block--subtle .btn{background:color-mix(in srgb,var(--body-color) 8%,transparent);border-color:transparent;color:var(--body-color);}
+.marquee-button-block--text .btn{background:transparent;border-color:transparent;padding-inline:0;}
+@media(max-width:767.98px){.marquee-button-block{--mq-height-inherit:var(--button-height-mobile);}.marquee-button-block .btn{min-height:var(--mq-height-mobile,var(--button-height-mobile));}}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Button",
+  "tag": null,
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "button_label",
+      "label": "Label",
+      "default": "Shop now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Link"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "Open link in new tab",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Style",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "outline",
+          "label": "Outline"
+        },
+        {
+          "value": "subtle",
+          "label": "Subtle"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "Show icon",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Height"
+    },
+    {
+      "type": "select",
+      "id": "height_desktop",
+      "label": "Desktop",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "Inherit"
+        },
+        {
+          "value": "xs",
+          "label": "Extra small"
+        },
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "md",
+          "label": "Medium"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        },
+        {
+          "value": "xl",
+          "label": "Extra large"
+        }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "select",
+      "id": "height_mobile",
+      "label": "Mobile",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "Inherit"
+        },
+        {
+          "value": "xs",
+          "label": "Extra small"
+        },
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "md",
+          "label": "Medium"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        },
+        {
+          "value": "xl",
+          "label": "Extra large"
+        }
+      ],
+      "default": "inherit"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Button",
+      "category": "t:general.basic",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

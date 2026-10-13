@@ -27,6 +27,21 @@
       assign collection_card_radius = 'var(--radius-rounded)'
   endcase
 
+  assign collection_card_media_radius = 'var(--media-radius, var(--radius-square))'
+  case block.settings.media_corner_radius
+    when 'radius_2', 'radius_4', 'radius_6', 'radius_8', 'radius_12', 'radius_16', 'radius_24', 'radius_32'
+      assign collection_card_media_radius_size = block.settings.media_corner_radius | remove: 'radius_'
+      assign collection_card_media_radius = 'var(--radius-' | append: collection_card_media_radius_size | append: ', ' | append: collection_card_media_radius_size | append: 'px)'
+    when 'square'
+      assign collection_card_media_radius = 'var(--radius-square)'
+    when 'rounded'
+      assign collection_card_media_radius = 'var(--radius-rounded)'
+    when 'full'
+      assign collection_card_media_radius = 'var(--radius-pill)'
+    when 'custom'
+      assign collection_card_media_radius = block.settings.custom_media_corner_radius | default: 0 | at_least: 0 | at_most: 40 | append: 'px'
+  endcase
+
   assign collection_card_shadow = 'none'
   case block.settings.shadow
     when 'small'
@@ -115,6 +130,7 @@
 %}
 
 {% capture collection_card_padding_style %}
+  {% if block.settings.media_corner_radius != blank %}--collection-card-media-radius: {{ collection_card_media_radius }};{% endif %}
   {% if collection_card_gap_desktop != 4 %}--card-content-gap: {{ collection_card_gap_desktop }}px;{% endif %}
   {% if collection_card_gap_mobile != collection_card_gap_desktop %}--card-content-gap-mobile: {{ collection_card_gap_mobile }}px;{% endif %}
   {% if collection_card_padding_top != 16 %}--card-padding-top: {{ collection_card_padding_top }}px;{% endif %}

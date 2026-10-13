@@ -1,3 +1,5 @@
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: section.settings, color_id: 'overlay_color', enabled_id: 'overlay', style_id: 'overlay_style' %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
 {% liquid
   assign section_container_width = 'page-width'
   if section.settings.section_width == 'full_width'
@@ -228,28 +230,72 @@
 {
   "name": "Scroll reading text",
   "class": "section-value-proposition-01",
-  "enabled_on": { "templates": ["*"] },
+  "enabled_on": {
+    "templates": [
+      "*"
+    ]
+  },
   "blocks": [
-    { "type": "header" },
-    { "type": "heading" },
-    { "type": "editorial-text" },
-    { "type": "eyebrow" },
-    { "type": "text" },
-    { "type": "image" },
-    { "type": "image-card" },
-    { "type": "video" },
-    { "type": "button" },
-    { "type": "buttons" },
-    { "type": "icon" },
-    { "type": "divider" },
-    { "type": "spacer" },
-    { "type": "group" },
-    { "type": "marquee" },
-    { "type": "row" },
-    { "type": "grid" },
-    { "type": "email-signup" },
-    { "type": "contact-form" },
-    { "type": "product-list" }
+    {
+      "type": "header"
+    },
+    {
+      "type": "heading"
+    },
+    {
+      "type": "editorial-text"
+    },
+    {
+      "type": "eyebrow"
+    },
+    {
+      "type": "text"
+    },
+    {
+      "type": "image"
+    },
+    {
+      "type": "image-card"
+    },
+    {
+      "type": "video"
+    },
+    {
+      "type": "button"
+    },
+    {
+      "type": "buttons"
+    },
+    {
+      "type": "icon"
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "spacer"
+    },
+    {
+      "type": "group"
+    },
+    {
+      "type": "marquee"
+    },
+    {
+      "type": "row"
+    },
+    {
+      "type": "grid"
+    },
+    {
+      "type": "email-signup"
+    },
+    {
+      "type": "contact-form"
+    },
+    {
+      "type": "product-list"
+    }
   ],
   "settings": [
     {
@@ -261,9 +307,18 @@
       "id": "section_width",
       "label": "t:labels.section_width",
       "options": [
-        { "value": "page_width", "label": "t:options.section_width.page_width" },
-        { "value": "full_width", "label": "t:options.section_width.full_width" },
-        { "value": "full_width_no_padding", "label": "t:options.section_width.full_width_no_padding" }
+        {
+          "value": "page_width",
+          "label": "t:options.section_width.page_width"
+        },
+        {
+          "value": "full_width",
+          "label": "t:options.section_width.full_width"
+        },
+        {
+          "value": "full_width_no_padding",
+          "label": "t:options.section_width.full_width_no_padding"
+        }
       ],
       "default": "page_width"
     },
@@ -381,13 +436,54 @@
       "unit": "px",
       "default": 0,
       "visible_if": "{{ section.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "overlay",
+      "default": true,
+      "label": "t:labels.show_overlay"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ section.settings.overlay }}"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "default": "#00000033",
+      "alpha": true,
+      "label": "t:labels.overlay_color",
+      "visible_if": "{{ section.settings.overlay and section.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ section.settings.overlay and section.settings.overlay_style == 'gradient' }}"
     }
   ],
   "presets": [
     {
       "name": "Scroll reading text",
       "category": "Storytelling",
-      "settings": { "color_scheme": "scheme-1" },
+      "settings": {
+        "color_scheme": "scheme-1",
+        "overlay": true
+      },
       "blocks": [
         {
           "type": "text",

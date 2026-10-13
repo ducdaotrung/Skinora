@@ -7,40 +7,93 @@
   endif
 
   assign section_direction = section.settings.direction | default: 'vertical'
-  unless section_direction == 'horizontal' or section_direction == 'vertical'
+  unless section_direction == 'horizontal' or section_direction == 'vertical' or section_direction == 'group--horizontal' or section_direction == 'group--vertical'
     assign section_direction = 'vertical'
   endunless
-
-  assign section_position = section.settings.position | default: 'top'
-  unless section_position == 'top' or section_position == 'center' or section_position == 'bottom'
-    assign section_position = 'top'
-  endunless
-
-  assign section_alignment = section.settings.alignment | default: 'left'
-  if section_direction == 'vertical'
-    assign section_alignment = section.settings.position_vertical | default: 'left'
+  if section_direction == 'group--horizontal'
+    assign section_direction = 'horizontal'
+  elsif section_direction == 'group--vertical'
+    assign section_direction = 'vertical'
   endif
-  unless section_alignment == 'left' or section_alignment == 'center' or section_alignment == 'right' or section_alignment == 'space-between'
-    assign section_alignment = 'left'
-  endunless
 
-  assign section_alignment_mobile = section.settings.alignment_mobile | default: section_alignment
-  unless section_alignment_mobile == 'left' or section_alignment_mobile == 'center' or section_alignment_mobile == 'right' or section_alignment_mobile == 'space-between'
-    assign section_alignment_mobile = section_alignment
-  endunless
+  assign section_alignment_source = section.settings.alignment | default: 'left'
+  if section_direction == 'horizontal'
+    assign section_alignment_source = section.settings.horizontal_alignment | default: section_alignment_source
+  endif
 
-  assign section_alignment_mobile_css = 'flex-start'
-  assign section_justify_mobile_css = 'flex-start'
-  case section_alignment_mobile
+  assign section_alignment = 'start'
+  assign section_justify = 'flex-start'
+  case section_alignment_source
     when 'center'
-      assign section_alignment_mobile_css = 'center'
-      assign section_justify_mobile_css = 'center'
-    when 'right'
-      assign section_alignment_mobile_css = 'flex-end'
-      assign section_justify_mobile_css = 'flex-end'
+      assign section_alignment = 'center'
+      assign section_justify = 'center'
+    when 'right', 'end', 'flex-end'
+      assign section_alignment = 'end'
+      assign section_justify = 'flex-end'
     when 'space-between'
-      assign section_justify_mobile_css = 'space-between'
+      assign section_justify = 'space-between'
+    else
+      assign section_alignment = 'start'
   endcase
+
+  assign section_position_source = 'top'
+  if section_direction == 'horizontal'
+    assign section_position_source = section.settings.position_horizontal | default: 'center'
+  endif
+  assign section_position_name = section_position_source
+  case section_position_name
+    when 'center'
+      assign section_position_name = 'center'
+    when 'bottom', 'flex-end'
+      assign section_position_name = 'bottom'
+    when 'space-between'
+      assign section_position_name = 'space-between'
+    else
+      assign section_position_name = 'top'
+  endcase
+
+  assign section_vertical_on_mobile = false
+  if section_direction == 'horizontal' and section.settings.customize_mobile_alignment
+    assign section_vertical_on_mobile = true
+  endif
+
+  assign section_alignment_mobile = section_alignment
+  assign section_justify_mobile = section_justify
+  assign section_mobile_alignment_enabled = false
+  if section_direction == 'vertical' or section_vertical_on_mobile
+    assign section_mobile_alignment_enabled = true
+  endif
+  assign section_alignment_mobile_source = section.settings.alignment_mobile | default: 'left'
+  unless section_alignment_mobile_source == 'left' or section_alignment_mobile_source == 'center' or section_alignment_mobile_source == 'right'
+    assign section_alignment_mobile_source = 'left'
+  endunless
+  if section_mobile_alignment_enabled
+    case section_alignment_mobile_source
+      when 'center'
+        assign section_alignment_mobile = 'center'
+        assign section_justify_mobile = 'center'
+      when 'right'
+        assign section_alignment_mobile = 'end'
+        assign section_justify_mobile = 'flex-end'
+      else
+        assign section_alignment_mobile = 'start'
+        assign section_justify_mobile = 'flex-start'
+    endcase
+  endif
+
+  assign section_flow_mobile_alignment = blank
+  if section_mobile_alignment_enabled
+    assign section_flow_mobile_alignment = section_alignment_mobile
+  endif
+
+  assign section_gap_desktop = section.settings.gap_desktop | default: 16 | plus: 0
+  if section_gap_desktop < 0 or section_gap_desktop > 100
+    assign section_gap_desktop = 16
+  endif
+  assign section_gap_mobile = section.settings.gap_mobile | default: 12 | plus: 0
+  if section_gap_mobile < 0 or section_gap_mobile > 100
+    assign section_gap_mobile = 12
+  endif
 
   assign padding_top = section.settings.padding_top | default: 0 | plus: 0
   assign padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
@@ -55,14 +108,8 @@
 %}
 
 {% capture section_style %}
-  --text-marquee-custom-gap: {{ section.settings.gap_desktop | default: 16 | plus: 0 }}px;
-  --text-marquee-custom-gap-mobile: {{ section.settings.gap_mobile | default: 12 | plus: 0 }}px;
   {% if section.settings.background_color != blank %}--text-marquee-custom-background: {{ section.settings.background_color | escape }};{% endif %}
   {% if section.settings.background_image != blank %}--text-marquee-custom-background-image: url('{{ section.settings.background_image | image_url: width: 2400 }}');{% endif %}
-  {% if section.settings.direction == 'horizontal' and section.settings.customize_mobile_alignment %}
-    --text-marquee-custom-align-mobile: {{ section_alignment_mobile_css }};
-    --text-marquee-custom-justify-mobile: {{ section_justify_mobile_css }};
-  {% endif %}
   {% if padding_top != 0 %}--text-marquee-custom-padding-top: {{ padding_top }}px;{% endif %}
   {% if padding_bottom != 0 %}--text-marquee-custom-padding-bottom: {{ padding_bottom }}px;{% endif %}
   {% if section.settings.customize_mobile_padding %}
@@ -72,28 +119,40 @@
 {% endcapture %}
 {% assign section_style = section_style | strip %}
 
+{% capture section_content_style %}
+  {% render 'layout-flow-group-style',
+    direction: section_direction,
+    position: section_position_name,
+    alignment: section_alignment,
+    horizontal_alignment: section_justify,
+    mobile_vertical: section_vertical_on_mobile,
+    mobile_alignment: section_flow_mobile_alignment,
+    mobile_justify: section_justify_mobile,
+    gap: section_gap_desktop,
+    gap_mobile: section_gap_mobile
+  %}
+  --text-marquee-custom-align: {{ section_alignment }};
+  {% if section_mobile_alignment_enabled %}--text-marquee-custom-align-mobile: {{ section_alignment_mobile }};{% endif %}
+{% endcapture %}
+{% assign section_content_style = section_content_style | strip %}
+
 <div
-  class="text-marquee-custom color-scheme {{ color_scheme }} text-marquee-custom--{{ section_direction }} text-marquee-custom--align-{{ section_alignment }} text-marquee-custom--position-{{ section_position }}{% if section_direction == 'horizontal' and section.settings.customize_mobile_alignment %} text-marquee-custom--mobile-vertical{% endif %}"
+  class="section-spacing text-marquee-custom text-marquee-custom--{{ section_direction }}{% if section_vertical_on_mobile %} text-marquee-custom--mobile-vertical{% endif %} color-scheme {{ color_scheme }}"
   {% if section_style != blank %}style="{{ section_style }}"{% endif %}
 >
   {% if section.settings.background_image != blank %}
     <div class="text-marquee-custom__background" aria-hidden="true"></div>
   {% endif %}
   <div class="container {{ section_container_width }} text-marquee-custom__container">
-    <div class="text-marquee-custom__content">
+    <div class="text-marquee-custom__content layout-flow layout-flow--responsive layout-flow--{{ section_direction }}{% if section_vertical_on_mobile %} layout-flow--mobile-vertical{% endif %}" style="{{ section_content_style }}">
       {% content_for 'blocks' %}
     </div>
   </div>
 </div>
 
 {% stylesheet %}
-  .text-marquee-custom {
+  .section-text-marquee-custom .text-marquee-custom {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: var(--text-marquee-custom-align, flex-start);
-    justify-content: var(--text-marquee-custom-position, flex-start);
-    gap: var(--text-marquee-custom-gap, 16px);
     min-width: 0;
     width: 100%;
     overflow: hidden;
@@ -120,105 +179,88 @@
       padding-bottom: var(--text-marquee-custom-padding-bottom-mobile, calc(var(--text-marquee-custom-padding-bottom, 0px) * var(--text-marquee-custom-padding-scale)));
     }
   }
-  .text-marquee-custom .container.full-width--no-padding { padding-inline: 0; }
-  .text-marquee-custom__container { min-width: 0; }
-  .text-marquee-custom__content > .marquee .container.full-width { padding-inline: 0; }
+  .section-text-marquee-custom .text-marquee-custom .container.full-width--no-padding { width: 100%; max-width: none; padding-inline: 0; }
+  .section-text-marquee-custom .text-marquee-custom__container { min-width: 0; }
+  .section-text-marquee-custom .text-marquee-custom__content > .marquee .container.full-width { padding-inline: 0; }
 
-  .text-marquee-custom--horizontal {
-    flex-direction: row;
-  }
-
-  .text-marquee-custom--align-left {
-    --text-marquee-custom-align: flex-start;
-    --text-marquee-custom-justify: flex-start;
-  }
-
-  .text-marquee-custom--align-center {
-    --text-marquee-custom-align: center;
-    --text-marquee-custom-justify: center;
-  }
-
-  .text-marquee-custom--align-right {
-    --text-marquee-custom-align: flex-end;
-    --text-marquee-custom-justify: flex-end;
-  }
-
-  .text-marquee-custom--align-space-between {
-    --text-marquee-custom-align: flex-start;
-    --text-marquee-custom-justify: space-between;
-  }
-
-  .text-marquee-custom--horizontal {
-    justify-content: var(--text-marquee-custom-justify, flex-start);
-  }
-
-  .text-marquee-custom--position-top {
-    --text-marquee-custom-position: flex-start;
-  }
-
-  .text-marquee-custom--position-center {
-    --text-marquee-custom-position: center;
-  }
-
-  .text-marquee-custom--position-bottom {
-    --text-marquee-custom-position: flex-end;
-  }
-
-  .text-marquee-custom__content {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: inherit;
-    align-items: inherit;
-    justify-content: inherit;
-    gap: inherit;
+  .section-text-marquee-custom .text-marquee-custom__content {
+    --flex-align: var(--text-marquee-custom-align, start);
+    --flex-align-mobile: var(--text-marquee-custom-align-mobile, var(--text-marquee-custom-align, start));
     min-width: 0;
     width: 100%;
+    text-align: var(--flex-align);
   }
 
-  .text-marquee-custom__content > * {
+
+  .section-text-marquee-custom .text-marquee-custom__content > * {
     min-width: 0;
   }
 
-  .text-marquee-custom__background {
+  .section-text-marquee-custom .text-marquee-custom__background {
     position: absolute;
     inset: 0;
     pointer-events: none;
   }
 
   @media (max-width: 767.98px) {
-    .text-marquee-custom {
-      gap: var(--text-marquee-custom-gap-mobile, var(--text-marquee-custom-gap, 12px));
+    .section-text-marquee-custom .text-marquee-custom {
       padding-top: var(--text-marquee-custom-padding-top-mobile, var(--text-marquee-custom-padding-top, 0px));
       padding-bottom: var(--text-marquee-custom-padding-bottom-mobile, var(--text-marquee-custom-padding-bottom, 0px));
     }
 
-    .text-marquee-custom--horizontal.text-marquee-custom--mobile-vertical {
-      flex-direction: column;
-      align-items: var(--text-marquee-custom-align-mobile, flex-start);
-      justify-content: var(--text-marquee-custom-justify-mobile, flex-start);
+    .section-text-marquee-custom .text-marquee-custom__content {
+      --flex-align: var(--text-marquee-custom-align-mobile, var(--text-marquee-custom-align, start));
+      text-align: var(--flex-align);
     }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
-  "name": "Scrolling Text Images",
+  "name": "Text marquee (custom)",
   "class": "section-text-marquee-custom",
-  "enabled_on": { "templates": ["*"] },
+  "enabled_on": {
+    "templates": [
+      "*"
+    ]
+  },
   "blocks": [
-    { "type": "header" },
-    { "type": "eyebrow" },
-    { "type": "heading" },
-    { "type": "text" },
-    { "type": "image" },
-    { "type": "video" },
-    { "type": "button" },
-    { "type": "buttons" },
-    { "type": "icon" },
-    { "type": "divider" },
-    { "type": "spacer" },
-    { "type": "scroll-to" },
-    { "type": "marquee" }
+    {
+      "type": "header"
+    },
+    {
+      "type": "eyebrow"
+    },
+    {
+      "type": "heading"
+    },
+    {
+      "type": "text"
+    },
+    {
+      "type": "image"
+    },
+    {
+      "type": "video"
+    },
+    {
+      "type": "button"
+    },
+    {
+      "type": "buttons"
+    },
+    {
+      "type": "icon"
+    },
+    {
+      "type": "spacer"
+    },
+    {
+      "type": "scroll-to"
+    },
+    {
+      "type": "marquee"
+    }
   ],
   "settings": [
     {
@@ -230,9 +272,18 @@
       "id": "section_width",
       "label": "t:labels.section_width",
       "options": [
-        { "value": "page_width", "label": "t:options.section_width.page_width" },
-        { "value": "full_width", "label": "t:options.section_width.full_width" },
-        { "value": "full_width_no_padding", "label": "t:options.section_width.full_width_no_padding" }
+        {
+          "value": "page_width",
+          "label": "t:options.section_width.page_width"
+        },
+        {
+          "value": "full_width",
+          "label": "t:options.section_width.full_width"
+        },
+        {
+          "value": "full_width_no_padding",
+          "label": "t:options.section_width.full_width_no_padding"
+        }
       ],
       "default": "full_width"
     },
@@ -241,44 +292,59 @@
       "id": "direction",
       "label": "t:labels.direction",
       "options": [
-        { "value": "horizontal", "label": "t:options.direction.horizontal" },
-        { "value": "vertical", "label": "t:options.direction.vertical" }
+        {
+          "value": "horizontal",
+          "label": "t:options.direction.horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "t:options.direction.vertical"
+        }
       ],
       "default": "vertical"
     },
     {
       "type": "select",
-      "id": "position",
+      "id": "position_horizontal",
       "label": "t:labels.position",
       "options": [
-        { "value": "top", "label": "t:options.position.top" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "bottom", "label": "t:options.position.bottom" }
+        {
+          "value": "top",
+          "label": "t:options.position.top"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.position.bottom"
+        }
       ],
-      "default": "top",
+      "default": "center",
       "visible_if": "{{ section.settings.direction == 'horizontal' }}"
     },
     {
       "type": "select",
-      "id": "position_vertical",
-      "label": "t:labels.position",
-      "options": [
-        { "value": "left", "label": "t:options.alignment.left" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "right", "label": "t:options.alignment.right" }
-      ],
-      "default": "left",
-      "visible_if": "{{ section.settings.direction == 'vertical' }}"
-    },
-    {
-      "type": "select",
-      "id": "alignment",
+      "id": "horizontal_alignment",
       "label": "t:labels.alignment",
       "options": [
-        { "value": "left", "label": "t:options.alignment.left" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "right", "label": "t:options.alignment.right" },
-        { "value": "space-between", "label": "t:options.alignment.space_between" }
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        },
+        {
+          "value": "space-between",
+          "label": "t:options.alignment.space_between"
+        }
       ],
       "default": "left",
       "visible_if": "{{ section.settings.direction == 'horizontal' }}"
@@ -292,16 +358,45 @@
     },
     {
       "type": "select",
+      "id": "alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        }
+      ],
+      "default": "left",
+      "visible_if": "{{ section.settings.direction == 'vertical' }}"
+    },
+    {
+      "type": "select",
       "id": "alignment_mobile",
       "label": "t:labels.alignment_mobile",
       "options": [
-        { "value": "left", "label": "t:options.alignment.left" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "right", "label": "t:options.alignment.right" },
-        { "value": "space-between", "label": "t:options.alignment.space_between" }
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        }
       ],
       "default": "left",
-      "visible_if": "{{ section.settings.direction == 'horizontal' and section.settings.customize_mobile_alignment }}"
+      "visible_if": "{{ section.settings.direction == 'vertical' or section.settings.customize_mobile_alignment }}"
     },
     {
       "type": "header",
@@ -403,46 +498,138 @@
   ],
   "presets": [
     {
-      "name": "Scrolling Text Images",
+      "name": "Text marquee (custom)",
       "category": "t:general.content",
+      "settings": {
+        "section_width": "full_width_no_padding",
+        "direction": "vertical",
+        "gap_desktop": 0,
+        "gap_mobile": 0,
+        "color_scheme": "scheme-1",
+        "background_color": "#ffffff",
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "customize_mobile_padding": false,
+        "position_horizontal": "center",
+        "horizontal_alignment": "left",
+        "alignment": "left",
+        "alignment_mobile": "left"
+      },
       "blocks": [
         {
           "type": "marquee",
           "settings": {
-                "animation_direction": "backward",
-                "animation_speed": 1,
-                "gap_desktop": 48,
-                "gap_mobile": 32,
-                "padding_top": 24,
-                "padding_bottom": 24,
-                "padding_left": 0,
-                "padding_right": 0
+            "animation_direction": "backward",
+            "animation_speed": 1,
+            "gap_desktop": 32,
+            "gap_mobile": 32,
+            "padding_top": 28,
+            "padding_bottom": 28,
+            "customize_mobile_padding": true,
+            "padding_top_mobile": 24,
+            "padding_bottom_mobile": 24,
+            "show_top_divider": true,
+            "enable_parallax": true,
+            "alignment": "center",
+            "width": "fill",
+            "color_type": "inherit"
           },
           "blocks": [
-                {
-                  "type": "marquee-item",
-                  "settings": { "direction": "horizontal", "position": "center" },
-                  "blocks": [
-                    { "type": "heading", "settings": { "text": "<p>Diamond statement</p>", "heading_size": "md", "html_tag": "div" } },
-                    { "type": "image", "settings": { "image_ratio_desktop": "custom", "image_ratio_custom_width_desktop": 2, "image_ratio_custom_height_desktop": 1, "width_desktop": "fill", "corner_radius": "square" } }
-                  ]
-                },
-                {
-                  "type": "marquee-item",
-                  "settings": { "direction": "horizontal", "position": "center" },
-                  "blocks": [
-                    { "type": "heading", "settings": { "text": "<p>Birthstone</p>", "heading_size": "md", "html_tag": "div" } },
-                    { "type": "image", "settings": { "image_ratio_desktop": "custom", "image_ratio_custom_width_desktop": 2, "image_ratio_custom_height_desktop": 1, "width_desktop": "fill", "corner_radius": "square" } }
-                  ]
-                },
-                {
-                  "type": "marquee-item",
-                  "settings": { "direction": "horizontal", "position": "center" },
-                  "blocks": [
-                    { "type": "heading", "settings": { "text": "<p>Diamond statement</p>", "heading_size": "md", "html_tag": "div" } },
-                    { "type": "image", "settings": { "image_ratio_desktop": "custom", "image_ratio_custom_width_desktop": 2, "image_ratio_custom_height_desktop": 1, "width_desktop": "fill", "corner_radius": "square" } }
-                  ]
-                }
+            {
+              "type": "_marquee-heading",
+              "settings": {
+                "text": "SUSTAINABLE MANUFACTURING",
+                "heading_size": "md",
+                "color_role": "heading",
+                "opacity": 100
+              }
+            },
+            {
+              "type": "_marquee-icon",
+              "settings": {
+                "source": "custom",
+                "icon": "star",
+                "custom_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" focusable=\"false\"><svg x=\"1.9956\" y=\"0.44035\" preserveAspectRatio=\"none\" overflow=\"visible\" style=\"display: block; stroke: none;\" width=\"20.6888\" height=\"22.1593\" viewBox=\"0 0 20.6888 22.1593\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g id=\"Group 1\">\n<path id=\"Vector\" d=\"M20.5885 10.8074C20.5047 10.6398 20.2953 10.5561 20.1277 10.5142C19.1643 10.5142 10.8702 10.1791 10.8702 0.544577C10.8702 0.251354 10.6189 1.94609e-05 10.3257 1.94609e-05C10.0324 1.94609e-05 9.7811 0.251354 9.7811 0.544577C9.7811 10.1791 1.48706 10.5142 0.565502 10.5142C0.439835 10.5142 0.314168 10.5561 0.23039 10.6398C0.146612 10.6817 0.104723 10.7655 0.0628336 10.8074C-0.0209445 10.975 -0.0209445 11.1844 0.0628336 11.352C0.146612 11.5195 0.356057 11.6452 0.565502 11.6452C0.565502 11.6452 0.565503 11.6452 0.607392 11.6452C1.57084 11.6452 9.82299 11.9803 9.82299 21.6148C9.82299 21.908 10.0743 22.1593 10.3676 22.1593C10.6608 22.1593 10.9121 21.908 10.9121 21.6148C10.9121 12.0222 19.1643 11.6452 20.1277 11.6452C20.3372 11.6452 20.5047 11.5195 20.6304 11.352C20.7142 11.1844 20.7142 10.975 20.5885 10.8074ZM10.3257 17.5097C9.11088 13.5302 6.13675 11.8127 3.79096 11.0587C6.13675 10.3047 9.11088 8.58728 10.3257 4.60782C11.5404 8.58728 14.5146 10.3047 16.8604 11.0587C14.5146 11.8127 11.5404 13.5302 10.3257 17.5097Z\" fill=\"#7A5025\"/>\n</g>\n</svg></svg>",
+                "icon_width": 24,
+                "icon_padding": 0
+              }
+            },
+            {
+              "type": "_marquee-heading",
+              "settings": {
+                "text": "ALWAYS 14K SOLID GOLD",
+                "heading_size": "md",
+                "color_role": "heading",
+                "opacity": 100
+              }
+            },
+            {
+              "type": "_marquee-icon",
+              "settings": {
+                "source": "custom",
+                "icon": "star",
+                "custom_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" focusable=\"false\"><svg x=\"1.9956\" y=\"0.44035\" preserveAspectRatio=\"none\" overflow=\"visible\" style=\"display: block; stroke: none;\" width=\"20.6888\" height=\"22.1593\" viewBox=\"0 0 20.6888 22.1593\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g id=\"Group 1\">\n<path id=\"Vector\" d=\"M20.5885 10.8074C20.5047 10.6398 20.2953 10.5561 20.1277 10.5142C19.1643 10.5142 10.8702 10.1791 10.8702 0.544577C10.8702 0.251354 10.6189 1.94609e-05 10.3257 1.94609e-05C10.0324 1.94609e-05 9.7811 0.251354 9.7811 0.544577C9.7811 10.1791 1.48706 10.5142 0.565502 10.5142C0.439835 10.5142 0.314168 10.5561 0.23039 10.6398C0.146612 10.6817 0.104723 10.7655 0.0628336 10.8074C-0.0209445 10.975 -0.0209445 11.1844 0.0628336 11.352C0.146612 11.5195 0.356057 11.6452 0.565502 11.6452C0.565502 11.6452 0.565503 11.6452 0.607392 11.6452C1.57084 11.6452 9.82299 11.9803 9.82299 21.6148C9.82299 21.908 10.0743 22.1593 10.3676 22.1593C10.6608 22.1593 10.9121 21.908 10.9121 21.6148C10.9121 12.0222 19.1643 11.6452 20.1277 11.6452C20.3372 11.6452 20.5047 11.5195 20.6304 11.352C20.7142 11.1844 20.7142 10.975 20.5885 10.8074ZM10.3257 17.5097C9.11088 13.5302 6.13675 11.8127 3.79096 11.0587C6.13675 10.3047 9.11088 8.58728 10.3257 4.60782C11.5404 8.58728 14.5146 10.3047 16.8604 11.0587C14.5146 11.8127 11.5404 13.5302 10.3257 17.5097Z\" fill=\"#7A5025\"/>\n</g>\n</svg></svg>",
+                "icon_width": 24,
+                "icon_padding": 0
+              }
+            },
+            {
+              "type": "_marquee-heading",
+              "settings": {
+                "text": "RECYCLED GOLD AND SILVER",
+                "heading_size": "md",
+                "color_role": "heading",
+                "opacity": 100
+              }
+            },
+            {
+              "type": "_marquee-icon",
+              "settings": {
+                "source": "custom",
+                "icon": "star",
+                "custom_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" focusable=\"false\"><svg x=\"1.9956\" y=\"0.44035\" preserveAspectRatio=\"none\" overflow=\"visible\" style=\"display: block; stroke: none;\" width=\"20.6888\" height=\"22.1593\" viewBox=\"0 0 20.6888 22.1593\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g id=\"Group 1\">\n<path id=\"Vector\" d=\"M20.5885 10.8074C20.5047 10.6398 20.2953 10.5561 20.1277 10.5142C19.1643 10.5142 10.8702 10.1791 10.8702 0.544577C10.8702 0.251354 10.6189 1.94609e-05 10.3257 1.94609e-05C10.0324 1.94609e-05 9.7811 0.251354 9.7811 0.544577C9.7811 10.1791 1.48706 10.5142 0.565502 10.5142C0.439835 10.5142 0.314168 10.5561 0.23039 10.6398C0.146612 10.6817 0.104723 10.7655 0.0628336 10.8074C-0.0209445 10.975 -0.0209445 11.1844 0.0628336 11.352C0.146612 11.5195 0.356057 11.6452 0.565502 11.6452C0.565502 11.6452 0.565503 11.6452 0.607392 11.6452C1.57084 11.6452 9.82299 11.9803 9.82299 21.6148C9.82299 21.908 10.0743 22.1593 10.3676 22.1593C10.6608 22.1593 10.9121 21.908 10.9121 21.6148C10.9121 12.0222 19.1643 11.6452 20.1277 11.6452C20.3372 11.6452 20.5047 11.5195 20.6304 11.352C20.7142 11.1844 20.7142 10.975 20.5885 10.8074ZM10.3257 17.5097C9.11088 13.5302 6.13675 11.8127 3.79096 11.0587C6.13675 10.3047 9.11088 8.58728 10.3257 4.60782C11.5404 8.58728 14.5146 10.3047 16.8604 11.0587C14.5146 11.8127 11.5404 13.5302 10.3257 17.5097Z\" fill=\"#7A5025\"/>\n</g>\n</svg></svg>",
+                "icon_width": 24,
+                "icon_padding": 0
+              }
+            },
+            {
+              "type": "_marquee-heading",
+              "settings": {
+                "text": "MADE WITH LOVE",
+                "heading_size": "md",
+                "color_role": "heading",
+                "opacity": 100
+              }
+            },
+            {
+              "type": "_marquee-icon",
+              "settings": {
+                "source": "custom",
+                "icon": "star",
+                "custom_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" focusable=\"false\"><svg x=\"1.9956\" y=\"0.44035\" preserveAspectRatio=\"none\" overflow=\"visible\" style=\"display: block; stroke: none;\" width=\"20.6888\" height=\"22.1593\" viewBox=\"0 0 20.6888 22.1593\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g id=\"Group 1\">\n<path id=\"Vector\" d=\"M20.5885 10.8074C20.5047 10.6398 20.2953 10.5561 20.1277 10.5142C19.1643 10.5142 10.8702 10.1791 10.8702 0.544577C10.8702 0.251354 10.6189 1.94609e-05 10.3257 1.94609e-05C10.0324 1.94609e-05 9.7811 0.251354 9.7811 0.544577C9.7811 10.1791 1.48706 10.5142 0.565502 10.5142C0.439835 10.5142 0.314168 10.5561 0.23039 10.6398C0.146612 10.6817 0.104723 10.7655 0.0628336 10.8074C-0.0209445 10.975 -0.0209445 11.1844 0.0628336 11.352C0.146612 11.5195 0.356057 11.6452 0.565502 11.6452C0.565502 11.6452 0.565503 11.6452 0.607392 11.6452C1.57084 11.6452 9.82299 11.9803 9.82299 21.6148C9.82299 21.908 10.0743 22.1593 10.3676 22.1593C10.6608 22.1593 10.9121 21.908 10.9121 21.6148C10.9121 12.0222 19.1643 11.6452 20.1277 11.6452C20.3372 11.6452 20.5047 11.5195 20.6304 11.352C20.7142 11.1844 20.7142 10.975 20.5885 10.8074ZM10.3257 17.5097C9.11088 13.5302 6.13675 11.8127 3.79096 11.0587C6.13675 10.3047 9.11088 8.58728 10.3257 4.60782C11.5404 8.58728 14.5146 10.3047 16.8604 11.0587C14.5146 11.8127 11.5404 13.5302 10.3257 17.5097Z\" fill=\"#7A5025\"/>\n</g>\n</svg></svg>",
+                "icon_width": 24,
+                "icon_padding": 0
+              }
+            },
+            {
+              "type": "_marquee-heading",
+              "settings": {
+                "text": "TARNISH-FREE",
+                "heading_size": "md",
+                "color_role": "heading",
+                "opacity": 100
+              }
+            },
+            {
+              "type": "_marquee-icon",
+              "settings": {
+                "source": "custom",
+                "icon": "star",
+                "custom_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" focusable=\"false\"><svg x=\"1.9956\" y=\"0.44035\" preserveAspectRatio=\"none\" overflow=\"visible\" style=\"display: block; stroke: none;\" width=\"20.6888\" height=\"22.1593\" viewBox=\"0 0 20.6888 22.1593\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g id=\"Group 1\">\n<path id=\"Vector\" d=\"M20.5885 10.8074C20.5047 10.6398 20.2953 10.5561 20.1277 10.5142C19.1643 10.5142 10.8702 10.1791 10.8702 0.544577C10.8702 0.251354 10.6189 1.94609e-05 10.3257 1.94609e-05C10.0324 1.94609e-05 9.7811 0.251354 9.7811 0.544577C9.7811 10.1791 1.48706 10.5142 0.565502 10.5142C0.439835 10.5142 0.314168 10.5561 0.23039 10.6398C0.146612 10.6817 0.104723 10.7655 0.0628336 10.8074C-0.0209445 10.975 -0.0209445 11.1844 0.0628336 11.352C0.146612 11.5195 0.356057 11.6452 0.565502 11.6452C0.565502 11.6452 0.565503 11.6452 0.607392 11.6452C1.57084 11.6452 9.82299 11.9803 9.82299 21.6148C9.82299 21.908 10.0743 22.1593 10.3676 22.1593C10.6608 22.1593 10.9121 21.908 10.9121 21.6148C10.9121 12.0222 19.1643 11.6452 20.1277 11.6452C20.3372 11.6452 20.5047 11.5195 20.6304 11.352C20.7142 11.1844 20.7142 10.975 20.5885 10.8074ZM10.3257 17.5097C9.11088 13.5302 6.13675 11.8127 3.79096 11.0587C6.13675 10.3047 9.11088 8.58728 10.3257 4.60782C11.5404 8.58728 14.5146 10.3047 16.8604 11.0587C14.5146 11.8127 11.5404 13.5302 10.3257 17.5097Z\" fill=\"#7A5025\"/>\n</g>\n</svg></svg>",
+                "icon_width": 24,
+                "icon_padding": 0
+              }
+            }
           ]
         }
       ]

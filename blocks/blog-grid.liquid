@@ -53,41 +53,48 @@
   endif
 %}
 
-<div
-  class="{{ blog_grid_class }}"
-  style="--blog-grid-gap-desktop: {{ blog_grid_gap_desktop }}px; --blog-grid-gap-mobile: {{ blog_grid_gap_mobile }}px; --blog-grid-columns-horizontal: {{ blog_grid_horizontal_columns }}; --blog-grid-columns-desktop: {{ blog_grid_columns_desktop }}; --blog-grid-columns-mobile: {{ blog_grid_columns_mobile }};"
-  {{ block.shopify_attributes }}
->
+{% assign blog_grid_first_card_content = blank %}
+{% assign blog_grid_secondary_content = blank %}
+{% capture blog_grid_content %}
   {% if blog_grid_source != blank and blog_grid_source.articles != blank %}
     {% assign blog_grid_first_article = blog_grid_source.articles.first %}
     <div class="{{ blog_grid_layout_class }}">
-      <div class="blog-grid__first-card">
-        {% content_for 'block', type: 'first-card', id: 'first-card', closest.article: blog_grid_first_article, blog: blog_grid_source %}
-      </div>
+      {% capture blog_grid_first_card_content %}{% content_for 'block', type: 'first-card', id: 'first-card', closest.article: blog_grid_first_article, blog: blog_grid_source %}{% endcapture %}
+      {% render 'section-content-slot', content: blog_grid_first_card_content, class: 'blog-grid__first-card' %}
       {% if blog_grid_source.articles.size > 1 %}
-        <div class="blog-grid__items">
+        {% capture blog_grid_secondary_content %}
           {% for blog_grid_article in blog_grid_source.articles offset: 1 limit: blog_grid_secondary_limit %}
-            <div class="blog-grid__item">
-              {% content_for 'block', type: 'blog-card', id: 'blog-card', closest.article: blog_grid_article, blog: blog_grid_source, placeholder: false %}
-            </div>
+            {% capture blog_grid_card_content %}{% content_for 'block', type: 'blog-card', id: 'blog-card', closest.article: blog_grid_article, blog: blog_grid_source, placeholder: false %}{% endcapture %}
+            {% render 'section-content-slot', content: blog_grid_card_content, class: 'blog-grid__item' %}
           {% endfor %}
-        </div>
+        {% endcapture %}
+        {% render 'section-content-slot', content: blog_grid_secondary_content, class: 'blog-grid__items' %}
       {% endif %}
     </div>
   {% elsif request.design_mode %}
     <div class="{{ blog_grid_layout_class }}">
-      <div class="blog-grid__first-card">
-        {% content_for 'block', type: 'first-card', id: 'first-card', closest.article: blog_grid_placeholder_article, blog: blog_grid_source, placeholder: true %}
-      </div>
-      <div class="blog-grid__items">
+      {% capture blog_grid_first_card_content %}{% content_for 'block', type: 'first-card', id: 'first-card', closest.article: blog_grid_placeholder_article, blog: blog_grid_source, placeholder: true %}{% endcapture %}
+      {% render 'section-content-slot', content: blog_grid_first_card_content, class: 'blog-grid__first-card' %}
+      {% capture blog_grid_secondary_content %}
         {% for blog_grid_placeholder in (1..blog_grid_secondary_limit) %}
-          <div class="blog-grid__item">
-            {% content_for 'block', type: 'blog-card', id: 'blog-card', closest.article: blog_grid_placeholder_article, blog: blog_grid_source, placeholder: true %}
-          </div>
+          {% capture blog_grid_card_content %}{% content_for 'block', type: 'blog-card', id: 'blog-card', closest.article: blog_grid_placeholder_article, blog: blog_grid_source, placeholder: true %}{% endcapture %}
+          {% render 'section-content-slot', content: blog_grid_card_content, class: 'blog-grid__item' %}
         {% endfor %}
-      </div>
+      {% endcapture %}
+      {% render 'section-content-slot', content: blog_grid_secondary_content, class: 'blog-grid__items' %}
     </div>
   {% endif %}
+{% endcapture %}
+{% assign blog_grid_first_card_content = blog_grid_first_card_content | strip %}
+{% assign blog_grid_secondary_content = blog_grid_secondary_content | strip %}
+
+<div
+  class="{{ blog_grid_class }}"
+  style="--blog-grid-gap-desktop: {{ blog_grid_gap_desktop }}px; --blog-grid-gap-mobile: {{ blog_grid_gap_mobile }}px; --blog-grid-columns-horizontal: {{ blog_grid_horizontal_columns }}; --blog-grid-columns-desktop: {{ blog_grid_columns_desktop }}; --blog-grid-columns-mobile: {{ blog_grid_columns_mobile }};"
+  {% if blog_grid_first_card_content == blank and blog_grid_secondary_content == blank %}data-content-empty{% endif %}
+  {{ block.shopify_attributes }}
+>
+  {{ blog_grid_content }}
 </div>
 
 {% stylesheet %}
@@ -104,6 +111,8 @@
     min-width: 0;
   }
 
+  .blog-grid__layout:not(:has(> .blog-grid__first-card)),
+  .blog-grid__layout:not(:has(> .blog-grid__items)),
   .blog-grid__layout--single {
     grid-template-columns: minmax(0, 1fr);
   }

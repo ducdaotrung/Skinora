@@ -1,0 +1,31 @@
+{% doc %} Publication logo and its testimonial content. {% enddoc %}
+<div class="press-testimonial-slide swiper-slide" {{ block.shopify_attributes }}>
+  <div data-press-quote hidden><h3 class="heading-text heading-md">{{ block.settings.quote }}</h3></div>
+  <button class="press-testimonial-slide__logo" type="button" data-press-logo aria-pressed="false" aria-label="{{ block.settings.name | escape }}">
+    {% if block.settings.logo != blank %}
+      {{ block.settings.logo | image_url: width: 500 | image_tag: class: 'press-testimonial-slide__image', loading: 'lazy', alt: block.settings.name }}
+    {% else %}
+      <span class="press-testimonial-slide__name">{{ block.settings.name | escape }}</span>
+    {% endif %}
+  </button>
+</div>
+{% stylesheet %}
+.press-testimonial-slide { height:50px; align-self:center; display:flex; align-items:center; justify-content:center; opacity:.3; transition:height var(--motion-duration-standard),opacity var(--motion-duration-standard); }
+.press-testimonial-slide.swiper-slide-active { height:80px; opacity:1; }
+.press-testimonial-slide__logo { display:flex; width:100%; height:100%; padding:0; align-items:center; justify-content:center; border:0; background:transparent; cursor:pointer; }
+.press-testimonial-slide__image { display:block; width:auto; max-width:100%; max-height:100%; object-fit:contain; }
+.press-testimonial-slide__name { font:inherit; white-space:nowrap; }
+@media(max-width:767.98px) { .press-testimonial-slide { height:40px; } .press-testimonial-slide.swiper-slide-active { height:65px; } }
+{% endstylesheet %}
+{% schema %}
+{
+  "name": "Logo testimonial",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "name", "label": "Publication name", "default": "Publication" },
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "richtext", "id": "quote", "label": "Testimonial", "default": "<p>Share a testimonial from your featured publication.</p>" }
+  ],
+  "presets": [{ "name": "Logo testimonial", "category": "Trust & social proof" }]
+}
+{% endschema %}

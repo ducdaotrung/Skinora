@@ -7,11 +7,56 @@
  * made to this file may be overwritten.
  * ------------------------------------------------------------
  */
- {
+{
   "sections": {
     "main": {
       "type": "404",
-      "settings": {}
+      "blocks": {
+        "heading": {
+          "type": "heading",
+          "static": true,
+          "settings": {
+            "text": "<p>Page not found</p>",
+            "heading_size": "xl",
+            "html_tag": "h1",
+            "width": "fit"
+          }
+        },
+        "text": {
+          "type": "text",
+          "static": true,
+          "settings": {
+            "text": "<p>The page you’re looking for doesn’t exist or has been moved. Let’s get you back on track.</p>",
+            "text_size": "lg",
+            "width": "custom",
+            "max_width": 500,
+            "padding_bottom": 20
+          }
+        },
+        "button": {
+          "type": "button",
+          "static": true,
+          "settings": {
+            "button_label": "Continue shopping",
+            "button_link": "shopify://collections/all",
+            "button_style": "primary",
+            "show_icon": false,
+            "width": "fit",
+            "width_mobile": "fit"
+          }
+        }
+      },
+      "settings": {
+        "section_width": "page_width",
+        "height": "auto",
+        "alignment": "center",
+        "gap_desktop": 12,
+        "gap_mobile": 12,
+        "color_scheme": "scheme-1",
+        "background_media": "none",
+        "padding_top": 120,
+        "padding_bottom": 120
+      }
     }
   },
   "order": [

@@ -48,7 +48,7 @@
 {% assign timeline_style = timeline_style | strip %}
 
 <div
-  class="section-spacing timeline-section color-scheme section-color-scope {{ timeline_scheme }}"
+  class="section-content-scope section-spacing timeline-section color-scheme section-color-scope {{ timeline_scheme }}"
   {% if timeline_style != blank %}style="{{ timeline_style }}"{% endif %}
 >
   <div class="container {{ timeline_container_width }} timeline-section__container">
@@ -57,12 +57,10 @@
       data-desktop-alignment="{{ timeline_desktop_alignment }}"
       data-mobile-alignment="{{ timeline_mobile_alignment }}"
     >
-      <div class="timeline-section__header">
-        {% content_for 'block', type: 'header', id: 'header' %}
-      </div>
-      <div class="timeline-section__list">
-        {% content_for 'block', type: 'timeline-list', id: 'timeline-list' %}
-      </div>
+      {% capture timeline_header_content %}{% content_for 'block', type: 'header', id: 'header' %}{% endcapture %}
+      {% render 'section-content-slot', content: timeline_header_content, class: 'timeline-section__header' %}
+      {% capture timeline_list_content %}{% content_for 'block', type: 'timeline-list', id: 'timeline-list' %}{% endcapture %}
+      {% render 'section-content-slot', content: timeline_list_content, class: 'timeline-section__list' %}
     </div>
   </div>
 </div>
@@ -371,7 +369,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Main Heading Text Placeholder</p>",
-                "heading_size": "lg",
+                "heading_size": "display",
                 "html_tag": "h2"
               }
             }
@@ -441,7 +439,7 @@
                       "type": "heading",
                       "settings": {
                         "text": "<p>The beginning</p>",
-                        "heading_size": "lg",
+                        "heading_size": "display",
                         "html_tag": "h3"
                       }
                     },
@@ -524,7 +522,7 @@
                       "type": "heading",
                       "settings": {
                         "text": "<p>Our first milestone</p>",
-                        "heading_size": "lg",
+                        "heading_size": "display",
                         "html_tag": "h3"
                       }
                     },
@@ -607,7 +605,7 @@
                       "type": "heading",
                       "settings": {
                         "text": "<p>Growing together</p>",
-                        "heading_size": "lg",
+                        "heading_size": "display",
                         "html_tag": "h3"
                       }
                     },
@@ -690,7 +688,7 @@
                       "type": "heading",
                       "settings": {
                         "text": "<p>A new chapter</p>",
-                        "heading_size": "lg",
+                        "heading_size": "display",
                         "html_tag": "h3"
                       }
                     },
@@ -773,7 +771,7 @@
                       "type": "heading",
                       "settings": {
                         "text": "<p>The journey continues</p>",
-                        "heading_size": "lg",
+                        "heading_size": "display",
                         "html_tag": "h3"
                       }
                     },

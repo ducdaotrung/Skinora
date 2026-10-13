@@ -27,6 +27,7 @@
     z-index: 0;
     overflow: hidden;
     aspect-ratio: var(--collection-card-ratio, auto);
+    border-radius: var(--collection-card-media-radius, 0px);
   }
 
   .collection-card-kernel__media img,

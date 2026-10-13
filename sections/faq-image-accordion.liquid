@@ -122,17 +122,17 @@
     "settings": { "section_width": "page_width", "layout": "horizontal", "alignment": "left", "horizontal_alignment": "left", "vertical_on_mobile": true, "alignment_mobile": "left", "gap_desktop": 48, "gap_mobile": 32, "color_scheme": "scheme-1", "padding_top": 48, "padding_bottom": 48 },
     "blocks": [
       { "type": "group", "settings": { "direction": "vertical", "alignment": "left", "width": "fill", "gap_desktop": 16, "gap_mobile": 12 }, "blocks": [
-        { "type": "heading", "settings": { "text": "<p>FAQs</p>", "heading_size": "lg", "html_tag": "h2" } },
+        { "type": "heading", "settings": { "text": "<p>FAQs</p>", "heading_size": "display", "html_tag": "h2" } },
         { "type": "text", "settings": { "text": "<p>Find answers to common questions about our products, shipping, returns, payments, and store policies.</p>" } }
       ] },
       { "type": "group", "settings": { "direction": "vertical", "alignment": "center", "width": "fill", "gap_desktop": 0, "gap_mobile": 0 }, "blocks": [
         { "type": "image", "settings": { "image_ratio_desktop": "auto", "image_ratio_mobile": "auto", "width_desktop": "fill", "width_mobile": "fill", "limit_width_desktop": false, "limit_width_mobile": false, "corner_radius": "square", "customize_mobile_padding": false } }
       ] },
-      { "type": "faq_accordion", "settings": { "style": "simple", "icon": "chevron", "dividers": true, "question_font_size": "xs", "answer_font_size": "md", "customize_mobile_font_size": false, "question_font_size_mobile": "xs", "answer_font_size_mobile": "md", "gap_desktop": 16, "gap_mobile": 16, "width": "fill", "limit_width": false, "padding": "medium" }, "blocks": [
-        { "type": "faq_item", "settings": { "question": "What is your return policy?", "show_question_icon": true, "question_icon": "document-text" } },
-        { "type": "faq_item", "settings": { "question": "How long does shipping take?", "show_question_icon": true, "question_icon": "truck" } },
-        { "type": "faq_item", "settings": { "question": "Which payment methods do you accept?", "show_question_icon": true, "question_icon": "receipt-percent" } },
-        { "type": "faq_item", "settings": { "question": "How can I contact support?", "show_question_icon": true, "question_icon": "share" } }
+      { "type": "faq_accordion", "settings": { "style": "simple", "icon": "chevron", "dividers": true, "question_font_size": "xs", "customize_mobile_font_size": false, "question_font_size_mobile": "xs", "gap_desktop": 16, "gap_mobile": 16, "width": "fill", "limit_width": false, "padding": "medium" }, "blocks": [
+        {"type": "faq_item", "settings": {"question": "What is your return policy?", "show_question_icon": true, "question_icon": "document-text"}, "blocks": [{"type": "text", "settings": {"text": "<p>Use this space to provide detailed answers to common customer questions about products, shipping, returns, payments, or store policies.</p>", "text_size": "md", "width": "fill"}}]},
+        {"type": "faq_item", "settings": {"question": "How long does shipping take?", "show_question_icon": true, "question_icon": "truck"}, "blocks": [{"type": "text", "settings": {"text": "<p>Use this space to provide detailed answers to common customer questions about products, shipping, returns, payments, or store policies.</p>", "text_size": "md", "width": "fill"}}]},
+        {"type": "faq_item", "settings": {"question": "Which payment methods do you accept?", "show_question_icon": true, "question_icon": "receipt-percent"}, "blocks": [{"type": "text", "settings": {"text": "<p>Use this space to provide detailed answers to common customer questions about products, shipping, returns, payments, or store policies.</p>", "text_size": "md", "width": "fill"}}]},
+        {"type": "faq_item", "settings": {"question": "How can I contact support?", "show_question_icon": true, "question_icon": "share"}, "blocks": [{"type": "text", "settings": {"text": "<p>Use this space to provide detailed answers to common customer questions about products, shipping, returns, payments, or store policies.</p>", "text_size": "md", "width": "fill"}}]}
       ] }
     ]
   }]

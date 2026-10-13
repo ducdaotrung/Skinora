@@ -2,6 +2,9 @@
   Positions one composable Item in the owning Parallax section.
   Child blocks own their content, size and typography; this wrapper owns its surface.
 {% enddoc %}
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: block.settings, color_id: 'overlay_color', enabled_id: 'show_overlay', style_id: 'overlay_style' %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
+
 {% liquid
   assign position = block.settings.position | default: 'left'
   assign alignment = 'start'
@@ -30,8 +33,7 @@
     --parallax-item-padding-left-mobile: {{ block.settings.padding_left_mobile }}px;
   {% endif %}
   {% if block.settings.show_overlay %}
-    --parallax-item-overlay: {{ block.settings.overlay_color }};
-    --parallax-item-overlay-opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+    --parallax-item-overlay: {{ effective_overlay | default: 'transparent' | escape }};
   {% endif %}
 {% endcapture %}
 <div class="parallax-item parallax-item--{{ position }} parallax-item--shadow-{{ block.settings.shadow }} parallax-item--{{ block.settings.appearance_type }}{% if block.settings.appearance_type == 'scheme' %} color-scheme section-color-scope {{ scheme }}{% endif %}"
@@ -270,26 +272,40 @@
     {
       "type": "checkbox",
       "id": "show_overlay",
-      "label": "Show overlay",
+      "label": "t:labels.show_overlay",
       "default": false
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ block.settings.show_overlay }}"
     },
     {
       "type": "color",
       "id": "overlay_color",
-      "label": "Overlay color",
-      "default": "#000000",
-      "visible_if": "{{ block.settings.show_overlay }}"
+      "label": "t:labels.overlay_color",
+      "default": "#0000004C",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'solid' }}",
+      "alpha": true
     },
     {
-      "type": "range",
-      "id": "overlay_opacity",
-      "label": "Overlay opacity",
-      "min": 0,
-      "max": 100,
-      "step": 1,
-      "unit": "%",
-      "default": 30,
-      "visible_if": "{{ block.settings.show_overlay }}"
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'gradient' }}"
     },
     {
       "type": "header",

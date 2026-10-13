@@ -249,6 +249,7 @@
 
 .product-inventory {
   display: block;
+  width: 100%;
   min-width: 0;
   padding-block-start: var(--product-inventory-padding-top, 0px);
   padding-inline-end: var(--product-inventory-padding-right, 0px);
@@ -261,36 +262,134 @@
 }
 
 .product-inventory__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--body-color);
+  display: block;
+  color: var(--heading-color);
+  font-family: var(--product-inventory-font-family, var(--font-body-family));
+  font-style: var(--product-inventory-font-style, var(--font-body-style));
+  font-weight: var(--product-inventory-font-weight, var(--font-body-weight));
+  font-size: var(--product-inventory-font-size, var(--font-body-md));
+  line-height: 1.5;
+  letter-spacing: var(--product-inventory-tracking, 0);
+  overflow-wrap: anywhere;
 }
 
-.product-inventory__status::before {
-  content: '';
-  flex: 0 0 auto;
-  width: 0.55rem;
-  height: 0.55rem;
+/* The in-stock message and ring share the merchant-selected color. */
+.product-inventory__status--in_stock {
+  color: var(--product-inventory-in-stock-color, #15803d);
+}
+
+.product-inventory__status--with-ring {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.product-inventory__copy {
+  min-width: 0;
+}
+
+.product-inventory__ring {
+  position: relative;
+  display: block;
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  margin: 4px;
   border-radius: 50%;
+  color: inherit;
   background: currentColor;
 }
 
-.product-inventory__status--in_stock {
-  color: var(--accent-color);
+.product-inventory__status--low_stock .product-inventory__ring {
+  color: var(--product-inventory-low-ring-color, #cf2828);
 }
 
+.product-inventory__ring::before,
+.product-inventory__ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: 1px solid currentColor;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(1);
+  animation: inventory-ring-ripple 2s ease-out infinite;
+}
+
+.product-inventory__ring::after {
+  animation-delay: -1s;
+}
+
+@keyframes inventory-ring-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  80%,
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-inventory__ring::before,
+  .product-inventory__ring::after {
+    animation: none;
+  }
+}
+
+.product-inventory--font-heading {
+  --product-inventory-font-family: var(--font-heading-family);
+  --product-inventory-font-style: var(--font-heading-style);
+  --product-inventory-font-weight: var(--font-heading-weight);
+}
+
+.product-inventory--font-accent {
+  --product-inventory-font-family: var(--font-accent-family);
+  --product-inventory-font-style: var(--font-accent-style);
+  --product-inventory-font-weight: var(--font-accent-weight);
+}
+
+.product-inventory--size-xs { --product-inventory-font-size: var(--font-body-xs); }
+.product-inventory--size-sm { --product-inventory-font-size: var(--font-body-sm); }
+.product-inventory--size-lg { --product-inventory-font-size: var(--font-body-lg); }
+.product-inventory--size-xl { --product-inventory-font-size: var(--font-body-xl); }
+.product-inventory--size-xxl { --product-inventory-font-size: var(--font-body-xxl); }
+
+.product-inventory--tracking-tighter { --product-inventory-tracking: -0.04em; }
+.product-inventory--tracking-tight { --product-inventory-tracking: -0.02em; }
+.product-inventory--tracking-relaxed { --product-inventory-tracking: 0.02em; }
+.product-inventory--tracking-loose { --product-inventory-tracking: 0.04em; }
+.product-inventory--tracking-extra_loose { --product-inventory-tracking: 0.08em; }
+.product-inventory--tracking-ultra_loose { --product-inventory-tracking: 0.12em; }
+.product-inventory--tracking-mega_loose { --product-inventory-tracking: 0.16em; }
+
+.product-inventory__count,
 .product-inventory__status--low_stock {
-  color: color-mix(in srgb, var(--accent-color) 72%, var(--body-color));
+  color: var(--product-inventory-low-color, #cf2828);
 }
 
-.product-inventory__status--backorder {
-  color: var(--body-color);
+.product-inventory__status--low_stock:has(.product-inventory__count) {
+  color: var(--heading-color);
 }
 
-.product-inventory__status--sold_out,
-.product-inventory__status--unavailable {
-  color: color-mix(in srgb, var(--body-color) 72%, transparent);
+.product-inventory__bar {
+  height: 3px;
+  margin-block-start: var(--product-inventory-gap, 16px);
+  overflow: hidden;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--product-inventory-track-color, #e6e6e6);
+}
+
+.product-inventory__bar-fill {
+  display: block;
+  width: min(113px, 100%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--product-inventory-bar-color, #cf2828);
 }
 
 .product-buy-buttons {
@@ -327,6 +426,14 @@
   width: 100%;
   max-width: var(--product-buy-quantity-max-width);
   min-width: 0;
+}
+
+.product-buy-buttons__quantity-label {
+  font-family: var(--quantity-label-font-family, var(--font-body-family));
+  font-style: var(--quantity-label-font-style, var(--font-body-style));
+  font-weight: var(--quantity-label-font-weight, 500);
+  font-size: var(--quantity-label-font-size, var(--font-body-sm));
+  letter-spacing: var(--quantity-label-letter-spacing, normal);
 }
 
 .product-buy-buttons__quantity--custom .product-buy-buttons__quantity-control {

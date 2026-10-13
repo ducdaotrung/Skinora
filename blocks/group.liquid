@@ -12,6 +12,9 @@
   @example
   {% content_for 'block', type: 'group', id: 'group' %}
 {% enddoc %}
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: block.settings, color_id: 'overlay_color', enabled_id: 'show_overlay', style_id: 'overlay_style', as_image: true %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
+
 
 {% liquid
   assign group_direction = block.settings.direction | default: block.settings.layout_direction | default: 'vertical'
@@ -289,7 +292,7 @@
     {% if block.settings.background_color != blank %}--group-background-color: {{ block.settings.background_color | escape }};{% endif %}
     {% if block.settings.background_image != blank %}--group-background-image: url('{{ block.settings.background_image | image_url: width: 2400 }}');{% endif %}
   {% endif %}
-  {% if block.settings.overlay_color != blank %}--group-overlay-color: rgb({{ block.settings.overlay_color.rgba }});{% endif %}
+  --group-overlay-background: {{ effective_overlay | default: 'linear-gradient(transparent, transparent)' | escape }};
   {% if group_backdrop_blur > 0 %}--backdrop-blur: {{ group_backdrop_blur }}px;{% endif %}
 {% endcapture %}
 {% assign group_style = group_style | strip %}
@@ -333,7 +336,7 @@
     border-radius: var(--group-radius, var(--radius-square));
     background-color: var(--group-background-color, var(--background-color));
     background-image:
-      linear-gradient(var(--group-overlay-color), var(--group-overlay-color)),
+      var(--group-overlay-background, linear-gradient(transparent, transparent)),
       var(--group-background-image, none);
     background-position: center;
     background-repeat: no-repeat;
@@ -351,7 +354,7 @@
 
   .group.group--appearance-inherit {
     background-color: transparent;
-    background-image: linear-gradient(var(--group-overlay-color), var(--group-overlay-color));
+    background-image: var(--group-overlay-background, linear-gradient(transparent, transparent));
   }
 
   .group.backdrop-blur {
@@ -457,16 +460,36 @@
   "name": "t:general.group",
   "tag": null,
   "blocks": [
-    { "type": "@theme" },
-    { "type": "@app" },
-    { "type": "product-badges" },
-    { "type": "product-title" },
-    { "type": "product-price" },
-    { "type": "product-description" },
-    { "type": "product-variant-picker" },
-    { "type": "product-inventory" },
-    { "type": "product-buy-buttons" },
-    { "type": "product-accordion" }
+    {
+      "type": "@theme"
+    },
+    {
+      "type": "@app"
+    },
+    {
+      "type": "product-badges"
+    },
+    {
+      "type": "product-title"
+    },
+    {
+      "type": "product-price"
+    },
+    {
+      "type": "product-description"
+    },
+    {
+      "type": "product-variant-picker"
+    },
+    {
+      "type": "product-inventory"
+    },
+    {
+      "type": "product-buy-buttons"
+    },
+    {
+      "type": "product-accordion"
+    }
   ],
   "settings": [
     {
@@ -478,8 +501,14 @@
       "id": "direction",
       "label": "t:labels.direction",
       "options": [
-        { "value": "horizontal", "label": "t:options.direction.horizontal" },
-        { "value": "vertical", "label": "t:options.direction.vertical" }
+        {
+          "value": "horizontal",
+          "label": "t:options.direction.horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "t:options.direction.vertical"
+        }
       ],
       "default": "vertical"
     },
@@ -488,10 +517,22 @@
       "id": "position",
       "label": "t:labels.position",
       "options": [
-        { "value": "top", "label": "t:options.position.top" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "bottom", "label": "t:options.position.bottom" },
-        { "value": "space-between", "label": "t:options.alignment.space_between" }
+        {
+          "value": "top",
+          "label": "t:options.position.top"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.position.bottom"
+        },
+        {
+          "value": "space-between",
+          "label": "t:options.alignment.space_between"
+        }
       ],
       "default": "center",
       "visible_if": "{{ block.settings.direction == 'vertical' and block.settings.height == 'fill' }}"
@@ -501,9 +542,18 @@
       "id": "position_horizontal",
       "label": "t:labels.position",
       "options": [
-        { "value": "top", "label": "t:options.position.top" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "bottom", "label": "t:options.position.bottom" }
+        {
+          "value": "top",
+          "label": "t:options.position.top"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.position.bottom"
+        }
       ],
       "default": "center",
       "visible_if": "{{ block.settings.direction == 'horizontal' }}"
@@ -513,10 +563,22 @@
       "id": "horizontal_alignment",
       "label": "t:labels.alignment",
       "options": [
-        { "value": "left", "label": "t:options.alignment.left" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "right", "label": "t:options.alignment.right" },
-        { "value": "space-between", "label": "t:options.alignment.space_between" }
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        },
+        {
+          "value": "space-between",
+          "label": "t:options.alignment.space_between"
+        }
       ],
       "default": "left",
       "visible_if": "{{ block.settings.direction == 'horizontal' }}"
@@ -533,9 +595,18 @@
       "id": "alignment",
       "label": "t:labels.alignment",
       "options": [
-        { "value": "left", "label": "t:options.alignment.left" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "right", "label": "t:options.alignment.right" }
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        }
       ],
       "default": "left",
       "visible_if": "{{ block.settings.direction == 'vertical' }}"
@@ -545,9 +616,18 @@
       "id": "alignment_mobile",
       "label": "t:labels.alignment_mobile",
       "options": [
-        { "value": "left", "label": "t:options.alignment.left" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "right", "label": "t:options.alignment.right" }
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        }
       ],
       "default": "left",
       "visible_if": "{{ block.settings.direction == 'vertical' or block.settings.customize_mobile_alignment }}"
@@ -585,8 +665,14 @@
       "id": "device",
       "label": "t:labels.device",
       "options": [
-        { "value": "desktop", "label": "t:options.device.desktop" },
-        { "value": "mobile", "label": "t:options.device.mobile" }
+        {
+          "value": "desktop",
+          "label": "t:options.device.desktop"
+        },
+        {
+          "value": "mobile",
+          "label": "t:options.device.mobile"
+        }
       ],
       "default": "desktop"
     },
@@ -595,9 +681,18 @@
       "id": "width",
       "label": "t:labels.width",
       "options": [
-        { "value": "fit", "label": "t:options.width.fit" },
-        { "value": "fill", "label": "t:options.width.fill" },
-        { "value": "custom", "label": "t:options.width.custom" }
+        {
+          "value": "fit",
+          "label": "t:options.width.fit"
+        },
+        {
+          "value": "fill",
+          "label": "t:options.width.fill"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.width.custom"
+        }
       ],
       "default": "fit",
       "visible_if": "{{ block.settings.device == 'desktop' }}"
@@ -636,8 +731,14 @@
       "id": "height",
       "label": "t:labels.height",
       "options": [
-        { "value": "fit", "label": "t:options.width.fit" },
-        { "value": "fill", "label": "t:options.width.fill" }
+        {
+          "value": "fit",
+          "label": "t:options.width.fit"
+        },
+        {
+          "value": "fill",
+          "label": "t:options.width.fill"
+        }
       ],
       "default": "fill",
       "visible_if": "{{ block.settings.device == 'desktop' }}"
@@ -647,9 +748,18 @@
       "id": "width_mobile",
       "label": "t:labels.width_mobile",
       "options": [
-        { "value": "fit", "label": "t:options.width.fit" },
-        { "value": "fill", "label": "t:options.width.fill" },
-        { "value": "custom", "label": "t:options.width.custom" }
+        {
+          "value": "fit",
+          "label": "t:options.width.fit"
+        },
+        {
+          "value": "fill",
+          "label": "t:options.width.fill"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.width.custom"
+        }
       ],
       "default": "fit",
       "visible_if": "{{ block.settings.device == 'mobile' }}"
@@ -692,8 +802,14 @@
       "id": "appearance_type",
       "label": "t:labels.type",
       "options": [
-        { "value": "inherit", "label": "t:options.appearance_type.inherit" },
-        { "value": "scheme", "label": "t:options.appearance_type.scheme" }
+        {
+          "value": "inherit",
+          "label": "t:options.appearance_type.inherit"
+        },
+        {
+          "value": "scheme",
+          "label": "t:options.appearance_type.scheme"
+        }
       ],
       "default": "inherit"
     },
@@ -726,11 +842,26 @@
       "id": "border_type",
       "label": "t:labels.type",
       "options": [
-        { "value": "none", "label": "t:options.border_type.none" },
-        { "value": "solid", "label": "t:options.border_type.solid" },
-        { "value": "dashed", "label": "t:options.border_type.dashed" },
-        { "value": "dotted", "label": "t:options.border_type.dotted" },
-        { "value": "double", "label": "t:options.border_type.double" }
+        {
+          "value": "none",
+          "label": "t:options.border_type.none"
+        },
+        {
+          "value": "solid",
+          "label": "t:options.border_type.solid"
+        },
+        {
+          "value": "dashed",
+          "label": "t:options.border_type.dashed"
+        },
+        {
+          "value": "dotted",
+          "label": "t:options.border_type.dotted"
+        },
+        {
+          "value": "double",
+          "label": "t:options.border_type.double"
+        }
       ],
       "default": "none"
     },
@@ -746,10 +877,22 @@
       "id": "corner_radius",
       "label": "t:labels.corner_radius",
       "options": [
-        { "value": "square", "label": "t:options.radius_preset.square" },
-        { "value": "slightly_rounded", "label": "t:options.radius_preset.slightly_rounded" },
-        { "value": "rounded", "label": "t:options.radius_preset.rounded" },
-        { "value": "pill", "label": "t:options.radius_preset.pill" }
+        {
+          "value": "square",
+          "label": "t:options.radius_preset.square"
+        },
+        {
+          "value": "slightly_rounded",
+          "label": "t:options.radius_preset.slightly_rounded"
+        },
+        {
+          "value": "rounded",
+          "label": "t:options.radius_preset.rounded"
+        },
+        {
+          "value": "pill",
+          "label": "t:options.radius_preset.pill"
+        }
       ],
       "default": "square"
     },
@@ -758,10 +901,22 @@
       "id": "shadow",
       "label": "t:labels.shadow",
       "options": [
-        { "value": "none", "label": "t:options.overlay_shadow.none" },
-        { "value": "small", "label": "t:options.overlay_shadow.small" },
-        { "value": "medium", "label": "t:options.overlay_shadow.medium" },
-        { "value": "large", "label": "t:options.overlay_shadow.large" }
+        {
+          "value": "none",
+          "label": "t:options.overlay_shadow.none"
+        },
+        {
+          "value": "small",
+          "label": "t:options.overlay_shadow.small"
+        },
+        {
+          "value": "medium",
+          "label": "t:options.overlay_shadow.medium"
+        },
+        {
+          "value": "large",
+          "label": "t:options.overlay_shadow.large"
+        }
       ],
       "default": "none"
     },
@@ -770,10 +925,41 @@
       "content": "t:general.overlay"
     },
     {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "default": false,
+      "label": "t:labels.show_overlay"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ block.settings.show_overlay }}"
+    },
+    {
       "type": "color",
       "id": "overlay_color",
       "label": "t:labels.overlay_color",
-      "alpha": true
+      "alpha": true,
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'gradient' }}"
     },
     {
       "type": "range",
@@ -906,7 +1092,8 @@
         "corner_radius": "square",
         "shadow": "none",
         "backdrop_blur": 0,
-        "customize_mobile_padding": false
+        "customize_mobile_padding": false,
+        "show_overlay": false
       }
     }
   ]

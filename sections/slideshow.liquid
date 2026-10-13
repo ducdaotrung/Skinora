@@ -128,6 +128,15 @@
     .slideshow:is(:hover, :focus-within) .slideshow__navigation--show_on_hover { opacity: 1; }
   }
   .slideshow__pagination { --swiper-pagination-inline-padding: var(--slideshow-content-inline-padding); }
+  .slideshow[data-autoplay='true'] .slideshow__swiper > .slideshow__pagination[data-pagination-type='bullets'] .swiper-pagination-bullet-active {
+    /* Preserve the same side padding as the inactive dots' touch targets. */
+    width: calc(32px + var(--swiper-pagination-bullet-hit-width, 24px) - var(--swiper-pagination-bullet-width, var(--swiper-pagination-bullet-size, 8px)));
+    min-width: calc(32px + var(--swiper-pagination-bullet-hit-width, 24px) - var(--swiper-pagination-bullet-width, var(--swiper-pagination-bullet-size, 8px)));
+  }
+  .slideshow[data-autoplay='true'] .slideshow__swiper > .slideshow__pagination[data-pagination-type='bullets'] .swiper-pagination-bullet-active::before,
+  .slideshow[data-autoplay='true'] .slideshow__swiper > .slideshow__pagination[data-pagination-type='bullets'] .swiper-pagination-bullet-active::after {
+    width: 32px;
+  }
   .slideshow .slideshow__swiper > .slideshow__pagination[data-pagination-type='bullets'] .swiper-pagination-bullet::after {
     transform: translate(-50%, -50%);
     transition: none;

@@ -2,6 +2,7 @@
   const HEADER_SELECTOR = '.header-top[data-header-root]';
   const headerStates = new Map();
   const headerResizeObservers = new Map();
+  const headerLayoutItems = new WeakMap();
   const submenuCloseTimers = new WeakMap();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const isMobileMenuViewport = () => window.matchMedia('(max-width: 991.98px)').matches;
@@ -414,13 +415,16 @@
     const centerColumn = headerTop?.querySelector('[data-header-column="center"]');
     const rightColumn = headerTop?.querySelector('[data-header-column="right"]');
 
-    if (!headerTop || !blocks || !leftColumn || !centerColumn || !rightColumn || headerTop.dataset.layoutReady === 'true') {
+    if (!headerTop || !blocks || !leftColumn || !centerColumn || !rightColumn) {
       return;
     }
 
-    const items = Array.from(blocks.children);
+    const items = headerLayoutItems.get(headerTop) || Array.from(blocks.children);
+    headerLayoutItems.set(headerTop, items);
     const logo = items.find((item) => item.matches('.header-logo'));
-    const logoPosition = logo?.classList.contains('header-logo--left') ? 'left' : 'center';
+    const desktopLogoPosition = logo?.classList.contains('header-logo--left') ? 'left' : 'center';
+    const logoPosition = isMobileMenuViewport() ? (logo?.dataset.logoPositionMobile || desktopLogoPosition) : desktopLogoPosition;
+    if (headerTop.dataset.layoutReady === 'true' && headerTop.dataset.logoPosition === logoPosition) return;
     headerTop.dataset.logoPosition = logoPosition;
 
     items.forEach((item) => {
@@ -982,6 +986,7 @@
 
   window.addEventListener('scroll', scheduleUpdate, { passive: true });
   window.addEventListener('resize', () => {
+    headerStates.forEach(({ header }) => organizeHeaderLayout(header));
     restoreMobileMegaMenus();
     scheduleUpdate();
   });

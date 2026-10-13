@@ -110,6 +110,8 @@ class ProductBuyButtons extends HTMLElement {
       this.form.dataset.currentVariantId = variantId;
       this.form.dataset.variantAvailable = String(isAvailable);
     }
+    if (variant) this.syncInventoryState(variant);
+    else if (!variantId) this.clearInventoryState();
 
     if (this.addButton) {
       this.addButton.disabled = !isAvailable;
@@ -136,6 +138,33 @@ class ProductBuyButtons extends HTMLElement {
     this.updateAddToCartLabel(variantId, isAvailable);
     this.updateQuantityForVariant(variant);
     this.updateBackInStockContext(variantId, variant);
+  }
+
+  syncInventoryState(variant) {
+    const targets = [this, this.form].filter(Boolean);
+    const quantity = variant?.inventory_quantity;
+    const management = variant?.inventory_management;
+    const policy = variant?.inventory_policy;
+    const hasQuantity = quantity != null && String(quantity).trim() !== '' && Number.isFinite(Number(quantity));
+
+    targets.forEach((target) => {
+      if (hasQuantity) target.dataset.inventoryQuantity = String(quantity);
+      else delete target.dataset.inventoryQuantity;
+
+      if (management) target.dataset.inventoryManagement = String(management);
+      else delete target.dataset.inventoryManagement;
+
+      if (policy) target.dataset.inventoryPolicy = String(policy);
+      else delete target.dataset.inventoryPolicy;
+    });
+  }
+
+  clearInventoryState() {
+    [this, this.form].filter(Boolean).forEach((target) => {
+      delete target.dataset.inventoryQuantity;
+      delete target.dataset.inventoryManagement;
+      delete target.dataset.inventoryPolicy;
+    });
   }
 
   updateAddToCartLabel(variantId, isAvailable) {

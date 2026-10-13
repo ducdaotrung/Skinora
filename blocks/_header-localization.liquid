@@ -4,10 +4,11 @@
     assign localization_trigger = 'click'
   endunless
 
-  assign localization_font_size = block.settings.font_size | default: 'md'
-  unless localization_font_size == 'xs' or localization_font_size == 'sm' or localization_font_size == 'md'
+  assign localization_font_size = block.settings.font_size | default: 'display'
+  unless localization_font_size == 'display' or localization_font_size == 'xs' or localization_font_size == 'sm' or localization_font_size == 'md'
     assign localization_font_size = 'md'
   endunless
+  assign localization_font_size_token = 'var(--font-body-' | append: localization_font_size | append: ')'
 
   assign show_country_selector = true
   if block.settings.show_country_selector == false
@@ -65,7 +66,7 @@
 %}
 
 {% if has_localization or request.design_mode %}
-  <div class="{{ localization_class }}" {{ block.shopify_attributes }}>
+  <div class="{{ localization_class }}" style="font-size: {{ localization_font_size_token }};" {{ block.shopify_attributes }}>
     {% if has_localization %}
       {% if has_country_selector %}
         <details class="header-localization__details" data-header-submenu-trigger="{{ localization_trigger }}" data-localization-dialog-id="{{ country_dialog_id }}">
@@ -450,11 +451,12 @@
       "id": "font_size",
       "label": "Font size",
       "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xs", "label": "Extra small" },
         { "value": "sm", "label": "Small" },
         { "value": "md", "label": "Medium" }
       ],
-      "default": "md"
+      "default": "display"
     }
   ],
   "presets": [

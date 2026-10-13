@@ -62,7 +62,7 @@
 {% assign rich_text_content_style = rich_text_content_style | strip %}
 
 <div
-  class="section-spacing rich-text__spacing color-scheme section-color-scope {{ rich_text_scheme }}"
+  class="section-spacing rich-text__spacing section-content-scope section-content-surface color-scheme section-color-scope {{ rich_text_scheme }}"
   {% if rich_text_style != blank %}style="{{ rich_text_style }}"{% endif %}
 >
   {% if section.settings.background_image != blank %}
@@ -72,7 +72,7 @@
   {% endif %}
 
   <div class="container {{ rich_text_container_width }} rich-text__container">
-    <div class="rich-text__content layout-flow layout-flow--responsive align-content" style="{{ rich_text_content_style }}">
+    <div class="rich-text__content section-content-slot layout-flow layout-flow--responsive align-content" style="{{ rich_text_content_style }}">
       {% content_for "block", type: "eyebrow", id: "eyebrow" %}
       {% content_for "block", type: "heading", id: "heading" %}
       {% content_for "block", type: "text", id: "text" %}
@@ -125,7 +125,7 @@
     max-width: 100%;
   }
 
-  .rich-text__content a {
+  .rich-text__content a:not(.btn, [class*='btn--']) {
     color: inherit;
   }
 

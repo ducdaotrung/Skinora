@@ -12,12 +12,13 @@
   assign field_pattern = blank
   assign field_input_type = 'text'
   if field_type == 'phone'
-    assign field_inputmode = 'numeric'
-    assign field_pattern = '[0-9]*'
+    assign field_inputmode = 'tel'
+    assign field_input_name = 'contact[phone]'
     assign field_input_type = 'tel'
   endif
 %}
 
+<div class="contact-field-block" {{ block.shopify_attributes }}>
 {% if field_type == 'dropdown' %}
   {% assign field_options = block.settings.options | default: 'Option 1; Option 2; Option 3' | split: ';' %}
   {% render 'form-field', id: field_id, name: field_input_name, label: field_label, control: 'select', options: field_options, placeholder: field_label, selected: '', hide_label: true, required: block.settings.required %}
@@ -45,6 +46,8 @@
 {% else %}
   {% render 'form-field', id: field_id, name: field_input_name, label: field_label, type: field_input_type, control: field_control, placeholder: field_label, inputmode: field_inputmode, pattern: field_pattern, hide_label: true, required: block.settings.required %}
 {% endif %}
+
+</div>
 
 {% stylesheet %}
   .contact-field__choice-group { gap: 0.5rem; border: 0; padding: 0; margin: 0; }

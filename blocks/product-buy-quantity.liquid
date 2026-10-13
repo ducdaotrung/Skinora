@@ -9,7 +9,48 @@
 {% enddoc %}
 
 {% assign quantity_label = block.settings.label | strip %}
+{% liquid
+  assign quantity_label_font = block.settings.font | default: 'body'
+  unless quantity_label_font == 'body' or quantity_label_font == 'heading' or quantity_label_font == 'accent'
+    assign quantity_label_font = 'body'
+  endunless
+  assign quantity_label_font_size = block.settings.font_size | default: 'sm'
+  assign quantity_label_font_sizes = 'xs,sm,md,lg,xl,xxl' | split: ','
+  unless quantity_label_font_sizes contains quantity_label_font_size
+    assign quantity_label_font_size = 'sm'
+  endunless
+  assign quantity_label_tracking = block.settings.letter_spacing | default: 'normal'
+  assign quantity_label_tracking_value = '0'
+  case quantity_label_tracking
+    when 'tighter'
+      assign quantity_label_tracking_value = '-0.04em'
+    when 'tight'
+      assign quantity_label_tracking_value = '-0.02em'
+    when 'relaxed'
+      assign quantity_label_tracking_value = '0.02em'
+    when 'loose'
+      assign quantity_label_tracking_value = '0.04em'
+    when 'extra_loose'
+      assign quantity_label_tracking_value = '0.08em'
+    when 'ultra_loose'
+      assign quantity_label_tracking_value = '0.12em'
+    when 'mega_loose'
+      assign quantity_label_tracking_value = '0.16em'
+  endcase
+
+%}
+
 {% capture quantity_style %}
+  {% if block.settings.show_label %}
+  {% if quantity_label_font != 'body' %}
+    --quantity-label-font-family: var(--font-{{ quantity_label_font }}-family);
+    --quantity-label-font-style: var(--font-{{ quantity_label_font }}-style);
+    --quantity-label-font-weight: var(--font-{{ quantity_label_font }}-weight);
+  {% endif %}
+  {% if quantity_label_font_size != 'sm' %}--quantity-label-font-size: var(--font-body-{{ quantity_label_font_size }});{% endif %}
+  {% if quantity_label_tracking_value != '0' %}--quantity-label-letter-spacing: {{ quantity_label_tracking_value }};{% endif %}
+  {% endif %}
+
   {% if block.settings.style == 'custom' %}
     {% if block.settings.background_color != blank %}--product-buy-quantity-background: {{ block.settings.background_color }};{% endif %}
     {% if block.settings.text_color != blank %}--product-buy-quantity-text: {{ block.settings.text_color }};{% endif %}
@@ -18,8 +59,8 @@
     --product-buy-quantity-radius: {{ block.settings.corner_radius }}px;
   {% endif %}
 {% endcapture %}
-<div class="product-buy-buttons__quantity form__field{% if block.settings.style == 'custom' %} product-buy-buttons__quantity--custom{% endif %}" data-buy-quantity{% if block.settings.style == 'custom' %} style="{{ quantity_style | strip }}"{% endif %} {{ block.shopify_attributes }}>
-  <label class="form__label{% if quantity_label == blank %} visually-hidden{% endif %}" for="{{ form_id }}-quantity">{% if quantity_label != blank %}{{ quantity_label | escape }}{% else %}{{ 'accessibility.quantity' | t }}{% endif %}</label>
+<div class="product-buy-buttons__quantity form__field{% if block.settings.style == 'custom' %} product-buy-buttons__quantity--custom{% endif %}" data-buy-quantity{% if block.settings.style == 'custom' or block.settings.show_label %} style="{{ quantity_style | strip }}"{% endif %} {{ block.shopify_attributes }}>
+  <label class="product-buy-buttons__quantity-label form__label{% unless block.settings.show_label %} visually-hidden{% endunless %}" for="{{ form_id }}-quantity">{% if quantity_label != blank %}{{ quantity_label | escape }}{% else %}{{ 'accessibility.quantity' | t }}{% endif %}</label>
   <div class="product-buy-buttons__quantity-control">
     <button class="product-buy-buttons__quantity-button" type="button" aria-label="{{ 'cart.decrease' | t | escape }}" aria-controls="{{ form_id }}-quantity" data-quantity-decrease>
       {% render 'icon', icon: 'minus', bare: true %}
@@ -36,6 +77,112 @@
   "name": "t:general.quantity",
   "tag": null,
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_label",
+      "label": "Show quantity label",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:general.typography",
+      "visible_if": "{{ block.settings.show_label }}"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:labels.font",
+      "options": [
+        {
+          "value": "body",
+          "label": "t:options.product_price_font.body"
+        },
+        {
+          "value": "heading",
+          "label": "t:options.product_price_font.heading"
+        },
+        {
+          "value": "accent",
+          "label": "t:options.product_price_font.accent"
+        }
+      ],
+      "default": "body",
+      "visible_if": "{{ block.settings.show_label }}"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:labels.font_size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "t:options.product_price_size.xs"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.product_price_size.sm"
+        },
+        {
+          "value": "md",
+          "label": "t:options.product_price_size.md"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.product_price_size.lg"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.product_price_size.xl"
+        },
+        {
+          "value": "xxl",
+          "label": "t:options.product_price_size.xxl"
+        }
+      ],
+      "default": "sm",
+      "visible_if": "{{ block.settings.show_label }}"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        {
+          "value": "tighter",
+          "label": "Tighter"
+        },
+        {
+          "value": "tight",
+          "label": "t:options.letter_spacing.tight"
+        },
+        {
+          "value": "normal",
+          "label": "t:options.letter_spacing.normal"
+        },
+        {
+          "value": "relaxed",
+          "label": "t:options.letter_spacing.relaxed"
+        },
+        {
+          "value": "loose",
+          "label": "t:options.letter_spacing.loose"
+        },
+        {
+          "value": "extra_loose",
+          "label": "t:options.letter_spacing.extra_loose"
+        },
+        {
+          "value": "ultra_loose",
+          "label": "Ultra loose"
+        },
+        {
+          "value": "mega_loose",
+          "label": "Mega loose"
+        }
+      ],
+      "default": "normal",
+      "visible_if": "{{ block.settings.show_label }}"
+    },
     { "type": "text", "id": "label", "label": "t:labels.label" },
     { "type": "select", "id": "style", "label": "t:labels.style", "options": [
       { "value": "default", "label": "t:options.product_quantity_style.default" },

@@ -9,10 +9,12 @@
   {% content_for 'block', type: 'heading', id: 'heading' %}
 {% enddoc %}
 
+{% assign block_plain_text = block.settings.text | strip_html | replace: '&nbsp;', '' | replace: '&#160;', '' | strip %}
+
 {% liquid
-  assign heading_size = block.settings.heading_size | default: 'lg'
+  assign heading_size = block.settings.heading_size | default: 'display'
   unless heading_size == 'display' or heading_size == 'xl' or heading_size == 'lg' or heading_size == 'md' or heading_size == 'sm' or heading_size == 'xs' or heading_size == 'custom'
-    assign heading_size = 'lg'
+    assign heading_size = 'display'
   endunless
 
   assign heading_custom_size = block.settings.custom_heading_size | default: 24 | plus: 0
@@ -82,7 +84,7 @@
   assign padding_left_mobile = padding_left_mobile | plus: 0
   assign padding_right_mobile = block.settings.padding_right_mobile | default: 0
   assign padding_right_mobile = padding_right_mobile | plus: 0
-  assign heading_class = 'heading-block size-style heading-text heading-' | append: heading_size
+  assign heading_class = 'heading-block size-style typography-content heading-text heading-' | append: heading_size
 %}
 
 {% capture heading_style %}
@@ -111,12 +113,14 @@
   <{{ heading_tag }}
     class="{{ heading_class }}"
     {% if heading_style != blank %}style="{{ heading_style }}"{% endif %}
+    {% if block_plain_text == blank %}data-content-empty{% endif %}
     {{ block.shopify_attributes }}
   >{{ block.settings.text }}</{{ heading_tag }}>
 {% else %}
   <div
     class="heading-block size-style heading-block--empty"
     {% if heading_style != blank %}style="{{ heading_style }}"{% endif %}
+    {% if block_plain_text == blank %}data-content-empty{% endif %}
     {{ block.shopify_attributes }}
   ></div>
 {% endif %}
@@ -172,6 +176,7 @@
       "type": "select",
       "id": "heading_size",
       "label": "t:labels.heading_size",
+      "info": "Display uses the desktop, tablet and mobile Display sizes from Theme Settings, independently of the HTML tag.",
       "options": [
         { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xl", "label": "t:options.heading_size.xl" },
@@ -181,7 +186,7 @@
         { "value": "xs", "label": "t:options.heading_size.xs" },
         { "value": "custom", "label": "t:options.heading_size.custom" }
       ],
-      "default": "lg"
+      "default": "display"
     },
     {
       "type": "range",
@@ -373,7 +378,7 @@
       "category": "t:general.basic",
       "settings": {
         "text": "<p>Heading</p>",
-        "heading_size": "lg",
+        "heading_size": "display",
         "html_tag": "h2",
         "width": "fit",
         "customize_mobile_size": false,

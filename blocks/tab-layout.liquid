@@ -180,152 +180,7 @@
   ></div>
 </div>
 
-{% stylesheet %}
-  .tab-layout {
-    display: grid;
-    gap: var(--tab-layout-gap-desktop, 16px);
-    width: 100%;
-    min-width: 0;
-  }
-
-  .tab-layout__navigation {
-    display: flex;
-    align-items: center;
-    justify-content: var(--collection-tabs-controls-alignment, flex-start);
-    flex-wrap: wrap;
-    column-gap: calc(var(--layout-grid-gap, 24px) * 0.75);
-    row-gap: 0.5rem;
-    max-width: 100%;
-    padding-block: 0;
-  }
-
-  [data-layout-direction='horizontal'] .tab-layout[data-vertical-layout='true'] .tab-layout__navigation {
-    flex-direction: column;
-    align-items: var(--collection-tabs-controls-alignment, flex-start);
-    justify-content: flex-start;
-  }
-
-  .tab-layout__navigation[hidden] {
-    display: none;
-  }
-
-  .tab-layout__tab {
-    position: relative;
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: color-mix(in srgb, var(--body-color) 48%, transparent);
-    cursor: pointer;
-    font-family: var(--tab-layout-font-family);
-    font-size: var(--tab-layout-font-size);
-    font-style: var(--tab-layout-font-style);
-    font-weight: var(--tab-layout-font-weight);
-    letter-spacing: var(--tab-layout-letter-spacing);
-    line-height: var(--tab-layout-line-height, 1.4);
-    text-align: center;
-    text-transform: var(--tab-layout-text-transform);
-    white-space: nowrap;
-    transition:
-      color var(--motion-duration-standard) var(--motion-ease-standard),
-      background-color var(--motion-duration-standard) var(--motion-ease-standard),
-      border-color var(--motion-duration-standard) var(--motion-ease-standard);
-  }
-
-  .tab-layout--underline .tab-layout__tab {
-    --link-underline-offset: 0;
-    --link-underline-display: block;
-    --link-underline-thickness: 1px;
-  }
-
-  .tab-layout__tab:hover,
-  .tab-layout__tab[aria-selected='true'] {
-    color: var(--heading-color);
-  }
-
-  .tab-layout--button .tab-layout__navigation {
-    align-items: center;
-    column-gap: 0.4rem;
-    row-gap: 0.4rem;
-    padding-block: 0;
-  }
-
-  .tab-layout--button .tab-layout__tab {
-    min-height: var(--button-height);
-    padding-inline: var(--button-padding-inline-desktop);
-    border: var(--button-secondary-border-width) solid var(--button-secondary-border);
-    border-radius: var(--button-radius);
-    background-color: var(--button-secondary-background);
-    color: var(--button-secondary-text);
-    --link-underline-display: none;
-  }
-
-  .tab-layout--button .tab-layout__tab:hover {
-    border-color: var(--button-secondary-hover-border);
-    background-color: var(--button-secondary-hover-background);
-    color: var(--button-secondary-hover-text);
-  }
-
-  .tab-layout--button.tab-layout--active-primary .tab-layout__tab[aria-selected='true'] {
-    border-color: var(--button-primary-border);
-    background-color: var(--button-primary-background);
-    color: var(--button-primary-text);
-  }
-
-  .tab-layout--button.tab-layout--active-primary .tab-layout__tab[aria-selected='true']:hover {
-    border-color: var(--button-primary-hover-border);
-    background-color: var(--button-primary-hover-background);
-    color: var(--button-primary-hover-text);
-  }
-
-  .tab-layout--button.tab-layout--active-outline .tab-layout__tab:not([aria-selected='true']) {
-    border-color: color-mix(in srgb, var(--button-primary-border) 35%, transparent);
-    color: color-mix(in srgb, var(--button-primary-border) 35%, transparent);
-  }
-
-  .tab-layout--button.tab-layout--active-outline .tab-layout__tab[aria-selected='true'] {
-    border-color: var(--button-primary-border);
-    background-color: transparent;
-    color: var(--button-primary-border);
-  }
-
-  .tab-layout--button.tab-layout--active-outline .tab-layout__tab[aria-selected='true']:hover {
-    border-color: var(--button-primary-hover-border);
-    background-color: transparent;
-    color: var(--button-primary-hover-border);
-  }
-
-  @media (max-width: 767.98px) {
-    .tab-layout {
-      gap: var(--tab-layout-gap-mobile, var(--tab-layout-gap-desktop, 16px));
-    }
-
-    .tab-layout__navigation {
-      justify-content: var(--collection-tabs-controls-alignment-mobile, var(--collection-tabs-controls-alignment, flex-start));
-      column-gap: calc(var(--layout-grid-gap, 24px) * 0.6);
-      row-gap: 0.45rem;
-    }
-
-    [data-layout-direction='horizontal'] .tab-layout[data-vertical-layout='true'] .tab-layout__navigation {
-      align-items: var(--collection-tabs-controls-alignment-mobile, var(--collection-tabs-controls-alignment, flex-start));
-      justify-content: flex-start;
-    }
-
-    .tab-layout--button .tab-layout__tab {
-      padding-inline: var(--button-padding-inline-mobile);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .tab-layout__tab {
-      transition: none;
-    }
-  }
-{% endstylesheet %}
+{% render 'tab-layout-styles' %}
 
 {% javascript %}
 (() => {
@@ -420,12 +275,12 @@
 
       const animation = panel.animate(
         [
-          { transform: 'translateY(1.5rem)', opacity: 0 },
+          { transform: 'translateY(2rem)', opacity: 0 },
           { transform: 'translateY(0)', opacity: 1 }
         ],
         {
-          duration: 300,
-          easing: 'ease-in-out',
+          duration: 150,
+          easing: 'ease',
           fill: 'none'
         }
       );
@@ -445,7 +300,12 @@
     if (!viewAll.length) return;
 
     const url = trigger?.dataset.collectionUrl?.trim() || '';
-    if (url) {
+    const available = Boolean(url) && trigger?.dataset.viewAllAvailable === 'true';
+    viewAll.forEach((button) => {
+      const wrapper = button.closest('[data-collection-tabs-view-all-wrapper]');
+      if (wrapper) wrapper.hidden = !available;
+    });
+    if (available) {
       viewAll.forEach((button) => {
         button.setAttribute('href', url);
         button.removeAttribute('aria-disabled');
@@ -511,32 +371,149 @@
     });
   };
 
+  const clearPendingTab = (state) => {
+    state.requestedTabId = null;
+    state.entries.forEach(({panel}) => {
+      if (panel.dataset.tabLoading !== 'true') return;
+      delete panel.dataset.tabLoading;
+      panel.removeAttribute('aria-busy');
+      panel.inert = false;
+    });
+  };
+
+  // Cache the response near the viewport without populating unselected panels.
+  const requestTabSection = (state) => {
+    if (state.tabSectionRequest) return state.tabSectionRequest;
+    const pending = state.entries.find(entry => entry.panel.hasAttribute('data-tab-deferred'));
+    if (!pending) return Promise.resolve(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('sections');
+    url.searchParams.set('section_id', pending.panel.dataset.sectionId);
+    const request = fetch(url, {signal: state.controller.signal, credentials: 'same-origin'})
+      .then(response => {
+        if (!response.ok) throw new Error('Collection tabs request failed');
+        return response.text();
+      })
+      .catch(error => {
+        if (state.tabSectionRequest === request) state.tabSectionRequest = null;
+        throw error;
+      });
+    state.tabSectionRequest = request;
+    return request;
+  };
+
+  // Keep live panel/trigger nodes so keyboard focus and observers remain stable.
+  const loadDeferredPanels = (state) => {
+    const pending = state.entries.filter(entry => entry.panel.hasAttribute('data-tab-deferred'));
+    if (!pending.length) return Promise.resolve();
+    if (state.loadingPanels) return state.loadingPanels;
+    const attempt = requestTabSection(state)
+      .then(html => {
+        if (instances.get(state.layout) !== state) return;
+        const fragment = new DOMParser().parseFromString(html, 'text/html');
+        const replacements = pending.map(entry => ({entry, source: fragment.getElementById(entry.panel.id)}));
+        if (replacements.some(({source}) => !source || source.hasAttribute('data-tab-deferred'))) {
+          state.tabSectionRequest = null;
+          throw new Error('Collection tabs response is incomplete');
+        }
+        replacements.forEach(({entry, source}) => {
+          entry.panel.replaceChildren(...source.childNodes);
+          entry.panel.removeAttribute('data-tab-deferred');
+          entry.panel.removeAttribute('aria-busy');
+        });
+        // Reuse the theme module loader, including already imported carousels.
+        const panel = state.activeEntry.panel;
+        fragment.querySelectorAll('script[data-theme-module]').forEach(marker => panel.append(marker.cloneNode(true)));
+        const requestedId = state.requestedTabId;
+        clearPendingTab(state);
+        if (requestedId) setActiveTab(state, requestedId, false, true);
+        updateExternalNavigation(state);
+      })
+      .catch(error => {
+        if (error.name === 'AbortError' || instances.get(state.layout) !== state) return;
+        clearPendingTab(state);
+        setActiveTab(state, state.activeEntry?.trigger.dataset.tabId, false, false);
+        const status = state.scope.querySelector('[data-tab-load-status]');
+        if (status) status.textContent = state.scope.dataset.tabLoadError;
+      })
+      .finally(() => { if (state.loadingPanels === attempt) state.loadingPanels = null; });
+    state.loadingPanels = attempt;
+    return attempt;
+  };
+
   const setActiveTab = (state, selectedId, shouldFocus, shouldAnimate) => {
     synchronizeEntries(state);
-    const selectedEntry = state.entries.find((entry) => entry.trigger.dataset.tabId === selectedId) || state.entries[0];
+    const selectedEntry = state.entries.find(entry => entry.trigger.dataset.tabId === selectedId) || state.entries[0];
     if (!selectedEntry) return;
     const previousEntry = state.entries.includes(state.activeEntry) ? state.activeEntry : null;
-
-    state.entries.forEach((entry) => {
-      const isActive = entry === selectedEntry;
-      entry.trigger.setAttribute('aria-selected', String(isActive));
-      entry.trigger.tabIndex = isActive ? 0 : -1;
-      entry.panel.hidden = !isActive;
-      entry.panel.setAttribute('aria-hidden', String(!isActive));
-      entry.tab.dataset.tabActive = String(isActive);
+    const targetId = selectedEntry.trigger.dataset.tabId;
+    // The selected button responds immediately while the outgoing panel finishes.
+    state.entries.forEach(entry => {
+      const selected = entry === selectedEntry;
+      entry.trigger.setAttribute('aria-selected', String(selected));
+      entry.trigger.tabIndex = selected ? 0 : -1;
     });
-
-    state.activeEntry = selectedEntry;
-    state.layout.dataset.tabLayoutActive = selectedEntry.trigger.dataset.tabId;
-    updateViewAll(state, selectedEntry.trigger);
-    updateExternalNavigation(state);
-    if (shouldFocus) selectedEntry.trigger.focus();
-
-    if (shouldAnimate && previousEntry && previousEntry !== selectedEntry) {
-      animatePanel(state, selectedEntry.panel);
-    } else if (previousEntry !== selectedEntry) {
+    if (state.transitionTarget === targetId) return;
+    if (state.transitionTarget) {
       cancelPanelAnimation(state);
+      state.transitionTarget = null;
+      state.transitionRevision = (state.transitionRevision || 0) + 1;
+      if (previousEntry) {
+        delete previousEntry.panel.dataset.tabExiting;
+        previousEntry.panel.inert = false;
+      }
     }
+    if (selectedEntry.panel.hasAttribute('data-tab-deferred')) {
+      state.requestedTabId = targetId;
+      if (previousEntry) {
+        previousEntry.panel.dataset.tabLoading = 'true';
+        previousEntry.panel.setAttribute('aria-busy', 'true');
+        previousEntry.panel.inert = true;
+      }
+      if (shouldFocus) selectedEntry.trigger.focus();
+      loadDeferredPanels(state);
+      return;
+    }
+    clearPendingTab(state);
+    const activate = () => {
+      if (instances.get(state.layout) !== state) return;
+      state.transitionTarget = null;
+      if (shouldAnimate && previousEntry !== selectedEntry) selectedEntry.panel.dataset.tabReveal = 'switch';
+      state.entries.forEach(entry => {
+        const isActive = entry === selectedEntry;
+        entry.trigger.setAttribute('aria-selected', String(isActive));
+        entry.trigger.tabIndex = isActive ? 0 : -1;
+        entry.panel.hidden = !isActive;
+        entry.panel.setAttribute('aria-hidden', String(!isActive));
+        entry.panel.inert = false;
+        delete entry.panel.dataset.tabExiting;
+        entry.tab.dataset.tabActive = String(isActive);
+      });
+      state.activeEntry = selectedEntry;
+      state.layout.dataset.tabLayoutActive = targetId;
+      updateViewAll(state, selectedEntry.trigger);
+      updateExternalNavigation(state);
+      if (shouldFocus) selectedEntry.trigger.focus();
+      if (shouldAnimate && previousEntry && previousEntry !== selectedEntry) animatePanel(state, selectedEntry.panel);
+      else if (previousEntry !== selectedEntry) cancelPanelAnimation(state);
+    };
+    if (shouldAnimate && previousEntry && previousEntry !== selectedEntry &&
+        typeof previousEntry.panel.animate === 'function' && !prefersReducedMotion()) {
+      cancelPanelAnimation(state);
+      const revision = (state.transitionRevision || 0) + 1;
+      state.transitionRevision = revision;
+      state.transitionTarget = targetId;
+      previousEntry.panel.dataset.tabExiting = 'true';
+      previousEntry.panel.inert = true;
+      const animation = previousEntry.panel.animate([
+        {transform: 'translateY(0)', opacity: 1},
+        {transform: 'translateY(2rem)', opacity: 0}
+      ], {duration: 150, easing: 'ease', fill: 'forwards'});
+      state.panelAnimation = animation;
+      animation.finished.then(() => {
+        if (instances.get(state.layout) === state && state.transitionRevision === revision) activate();
+      }).catch(() => {});
+    } else activate();
   };
 
   const scheduleSynchronization = (state) => {
@@ -545,7 +522,7 @@
     queueMicrotask(() => {
       state.synchronizationQueued = false;
       if (instances.get(state.layout) !== state) return;
-      setActiveTab(state, state.layout.dataset.tabLayoutActive, false, false);
+      setActiveTab(state, state.transitionTarget || state.requestedTabId || state.layout.dataset.tabLayoutActive, false, false);
     });
   };
 
@@ -577,6 +554,20 @@
     layout.dataset.tabLayoutReady = 'true';
     setActiveTab(state, layout.dataset.tabLayoutActive || state.entries[0]?.trigger.dataset.tabId, false, false);
     scope.dataset.collectionTabsReady = 'true';
+
+    if (state.entries.some(entry => entry.panel.hasAttribute('data-tab-deferred'))) {
+      const warmResponse = () => { requestTabSection(state).catch(() => {}); };
+      if (typeof IntersectionObserver !== 'undefined') {
+        state.prefetchObserver = new IntersectionObserver(entries => {
+          if (!entries.some(entry => entry.isIntersecting)) return;
+          state.prefetchObserver.disconnect();
+          warmResponse();
+        }, {rootMargin: '600px 0px'});
+        state.prefetchObserver.observe(scope);
+      }
+      navigation.addEventListener('pointerenter', warmResponse, {signal: controller.signal});
+      navigation.addEventListener('focusin', warmResponse, {signal: controller.signal});
+    }
 
     if (typeof MutationObserver !== 'undefined') {
       state.observer = new MutationObserver(() => scheduleSynchronization(state));
@@ -652,8 +643,10 @@
       state.externalNavigationCleanup?.();
       state.externalNavigationCleanup = null;
       state.externalNavigationSwiper = null;
+      clearPendingTab(state);
       state.controller.abort();
       state.observer?.disconnect();
+      state.prefetchObserver?.disconnect();
       cancelPanelAnimation(state);
       state.entries.forEach((entry) => {
         if (entry.tab.isConnected && !entry.tab.contains(entry.trigger)) {
@@ -662,6 +655,8 @@
         entry.trigger.setAttribute('aria-selected', 'false');
         entry.trigger.tabIndex = -1;
         entry.panel.hidden = false;
+        entry.panel.inert = false;
+        delete entry.panel.dataset.tabExiting;
         entry.panel.removeAttribute('aria-hidden');
         delete entry.tab.dataset.tabActive;
       });
@@ -775,7 +770,7 @@
     {
       "type": "select",
       "id": "heading_size",
-      "label": "t:labels.font_size",
+      "label": "t:labels.heading_size",
       "options": [
         { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xl", "label": "t:options.heading_size.xl" },

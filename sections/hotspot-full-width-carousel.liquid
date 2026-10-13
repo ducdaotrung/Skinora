@@ -239,9 +239,9 @@
         {% endif %}
       {% endcapture %}
 
-      <div class="hotspot-full-width-carousel__container swiper-carousel__container">
+      <div class="hotspot-full-width-carousel__container section-content-scope swiper-carousel__container">
         {% if hotspot_carousel_header != blank %}
-          <div class="hotspot-full-width-carousel__header">
+          <div class="hotspot-full-width-carousel__header section-content-slot">
             {{ hotspot_carousel_header }}
           </div>
         {% endif %}
@@ -933,7 +933,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Hotspot carousel</p>",
-                "heading_size": "lg",
+                "heading_size": "display",
                 "html_tag": "h2"
               }
             }

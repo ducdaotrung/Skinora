@@ -3,7 +3,9 @@
 
   This action accepts an explicit destination and falls back to the closest
   typed blog or collection resource URL when a compatible section supplies one.
-  An explicit merchant URL always wins. Desktop and mobile
+  Owning resource sections render this slot only when their selected source
+  has more items than the displayed limit. An explicit merchant URL overrides
+  the destination, while retaining that visibility condition. Desktop and mobile
   presentation are configured independently while both controls retain the
   same accessible link target.
 
@@ -29,7 +31,7 @@
   endif
 
   assign collection_list_view_all_can_render = false
-  if collection_list_view_all_url != blank or request.design_mode
+  if collection_list_view_all_url != blank
     assign collection_list_view_all_can_render = true
   endif
 
@@ -55,7 +57,7 @@
 
 {% if collection_list_view_all_can_render %}
   <div
-    class="collection-list-view-all{% if block.settings.full_width_mobile %} collection-list-view-all--full-width-mobile{% endif %}"
+    class="collection-list-view-all{% if block.settings.hide_view_all_mobile %} collection-list-view-all--hide-mobile{% endif %}{% if block.settings.full_width_mobile %} collection-list-view-all--full-width-mobile{% endif %}"
     {% if collection_list_view_all_style_attribute != blank %}style="{{ collection_list_view_all_style_attribute }}"{% endif %}
     {{ block.shopify_attributes }}
   >
@@ -111,6 +113,9 @@
     .collection-list-view-all--full-width-mobile .collection-list-view-all__button--mobile {
       width: 100%;
     }
+  }
+  @media (max-width: 767.98px) {
+    .collection-list-view-all--hide-mobile { display: none; }
   }
 {% endstylesheet %}
 
@@ -229,6 +234,7 @@
       "visible_if": "{{ block.settings.icon_size == 'custom' and block.settings.show_icon or block.settings.show_icon_mobile }}"
     },
     { "type": "header", "content": "t:labels.mobile" },
+    { "type": "checkbox", "id": "hide_view_all_mobile", "label": "t:labels.hide_view_all_on_mobile", "default": false },
     {
       "type": "select",
       "id": "button_style_mobile",

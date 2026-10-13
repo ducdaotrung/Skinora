@@ -8,6 +8,62 @@
   assign current_variant = picker_product.selected_or_first_available_variant
   assign media_gallery_id = 'ProductMedia-' | append: section.id
 
+  assign picker_font = block.settings.font | default: 'body'
+  unless picker_font == 'body' or picker_font == 'heading' or picker_font == 'accent'
+    assign picker_font = 'body'
+  endunless
+  assign picker_font_size = block.settings.font_size | default: 'sm'
+  assign picker_font_sizes = 'xs,sm,md,lg,xl,xxl' | split: ','
+  unless picker_font_sizes contains picker_font_size
+    assign picker_font_size = 'sm'
+  endunless
+  assign picker_tracking = block.settings.letter_spacing | default: 'normal'
+  assign picker_tracking_value = '0'
+  case picker_tracking
+    when 'tighter'
+      assign picker_tracking_value = '-0.04em'
+    when 'tight'
+      assign picker_tracking_value = '-0.02em'
+    when 'relaxed'
+      assign picker_tracking_value = '0.02em'
+    when 'loose'
+      assign picker_tracking_value = '0.04em'
+    when 'extra_loose'
+      assign picker_tracking_value = '0.08em'
+    when 'ultra_loose'
+      assign picker_tracking_value = '0.12em'
+    when 'mega_loose'
+      assign picker_tracking_value = '0.16em'
+  endcase
+
+  assign picker_input_font = block.settings.input_font | default: 'body'
+  unless picker_input_font == 'body' or picker_input_font == 'heading' or picker_input_font == 'accent'
+    assign picker_input_font = 'body'
+  endunless
+  assign picker_input_font_size = block.settings.input_font_size | default: 'md'
+  assign picker_input_font_sizes = 'xs,sm,md,lg,xl,xxl' | split: ','
+  unless picker_input_font_sizes contains picker_input_font_size
+    assign picker_input_font_size = 'md'
+  endunless
+  assign picker_input_tracking = block.settings.input_letter_spacing | default: 'normal'
+  assign picker_input_tracking_value = '0'
+  case picker_input_tracking
+    when 'tighter'
+      assign picker_input_tracking_value = '-0.04em'
+    when 'tight'
+      assign picker_input_tracking_value = '-0.02em'
+    when 'relaxed'
+      assign picker_input_tracking_value = '0.02em'
+    when 'loose'
+      assign picker_input_tracking_value = '0.04em'
+    when 'extra_loose'
+      assign picker_input_tracking_value = '0.08em'
+    when 'ultra_loose'
+      assign picker_input_tracking_value = '0.12em'
+    when 'mega_loose'
+      assign picker_input_tracking_value = '0.16em'
+  endcase
+
   assign show_option_names = true
   if block.settings.show_option_names == false
     assign show_option_names = false
@@ -62,6 +118,21 @@
 %}
 
 {% capture picker_style %}
+  {% if picker_font != 'body' %}
+    --variant-label-font-family: var(--font-{{ picker_font }}-family);
+    --variant-label-font-style: var(--font-{{ picker_font }}-style);
+    --variant-label-font-weight: var(--font-{{ picker_font }}-weight);
+  {% endif %}
+  {% if picker_font_size != 'sm' %}--variant-label-font-size: var(--font-body-{{ picker_font_size }});{% endif %}
+  {% if picker_tracking_value != '0' %}--variant-label-letter-spacing: {{ picker_tracking_value }};{% endif %}
+  {% if picker_input_font != 'body' %}
+    --variant-input-font-family: var(--font-{{ picker_input_font }}-family);
+    --variant-input-font-style: var(--font-{{ picker_input_font }}-style);
+    --variant-input-font-weight: var(--font-{{ picker_input_font }}-weight);
+  {% endif %}
+  {% if picker_input_font_size != 'md' %}--variant-input-font-size: var(--font-body-{{ picker_input_font_size }});{% endif %}
+  {% if picker_input_tracking_value != '0' %}--variant-input-letter-spacing: {{ picker_input_tracking_value }};{% endif %}
+
   {% if picker_padding_top != 0 %}--product-variant-picker-padding-top: {{ picker_padding_top }}px;{% endif %}
   {% if picker_padding_bottom != 0 %}--product-variant-picker-padding-bottom: {{ picker_padding_bottom }}px;{% endif %}
   {% if picker_padding_left != 0 %}--product-variant-picker-padding-left: {{ picker_padding_left }}px;{% endif %}
@@ -111,6 +182,198 @@
       "id": "show_option_names",
       "label": "t:labels.show_option_captions",
       "default": true
+    },
+    {
+      "type": "header",
+      "content": "Label typography"
+    },
+    {
+      "type": "select",
+      "id": "font",
+      "label": "t:labels.font",
+      "options": [
+        {
+          "value": "body",
+          "label": "t:options.product_price_font.body"
+        },
+        {
+          "value": "heading",
+          "label": "t:options.product_price_font.heading"
+        },
+        {
+          "value": "accent",
+          "label": "t:options.product_price_font.accent"
+        }
+      ],
+      "default": "body"
+    },
+    {
+      "type": "select",
+      "id": "font_size",
+      "label": "t:labels.font_size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "t:options.product_price_size.xs"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.product_price_size.sm"
+        },
+        {
+          "value": "md",
+          "label": "t:options.product_price_size.md"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.product_price_size.lg"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.product_price_size.xl"
+        },
+        {
+          "value": "xxl",
+          "label": "t:options.product_price_size.xxl"
+        }
+      ],
+      "default": "sm"
+    },
+    {
+      "type": "select",
+      "id": "letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        {
+          "value": "tighter",
+          "label": "Tighter"
+        },
+        {
+          "value": "tight",
+          "label": "t:options.letter_spacing.tight"
+        },
+        {
+          "value": "normal",
+          "label": "t:options.letter_spacing.normal"
+        },
+        {
+          "value": "relaxed",
+          "label": "t:options.letter_spacing.relaxed"
+        },
+        {
+          "value": "loose",
+          "label": "t:options.letter_spacing.loose"
+        },
+        {
+          "value": "extra_loose",
+          "label": "t:options.letter_spacing.extra_loose"
+        },
+        {
+          "value": "ultra_loose",
+          "label": "Ultra loose"
+        },
+        {
+          "value": "mega_loose",
+          "label": "Mega loose"
+        }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "header",
+      "content": "Input typography"
+    },
+    {
+      "type": "select",
+      "id": "input_font",
+      "label": "t:labels.font",
+      "options": [
+        {
+          "value": "body",
+          "label": "t:options.product_price_font.body"
+        },
+        {
+          "value": "heading",
+          "label": "t:options.product_price_font.heading"
+        },
+        {
+          "value": "accent",
+          "label": "t:options.product_price_font.accent"
+        }
+      ],
+      "default": "body"
+    },
+    {
+      "type": "select",
+      "id": "input_font_size",
+      "label": "t:labels.font_size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "t:options.product_price_size.xs"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.product_price_size.sm"
+        },
+        {
+          "value": "md",
+          "label": "t:options.product_price_size.md"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.product_price_size.lg"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.product_price_size.xl"
+        },
+        {
+          "value": "xxl",
+          "label": "t:options.product_price_size.xxl"
+        }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "select",
+      "id": "input_letter_spacing",
+      "label": "t:labels.letter_spacing",
+      "options": [
+        {
+          "value": "tighter",
+          "label": "Tighter"
+        },
+        {
+          "value": "tight",
+          "label": "t:options.letter_spacing.tight"
+        },
+        {
+          "value": "normal",
+          "label": "t:options.letter_spacing.normal"
+        },
+        {
+          "value": "relaxed",
+          "label": "t:options.letter_spacing.relaxed"
+        },
+        {
+          "value": "loose",
+          "label": "t:options.letter_spacing.loose"
+        },
+        {
+          "value": "extra_loose",
+          "label": "t:options.letter_spacing.extra_loose"
+        },
+        {
+          "value": "ultra_loose",
+          "label": "Ultra loose"
+        },
+        {
+          "value": "mega_loose",
+          "label": "Mega loose"
+        }
+      ],
+      "default": "normal"
     },
     {
       "type": "header",

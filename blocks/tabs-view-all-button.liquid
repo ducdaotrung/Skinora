@@ -1,6 +1,9 @@
 {% doc %}
   Renders the fixed View all action for the Collection tabs section. Collection
-  tabs assigns the destination from the active tab at runtime, so this block
+  tabs assigns the destination and overflow visibility from the active tab.
+  The first tab initializes the server-rendered state; no action is emitted
+  when none of the selected collections exceeds the section display limit.
+  This block
   intentionally keeps its resource-driven schema separate from the standard
   View all button block.
 
@@ -26,11 +29,24 @@
     assign collection_tabs_view_all_size_width_mobile = '100%'
   endif
 
-  assign collection_tabs_view_all_url = blank
-  if closest.collection != blank
-    assign collection_tabs_view_all_url = closest.collection.url
+  assign collection_tabs_view_all_limit = section.settings.max_products | default: 8 | plus: 0
+  if collection_tabs_view_all_limit < 1 or collection_tabs_view_all_limit > 24
+    assign collection_tabs_view_all_limit = 8
   endif
-
+  assign collection_tabs_view_all_tabs = section.blocks | where: 'type', 'collection-tab'
+  assign collection_tabs_view_all_initial_tab = collection_tabs_view_all_tabs | first
+  assign collection_tabs_view_all_initial_collection = collection_tabs_view_all_initial_tab.settings.collection
+  assign collection_tabs_view_all_has_overflow = false
+  for collection_tabs_view_all_tab in collection_tabs_view_all_tabs
+    if collection_tabs_view_all_tab.settings.collection != blank and collection_tabs_view_all_tab.settings.collection.products_count > collection_tabs_view_all_limit
+      assign collection_tabs_view_all_has_overflow = true
+      break
+    endif
+  endfor
+  assign collection_tabs_view_all_url = ''
+  if collection_tabs_view_all_initial_collection != blank and collection_tabs_view_all_initial_collection.products_count > collection_tabs_view_all_limit
+    assign collection_tabs_view_all_url = collection_tabs_view_all_initial_collection.url
+  endif
   assign collection_tabs_view_all_attributes = 'data-collection-tabs-view-all aria-disabled="true" tabindex="-1"'
   if collection_tabs_view_all_url != blank
     assign collection_tabs_view_all_attributes = 'data-collection-tabs-view-all'
@@ -72,9 +88,11 @@
   {% assign collection_tabs_view_all_label = 'collection_tabs.view_all' | t %}
 {% endif %}
 
-{% if collection_tabs_view_all_label != blank or request.design_mode %}
+{% if collection_tabs_view_all_has_overflow and collection_tabs_view_all_label != blank %}
   <div
-    class="{{ collection_tabs_view_all_class }}"
+    class="{{ collection_tabs_view_all_class }}{% if block.settings.hide_view_all_mobile %} collection-tabs-view-all--hide-mobile{% endif %}"
+    data-collection-tabs-view-all-wrapper
+    {% if collection_tabs_view_all_url == blank %}hidden{% endif %}
     {% if collection_tabs_view_all_style_attribute != blank %}style="{{ collection_tabs_view_all_style_attribute }}"{% endif %}
     {{ block.shopify_attributes }}
   >
@@ -105,6 +123,10 @@
     padding-left: var(--collection-tabs-view-all-padding-left, 0px);
   }
 
+  .collection-tabs-view-all[hidden] {
+    display: none;
+  }
+
   .collection-tabs-view-all__button {
     max-width: 100%;
   }
@@ -124,6 +146,9 @@
     .collection-tabs-view-all--width-mobile-fill .collection-tabs-view-all__button {
       width: 100%;
     }
+  }
+  @media (max-width: 767.98px) {
+    .collection-tabs-view-all--hide-mobile { display: none; }
   }
 {% endstylesheet %}
 
@@ -264,6 +289,7 @@
       ],
       "default": "fit"
     },
+    { "type": "checkbox", "id": "hide_view_all_mobile", "label": "t:labels.hide_view_all_on_mobile", "default": false },
     {
       "type": "select",
       "id": "width_mobile",

@@ -1,3 +1,5 @@
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: block.settings, color_id: 'overlay_background', enabled_id: 'enable_overlay', style_id: 'overlay_style' %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
 {% liquid
   assign tag = block.settings.tag
   assign social_network = block.settings.social_network | default: 'instagram'
@@ -12,7 +14,7 @@
   endunless
   assign social_background = block.settings.social_background | default: '#FFFFFF'
   assign social_color = block.settings.social_color | default: '#6A372F'
-  assign overlay_background = block.settings.overlay_background | default: '#00000061'
+  assign overlay_background = effective_overlay | default: 'transparent'
   assign tag_font_size = block.settings.tag_font_size | default: 'md'
   assign customize_mobile_tag_font_size = block.settings.customize_mobile_tag_font_size
   assign tag_font_size_mobile = block.settings.tag_font_size_mobile | default: tag_font_size
@@ -44,7 +46,7 @@
   endif
 %}
 
-<div class="gallery-image gallery-image--overlay-{{ show_overlay }}" style="--gallery-social-background: {{ social_background | escape }}; --gallery-social-color: {{ social_color | escape }}; --gallery-overlay-background: {{ overlay_background | escape }}; --gallery-overlay-opacity: 1; --gallery-tag-font-size: {{ tag_font_size_token }}; --gallery-tag-font-size-mobile: {{ tag_font_size_mobile_token }};" {{ block.shopify_attributes }}>
+<div class="gallery-image gallery-image--overlay-{{ show_overlay }}" style="--gallery-social-background: {{ social_background | escape }}; --gallery-social-color: {{ social_color | escape }}; --gallery-overlay-background: {{ overlay_background | escape }}; --gallery-tag-font-size: {{ tag_font_size_token }}; --gallery-tag-font-size-mobile: {{ tag_font_size_mobile_token }};" {{ block.shopify_attributes }}>
   {% render 'image', image: block.settings.image, mobile_image: block.settings.mobile_image, alt: block.settings.alt_text, class: 'gallery-image__media', width: 1600, widths: '400, 600, 800, 1200, 1600', sizes: '(min-width: 768px) 25vw, 50vw' %}
   <div class="gallery-image__overlay">
     {% unless social_network == 'none' %}
@@ -67,18 +69,20 @@
 {% stylesheet %}
   .gallery-image { position: relative; min-width: 0; overflow: hidden; aspect-ratio: 1; background: var(--color-foreground-alpha-10, rgb(0 0 0 / 0.08)); }
   .gallery-image__media, .gallery-image__media > picture, .gallery-image__media > img, .gallery-image__media .image__placeholder { display: block; width: 100%; height: 100%; }
-  .gallery-image__media img { object-fit: cover; transition: transform 400ms ease; }
-  .gallery-image__overlay { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem; color: var(--color-background, #fff); background: color-mix(in srgb, var(--gallery-overlay-background) calc(var(--gallery-overlay-opacity) * 100%), transparent); opacity: 1; transform: scale(1); transition: opacity 280ms ease, transform 280ms ease; }
+  .gallery-image__media :is(img, .image__placeholder) { object-fit: cover; transition: scale var(--motion-duration-slow, 500ms) var(--motion-ease-standard, ease), clip-path var(--motion-duration-slow, 500ms) var(--motion-ease-standard, ease); }
+  .gallery-image__overlay { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem; color: var(--color-background, #fff); background: var(--gallery-overlay-background, transparent); opacity: 1; transform: scale(1); transition: opacity 280ms ease, transform 280ms ease; }
   .gallery-image--overlay-hover .gallery-image__overlay { opacity: 0; transform: scale(1.04); }
   .gallery-image--overlay-hover:hover .gallery-image__overlay, .gallery-image--overlay-hover:focus-within .gallery-image__overlay { opacity: 1; transform: scale(1); }
-  .gallery-image:hover .gallery-image__media img { transform: scale(1.03); }
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .gallery-image:is(:hover, :focus-within) .gallery-image__media :is(img, .image__placeholder) { scale: var(--motion-image-zoom, 1); }
+  }
   .gallery-image__icon { width: 20px; height: 20px; }
   .gallery-image__button { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; color: var(--gallery-social-color, #6A372F); background: var(--gallery-social-background, #fff); text-decoration: none; border: 0; border-radius: 50%; transition: background-color 180ms ease, color 180ms ease, transform 180ms ease; }
   .gallery-image__button:hover, .gallery-image__button:focus-visible { color: var(--gallery-social-color, #6A372F); background: var(--gallery-social-background, #fff); transform: translateY(-2px); }
   .gallery-image__tag { font: var(--font-body--style, inherit); font-size: var(--gallery-tag-font-size, var(--font-body-md)); line-height: 1.2; }
   .gallery-image__icon--letter { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-weight: 700; font-size: 0.9rem; line-height: 1; }
   @media (max-width: 767.98px) { .gallery-image__tag { font-size: var(--gallery-tag-font-size-mobile, var(--gallery-tag-font-size, var(--font-body-md))); } }
-  @media (prefers-reduced-motion: reduce) { .gallery-image__overlay, .gallery-image__media img { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .gallery-image__overlay, .gallery-image__media :is(img, .image__placeholder) { transition: none; } }
 {% endstylesheet %}
 
 {% schema %}
@@ -86,31 +90,244 @@
   "name": "Gallery image",
   "tag": null,
   "settings": [
-    { "type": "header", "content": "Image" },
-    { "type": "image_picker", "id": "image", "label": "Image" },
-    { "type": "image_picker", "id": "mobile_image", "label": "Mobile image" },
-    { "type": "text", "id": "alt_text", "label": "Alt text" },
-    { "type": "header", "content": "Social" },
-    { "type": "text", "id": "tag", "label": "Social tag", "default": "@pam_sam" },
-    { "type": "select", "id": "tag_font_size", "label": "Font size", "options": [{ "value": "xs", "label": "Extra small" }, { "value": "sm", "label": "Small" }, { "value": "md", "label": "Medium" }, { "value": "lg", "label": "Large" }, { "value": "custom", "label": "Custom" }], "default": "md" },
-    { "type": "range", "id": "tag_font_size_custom", "label": "Custom font size", "min": 10, "max": 80, "step": 1, "unit": "px", "default": 16, "visible_if": "{{ block.settings.tag_font_size == 'custom' }}" },
-    { "type": "checkbox", "id": "customize_mobile_tag_font_size", "label": "Customize mobile font size", "default": false },
-    { "type": "select", "id": "tag_font_size_mobile", "label": "Mobile font size", "options": [{ "value": "xs", "label": "Extra small" }, { "value": "sm", "label": "Small" }, { "value": "md", "label": "Medium" }, { "value": "lg", "label": "Large" }, { "value": "custom", "label": "Custom" }], "default": "md", "visible_if": "{{ block.settings.customize_mobile_tag_font_size }}" },
-    { "type": "range", "id": "tag_font_size_custom_mobile", "label": "Custom mobile font size", "min": 10, "max": 80, "step": 1, "unit": "px", "default": 14, "visible_if": "{{ block.settings.customize_mobile_tag_font_size and block.settings.tag_font_size_mobile == 'custom' }}" },
-    { "type": "select", "id": "social_network", "label": "Social network", "options": [{ "value": "none", "label": "None" }, { "value": "instagram", "label": "Instagram" }, { "value": "facebook", "label": "Facebook" }, { "value": "x", "label": "X" }, { "value": "tiktok", "label": "TikTok" }, { "value": "youtube", "label": "YouTube" }, { "value": "pinterest", "label": "Pinterest" }, { "value": "linkedin", "label": "LinkedIn" }], "default": "instagram" },
-    { "type": "url", "id": "social_url", "label": "Social link", "info": "Leave blank to use the selected social network URL from Theme settings." },
-    { "type": "color", "alpha": true, "id": "social_background", "label": "Button background", "default": "#FFFFFF" },
-    { "type": "color", "alpha": true, "id": "social_color", "label": "Button color", "default": "#6A372F" },
-    { "type": "header", "content": "Overlay" },
-    { "type": "select", "id": "show_overlay", "label": "Show social overlay", "options": [{ "value": "always", "label": "Always" }, { "value": "hover", "label": "On hover" }], "default": "always" },
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile image"
+    },
+    {
+      "type": "text",
+      "id": "alt_text",
+      "label": "Alt text"
+    },
+    {
+      "type": "header",
+      "content": "Social"
+    },
+    {
+      "type": "text",
+      "id": "tag",
+      "label": "Social tag",
+      "default": "@pam_sam"
+    },
+    {
+      "type": "select",
+      "id": "tag_font_size",
+      "label": "Font size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "Extra small"
+        },
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "md",
+          "label": "Medium"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "range",
+      "id": "tag_font_size_custom",
+      "label": "Custom font size",
+      "min": 10,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.tag_font_size == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_tag_font_size",
+      "label": "Customize mobile font size",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "tag_font_size_mobile",
+      "label": "Mobile font size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "Extra small"
+        },
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "md",
+          "label": "Medium"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "md",
+      "visible_if": "{{ block.settings.customize_mobile_tag_font_size }}"
+    },
+    {
+      "type": "range",
+      "id": "tag_font_size_custom_mobile",
+      "label": "Custom mobile font size",
+      "min": 10,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 14,
+      "visible_if": "{{ block.settings.customize_mobile_tag_font_size and block.settings.tag_font_size_mobile == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "social_network",
+      "label": "Social network",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "instagram",
+          "label": "Instagram"
+        },
+        {
+          "value": "facebook",
+          "label": "Facebook"
+        },
+        {
+          "value": "x",
+          "label": "X"
+        },
+        {
+          "value": "tiktok",
+          "label": "TikTok"
+        },
+        {
+          "value": "youtube",
+          "label": "YouTube"
+        },
+        {
+          "value": "pinterest",
+          "label": "Pinterest"
+        },
+        {
+          "value": "linkedin",
+          "label": "LinkedIn"
+        }
+      ],
+      "default": "instagram"
+    },
+    {
+      "type": "url",
+      "id": "social_url",
+      "label": "Social link",
+      "info": "Leave blank to use the selected social network URL from Theme settings."
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "social_background",
+      "label": "Button background",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "social_color",
+      "label": "Button color",
+      "default": "#6A372F"
+    },
+    {
+      "type": "header",
+      "content": "Overlay"
+    },
+    {
+      "type": "select",
+      "id": "show_overlay",
+      "label": "Show social overlay",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always"
+        },
+        {
+          "value": "hover",
+          "label": "On hover"
+        }
+      ],
+      "default": "always"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay",
+      "default": true,
+      "label": "t:labels.show_overlay"
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ block.settings.enable_overlay }}"
+    },
     {
       "type": "color",
       "id": "overlay_background",
-      "label": "Overlay background",
+      "label": "t:labels.overlay_color",
       "alpha": true,
-      "default": "#00000061"
+      "default": "#00000061",
+      "visible_if": "{{ block.settings.enable_overlay and block.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ block.settings.enable_overlay and block.settings.overlay_style == 'gradient' }}"
     }
   ],
-  "presets": [{ "name": "Gallery image", "category": "Gallery" }]
+  "presets": [
+    {
+      "name": "Gallery image",
+      "category": "Gallery"
+    }
+  ]
 }
 {% endschema %}

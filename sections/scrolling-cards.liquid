@@ -62,7 +62,7 @@
 
 <script type="module" src="{{ 'scrolling-cards.js' | asset_url }}"></script>
 
-<div class="scrolling-cards-section scrolling-cards-section--{{ scrolling_cards_section_width }}">
+<div class="section-content-scope scrolling-cards-section scrolling-cards-section--{{ scrolling_cards_section_width }}">
   <div
     class="section-spacing scrolling-cards-section__spacing color-scheme section-color-scope {{ scrolling_cards_scheme }}"
     style="{{ scrolling_cards_style | strip }}"
@@ -73,13 +73,11 @@
         data-scrolling-cards
         data-sticky-mobile="{{ section.settings.enable_sticky_mobile }}"
       >
-        <div class="scrolling-cards__header">
-          {% content_for 'block', type: 'header', id: 'header' %}
-        </div>
+        {% capture scrolling_cards_header_content %}{% content_for 'block', type: 'header', id: 'header' %}{% endcapture %}
+        {% render 'section-content-slot', content: scrolling_cards_header_content, class: 'scrolling-cards__header' %}
 
-        <div class="scrolling-cards__items">
-          {% content_for 'blocks' %}
-        </div>
+        {% capture scrolling_cards_items_content %}{% content_for 'blocks' %}{% endcapture %}
+        {% render 'section-content-slot', content: scrolling_cards_items_content, class: 'scrolling-cards__items' %}
       </div>
     </div>
   </div>
@@ -308,7 +306,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Scrolling cards</p>",
-                "heading_size": "lg",
+                "heading_size": "display",
                 "html_tag": "h2",
                 "width": "fit"
               }
@@ -361,7 +359,7 @@
               "blocks": [
                 { "type": "eyebrow", "settings": { "text": "<p>Eyebrow</p>", "show_background": true, "corner_radius": "pill" } },
                 { "type": "spacer", "settings": { "unit_desktop": "pixel", "size_desktop_px": 80, "show_on_mobile": true, "unit_mobile": "pixel", "size_mobile_px": 40 } },
-                { "type": "heading", "settings": { "text": "<p>Heading</p>", "heading_size": "lg", "html_tag": "h3", "width": "fit" } },
+                { "type": "heading", "settings": { "text": "<p>Heading</p>", "heading_size": "display", "html_tag": "h3", "width": "fit" } },
                 { "type": "text", "settings": { "text": "<p>Use this text to share information about your brand, describe products, or highlight announcements. You can also promote special offers or communicate important messages to customers.</p>", "text_size": "sm", "width": "custom", "max_width": 500 } }
               ]
             },
@@ -423,7 +421,7 @@
               "blocks": [
                 { "type": "eyebrow", "settings": { "text": "<p>Eyebrow</p>", "show_background": true, "corner_radius": "pill" } },
                 { "type": "spacer", "settings": { "unit_desktop": "pixel", "size_desktop_px": 80, "show_on_mobile": true, "unit_mobile": "pixel", "size_mobile_px": 40 } },
-                { "type": "heading", "settings": { "text": "<p>Heading</p>", "heading_size": "lg", "html_tag": "h3", "width": "fit" } },
+                { "type": "heading", "settings": { "text": "<p>Heading</p>", "heading_size": "display", "html_tag": "h3", "width": "fit" } },
                 { "type": "text", "settings": { "text": "<p>Use this text to share information about your brand, describe products, or highlight announcements. You can also promote special offers or communicate important messages to customers.</p>", "text_size": "sm", "width": "custom", "max_width": 500 } }
               ]
             },
@@ -485,7 +483,7 @@
               "blocks": [
                 { "type": "eyebrow", "settings": { "text": "<p>Eyebrow</p>", "show_background": true, "corner_radius": "pill" } },
                 { "type": "spacer", "settings": { "unit_desktop": "pixel", "size_desktop_px": 80, "show_on_mobile": true, "unit_mobile": "pixel", "size_mobile_px": 40 } },
-                { "type": "heading", "settings": { "text": "<p>Heading</p>", "heading_size": "lg", "html_tag": "h3", "width": "fit" } },
+                { "type": "heading", "settings": { "text": "<p>Heading</p>", "heading_size": "display", "html_tag": "h3", "width": "fit" } },
                 { "type": "text", "settings": { "text": "<p>Use this text to share information about your brand, describe products, or highlight announcements. You can also promote special offers or communicate important messages to customers.</p>", "text_size": "sm", "width": "custom", "max_width": 500 } }
               ]
             },

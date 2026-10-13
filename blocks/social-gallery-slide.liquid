@@ -1,0 +1,99 @@
+{% liquid
+  assign social_gallery_network = block.settings.social_network | default: 'instagram'
+  unless social_gallery_network == 'facebook' or social_gallery_network == 'instagram' or social_gallery_network == 'tiktok' or social_gallery_network == 'youtube' or social_gallery_network == 'pinterest' or social_gallery_network == 'x' or social_gallery_network == 'linkedin'
+    assign social_gallery_network = 'instagram'
+  endunless
+
+  assign social_gallery_url = block.settings.social_url
+  if social_gallery_url == blank
+    assign social_gallery_url_key = 'social_' | append: social_gallery_network
+    assign social_gallery_url = settings[social_gallery_url_key]
+  endif
+
+  assign social_gallery_label_key = 'social.' | append: social_gallery_network
+  assign social_gallery_label = social_gallery_label_key | t
+
+  assign social_gallery_icon_background = block.settings.icon_background | default: '#00000033'
+%}
+
+<article class="social-gallery-slide swiper-slide" style="--social-gallery-icon-background: {{ social_gallery_icon_background | escape }};" {{ block.shopify_attributes }}>
+  {% render 'image',
+    image: block.settings.image,
+    mobile_image: block.settings.mobile_image,
+    alt: block.settings.alt_text,
+    class: 'social-gallery-slide__image',
+    width: 1600,
+    widths: '320, 480, 640, 800, 1200, 1600',
+    sizes: '(min-width: 1200px) 20vw, (min-width: 768px) 25vw, 80vw'
+  %}
+  <div class="social-gallery-slide__overlay">
+    {% if social_gallery_url != blank %}
+      <a
+        class="social-gallery-slide__icon"
+        href="{{ social_gallery_url | escape }}"
+        aria-label="{{ social_gallery_label | escape }}"
+        {% if block.settings.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+      >
+        {% render 'social-icon', icon: social_gallery_network %}
+      </a>
+    {% else %}
+      <span class="social-gallery-slide__icon" aria-hidden="true">
+        {% render 'social-icon', icon: social_gallery_network %}
+      </span>
+    {% endif %}
+  </div>
+</article>
+
+{% stylesheet %}
+  .social-gallery-slide { position: relative; min-width: 0; overflow: hidden; aspect-ratio: 1; border-radius: var(--carousel-slide-radius, var(--media-radius, var(--radius-rounded))); background: var(--color-foreground-alpha-10, rgb(0 0 0 / 0.08)); }
+  .social-gallery-slide__image, .social-gallery-slide__image > picture, .social-gallery-slide__image > img, .social-gallery-slide__image .image__placeholder { display: block; width: 100%; height: 100%; }
+  .social-gallery-slide__image img, .social-gallery-slide__image .image__placeholder { object-fit: cover; }
+  .social-gallery-slide__overlay { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; pointer-events: none; }
+  .social-gallery-slide__icon { display: grid; place-items: center; width: 48px; height: 48px; padding: 12px; color: #fff; background: var(--social-gallery-icon-background, #00000033); border-radius: 50%; opacity: 0; visibility: hidden; transition: opacity 180ms ease, visibility 180ms ease; }
+  @media (hover: hover) and (pointer: fine) {
+    .social-gallery-slide:hover .social-gallery-slide__icon,
+    .social-gallery-slide:focus-within .social-gallery-slide__icon { opacity: 1; visibility: visible; }
+  }
+  @media (hover: none), (pointer: coarse) {
+    .social-gallery-slide__icon { opacity: 1; visibility: visible; }
+  }
+  a.social-gallery-slide__icon { pointer-events: auto; text-decoration: none; }
+  .social-gallery-slide__icon svg { display: block; width: 24px; height: 24px; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Social gallery item",
+  "tag": null,
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "image_picker", "id": "mobile_image", "label": "Mobile image" },
+    { "type": "text", "id": "alt_text", "label": "Image alt text" },
+    {
+      "type": "select",
+      "id": "social_network",
+      "label": "Social network",
+      "options": [
+        { "value": "instagram", "label": "Instagram" },
+        { "value": "facebook", "label": "Facebook" },
+        { "value": "tiktok", "label": "TikTok" },
+        { "value": "youtube", "label": "YouTube" },
+        { "value": "pinterest", "label": "Pinterest" },
+        { "value": "x", "label": "X" },
+        { "value": "linkedin", "label": "LinkedIn" }
+      ],
+      "default": "instagram"
+    },
+    { "type": "url", "id": "social_url", "label": "Social link", "info": "Leave blank to use the selected network URL from Theme settings." },
+    { "type": "checkbox", "id": "open_new_tab", "label": "Open link in new tab", "default": true },
+    { "type": "color", "alpha": true, "id": "icon_background", "label": "Icon background", "default": "#00000033" }
+  ],
+  "presets": [
+    {
+      "name": "Social gallery item",
+      "category": "Gallery",
+      "settings": { "social_network": "instagram", "open_new_tab": true }
+    }
+  ]
+}
+{% endschema %}

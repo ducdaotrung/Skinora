@@ -11,7 +11,68 @@
   "sections": {
     "main": {
       "type": "search",
-      "settings": {}
+      "settings": {},
+      "blocks": {
+        "search": {
+          "type": "_search-input",
+          "static": true,
+          "settings": {}
+        },
+        "results": {
+          "type": "_search-results",
+          "static": true,
+          "settings": {},
+          "blocks": {
+            "toolbar": {
+              "type": "_collection-toolbar",
+              "static": true,
+              "settings": {},
+              "blocks": {
+                "filter": {
+                  "type": "_collection-filter",
+                  "static": true,
+                  "settings": {}
+                },
+                "count": {
+                  "type": "_collection-count",
+                  "static": true,
+                  "settings": {}
+                },
+                "sort": {
+                  "type": "_collection-sort",
+                  "static": true,
+                  "settings": {}
+                },
+                "columns": {
+                  "type": "_collection-columns",
+                  "static": true,
+                  "settings": {}
+                }
+              }
+            },
+            "products": {
+              "type": "_search-products",
+              "static": true,
+              "settings": {},
+              "blocks": {
+                "product-card": {
+                  "type": "product-card",
+                  "static": true,
+                  "settings": {
+                    "color_type": "inherit",
+                    "color_scheme": "scheme-1"
+                  }
+                },
+                "pagination": {
+                  "type": "pagination",
+                  "static": true,
+                  "settings": {}
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "order": [

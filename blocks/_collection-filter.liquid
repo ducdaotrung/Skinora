@@ -1,14 +1,27 @@
 {% doc %}
+  @param {object} [search_resource] - Optional native Search context; Collection remains default
   Fixed collection filter role. Owns sidebar/drawer behavior and native Shopify facets.
 {% enddoc %}
 {% liquid
- assign sort_by = collection.sort_by | default: collection.default_sort_by
+ assign facet_resource = search_resource | default: collection
+ assign facet_action = collection.url
+ assign facet_clear_url = collection.url
+ assign facet_count = collection.products_count
+ if search_resource != blank
+  assign facet_action = routes.search_url
+  assign facet_query = search_resource.terms | url_encode
+  assign facet_types = search_resource.types | join: ',' | url_encode
+  assign facet_sort = search_resource.sort_by | default: search_resource.default_sort_by | url_encode
+  assign facet_clear_url = routes.search_url | append: '?q=' | append: facet_query | append: '&options%5Bprefix%5D=last&type=' | append: facet_types | append: '&sort_by=' | append: facet_sort
+  assign facet_count = search_resource.results_count
+ endif
+ assign sort_by = facet_resource.sort_by | default: facet_resource.default_sort_by
  assign sort_label = 'collection.sort_by' | t | remove: ':' | strip
  assign clear_filters_label = 'collection.clear_all' | t
  assign filter_items_limit = block.settings.items_limit | default: 5 | plus: 0
- assign apply_filters_label = 'collection.apply_filters' | t: count: collection.products_count
+ assign apply_filters_label = 'collection.apply_filters' | t: count: facet_count
  assign active_filter_count = 0
- for filter in collection.filters
+ for filter in facet_resource.filters
   assign active_filter_count = active_filter_count | plus: filter.active_values.size
   if filter.type == 'price_range'
    if filter.min_value.value != nil or filter.max_value.value != nil
@@ -43,7 +56,7 @@
  endunless
 %}
 <div class="collection-filter-block" {{ block.shopify_attributes }}>
-{% if collection.filters.size > 0 %}
+{% if facet_resource.filters.size > 0 %}
 {% if block.settings.desktop_layout == 'sidebar' and block.settings.sidebar_visibility == 'always' %}
   <h2 class="main-collection__filter-label heading-text heading-md">{{ 'collection.filter' | t }}</h2>
 {% endif %}
@@ -51,7 +64,7 @@
 {% render 'theme-button', label: filter_button_label, variant: filter_button_style, class: 'main-collection__filter-button', attributes: filter_button_attributes, icon: filter_button_icon, icon_expanded: 'x-mark', icon_position: 'before' %}
 {% endif %}
 </div>
-{% if collection.filters.size > 0 %}
+{% if facet_resource.filters.size > 0 %}
       <div class="main-collection__filter-panel-positioner">
       <dialog
         class="main-collection__filter-dialog modal-drag-target" data-desktop-layout="{{ block.settings.desktop_layout }}" data-sidebar-visibility="{{ block.settings.sidebar_visibility }}" data-mobile-layout="{{ block.settings.mobile_layout }}" data-collapse-icon="{{ block.settings.collapse_icon }}" style="--collection-filter-right-padding:{{ block.settings.right_padding }}px"
@@ -61,7 +74,8 @@
         data-collection-filter-dialog
       >
         <span class="main-collection__filter-backdrop-pointer modal-backdrop-pointer modal-close-button close-icon" aria-hidden="true"></span>
-        <form class="main-collection__filter-form" action="{{ collection.url | escape }}" method="get">
+        <form class="main-collection__filter-form" action="{{ facet_action | escape }}" method="get">
+          {% if search_resource != blank %}{% render 'search-query-fields', search_resource: search_resource %}{% endif %}
           <div class="quick-view__handle main-collection__filter-handle" data-collection-filter-handle aria-hidden="true"></div>
           <header class="main-collection__filter-header">
             <h2 id="CollectionFiltersTitle-{{ section.id }}" class="heading-text heading-xl">{{ 'collection.filters' | t }}</h2>
@@ -73,7 +87,7 @@
           <div class="main-collection__filter-body">
             {% if active_filter_count > 0 %}
               <div class="main-collection__active-filters">
-              {% for filter in collection.filters %}
+              {% for filter in facet_resource.filters %}
                 {% for value in filter.active_values %}
                   <a class="main-collection__active-filter body-text body-sm" href="{{ value.url_to_remove | escape }}">
                     {% if filter.presentation == 'swatch' %}
@@ -101,7 +115,7 @@
                   {% endif %}
                 {% endif %}
               {% endfor %}
-              <a class="main-collection__clear-link body-text body-sm" href="{{ collection.url | escape }}">{{ 'collection.clear_all' | t }}</a>
+              <a class="main-collection__clear-link body-text body-sm" href="{{ facet_clear_url | escape }}">{{ 'collection.clear_all' | t }}</a>
               </div>
             {% endif %}
 
@@ -118,7 +132,7 @@
                   </summary>
                   <fieldset class="main-collection__sort-options">
                     <legend class="visually-hidden">{{ sort_label }}</legend>
-                    {% for option in collection.sort_options %}
+                    {% for option in facet_resource.sort_options %}
                       <label class="main-collection__sort-option body-text body-sm">
                         <input
                           type="radio"
@@ -134,7 +148,7 @@
                 </details>
               {% endif %}
 
-              {% for filter in collection.filters %}
+              {% for filter in facet_resource.filters %}
                 {% liquid
                   assign selected_count = filter.active_values.size
                   if filter.type == 'price_range'
@@ -277,7 +291,7 @@
 
           <footer class="main-collection__filter-footer">
             {% render 'theme-button', label: apply_filters_label, variant: 'primary', type: 'submit' %}
-            {% render 'theme-button', label: clear_filters_label, url: collection.url, variant: 'secondary' %}
+            {% render 'theme-button', label: clear_filters_label, url: facet_clear_url, variant: 'secondary' %}
           </footer>
         </form>
       </dialog>

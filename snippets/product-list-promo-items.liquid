@@ -1,0 +1,24 @@
+{% render 'product-list-promo-styles' %}
+{% doc %}
+  Inserts captured Promo cards at a product boundary. Positions beyond the
+  actual count clamp to the final boundary; equal positions retain block order.
+  The slot envelope is emitted by blocks/promo-card.liquid, then removed here.
+  @param {string} cards - Captured dynamic Theme Block stream
+  @param {number} position - One-based product boundary
+  @param {number} last_position - Boundary after the last displayed product
+  @param {string} layout - Grid or carousel
+{% enddoc %}
+{% assign promo_fragments = cards | split: '<!--promo-card-slot:' %}
+{% for promo_fragment in promo_fragments offset: 1 %}
+  {% liquid
+    assign promo_envelope = promo_fragment | split: '-->' | first
+    assign promo_slot = promo_envelope | plus: 0 | at_least: 1 | at_most: last_position
+    assign promo_prefix = promo_envelope | append: '-->'
+    assign promo_markup = promo_fragment | split: '<!--/promo-card-slot-->' | first | remove_first: promo_prefix | strip
+  %}
+  {% if promo_slot == position and promo_markup != blank %}
+    <div class="{% if layout == 'carousel' %}swiper-slide {% endif %}product-collection-grid__item product-list__item product-list__promo-item" data-product-list-promo-item>
+      {{ promo_markup }}
+    </div>
+  {% endif %}
+{% endfor %}

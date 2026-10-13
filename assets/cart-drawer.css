@@ -472,6 +472,7 @@
     --cart-drawer-padding: var(--cart-drawer-padding-desktop, var(--overlay-drawer-content-padding-desktop, 1.5rem));
     --cart-drawer-inset: var(--cart-drawer-inset-desktop, 0px);
     --overlay-drawer-inset: var(--cart-drawer-inset, 0px);
+    --overlay-drawer-edge-radius: var(--cart-drawer-edge-radius-desktop, 0px);
     color: var(--body-color);
   }
 

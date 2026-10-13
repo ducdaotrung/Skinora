@@ -115,7 +115,7 @@
     {% endif %}
 
     <div class="container {{ container_width }} email-signup-form__container">
-      <div class="email-signup-form__content layout-flow layout-flow--responsive align-content" style="{{ content_style }}">
+      <div class="email-signup-form__content section-content-scope layout-flow layout-flow--responsive align-content" style="{{ content_style }}">
         {% content_for 'block', type: 'header', id: 'header' %}
         {% content_for 'block', type: 'email-signup', id: 'email-signup' %}
       </div>
@@ -469,7 +469,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Main Heading Placeholder</p>",
-                "heading_size": "md",
+                "heading_size": "display",
                 "html_tag": "h2"
               }
             },

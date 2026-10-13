@@ -1,0 +1,22 @@
+{% liquid
+  assign rating = product.metafields.reviews.rating.value
+  assign rating_count = product.metafields.reviews.rating_count.value | default: 0 | plus: 0
+  assign rating_max = rating.scale_max | default: 5 | plus: 0
+  assign rating_value = rating.rating | default: 0 | plus: 0
+  if rating == blank or rating_count <= 0
+    assign rating_value = 0
+    assign rating_count = 0
+  endif
+%}
+  <div class="product-card__rating" role="img" aria-label="{{ rating_value }} / {{ rating_max }} ({{ rating_count }})">
+    <span class="product-card__rating-stars" aria-hidden="true">
+      <svg class="product-card__rating-star-row" width="74" height="14" viewBox="0 0 74 14" fill="currentColor" focusable="false">
+        <path transform="translate(0 0)" d="m7 1.46 1.72 3.48 3.84.56-2.78 2.71.65 3.82L7 10.22l-3.43 1.81.65-3.82L1.44 5.5l3.84-.56Z"/>
+        <path transform="translate(15 0)" d="m7 1.46 1.72 3.48 3.84.56-2.78 2.71.65 3.82L7 10.22l-3.43 1.81.65-3.82L1.44 5.5l3.84-.56Z"/>
+        <path transform="translate(30 0)" d="m7 1.46 1.72 3.48 3.84.56-2.78 2.71.65 3.82L7 10.22l-3.43 1.81.65-3.82L1.44 5.5l3.84-.56Z"/>
+        <path transform="translate(45 0)" d="m7 1.46 1.72 3.48 3.84.56-2.78 2.71.65 3.82L7 10.22l-3.43 1.81.65-3.82L1.44 5.5l3.84-.56Z"/>
+        <path transform="translate(60 0)" d="m7 1.46 1.72 3.48 3.84.56-2.78 2.71.65 3.82L7 10.22l-3.43 1.81.65-3.82L1.44 5.5l3.84-.56Z"/>
+      </svg>
+    </span>
+    <span class="product-card__rating-count" aria-hidden="true">({{ rating_count }})</span>
+  </div>

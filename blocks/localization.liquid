@@ -13,10 +13,11 @@
     assign localization_trigger = 'click'
   endunless
 
-  assign localization_font_size = block.settings.font_size | default: 'md'
-  unless localization_font_size == 'xs' or localization_font_size == 'sm' or localization_font_size == 'md' or localization_font_size == 'lg' or localization_font_size == 'xl' or localization_font_size == 'xxl'
+  assign localization_font_size = block.settings.font_size | default: 'display'
+  unless localization_font_size == 'display' or localization_font_size == 'xs' or localization_font_size == 'sm' or localization_font_size == 'md' or localization_font_size == 'lg' or localization_font_size == 'xl' or localization_font_size == 'xxl'
     assign localization_font_size = 'md'
   endunless
+  assign localization_font_size_token = 'var(--font-body-' | append: localization_font_size | append: ')'
 
   assign show_country_selector = true
   if block.settings.show_country_selector == false
@@ -74,7 +75,7 @@
 %}
 
 {% if has_localization or request.design_mode %}
-  <div class="{{ localization_class }}" {{ block.shopify_attributes }}>
+  <div class="{{ localization_class }}" style="font-size: {{ localization_font_size_token }};" {{ block.shopify_attributes }}>
     {% if has_localization %}
       {% if has_country_selector %}
         <details class="header-localization__details" data-header-submenu-trigger="{{ localization_trigger }}" data-localization-dialog-id="{{ country_dialog_id }}">
@@ -463,6 +464,7 @@
       "id": "font_size",
       "label": "t:labels.font_size",
       "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xs", "label": "t:options.text_size.xs" },
         { "value": "sm", "label": "t:options.text_size.sm" },
         { "value": "md", "label": "t:options.text_size.md" },
@@ -470,7 +472,7 @@
         { "value": "xl", "label": "t:options.text_size.xl" },
         { "value": "xxl", "label": "t:options.text_size.xxl" }
       ],
-      "default": "md"
+      "default": "display"
     }
   ],
   "presets": [
@@ -483,7 +485,7 @@
         "show_country_name": false,
         "show_country_flag": true,
         "show_language_selector": false,
-        "font_size": "md"
+        "font_size": "display"
       }
     }
   ]

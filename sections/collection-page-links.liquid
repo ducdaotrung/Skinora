@@ -19,7 +19,9 @@
             assign card_fetchpriority = 'high'
           endif
         %}
-        <li class="collection-page-links__item color-scheme section-color-scope {{ card_scheme }}" style="--collection-page-links-overlay: {{ block.settings.overlay_opacity | divided_by: 100.0 }}; --collection-page-links-position: {{ block.settings.focal_point }};" {{ block.shopify_attributes }}>
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: block.settings, color_id: 'overlay_color', enabled_id: 'show_overlay', style_id: 'overlay_style' %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
+        <li class="collection-page-links__item color-scheme section-color-scope {{ card_scheme }}" style="--collection-page-links-overlay: {{ effective_overlay | default: 'transparent' | escape }}; --collection-page-links-position: {{ block.settings.focal_point }};" {{ block.shopify_attributes }}>
           {% if card_collection != blank %}<a class="collection-page-links__card" href="{{ card_collection.url | escape }}">{% else %}<div class="collection-page-links__card">{% endif %}
             <div class="collection-page-links__media">
               {% if card_image != blank %}
@@ -53,7 +55,7 @@
   .collection-page-links__card:focus-visible { outline: 2px solid currentcolor; outline-offset: -4px; }
   .collection-page-links__media, .collection-page-links__image, .collection-page-links__shade { position: absolute; inset: 0; width: 100%; height: 100%; }
   .collection-page-links__image { object-fit: cover; object-position: var(--collection-page-links-position, center); }
-  .collection-page-links__shade { background: rgb(0 0 0 / var(--collection-page-links-overlay, .2)); }
+  .collection-page-links__shade { background: var(--collection-page-links-overlay, transparent); }
   .collection-page-links__content { position: relative; z-index: 1; display: flex; min-height: 360px; flex-direction: column; align-items: center; justify-content: end; gap: 8px; padding: 24px; color: #fff; text-align: center; }
   .collection-page-links__content--top { justify-content: start; }
   .collection-page-links__content--center { justify-content: center; }
@@ -72,31 +74,204 @@
   "name": "Collection page links",
   "tag": "section",
   "class": "section-collection-page-links",
-  "enabled_on": { "templates": ["collection"] },
+  "enabled_on": {
+    "templates": [
+      "collection"
+    ]
+  },
   "max_blocks": 6,
   "settings": [
-    { "type": "header", "content": "Layout" },
-    { "type": "range", "id": "column_gap", "label": "Desktop column gap", "min": 0, "max": 40, "step": 4, "unit": "px", "default": 20 },
-    { "type": "header", "content": "Appearance" },
-    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
-    { "type": "header", "content": "Section padding" },
-    { "type": "range", "id": "padding_top", "label": "t:labels.top_padding", "min": 0, "max": 80, "step": 4, "unit": "px", "default": 12 },
-    { "type": "range", "id": "padding_bottom", "label": "t:labels.bottom_padding", "min": 0, "max": 80, "step": 4, "unit": "px", "default": 12 }
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "column_gap",
+      "label": "Desktop column gap",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 12
+    }
   ],
   "blocks": [
-    { "type": "collection_card", "name": "Collection card", "limit": 6, "settings": [
-      { "type": "collection", "id": "collection", "label": "Collection" },
-      { "type": "image_picker", "id": "image", "label": "Image" },
-      { "type": "text", "id": "title", "label": "Title" },
-      { "type": "checkbox", "id": "show_product_count", "label": "Show product count", "default": true },
-      { "type": "text", "id": "subheading", "label": "Subheading" },
-      { "type": "text", "id": "button_label", "label": "Button label" },
-      { "type": "select", "id": "content_position", "label": "Content position", "options": [{ "value": "top", "label": "Top" }, { "value": "center", "label": "Center" }, { "value": "bottom", "label": "Bottom" }], "default": "bottom" },
-      { "type": "select", "id": "focal_point", "label": "Focal point", "options": [{ "value": "center center", "label": "Center" }, { "value": "center top", "label": "Top" }, { "value": "center bottom", "label": "Bottom" }], "default": "center center" },
-      { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-3" },
-      { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity", "min": 0, "max": 70, "step": 5, "unit": "%", "default": 20 }
-    ] }
+    {
+      "type": "collection_card",
+      "name": "Collection card",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_product_count",
+          "label": "Show product count",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "subheading",
+          "label": "Subheading"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Button label"
+        },
+        {
+          "type": "select",
+          "id": "content_position",
+          "label": "Content position",
+          "options": [
+            {
+              "value": "top",
+              "label": "Top"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            },
+            {
+              "value": "bottom",
+              "label": "Bottom"
+            }
+          ],
+          "default": "bottom"
+        },
+        {
+          "type": "select",
+          "id": "focal_point",
+          "label": "Focal point",
+          "options": [
+            {
+              "value": "center center",
+              "label": "Center"
+            },
+            {
+              "value": "center top",
+              "label": "Top"
+            },
+            {
+              "value": "center bottom",
+              "label": "Bottom"
+            }
+          ],
+          "default": "center center"
+        },
+        {
+          "type": "color_scheme",
+          "id": "color_scheme",
+          "label": "Color scheme",
+          "default": "scheme-3"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_overlay",
+          "default": true,
+          "label": "t:labels.show_overlay"
+        },
+        {
+          "type": "select",
+          "id": "overlay_style",
+          "label": "t:labels.overlay_style",
+          "options": [
+            {
+              "value": "solid",
+              "label": "t:options.overlay_style.solid"
+            },
+            {
+              "value": "gradient",
+              "label": "t:options.overlay_style.gradient"
+            }
+          ],
+          "default": "solid",
+          "visible_if": "{{ block.settings.show_overlay }}"
+        },
+        {
+          "type": "color",
+          "id": "overlay_color",
+          "default": "#0000000A",
+          "alpha": true,
+          "label": "t:labels.overlay_color",
+          "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'solid' }}"
+        },
+        {
+          "type": "color_background",
+          "id": "overlay_gradient",
+          "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+          "label": "t:labels.overlay_gradient",
+          "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'gradient' }}"
+        }
+      ]
+    }
   ],
-  "presets": [{ "name": "Collection page links", "blocks": [{ "type": "collection_card" }, { "type": "collection_card" }, { "type": "collection_card" }, { "type": "collection_card" }] }]
+  "presets": [
+    {
+      "name": "Collection page links",
+      "blocks": [
+        {
+          "type": "collection_card"
+        },
+        {
+          "type": "collection_card"
+        },
+        {
+          "type": "collection_card"
+        },
+        {
+          "type": "collection_card"
+        }
+      ]
+    }
+  ]
 }
 {% endschema %}

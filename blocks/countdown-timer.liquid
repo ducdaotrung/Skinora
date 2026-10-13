@@ -22,7 +22,8 @@
   endunless
 
   assign countdown_inline_font_size = block.settings.font_size | default: 'md'
-  unless countdown_inline_font_size == 'xs' or countdown_inline_font_size == 'sm' or countdown_inline_font_size == 'md' or countdown_inline_font_size == 'lg' or countdown_inline_font_size == 'xl' or countdown_inline_font_size == 'xxl'
+  assign countdown_inline_sizes = 'xs|sm|md|lg|xl|xxl' | split: '|'
+  unless countdown_inline_sizes contains countdown_inline_font_size
     assign countdown_inline_font_size = 'md'
   endunless
 

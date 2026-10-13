@@ -865,7 +865,8 @@
         "padding_top_mobile": 24,
         "padding_right_mobile": 0,
         "padding_bottom_mobile": 24,
-        "padding_left_mobile": 0
+        "padding_left_mobile": 0,
+        "overlay": true
       }
     },
     "image_cards_XhxqHQ": {
@@ -1453,7 +1454,8 @@
                 "padding_top_mobile": 0,
                 "padding_bottom_mobile": 0,
                 "padding_left_mobile": 0,
-                "padding_right_mobile": 0
+                "padding_right_mobile": 0,
+                "show_overlay": false
               },
               "blocks": {
                 "eyebrow_VEkTUm": {
@@ -1658,7 +1660,8 @@
                 "padding_top_mobile": 0,
                 "padding_bottom_mobile": 0,
                 "padding_left_mobile": 0,
-                "padding_right_mobile": 0
+                "padding_right_mobile": 0,
+                "show_overlay": false
               },
               "blocks": {
                 "eyebrow_X4dat7": {
@@ -1863,7 +1866,8 @@
                 "padding_top_mobile": 0,
                 "padding_bottom_mobile": 0,
                 "padding_left_mobile": 0,
-                "padding_right_mobile": 0
+                "padding_right_mobile": 0,
+                "show_overlay": false
               },
               "blocks": {
                 "eyebrow_LChWwP": {
@@ -2751,7 +2755,8 @@
                     "padding_top_mobile": 0,
                     "padding_bottom_mobile": 0,
                     "padding_left_mobile": 0,
-                    "padding_right_mobile": 0
+                    "padding_right_mobile": 0,
+                    "show_overlay": false
                   },
                   "blocks": {
                     "icon_mUXebC": {
@@ -2886,7 +2891,8 @@
                     "padding_top_mobile": 0,
                     "padding_bottom_mobile": 0,
                     "padding_left_mobile": 0,
-                    "padding_right_mobile": 0
+                    "padding_right_mobile": 0,
+                    "show_overlay": false
                   },
                   "blocks": {
                     "icon_NeWafP": {
@@ -3021,7 +3027,8 @@
                     "padding_top_mobile": 0,
                     "padding_bottom_mobile": 0,
                     "padding_left_mobile": 0,
-                    "padding_right_mobile": 0
+                    "padding_right_mobile": 0,
+                    "show_overlay": false
                   },
                   "blocks": {
                     "icon_Nfeyjq": {
@@ -3156,7 +3163,8 @@
                     "padding_top_mobile": 0,
                     "padding_bottom_mobile": 0,
                     "padding_left_mobile": 0,
-                    "padding_right_mobile": 0
+                    "padding_right_mobile": 0,
+                    "show_overlay": false
                   },
                   "blocks": {
                     "icon_JRVtc8": {
@@ -3291,7 +3299,8 @@
                     "padding_top_mobile": 0,
                     "padding_bottom_mobile": 0,
                     "padding_left_mobile": 0,
-                    "padding_right_mobile": 0
+                    "padding_right_mobile": 0,
+                    "show_overlay": false
                   },
                   "blocks": {
                     "icon_Yze3JU": {
@@ -3476,7 +3485,8 @@
                 "padding_top_mobile": 0,
                 "padding_bottom_mobile": 0,
                 "padding_left_mobile": 0,
-                "padding_right_mobile": 0
+                "padding_right_mobile": 0,
+                "show_overlay": false
               },
               "blocks": {
                 "product_badges_tBk4E8": {
@@ -3711,7 +3721,8 @@
             "content_padding_mobile": 24,
             "hotspot_icon_style": "dot",
             "hotspot_behavior": "click",
-            "hotspot_color_scheme": ""
+            "hotspot_color_scheme": "",
+            "show_overlay": true
           },
           "blocks": {
             "hotspot_bE6thM": {
@@ -3798,7 +3809,8 @@
             "content_padding_mobile": 24,
             "hotspot_icon_style": "dot",
             "hotspot_behavior": "click",
-            "hotspot_color_scheme": ""
+            "hotspot_color_scheme": "",
+            "show_overlay": true
           },
           "blocks": {
             "hotspot_TRBkW4": {
@@ -3885,7 +3897,8 @@
             "content_padding_mobile": 24,
             "hotspot_icon_style": "dot",
             "hotspot_behavior": "click",
-            "hotspot_color_scheme": ""
+            "hotspot_color_scheme": "",
+            "show_overlay": true
           },
           "blocks": {
             "hotspot_8wQpfH": {
@@ -4428,7 +4441,8 @@
                     "social_background": "#ffffff",
                     "social_color": "#6a372f",
                     "show_overlay": "always",
-                    "overlay_background": "#00000061"
+                    "overlay_background": "#00000061",
+                    "enable_overlay": true
                   },
                   "blocks": {}
                 }
@@ -4483,7 +4497,8 @@
                     "social_background": "#ffffff",
                     "social_color": "#6a372f",
                     "show_overlay": "always",
-                    "overlay_background": "#00000061"
+                    "overlay_background": "#00000061",
+                    "enable_overlay": true
                   },
                   "blocks": {}
                 }
@@ -4538,7 +4553,8 @@
                     "social_background": "#ffffff",
                     "social_color": "#6a372f",
                     "show_overlay": "always",
-                    "overlay_background": "#00000061"
+                    "overlay_background": "#00000061",
+                    "enable_overlay": true
                   },
                   "blocks": {}
                 }
@@ -4593,7 +4609,8 @@
                     "social_background": "#ffffff",
                     "social_color": "#6a372f",
                     "show_overlay": "always",
-                    "overlay_background": "#00000061"
+                    "overlay_background": "#00000061",
+                    "enable_overlay": true
                   },
                   "blocks": {}
                 }
@@ -4676,7 +4693,8 @@
             "padding_top_mobile": 0,
             "padding_bottom_mobile": 0,
             "padding_left_mobile": 0,
-            "padding_right_mobile": 0
+            "padding_right_mobile": 0,
+            "show_overlay": false
           },
           "blocks": {
             "eyebrow_G9HL7b": {
@@ -4862,7 +4880,8 @@
                     "padding_top_mobile": 0,
                     "padding_bottom_mobile": 0,
                     "padding_left_mobile": 0,
-                    "padding_right_mobile": 0
+                    "padding_right_mobile": 0,
+                    "show_overlay": false
                   },
                   "blocks": {
                     "icon_Wnc9Ba": {
@@ -5048,7 +5067,8 @@
                     "padding_top_mobile": 0,
                     "padding_bottom_mobile": 0,
                     "padding_left_mobile": 0,
-                    "padding_right_mobile": 0
+                    "padding_right_mobile": 0,
+                    "show_overlay": false
                   },
                   "blocks": {
                     "icon_MxNJ8T": {
@@ -5234,7 +5254,8 @@
                     "padding_top_mobile": 0,
                     "padding_bottom_mobile": 0,
                     "padding_left_mobile": 0,
-                    "padding_right_mobile": 0
+                    "padding_right_mobile": 0,
+                    "show_overlay": false
                   },
                   "blocks": {
                     "icon_M79Fcr": {
@@ -5420,7 +5441,8 @@
                     "padding_top_mobile": 0,
                     "padding_bottom_mobile": 0,
                     "padding_left_mobile": 0,
-                    "padding_right_mobile": 0
+                    "padding_right_mobile": 0,
+                    "show_overlay": false
                   },
                   "blocks": {
                     "icon_83xYfa": {

@@ -169,6 +169,9 @@
             {% if swatch_variant != blank %}
               data-variant-id="{{ swatch_variant.id }}"
               data-first-available-or-first-variant-id="{{ swatch_variant.id }}"
+              {% if swatch_variant.inventory_quantity != blank %}data-inventory-quantity="{{ swatch_variant.inventory_quantity }}"{% endif %}
+              {% if swatch_variant.inventory_management != blank %}data-inventory-management="{{ swatch_variant.inventory_management | escape }}"{% endif %}
+              {% if swatch_variant.inventory_policy != blank %}data-inventory-policy="{{ swatch_variant.inventory_policy | escape }}"{% endif %}
             {% endif %}
             {% if swatch_is_sold_out %}disabled{% endif %}
           >

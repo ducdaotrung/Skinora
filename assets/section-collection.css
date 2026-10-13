@@ -352,11 +352,11 @@
     height: 100%;
     object-fit: cover;
     object-position: var(--main-collection-promotion-position);
-    transition: transform 300ms ease;
+    transition: scale 300ms ease, clip-path 300ms ease;
   }
 
   .main-collection__promotion-card[href]:hover .main-collection__promotion-image {
-    transform: scale(1.02);
+    scale: var(--motion-image-zoom, 1);
   }
 
   .main-collection__promotion-overlay {
@@ -1395,6 +1395,7 @@
   .main-collection__filter-dialog:not(.is-sidebar) {
     --overlay-drawer-inset: var(--overlay-drawer-padding-desktop, 0px);
     --main-collection-filter-closed-translate: calc(-100% - var(--overlay-drawer-inset));
+    border-radius: var(--overlay-drawer-edge-radius-desktop, 0px) var(--drawer-radius) var(--drawer-radius) var(--overlay-drawer-edge-radius-desktop, 0px);
     position: fixed;
     inset: var(--overlay-drawer-inset) auto var(--overlay-drawer-inset) var(--overlay-drawer-inset);
     width: min(375px, calc(100vw - var(--overlay-drawer-inset)));
@@ -1402,6 +1403,10 @@
     max-height: calc(100dvh - var(--overlay-drawer-inset) - var(--overlay-drawer-inset));
     margin: 0;
     transform: translateX(var(--main-collection-filter-closed-translate));
+  }
+
+  .main-collection__filter-dialog:not(.is-sidebar) .main-collection__filter-form {
+    border-radius: inherit;
   }
 
   .main-collection__filter-dialog:not(.is-sidebar)[open]:not(.is-closing) {
@@ -1450,7 +1455,7 @@
 }
 
 .main-collection--blocks .main-collection__promotion-card:has(.main-collection__promotion-hit-area:hover) .main-collection__promotion-image {
-  transform: scale(1.02);
+  scale: var(--motion-image-zoom, 1);
 }
 
 .main-collection--blocks .main-collection__promotion-content > .button-block {

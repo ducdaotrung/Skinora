@@ -1,15 +1,9 @@
-/*
- * ------------------------------------------------------------
- * IMPORTANT: The contents of this file are auto-generated.
- *
- * This file may be updated by the Shopify admin language editor
- * or related systems. Please exercise caution as any changes
- * made to this file may be overwritten.
- * ------------------------------------------------------------
- */
 {
   "general": {
     "404": "Not found",
+    "search_results": "Search results",
+    "search_results_block": "Results",
+    "section_padding": "Section padding",
     "article": "Article",
     "appearance": "Appearance",
     "block": "Block",
@@ -237,6 +231,25 @@
     "accordion_options": "Accordion options"
   },
   "labels": {
+    "media_corner_radius": "Media corner radius",
+    "hide_view_all_on_mobile": "Hide View all on mobile",
+    "search_items_per_page": "Items per page",
+    "search_tab_typography": "Tab typography",
+    "search_padding_top": "Top",
+    "search_padding_bottom": "Bottom",
+    "search_padding_top_mobile": "Top (mobile)",
+    "search_padding_bottom_mobile": "Bottom (mobile)",
+    "search_input_width": "Input width",
+    "search_input_height": "Input height",
+    "search_input_padding": "Input horizontal padding",
+    "enable_smart_search": "Enable smart search",
+    "search_results_per_page": "Results per page",
+    "search_enable_filtering": "Show filtering",
+    "search_enable_sorting": "Show sorting",
+    "search_recently_viewed": "Show recently viewed products",
+    "search_recently_viewed_limit": "Recently viewed product count",
+    "password_boxed": "Enable boxed layout",
+    "password_show_footer": "Show footer",
     "icon_accessible_label": "Icon link accessible label",
     "filter_settings": "Filter settings",
     "alignment": "Alignment",
@@ -624,6 +637,8 @@
     "outline_width": "Outline width",
     "elevation": "Elevation",
     "container_inset": "Container inset",
+    "overlay_style": "Overlay style",
+    "overlay_gradient": "Overlay gradient",
     "overlay_color": "Overlay color",
     "position": "Position",
     "swatch_type": "Swatch type",
@@ -704,6 +719,10 @@
     "initially_open": "Open by default"
   },
   "options": {
+    "overlay_style": {
+      "solid": "Solid",
+      "gradient": "Gradient"
+    },
     "product_quantity_style": {
       "default": "Default",
       "custom": "Custom"
@@ -831,7 +850,8 @@
     "divider_width": {
       "full": "Full",
       "content": "Content",
-      "custom": "Custom"
+      "custom": "Custom",
+      "full_bleed": "Full width (no padding)"
     },
     "section_width": {
       "page_width": "Page width",
@@ -1034,12 +1054,14 @@
       "normal": "Normal text"
     },
     "text_size": {
+      "display": "Display",
       "xs": "Extra small",
       "sm": "Small",
       "md": "Medium",
       "lg": "Large",
       "xl": "Extra large",
-      "xxl": "2X large"
+      "xxl": "2X large",
+      "custom": "Custom"
     },
     "button_radius": {
       "square": "Square",
@@ -1047,6 +1069,14 @@
       "pill": "Pill"
     },
     "radius_preset": {
+      "size_2": "Subtly rounded",
+      "size_4": "Slightly rounded",
+      "size_6": "Softly rounded",
+      "size_8": "Rounded",
+      "size_12": "Moderately rounded",
+      "size_16": "Extra rounded",
+      "size_24": "Highly rounded",
+      "size_32": "Ultra rounded",
       "inherit": "Inherit",
       "square": "Square",
       "slightly_rounded": "Slightly rounded",
@@ -1245,7 +1275,8 @@
       "diamond": "Diamond",
       "star": "Star",
       "four_stars": "4 stars",
-      "five_stars": "5 stars"
+      "five_stars": "5 stars",
+      "circle_fill": "Circle (filled)"
     },
     "icon_source": {
       "library": "Library",
@@ -1410,6 +1441,7 @@
     "transparent_overlay_logo": "Displayed when the header is placed over a visual. The default logo is used when this is blank.",
     "favicon": "Use a square image. Shopify serves it as the browser tab icon.",
     "header_logo": "Choose the logo position here. Logo artwork and width are managed in [theme settings](/editor?context=theme&category=logo%20%26%20favicons).",
+    "header_menu_toggle": "Configure the mobile menu in the 'Mobile menu' section",
     "localization_manage_countries": "[Manage countries/regions](https://admin.shopify.com/settings/markets)",
     "localization_manage_languages": "[Manage languages](https://admin.shopify.com/settings/languages)",
     "payment_icons": "Payment icons will appear once you set up payment methods.",

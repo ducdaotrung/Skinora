@@ -1,0 +1,30 @@
+{% doc %}
+  Emits each font-face once when typography roles share a font or button weight.
+  @param {object} [body_font] - Primary font
+  @param {object} [heading_font] - Heading font
+  @param {object} [accent_font] - Accent font
+  @param {string} button_font_weight - Requested button weight or inherit
+{% enddoc %}
+{%- capture font_faces -%}
+  {%- if button_font_weight != 'inherit' -%}
+    {%- if body_font != blank -%}{{- body_font | font_modify: 'weight', button_font_weight | font_face: font_display: 'swap' -}}<!-- font-face -->{%- endif -%}
+    {%- if heading_font != blank -%}{{- heading_font | font_modify: 'weight', button_font_weight | font_face: font_display: 'swap' -}}<!-- font-face -->{%- endif -%}
+  {%- endif -%}
+  {%- # Loads font variants with display: swap. -%}
+  {%- if body_font != blank -%}
+    {{- body_font | font_face: font_display: 'swap' -}}<!-- font-face -->
+    {{- body_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' -}}<!-- font-face -->
+    {{- body_font | font_modify: 'weight', 'bold' | font_modify: 'style', 'italic' | font_face: font_display: 'swap' -}}<!-- font-face -->
+    {{- body_font | font_modify: 'style', 'italic' | font_face: font_display: 'swap' -}}<!-- font-face -->
+  {%- endif -%}
+  {%- if heading_font != blank -%}
+    {{- heading_font | font_face: font_display: 'swap' -}}<!-- font-face -->
+    {{- heading_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' -}}<!-- font-face -->
+  {%- endif -%}
+  {%- if accent_font != blank -%}
+    {{- accent_font | font_face: font_display: 'swap' -}}<!-- font-face -->
+    {{- accent_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' -}}<!-- font-face -->
+  {%- endif -%}
+
+{%- endcapture -%}
+{{- font_faces | split: '<!-- font-face -->' | uniq | join: '' -}}

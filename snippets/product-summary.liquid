@@ -1,0 +1,39 @@
+{% doc %}
+  Compact product image and title with optional price and variant selection.
+  @param {product} [product] - Selected Shopify product.
+  @param {boolean} [shop_look] - Include price and variant control for bundle forms.
+  @param {boolean} [price_in_content] - Place price below the title inside the content column.
+  @param {string} [placeholder_title] - Empty-state title.
+{% enddoc %}
+<div class="product-summary">
+  <div class="product-summary__image">
+    {% if product.featured_image != blank %}
+      {{ product.featured_image | image_url: width: 160 | image_tag: loading: 'lazy', alt: product.title }}
+    {% else %}{{ 'product-1' | placeholder_svg_tag }}{% endif %}
+  </div>
+  <div class="product-summary__content body-text body-display">
+    {% if product != blank %}<a href="{{ product.url }}">{{ product.title | escape }}</a>{% else %}<span>{{ placeholder_title | default: 'Product title' | escape }}</span>{% endif %}
+    {% if shop_look and price_in_content and product != blank %}{% render 'price', item: product, context: 'product-card' %}{% endif %}
+    {% if shop_look and product != blank %}
+      {% assign summary_variant = product.selected_or_first_available_variant %}
+      {% if product.has_only_default_variant %}
+        <input type="hidden" name="id" value="{{ summary_variant.id }}" data-look-variant data-available="{{ summary_variant.available }}">
+      {% else %}
+        <span class="shop-the-look-variant-select">
+          <select name="id" data-look-variant aria-label="{{ product.title | escape }} variant">
+            {% for variant in product.variants %}<option value="{{ variant.id }}"{% unless variant.available %} disabled{% endunless %}{% if variant.id == summary_variant.id %} selected{% endif %}>{{ variant.title | escape }}{% unless variant.available %} - {{ 'products.sold_out' | t }}{% endunless %}</option>{% endfor %}
+          </select>
+        </span>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% if shop_look and price_in_content != true and product != blank %}{% render 'price', item: product, context: 'product-card' %}{% endif %}
+</div>
+{% stylesheet %}
+.product-summary { display:flex; align-items:center; gap:12px; min-width:0; width:100%; }
+.product-summary__image { width:48px; height:48px; flex:0 0 48px; background:var(--background-color); border-radius:var(--media-radius, 4px); overflow:hidden; }
+.product-summary__image :is(img,svg) { width:100%; height:100%; object-fit:cover; }
+.product-summary__content { min-width:0; flex:1; font-size:var(--product-summary-font-size, var(--font-body-display, var(--font-body-md))); font-weight:var(--product-summary-font-weight, var(--font-body-weight)); }
+.product-summary__content a { color:inherit; text-decoration:none; }
+.product-summary__content select { display:block; max-width:100%; border:0; background:transparent; color:inherit; font:inherit; margin-top:6px; }
+{% endstylesheet %}

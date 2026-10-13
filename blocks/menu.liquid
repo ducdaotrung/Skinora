@@ -35,9 +35,9 @@
 
   assign collapse_menu_on_mobile = block.settings.collapse_menu_on_mobile | default: true, allow_false: true
 
-  assign heading_size = block.settings.heading_size | default: 'lg'
+  assign heading_size = block.settings.heading_size | default: 'display'
   unless heading_size == 'display' or heading_size == 'xl' or heading_size == 'lg' or heading_size == 'md' or heading_size == 'sm' or heading_size == 'xs' or heading_size == 'custom'
-    assign heading_size = 'lg'
+    assign heading_size = 'display'
   endunless
   assign heading_custom_size = block.settings.custom_heading_size | default: 24 | plus: 0
   if heading_custom_size < 10 or heading_custom_size > 100
@@ -48,6 +48,22 @@
   unless heading_tag == 'div' or heading_tag == 'h1' or heading_tag == 'h2' or heading_tag == 'h3' or heading_tag == 'h4' or heading_tag == 'h5' or heading_tag == 'h6'
     assign heading_tag = 'h2'
   endunless
+  if heading_size == 'display'
+    case heading_tag
+      when 'h1'
+        assign heading_size = 'display'
+      when 'h3'
+        assign heading_size = 'lg'
+      when 'h4'
+        assign heading_size = 'md'
+      when 'h5'
+        assign heading_size = 'sm'
+      when 'h6'
+        assign heading_size = 'xs'
+      when 'h2', 'div'
+        assign heading_size = 'display'
+    endcase
+  endif
 
   assign heading_color = block.settings.heading_color
   if heading_color == 'heading'
@@ -56,8 +72,8 @@
     assign heading_color = 'var(--body-color)'
   endif
 
-  assign menu_size = block.settings.menu_size | default: 'md'
-  unless menu_size == 'xs' or menu_size == 'sm' or menu_size == 'md' or menu_size == 'lg' or menu_size == 'xl' or menu_size == 'xxl'
+  assign menu_size = block.settings.menu_size | default: 'display'
+  unless menu_size == 'display' or menu_size == 'xs' or menu_size == 'sm' or menu_size == 'md' or menu_size == 'lg' or menu_size == 'xl' or menu_size == 'xxl'
     assign menu_size = 'md'
   endunless
 
@@ -91,10 +107,10 @@
   assign menu_class = 'menu-block menu-block--icon-' | append: menu_icon
   assign heading_class = 'menu-block__heading heading-text heading-' | append: heading_size
   assign menu_list_class = 'menu-block__list body-text body-' | append: menu_size
+  assign menu_font_size = 'var(--font-body-' | append: menu_size | append: ')'
 %}
 
 {% capture menu_style %}
-  {% if heading_size == 'custom' %}--menu-block-heading-custom-size: {{ heading_custom_size }}px;{% endif %}
   {% if heading_gap != 16 %}--menu-block-heading-gap: {{ heading_gap }}px;{% endif %}
   {% if menu_gap != 8 %}--menu-block-menu-gap: {{ menu_gap }}px;{% endif %}
   {% if heading_color != blank %}--menu-block-heading-color: {{ heading_color | escape }};{% endif %}
@@ -105,6 +121,7 @@
 {% capture heading_markup %}
   <{{ heading_tag }}
     class="{{ heading_class }}"
+    {% if heading_size == 'custom' %}style="--heading-block-custom-size: {{ heading_custom_size }}px;"{% endif %}
   >{{ heading_content }}</{{ heading_tag }}>
 {% endcapture %}
 {% assign heading_markup = heading_markup | strip %}
@@ -113,7 +130,7 @@
   {% if has_menu %}
     <ul class="{{ menu_list_class }}" role="list">
       {% for menu_link in selected_menu.links %}
-        <li class="menu-block__item{% if menu_link.active or menu_link.child_active %} menu-block__item--active{% endif %}">
+        <li class="menu-block__item body-text body-{{ menu_size }} typography-content{% if menu_link.active or menu_link.child_active %} menu-block__item--active{% endif %}" style="font-size: {{ menu_font_size }};">
           {% if menu_link.url != blank %}
             <a
               class="menu-block__link link-underline{% if menu_link.active or menu_link.child_active or menu_link.current %} link-underline--active{% endif %}"
@@ -175,10 +192,6 @@
     </div>
   {% endif %}
 </nav>
-
-{% stylesheet %}
-  .menu-block__heading.heading-custom { font-size: var(--menu-block-heading-custom-size, var(--font-heading-custom)); }
-{% endstylesheet %}
 
 {% schema %}
 {
@@ -258,7 +271,7 @@
         { "value": "xs", "label": "t:options.heading_size.xs" },
         { "value": "custom", "label": "t:options.heading_size.custom" }
       ],
-      "default": "lg"
+      "default": "display"
     },
     {
       "type": "range",
@@ -303,6 +316,7 @@
       "id": "menu_size",
       "label": "t:labels.text_size",
       "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xs", "label": "t:options.text_size.xs" },
         { "value": "sm", "label": "t:options.text_size.sm" },
         { "value": "md", "label": "t:options.text_size.md" },
@@ -310,7 +324,7 @@
         { "value": "xl", "label": "t:options.text_size.xl" },
         { "value": "xxl", "label": "t:options.text_size.xxl" }
       ],
-      "default": "md"
+      "default": "display"
     },
     {
       "type": "color",
@@ -330,8 +344,8 @@
         "heading_gap": 16,
         "menu_gap": 8,
         "html_tag": "h2",
-        "heading_size": "lg",
-        "menu_size": "md"
+        "heading_size": "display",
+        "menu_size": "display"
       }
     }
   ]

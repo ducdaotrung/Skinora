@@ -160,9 +160,6 @@
 
   .header-top[data-layout-ready='true'] .header__column--center {
     grid-column: 2;
-  }
-
-  .header-top[data-layout-ready='true'][data-logo-position='center'] .header__column--center {
     justify-content: center;
   }
 
@@ -240,6 +237,15 @@
 
     .header-top[data-logo-position='left'] .header__row {
       grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .header-top[data-logo-position='center'] .header__row {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    }
+
+    .header__column .header-logo {
+      position: static;
+      transform: none;
     }
 
     .header__column {

@@ -1,0 +1,23 @@
+{% doc %}
+  Resolves local marquee tracking without overriding global typography roles.
+  @param {string} [value] - Tracking preset
+{% enddoc %}
+{% liquid
+  assign tracking = '0em'
+  case value
+    when 'tighter'
+      assign tracking = '-0.05em'
+    when 'tight'
+      assign tracking = '-0.025em'
+    when 'relaxed'
+      assign tracking = '0.025em'
+    when 'loose'
+      assign tracking = '0.05em'
+    when 'extra_loose'
+      assign tracking = '0.1em'
+    when 'ultra_loose'
+      assign tracking = '0.2em'
+    when 'mega_loose'
+      assign tracking = '0.3em'
+  endcase
+%}--mq-tracking:{{ tracking }};

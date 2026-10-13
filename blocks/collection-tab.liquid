@@ -1,7 +1,10 @@
+{% render 'product-list-promo-styles' %}
+{% render 'tab-layout-styles' %}
 {% doc %}
   Renders one collection tab in a Collection Tabs section. The block owns
   the collection resource and tab label. Product Card is the only fixed static
-  child, rendered once per product in the selected collection; section settings
+  child, rendered once per product. Dynamic Promo card children are inserted
+  at product boundaries using the shared Product list contract; section settings
   own the shared product-list presentation.
 
   @example
@@ -126,13 +129,22 @@
   assign collection_tab_carousel_id = 'CollectionTabCarousel-' | append: collection_tab_id
   assign collection_tab_pagination_class = 'swiper-pagination--below collection-tab__pagination collection-tab__pagination--' | append: collection_tab_pagination_type
 
-  assign collection_tab_blocks = section.blocks | where: 'type', 'collection-tab'
-  assign collection_tab_first_block = collection_tab_blocks | first
+  # Static header/navigation slots are not in section.blocks. Theme Block
+  # entries expose type @theme here, so take the first dynamic tab directly.
+  assign collection_tab_first_block = section.blocks | first
   assign collection_tab_is_initial = false
   if collection_tab_first_block != blank and collection_tab_first_block.id == block.id
     assign collection_tab_is_initial = true
   endif
 
+  assign collection_tab_deferred = false
+  if section.index != nil and request.design_mode != true and collection_tab_is_initial == false
+    assign collection_tab_deferred = true
+  endif
+%}
+
+{% unless collection_tab_deferred %}
+{% liquid
   assign collection_tab_has_products = false
   if collection_tab_collection != blank and collection_tab_collection.products != blank
     assign collection_tab_has_products = true
@@ -158,6 +170,11 @@
   endif
 %}
 
+{% capture collection_tab_promo_cards %}{% content_for 'blocks' %}{% endcapture %}
+{% liquid
+  assign collection_tab_actual_count = collection_tab_items.size | at_most: collection_tab_item_limit
+  assign collection_tab_last_position = collection_tab_actual_count | plus: 1
+%}
 {% capture collection_tab_items_content %}
   {% if collection_tab_items != blank %}
     {% for collection_tab_item in collection_tab_items limit: collection_tab_item_limit %}
@@ -169,11 +186,13 @@
           assign collection_tab_card_placeholder = true
         endif
       %}
+      {% render 'product-list-promo-items', cards: collection_tab_promo_cards, position: forloop.index, last_position: collection_tab_last_position, layout: collection_tab_layout %}
       <div class="{% if collection_tab_layout == 'carousel' %}swiper-slide {% endif %}product-collection-grid__item product-card-layout__item collection-tab__product">
         {% content_for 'block', type: 'product-card', id: 'product-card', product: collection_tab_card_product, closest.product: collection_tab_card_product, placeholder: collection_tab_card_placeholder %}
       </div>
     {% endfor %}
   {% endif %}
+  {% render 'product-list-promo-items', cards: collection_tab_promo_cards, position: collection_tab_last_position, last_position: collection_tab_last_position, layout: collection_tab_layout %}
 {% endcapture %}
 
 {% capture collection_tab_pagination_style %}
@@ -190,6 +209,10 @@
 {% endcapture %}
 {% assign collection_tab_navigation_center_style = collection_tab_navigation_center_style | strip %}
 
+{% if collection_tab_promo_cards contains '<!--promo-card-slot:' %}
+  <script data-theme-module="{{ 'product-list-promos.js' | asset_url }}"></script>
+{% endif %}
+{% endunless %}
 <div
   class="collection-tab"
   data-collection-tab
@@ -208,6 +231,7 @@
     data-collection-tab-trigger
     data-underline="active"
     data-tab-id="{{ collection_tab_id | escape }}"
+    data-view-all-available="{% if collection_tab_collection != blank and collection_tab_collection.products_count > collection_tab_max_products %}true{% else %}false{% endif %}"
     {% if collection_tab_collection != blank %}data-collection-url="{{ collection_tab_collection.url | escape }}"{% endif %}
   >
     {{ collection_tab_label | escape }}
@@ -219,10 +243,15 @@
     role="tabpanel"
     aria-labelledby="{{ collection_tab_trigger_id | escape }}"
     data-collection-tab-panel
+    {% if collection_tab_deferred %}data-tab-deferred data-section-id="{{ section.id | escape }}"{% endif %}
     data-tab-id="{{ collection_tab_id | escape }}"
     aria-hidden="{% if collection_tab_is_initial %}false{% else %}true{% endif %}"
     {% unless collection_tab_is_initial %}hidden{% endunless %}
   >
+    {% if collection_tab_deferred %}
+      {% if collection_tab_collection != blank %}<noscript><a href="{{ collection_tab_collection.url }}">{{ collection_tab_label | escape }}</a></noscript>{% endif %}
+    {% else %}
+    <div class="product-list__mobile-promos" data-product-list-mobile-promos></div>
     {% if collection_tab_show_grid %}
       <div
         class="collection-tab__carousel swiper-carousel__container"
@@ -294,6 +323,7 @@
     {% if collection_tab_collection != blank and collection_tab_has_products == false %}
       <p class="collection-tab__empty body-text body-sm">{{ 'collection_tabs.empty_collection' | t }}</p>
     {% endif %}
+    {% endif %}
   </div>
 </div>
 {% stylesheet %}
@@ -302,7 +332,20 @@
   }
 
   .collection-tab__panel {
+    --tab-card-duration: 500ms;
+    --tab-card-distance: 50px;
+    --tab-card-stagger: 100;
+    position: relative;
     min-width: 0;
+    isolation: isolate;
+  }
+
+  @media (max-width: 767.98px) {
+    .collection-tab__panel {
+      --tab-card-duration: 300ms;
+      --tab-card-distance: 30px;
+      --tab-card-stagger: 50;
+    }
   }
 
   .collection-tab__panel[hidden] {
@@ -362,7 +405,7 @@
   "name": "t:general.collection_tab",
   "tag": null,
   "blocks": [
-    { "type": "product-card" }
+    { "type": "promo-card" }
   ],
   "settings": [
     {

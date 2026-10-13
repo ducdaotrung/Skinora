@@ -52,9 +52,11 @@ const waitForContentReady = async (content) => {
   await nextFrame();
 };
 
-const loadProductFeatures = () => {
+const loadProductFeatures = (mediaModuleUrl) => {
   if (!productFeaturesPromise) {
-    productFeaturesPromise = Promise.all(productFeatureModules.map((moduleUrl) => import(moduleUrl)))
+    productFeaturesPromise = Promise.all(productFeatureModules.map((moduleUrl) => import(
+      moduleUrl === './product-media.js' && mediaModuleUrl ? mediaModuleUrl : moduleUrl,
+    )))
       .catch((error) => {
         productFeaturesPromise = null;
         throw error;
@@ -315,7 +317,7 @@ class QuickViewController {
     try {
       const [nextContent] = await Promise.all([
         this.fetchContent(targetUrl, requestController.signal),
-        loadProductFeatures(),
+        loadProductFeatures(this.dialog.dataset.productMediaModuleUrl),
       ]);
       if (requestController.signal.aborted || this.requestController !== requestController) return;
 

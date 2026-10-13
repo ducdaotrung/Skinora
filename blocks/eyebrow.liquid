@@ -9,7 +9,17 @@
   {% content_for 'block', type: 'eyebrow', id: 'eyebrow' %}
 {% enddoc %}
 
+{% assign block_plain_text = block.settings.text | strip_html | replace: '&nbsp;', '' | replace: '&#160;', '' | strip %}
+
 {% liquid
+  assign eyebrow_size = block.settings.eyebrow_size | default: 'display'
+  unless eyebrow_size == 'display' or eyebrow_size == 'custom'
+    assign eyebrow_size = 'display'
+  endunless
+  assign eyebrow_custom_size = block.settings.custom_eyebrow_size | default: 12 | plus: 0
+  if eyebrow_custom_size < 10 or eyebrow_custom_size > 100
+    assign eyebrow_custom_size = 12
+  endif
   assign border_thickness = block.settings.border_thickness | default: 0
   assign border_thickness = border_thickness | plus: 0
   assign eyebrow_radius = 'var(--radius-square)'
@@ -52,12 +62,16 @@
   assign eyebrow_scheme = eyebrow_scheme | default: 'scheme-1' | handleize
 
   assign eyebrow_class = 'eyebrow-block eyebrow-text'
+  if eyebrow_size == 'custom'
+    assign eyebrow_class = eyebrow_class | append: ' eyebrow-block--custom'
+  endif
   if block.settings.show_background
     assign eyebrow_class = eyebrow_class | append: ' eyebrow-block--background ' | append: eyebrow_scheme
   endif
 %}
 
 {% capture eyebrow_style %}
+  {% if eyebrow_size == 'custom' %}--eyebrow-block-custom-size: {{ eyebrow_custom_size }}px;{% endif %}
   {% if border_thickness != 0 %}--eyebrow-border-width: {{ border_thickness }}px;{% endif %}
   {% if block.settings.corner_radius != blank and block.settings.corner_radius != 'square' %}--eyebrow-radius: {{ eyebrow_radius }};{% endif %}
   {% if padding_top != 0 %}--eyebrow-padding-top: {{ padding_top }}px;{% endif %}
@@ -78,6 +92,7 @@
   <div
     class="{{ eyebrow_class }}"
     {% if eyebrow_style != blank %}style="{{ eyebrow_style }}"{% endif %}
+    {% if block_plain_text == blank %}data-content-empty{% endif %}
     {{ block.shopify_attributes }}
   >
     {% if block.settings.show_icon %}
@@ -85,7 +100,7 @@
         {% render 'icon', icon: eyebrow_icon, bare: true %}
       </span>
     {% endif %}
-    <div class="eyebrow-block__content">{{ block.settings.text }}</div>
+    <div class="eyebrow-block__content eyebrow-text typography-content">{{ block.settings.text }}</div>
   </div>
 {% endif %}
 
@@ -108,9 +123,18 @@
     overflow-wrap: anywhere;
   }
 
-  .eyebrow-block.eyebrow-text {
+  .eyebrow-block.eyebrow-text,
+  .eyebrow-block__content.eyebrow-text {
     color: var(--eyebrow-block-color, var(--accent-color));
+  }
+
+  .eyebrow-block.eyebrow-text {
     border-radius: var(--eyebrow-radius, var(--radius-square, 0px));
+  }
+
+  .eyebrow-block--custom.eyebrow-text,
+  .eyebrow-block--custom .eyebrow-block__content.eyebrow-text {
+    font-size: var(--eyebrow-block-custom-size, var(--font-eyebrow-size));
   }
 
   .eyebrow-block--background {
@@ -162,6 +186,28 @@
       "type": "richtext",
       "id": "text",
       "label": "t:labels.text"
+    },
+    {
+      "type": "select",
+      "id": "eyebrow_size",
+      "label": "t:labels.font_size",
+      "info": "Display uses the desktop and mobile eyebrow sizes from Theme Settings.",
+      "options": [
+        { "value": "display", "label": "t:options.text_size.display" },
+        { "value": "custom", "label": "t:options.text_size.custom" }
+      ],
+      "default": "display"
+    },
+    {
+      "type": "range",
+      "id": "custom_eyebrow_size",
+      "label": "t:labels.font_size",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 12,
+      "visible_if": "{{ block.settings.eyebrow_size == 'custom' }}"
     },
     {
       "type": "color",

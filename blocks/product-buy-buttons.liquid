@@ -185,6 +185,9 @@
     data-current-variant-id="{{ current_variant_id }}"
     data-current-variant-title="{% if current_variant != blank and current_variant.title != 'Default Title' %}{{ current_variant.title | escape }}{% endif %}"
     data-variant-available="{% if product_unavailable %}false{% else %}true{% endif %}"
+    {% if current_variant != blank and current_variant.inventory_quantity != blank %}data-inventory-quantity="{{ current_variant.inventory_quantity }}"{% endif %}
+    {% if current_variant != blank and current_variant.inventory_management != blank %}data-inventory-management="{{ current_variant.inventory_management | escape }}"{% endif %}
+    {% if current_variant != blank and current_variant.inventory_policy != blank %}data-inventory-policy="{{ current_variant.inventory_policy | escape }}"{% endif %}
     data-quantity-min="{{ quantity_min }}"
     data-quantity-step="{{ quantity_step }}"
     {% if quantity_max != blank %}data-quantity-max="{{ quantity_max }}"{% endif %}

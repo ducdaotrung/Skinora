@@ -15,7 +15,7 @@
 {% style %}
   #shopify-section-{{ section.id }} { background: {{ section.settings.background_color | default: section.settings.color_scheme.settings.background }}; }
 {% endstyle %}
-<div class="collections-page section-spacing color-scheme section-color-scope {{ section.settings.color_scheme | default: 'scheme-1' }}" style="--flex-align: {{ collections_flex_alignment }}; --text-align: {{ collections_alignment }}; --section-padding-top: {{ section.settings.padding_top }}px; --section-padding-bottom: {{ section.settings.padding_bottom }}px; --collections-page-gap: {{ section.settings.gap_desktop }}px; --collections-page-gap-mobile: {{ section.settings.gap_mobile }}px;{% if section.settings.customize_mobile_padding %} --section-padding-top-mobile: {{ section.settings.padding_top_mobile }}px; --section-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile }}px;{% endif %}">
+<div class="collections-page section-content-scope section-spacing color-scheme section-color-scope {{ section.settings.color_scheme | default: 'scheme-1' }}" style="--flex-align: {{ collections_flex_alignment }}; --text-align: {{ collections_alignment }}; --section-padding-top: {{ section.settings.padding_top }}px; --section-padding-bottom: {{ section.settings.padding_bottom }}px; --collections-page-gap: {{ section.settings.gap_desktop }}px; --collections-page-gap-mobile: {{ section.settings.gap_mobile }}px;{% if section.settings.customize_mobile_padding %} --section-padding-top-mobile: {{ section.settings.padding_top_mobile }}px; --section-padding-bottom-mobile: {{ section.settings.padding_bottom_mobile }}px;{% endif %}">
   {% if section.settings.show_top_divider %}<div class="collections-page__divider{% if section.settings.divider_full_width %} collections-page__divider--full{% endif %}" aria-hidden="true"></div>{% endif %}
   <div class="container {{ collections_width }} align-content collections-page__container">
     {% content_for 'blocks' %}
@@ -219,7 +219,7 @@
           "type": "heading",
           "settings": {
             "text": "<p>Collections list</p>",
-            "heading_size": "xl",
+            "heading_size": "display",
             "html_tag": "h1"
           }
         },

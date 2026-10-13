@@ -40,15 +40,16 @@
   assign quick_view_dialog_id = 'QuickView-' | append: section.id
 %}
 
-{{ 'product-information.css' | asset_url | stylesheet_tag }}
-{{ 'product-information-extras.css' | asset_url | stylesheet_tag }}
-{{ 'product-media.css' | asset_url | stylesheet_tag }}
-{{ 'component-bouncing-dots.css' | asset_url | stylesheet_tag }}
-{{ 'quick-view.css' | asset_url | stylesheet_tag }}
+{% render 'deferred-stylesheet', filename: 'product-information.css' %}
+{% render 'deferred-stylesheet', filename: 'product-information-extras.css' %}
+{% render 'deferred-stylesheet', filename: 'product-media.css' %}
+{% render 'deferred-stylesheet', filename: 'component-bouncing-dots.css' %}
+{% render 'deferred-stylesheet', filename: 'quick-view.css' %}
 <script type="module" src="{{ 'quick-view.js' | asset_url }}"></script>
 
 {% capture quick_view_attributes %}
   data-quick-view-overlay
+  data-product-media-module-url="{{ 'product-media.js' | asset_url | escape }}"
   data-quick-view-section-id="{{ section.id }}"
   data-quick-view-error-label="{{ 'products.quick_view_error' | t | escape }}"
   data-quick-view-retry-label="{{ 'products.quick_view_retry' | t | escape }}"

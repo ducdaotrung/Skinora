@@ -15,6 +15,8 @@
     editorSelected: false,
     recommendationProductId: null,
     variantComparePrices: new Map(),
+    variantInventory: new Map(),
+    variantInventoryKnown: new Set(),
     orderOptionsDrag: null,
     cartRevision: 0,
   };
@@ -45,6 +47,86 @@
     error.hidden = !message;
   };
 
+  const normalizeInventory = (source = {}) => {
+    const rawQuantity = source.inventory_quantity ?? source.inventoryQuantity ?? source.quantity;
+    if (rawQuantity == null || String(rawQuantity).trim() === '') return null;
+
+    const quantity = Number(rawQuantity);
+    const management = String(source.inventory_management ?? source.inventoryManagement ?? source.management ?? '').trim();
+    if (!Number.isFinite(quantity) || !management) return null;
+
+    return {
+      quantity: Math.max(0, Math.floor(quantity)),
+      management,
+      policy: String(source.inventory_policy ?? source.inventoryPolicy ?? source.policy ?? 'deny').trim().toLowerCase() || 'deny',
+    };
+  };
+
+  const rememberVariantInventory = (variantId, source) => {
+    const key = String(variantId || '');
+    if (!key) return null;
+    const inventory = normalizeInventory(source);
+    state.variantInventoryKnown.add(key);
+    if (inventory) state.variantInventory.set(key, inventory);
+    return inventory;
+  };
+
+  const inventoryFromElement = (element) => {
+    if (!element) return null;
+    const owner = element.closest?.('[data-product-buy-buttons]') || element;
+    return normalizeInventory(owner.dataset) || normalizeInventory(element.dataset);
+  };
+
+  const cartQuantityForVariant = (variantId, excludedLineKey = '') => {
+    const key = String(variantId || '');
+    if (!key) return 0;
+
+    if (Array.isArray(state.cart?.items)) {
+      return state.cart.items.reduce((total, item) => {
+        if (String(item.variant_id || '') !== key || String(item.key || '') === String(excludedLineKey || '')) {
+          return total;
+        }
+        return total + Math.max(0, Number(item.quantity || 0));
+      }, 0);
+    }
+
+    return Array.from(state.drawer?.querySelectorAll('[data-cart-line][data-variant-id]') || [])
+      .filter((line) => (
+        String(line.dataset.variantId || '') === key
+        && String(line.dataset.lineKey || '') !== String(excludedLineKey || '')
+      ))
+      .reduce((total, line) => {
+        const input = line.querySelector('[data-cart-quantity-input]');
+        return total + Math.max(0, Number(input?.value || 0));
+      }, 0);
+  };
+
+  const isInventoryError = (message) => /inventory|stock|sold\s*out|not\s+enough|available|quantity/i.test(message);
+
+  const inventoryErrorMessage = ({
+    element,
+    variantId,
+    requestedQuantity = 0,
+    lineKey = '',
+    errorMessage = '',
+  } = {}) => {
+    const inventory = inventoryFromElement(element)
+      || state.variantInventory.get(String(variantId || ''));
+    if (!inventory || inventory.policy === 'continue') return '';
+
+    const requested = Math.max(0, Number(requestedQuantity || 0));
+    const available = Math.max(0, inventory.quantity - cartQuantityForVariant(variantId, lineKey));
+    const stockLimitExceeded = requested > available;
+    if (!stockLimitExceeded && !isInventoryError(errorMessage)) return '';
+
+    if (available === 0) {
+      return state.drawer?.dataset.cartInventorySoldOut || 'This item is out of stock.';
+    }
+
+    const template = state.drawer?.dataset.cartInventoryError || 'Only __COUNT__ left in stock.';
+    return template.replace('__COUNT__', String(available));
+  };
+
   const updateHeaderCount = (cart) => {
     const count = Number(cart?.item_count || 0);
     document.querySelectorAll('[data-cart-drawer-item-count]').forEach((badge) => {
@@ -63,13 +145,16 @@
     });
   };
 
-  const parseError = async (response) => {
+  const parseError = async (response, context = {}) => {
+    let data = {};
     try {
-      const data = await response.json();
-      return data.description || data.message || '';
+      data = await response.json();
     } catch (error) {
-      return '';
+      data = {};
     }
+
+    const message = typeof data === 'string' ? data : data.description || data.message || '';
+    return inventoryErrorMessage({ ...context, errorMessage: message }) || message;
   };
 
   const escapeHtml = (value) => {
@@ -113,6 +198,7 @@
       const variantId = String(line.dataset.variantId || '');
       const comparePrice = Number(line.dataset.comparePrice || 0);
       if (variantId && comparePrice > 0) state.variantComparePrices.set(variantId, comparePrice);
+      if (variantId && normalizeInventory(line.dataset)) rememberVariantInventory(variantId, line.dataset);
     });
   };
 
@@ -120,7 +206,7 @@
     const products = new Map();
     (cart.items || []).forEach((item) => {
       const variantId = String(item.variant_id || '');
-      if (!variantId || state.variantComparePrices.has(variantId)) return;
+      if (!variantId || (state.variantComparePrices.has(variantId) && state.variantInventoryKnown.has(variantId))) return;
       const productPath = String(item.url || '').split('?')[0];
       if (productPath) products.set(productPath, true);
     });
@@ -135,7 +221,10 @@
         if (!response.ok) return;
         const product = await response.json();
         (product.variants || []).forEach((variant) => {
-          state.variantComparePrices.set(String(variant.id), Number(variant.compare_at_price || 0));
+          const variantId = String(variant.id || '');
+          if (!variantId) return;
+          state.variantComparePrices.set(variantId, Number(variant.compare_at_price || 0));
+          rememberVariantInventory(variantId, variant);
         });
       } catch (error) {
         return;
@@ -173,8 +262,12 @@
     const removeIcon = state.drawer?.dataset.removeIcon || '';
     const decreaseIcon = state.drawer?.dataset.decreaseIcon || '';
     const increaseIcon = state.drawer?.dataset.increaseIcon || '';
+    const inventory = state.variantInventory.get(String(item.variant_id || ''));
+    const inventoryAttributes = inventory
+      ? ` data-inventory-quantity="${inventory.quantity}" data-inventory-management="${escapeHtml(inventory.management)}" data-inventory-policy="${escapeHtml(inventory.policy)}"`
+      : '';
 
-    return `<article class="cart-drawer__item${isSale ? ' is-sale' : ''}" data-cart-line data-line-key="${key}" data-variant-id="${escapeHtml(item.variant_id || '')}" data-compare-price="${originalPrice}">
+    return `<article class="cart-drawer__item${isSale ? ' is-sale' : ''}" data-cart-line data-line-key="${key}" data-variant-id="${escapeHtml(item.variant_id || '')}" data-compare-price="${originalPrice}"${inventoryAttributes}>
       <a class="cart-drawer__item-media" href="${url}" aria-label="${escapeHtml(title)}">${imageMarkup}</a>
       <div class="cart-drawer__item-info">
         <h3 class="cart-drawer__item-title card-title-text"><a href="${url}">${escapeHtml(title)}</a></h3>
@@ -414,7 +507,9 @@
     if (!wrapper) return;
 
     wrapper.innerHTML = products.map((product) => {
-      const variantId = product.variants?.[0]?.id || '';
+      const variant = product.variants?.[0] || {};
+      const variantId = variant.id || '';
+      const inventory = rememberVariantInventory(variantId, variant);
       const image = product.featured_image || product.images?.[0] || '';
       const imageMarkup = image
         ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(product.title)}" loading="lazy">`
@@ -426,7 +521,7 @@
             <a class="cart-drawer__recommendation-title card-title-text" href="${escapeHtml(product.url)}">${escapeHtml(product.title)}</a>
             <span class="cart-drawer__recommendation-price card-price-text body-sm">${formatMoney(product.price, currency)}</span>
           </div>
-          <button class="icon-button cart-drawer__recommendation-add" type="button" data-cart-related-add data-variant-id="${escapeHtml(variantId)}" aria-label="Add ${escapeHtml(product.title)} to cart">${recommendationIcon}</button>
+          <button class="icon-button cart-drawer__recommendation-add" type="button" data-cart-related-add data-variant-id="${escapeHtml(variantId)}"${inventory ? ` data-inventory-quantity="${inventory.quantity}" data-inventory-management="${escapeHtml(inventory.management)}" data-inventory-policy="${escapeHtml(inventory.policy)}"` : ''} aria-label="Add ${escapeHtml(product.title)} to cart">${recommendationIcon}</button>
         </article>
       </div>`;
     }).join('');
@@ -502,6 +597,9 @@
   const findQuantityInput = (lineKey) => Array.from(state.drawer?.querySelectorAll('[data-cart-quantity-input]') || [])
     .find((input) => input.dataset.lineKey === lineKey);
 
+  const findCartLine = (lineKey) => Array.from(state.drawer?.querySelectorAll('[data-cart-line]') || [])
+    .find((line) => line.dataset.lineKey === lineKey);
+
   const setLineLoading = (lineKey, isLoading) => {
     const line = Array.from(state.drawer?.querySelectorAll('[data-cart-line]') || [])
       .find((item) => item.dataset.lineKey === lineKey);
@@ -518,6 +616,10 @@
     const nextQuantity = Math.max(0, Number.parseInt(quantity, 10) || 0);
     const fallbackError = state.drawer.dataset.cartUpdateError || 'Unable to update your cart';
     const input = findQuantityInput(lineKey);
+    const line = findCartLine(lineKey);
+    const variantId = String(line?.dataset.variantId || '');
+    const inventory = inventoryFromElement(line);
+    if (inventory) rememberVariantInventory(variantId, inventory);
     const previousQuantity = Number.parseInt(input?.value, 10) || 0;
     if (input) input.value = nextQuantity;
     setLineLoading(lineKey, true);
@@ -534,7 +636,14 @@
 
     try {
       const response = await state.request;
-      if (!response.ok) throw new Error((await parseError(response)) || fallbackError);
+      if (!response.ok) {
+        throw new Error((await parseError(response, {
+          element: line,
+          variantId,
+          requestedQuantity: nextQuantity,
+          lineKey,
+        })) || fallbackError);
+      }
       await syncMutation(await response.json());
     } catch (error) {
       if (input?.isConnected) input.value = previousQuantity;
@@ -549,9 +658,14 @@
     if (!state.drawer || state.request) return;
     if (form.dataset.variantAvailable === 'false' || submitter?.disabled) return;
     const formData = new FormData(form);
-    if (!formData.get('id')) return;
+    const variantId = String(formData.get('id') || '');
+    if (!variantId) return;
     const drawer = state.drawer;
     const opener = submitter || document.activeElement;
+    const inventoryElement = form.closest?.('[data-product-buy-buttons]') || form;
+    const inventory = inventoryFromElement(inventoryElement);
+    if (inventory) rememberVariantInventory(variantId, inventory);
+    const requestedQuantity = Math.max(1, Number.parseInt(formData.get('quantity') || '1', 10) || 1);
     const buttons = Array.from(form.querySelectorAll('[type="submit"]'));
     const disabledStates = buttons.map((button) => button.disabled);
     const loadingDots = buttons.map((button) => button.querySelector('[data-loading-dots]'));
@@ -581,7 +695,13 @@
 
     try {
       const response = await state.request;
-      if (!response.ok) throw new Error((await parseError(response)) || fallbackError);
+      if (!response.ok) {
+        throw new Error((await parseError(response, {
+          element: inventoryElement,
+          variantId,
+          requestedQuantity,
+        })) || fallbackError);
+      }
       const payload = await response.json();
       if (state.drawer !== drawer) return;
       await syncMutation(payload, { awaitRecommendations: false });
@@ -628,6 +748,9 @@
     const formData = new FormData();
     formData.set('id', button.dataset.variantId);
     formData.set('quantity', '1');
+    const variantId = String(button.dataset.variantId);
+    const inventory = inventoryFromElement(button);
+    if (inventory) rememberVariantInventory(variantId, inventory);
     button.disabled = true;
     button.setAttribute('aria-busy', 'true');
     const fallbackError = state.drawer.dataset.cartAddError || 'Unable to add this item';
@@ -642,7 +765,13 @@
 
     try {
       const response = await state.request;
-      if (!response.ok) throw new Error((await parseError(response)) || fallbackError);
+      if (!response.ok) {
+        throw new Error((await parseError(response, {
+          element: button,
+          variantId,
+          requestedQuantity: 1,
+        })) || fallbackError);
+      }
       await syncMutation(await response.json());
     } catch (error) {
       setError(error.message || fallbackError);

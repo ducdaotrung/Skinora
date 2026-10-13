@@ -1,0 +1,155 @@
+{% doc %}Fixed Search results composition; collection toolbar consumes explicit native Search context.{% enddoc %}
+{% assign search_results_query = search.terms | strip %}
+{% liquid
+ assign has_active_search_filters = false
+ for search_filter in search.filters
+  if search_filter.active_values.size > 0
+   assign has_active_search_filters = true
+  elsif search_filter.type == 'price_range'
+   if search_filter.min_value.value != nil or search_filter.max_value.value != nil
+    assign has_active_search_filters = true
+   endif
+  endif
+ endfor
+%}
+{% if search.performed and search_results_query != blank %}
+<collection-facets class="main-collection__facets search-page__results" data-section-id="{{ section.id }}" style="--collection-gap:{{ block.settings.gap }}px;--search-results-gap:{{ block.settings.gap }}px;--search-results-gap-mobile:{{ block.settings.gap_mobile }}px;--search-results-padding-top:{{ block.settings.padding_top }}px;--search-results-padding-bottom:{{ block.settings.padding_bottom }}px;{% if block.settings.customize_mobile_padding %}--search-results-padding-top-mobile:{{ block.settings.padding_top_mobile }}px;--search-results-padding-bottom-mobile:{{ block.settings.padding_bottom_mobile }}px;{% endif %}{% unless block.settings.tab_font == 'default' %}--search-tab-font-family:var(--font-{{ block.settings.tab_font }}-family);{% endunless %}" {{ block.shopify_attributes }}>
+ {% if search.results_count > 0 %}
+  {% content_for 'block', type: '_collection-toolbar', id: 'toolbar', search_resource: search %}
+ {% elsif has_active_search_filters %}
+  {% content_for 'block', type: '_collection-toolbar', id: 'toolbar', search_resource: search, empty_search_results: true %}
+ {% endif %}
+ {% content_for 'block', type: '_search-products', id: 'products', results_per_page: block.settings.results_per_page %}
+</collection-facets>
+{% endif %}
+{% stylesheet %}
+.main-collection--blocks .main-collection__facets.search-page__results { padding-block: var(--search-results-padding-top,0px) var(--search-results-padding-bottom,0px); row-gap: var(--search-results-gap,50px); }
+.search-page__results .search-page__summary { margin-block: 0 var(--search-results-gap,50px); }
+.search-page__results .search-page__tabs { margin-block: 0 var(--search-results-gap,50px); }
+.search-page__results .search-page__tab { font-family: var(--search-tab-font-family,var(--font-eyebrow-family,var(--font-body-family))); }
+@media(max-width:767.98px) {
+ .main-collection--blocks .main-collection__facets.search-page__results { row-gap: var(--search-results-gap-mobile,16px); padding-block:var(--search-results-padding-top-mobile,var(--search-results-padding-top,0px)) var(--search-results-padding-bottom-mobile,var(--search-results-padding-bottom,0px)); }
+ .search-page__results .search-page__summary,.search-page__results .search-page__tabs { margin-block-end:var(--search-results-gap-mobile,16px); }
+}
+{% endstylesheet %}
+{% schema %}
+{
+  "name": "t:general.search_results_block",
+  "tag": null,
+  "settings": [
+    {
+      "type": "range",
+      "id": "results_per_page",
+      "label": "t:labels.search_items_per_page",
+      "min": 5,
+      "max": 50,
+      "step": 1,
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "t:labels.gap"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:labels.desktop",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 50,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "t:labels.mobile",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 16,
+      "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.search_tab_typography"
+    },
+    {
+      "type": "select",
+      "id": "tab_font",
+      "label": "t:labels.font",
+      "options": [
+        {
+          "value": "default",
+          "label": "Default"
+        },
+        {
+          "value": "body",
+          "label": "t:labels.body_font"
+        },
+        {
+          "value": "accent",
+          "label": "t:labels.accent_font"
+        },
+        {
+          "value": "heading",
+          "label": "t:labels.heading_font"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "header",
+      "content": "t:labels.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.search_padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.search_padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 0,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.search_padding_top_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 0,
+      "unit": "px",
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.search_padding_bottom_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "default": 0,
+      "unit": "px",
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ]
+}
+{% endschema %}

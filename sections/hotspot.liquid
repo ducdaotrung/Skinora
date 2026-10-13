@@ -35,7 +35,7 @@
 {% assign hotspot_section_style = hotspot_section_style | strip %}
 
 <div
-  class="hotspot-section section-color-scope color-scheme {{ hotspot_section_scheme }} hotspot-section--width-{{ hotspot_section_width }}"
+  class="section-content-scope hotspot-section section-color-scope color-scheme {{ hotspot_section_scheme }} hotspot-section--width-{{ hotspot_section_width }}"
   style="{{ hotspot_section_style }}"
   data-hotspot-section
 >
@@ -52,9 +52,8 @@
     %}
   {% endif %}
 
-  <div class="{{ hotspot_section_header_class }}">
-    {% content_for 'block', type: 'header', id: 'header' %}
-  </div>
+  {% capture hotspot_header_content %}{% content_for 'block', type: 'header', id: 'header' %}{% endcapture %}
+  {% render 'section-content-slot', content: hotspot_header_content, class: hotspot_section_header_class %}
 
   <div class="hotspot-section__callout">
     {% content_for 'block', type: 'product-callout', id: 'product-callout' %}
@@ -331,7 +330,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Main Heading Text Placeholder</p>",
-                "heading_size": "lg",
+                "heading_size": "display",
                 "html_tag": "h2"
               }
             }

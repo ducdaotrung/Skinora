@@ -1,3 +1,4 @@
+{%- capture theme_size_font_size -%}{%- render 'typography-size-token', size: block.settings.font_size, role: 'body', fallback: 'md' -%}{%- endcapture -%}
 {% liquid
   assign account_type = block.settings.type | default: 'icon_with_text'
   unless account_type == 'icon' or account_type == 'text' or account_type == 'icon_with_text'
@@ -10,8 +11,8 @@
     assign account_font = 'accent'
   endunless
 
-  assign account_font_size = block.settings.font_size | default: 'md'
-  unless account_font_size == 'sm' or account_font_size == 'md' or account_font_size == 'lg' or account_font_size == 'xl' or account_font_size == 'xxl'
+  assign account_font_size = theme_size_font_size | default: 'md'
+  unless account_font_size == 'display' or account_font_size == 'sm' or account_font_size == 'md' or account_font_size == 'lg' or account_font_size == 'xl' or account_font_size == 'xxl'
     assign account_font_size = 'md'
   endunless
 
@@ -153,13 +154,14 @@
       "id": "font_size",
       "label": "Font size",
       "options": [
+        { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "sm", "label": "Small" },
         { "value": "md", "label": "Medium" },
         { "value": "lg", "label": "Large" },
         { "value": "xl", "label": "Extra large" },
         { "value": "xxl", "label": "Double extra large" }
       ],
-      "default": "md"
+      "default": "display"
     },
     {
       "type": "select",

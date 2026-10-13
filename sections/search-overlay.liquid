@@ -51,6 +51,7 @@
   aria-hidden="true"
   hidden
   data-search-overlay
+  data-section-id="{{ section.id }}"
   data-placeholder="{{ search_overlay_placeholder | escape }}"
   data-placeholder-suggestions="{{ section.settings.placeholder_suggestions | escape }}"
   data-show-products="{{ search_show_products }}"
@@ -66,6 +67,9 @@
   data-pages-label="{{ 'search.pages' | t | escape }}"
   data-suggestions-label="{{ 'search.suggestions' | t | escape }}"
   data-view-all-label="{{ 'search.view_all_results' | t | escape }}"
+  data-recent-label="{{ 'search.recently_viewed' | t | escape }}"
+  data-loading-label="{{ 'accessibility.loading' | t | escape }}"
+  data-error-label="{{ 'search.predictive_error' | t | escape }}"
   data-no-results-label="{{ 'search.no_results' | t | escape }}"
 >
   <button class="component-overlay__backdrop backdrop-blur search-overlay__backdrop" type="button" tabindex="-1" aria-label="{{ 'search.close' | t }}" data-component-overlay-backdrop data-search-overlay-backdrop></button>
@@ -77,6 +81,7 @@
         </span>
         <label class="visually-hidden" for="SearchOverlayInput">{{ 'search.title' | t }}</label>
         <input id="SearchOverlayInput" class="search-overlay__input form__control form__control--input" name="q" type="search" autocomplete="off" placeholder="{{ search_overlay_placeholder | escape }}" role="combobox" aria-autocomplete="list" aria-controls="SearchOverlayResults" aria-expanded="false" data-search-overlay-input>
+        <button class="search-overlay__compact-submit" type="submit" aria-label="{{ 'search.submit' | t | escape }}">{% render 'icon', icon: 'magnifying-glass', bare: true %}</button>
         <button class="overlay-close search-overlay__close" type="button" aria-label="{{ 'search.close' | t }}" data-overlay-close data-search-overlay-close>{% render 'icon', icon: 'x-mark', bare: true, class: 'overlay-close__icon' %}</button>
       </form>
 
@@ -193,6 +198,7 @@
     .search-overlay__tabs { gap: 1.25rem; }
     .search-overlay__product-grid, .search-overlay__collection-grid, .search-overlay__article-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
   }
+
 {% endstylesheet %}
 
 {% javascript %}
@@ -325,6 +331,7 @@
     overlay.style.setProperty('--search-overlay-top', `${Math.max(0, header?.getBoundingClientRect().bottom || 0)}px`);
     synchronizePanelPadding(header, overlay);
     presentation?.open({ opener: state.editorSelected ? null : state.opener || document.activeElement, focus, restoreFocus: !state.editorSelected });
+    if (focus) input.focus({ preventScroll: true });
     startPlaceholderRotation();
     document.dispatchEvent(new CustomEvent('search-overlay:open', { detail: { header } }));
   };
@@ -357,6 +364,7 @@
 
   const render = (resourceResults, query, targetOverlay = state.overlay, targetResults = state.results, targetInput = state.input) => {
     if (!targetOverlay || !targetResults) return;
+
     const products = resourceResults.products || [];
     const collections = resourceResults.collections || [];
     const articles = resourceResults.articles || [];
@@ -412,7 +420,7 @@
     state.input = nextInput;
     state.form = nextForm;
     state.results = nextResults;
-    state.sectionRoot = nextOverlay.closest('.shopify-section') || nextOverlay;
+    state.sectionRoot = document.getElementById(`shopify-section-${nextOverlay.dataset.sectionId}`) || nextOverlay.closest('.shopify-section') || nextOverlay;
     state.editorSelected = wasEditorSelected;
     nextInput.dataset.searchOverlayDefaultPlaceholder = nextOverlay.dataset.placeholder || nextInput.getAttribute('placeholder') || '';
     resetPlaceholder(nextInput);
@@ -422,8 +430,10 @@
 
     nextInput.addEventListener('input', () => {
       const query = nextInput.value.trim();
+      nextOverlay.classList.toggle('search-overlay--has-query', !!query);
       window.clearTimeout(state.timer);
-      if (!query) {
+      state.controller?.abort();
+        if (!query) {
         nextResults.hidden = true;
         nextResults.innerHTML = '';
         nextResults.classList.remove('search-overlay__results--has-suggestions');
@@ -434,24 +444,28 @@
         return;
       }
       stopPlaceholderRotation();
+      nextResults.hidden = false;
+      nextResults.innerHTML = `<p role="status">${escapeHtml(nextOverlay.dataset.loadingLabel)}</p>`;
+      nextInput.setAttribute('aria-expanded', 'true');
       state.timer = window.setTimeout(async () => {
         state.controller?.abort();
         state.controller = new AbortController();
         const requestController = state.controller;
         const params = new URLSearchParams({ q: query, 'resources[type]': getResourceTypes(nextOverlay), 'resources[limit]': '10', 'resources[limit_scope]': 'each' });
         try {
-          const response = await fetch(`${nextOverlay.dataset.predictiveSearchUrl}?${params}`, {
-            headers: { Accept: 'application/json' },
-            signal: requestController.signal,
-          });
-          if (!response.ok) throw new Error('Predictive search failed');
-          const data = await response.json();
+          let resourceResults;
+          if (window.ThemeSearchSuggestions) resourceResults = await window.ThemeSearchSuggestions.request(nextOverlay, query, requestController.signal, 10);
+          else {
+            const response = await fetch(`${nextOverlay.dataset.predictiveSearchUrl}?${params}`, { headers: { Accept: 'application/json' }, signal: requestController.signal });
+            if (!response.ok) throw new Error('Predictive search failed');
+            resourceResults = (await response.json()).resources?.results || {};
+          }
           if (state.overlay !== nextOverlay || state.input !== nextInput || query !== nextInput.value.trim()) return;
-          render(data.resources?.results || {}, query, nextOverlay, nextResults, nextInput);
+          render(resourceResults, query, nextOverlay, nextResults, nextInput);
           nextInput.setAttribute('aria-expanded', 'true');
         } catch (error) {
           if (error.name !== 'AbortError' && state.overlay === nextOverlay) {
-            nextResults.innerHTML = `<p class="search-overlay__empty body-text body-sm">${escapeHtml(nextOverlay.dataset.noResultsLabel)}</p>`;
+            nextResults.innerHTML = `<p class="search-overlay__empty body-text body-sm">${escapeHtml(nextOverlay.dataset.errorLabel)}</p>`;
             nextResults.hidden = false;
             nextResults.classList.remove('search-overlay__results--has-suggestions');
             nextOverlay.classList.add('search-overlay--has-results');
@@ -460,7 +474,14 @@
       }, 160);
     });
 
-    nextForm.addEventListener('submit', (event) => { if (!nextInput.value.trim()) event.preventDefault(); });
+    nextInput.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' && !nextResults.hidden) {
+        const first = nextResults.querySelector('button, a');
+        if (first) { event.preventDefault(); first.focus(); }
+      }
+    });
+
+    nextForm.addEventListener('submit', (event) => { if (!nextInput.value.trim()) event.preventDefault(); else window.ThemeSearchSuggestions?.recordSearch(nextInput.value); });
     if (state.editorSelected) open({ focus: false });
   };
 
@@ -484,6 +505,7 @@
   document.addEventListener('shopify:section:unload', (event) => {
     if (!state.overlay) return;
     const target = event.target;
+    if (target?.contains?.(state.opener) && target !== state.sectionRoot) { close({ force: true }); return; }
     if (target === state.sectionRoot || target?.contains?.(state.overlay)) {
       close({ force: true });
       state.presentation?.destroy();

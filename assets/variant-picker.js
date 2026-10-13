@@ -56,7 +56,23 @@ class VariantPicker extends HTMLElement {
 
     try {
       const variants = JSON.parse(dataElement.textContent);
-      return Array.isArray(variants) ? variants : [];
+      if (!Array.isArray(variants)) return [];
+
+      const inventoryElement = this.querySelector('[data-variant-inventory-data]');
+      if (!inventoryElement) return variants;
+      let inventoryData = [];
+      try {
+        inventoryData = JSON.parse(inventoryElement.textContent);
+      } catch (error) {
+        return variants;
+      }
+      if (!Array.isArray(inventoryData)) return variants;
+      const inventoryById = new Map(inventoryData.map((variant) => [String(variant.id), variant]));
+
+      return variants.map((variant) => ({
+        ...variant,
+        ...(inventoryById.get(String(variant.id)) || {}),
+      }));
     } catch (error) {
       return [];
     }

@@ -1,12 +1,18 @@
 {% doc %}
   Renders an independent responsive image kernel with an optional link.
 
-  The block owns its image source, responsive ratio, width, radius and padding,
+  The block owns its image source, responsive ratio, width, solid or gradient overlay, radius and padding,
   while the shared image snippet owns semantic media markup and image loading.
 
   @example
   {% content_for 'block', type: 'image', id: 'image' %}
 {% enddoc %}
+{% capture effective_overlay %}
+  {% if block.settings.show_overlay %}
+    {% render 'overlay-background', overlay_settings: block.settings %}
+  {% endif %}
+{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
 
 {% liquid
   assign image_source = block.settings.image
@@ -18,6 +24,11 @@
   endcapture
   assign image_ratio_desktop = image_ratio_desktop | strip
   assign image_height_desktop = 'auto'
+  assign image_fill_desktop = false
+  if image_ratio_desktop_setting == 'auto' and block.settings.height_desktop == 'fill'
+    assign image_height_desktop = '100%'
+    assign image_fill_desktop = true
+  endif
   if image_ratio_desktop_setting == 'square' or image_ratio_desktop_setting == 'portrait' or image_ratio_desktop_setting == 'landscape' or image_ratio_desktop_setting == 'wide' or image_ratio_desktop_setting == 'custom'
     assign image_height_desktop = '100%'
   endif
@@ -28,6 +39,11 @@
   endcapture
   assign image_ratio_mobile = image_ratio_mobile | strip
   assign image_height_mobile = 'auto'
+  assign image_fill_mobile = false
+  if image_ratio_mobile_setting == 'auto' and block.settings.height_mobile == 'fill'
+    assign image_height_mobile = '100%'
+    assign image_fill_mobile = true
+  endif
   if image_ratio_mobile_setting == 'square' or image_ratio_mobile_setting == 'portrait' or image_ratio_mobile_setting == 'landscape' or image_ratio_mobile_setting == 'wide' or image_ratio_mobile_setting == 'custom'
     assign image_height_mobile = '100%'
   endif
@@ -125,6 +141,12 @@
   assign padding_right_mobile = block.settings.padding_right_mobile | default: 0 | plus: 0
 
   assign image_class = 'image-block size-style size-style--contain image-block--ratio-desktop-' | append: image_ratio_desktop_setting
+  if image_fill_desktop
+    assign image_class = image_class | append: ' image-block--height-fill'
+  endif
+  if image_fill_mobile
+    assign image_class = image_class | append: ' image-block--height-fill-mobile'
+  endif
   if block.settings.show_image_first_mobile
     assign image_class = image_class | append: ' image-block--first-mobile'
   endif
@@ -151,6 +173,7 @@
     --image-block-padding-left-mobile: {{ padding_left_mobile }}px;
     --image-block-padding-right-mobile: {{ padding_right_mobile }}px;
   {% endif %}
+  --image-block-overlay: {{ effective_overlay | default: 'transparent' | escape }};
   --image-block-radius: {{ image_radius_value }};
 {% endcapture %}
 {% assign image_style = image_style | strip | replace: '\n', ' ' %}
@@ -184,6 +207,16 @@
     padding-left: var(--image-block-padding-left, 0px);
   }
 
+  .image-block__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background: var(--image-block-overlay, transparent);
+    pointer-events: none;
+  }
+
   .image-block__media {
     width: 100%;
     max-width: 100%;
@@ -192,6 +225,7 @@
   }
 
   .image-block .image-block__media > picture,
+    .image-block .image-block__media > picture > img,
   .image-block .image-block__media > img,
   .image-block .image-block__media .image__placeholder {
     display: block;
@@ -221,10 +255,23 @@
     }
 
     .image-block .image-block__media > picture,
+    .image-block .image-block__media > picture > img,
     .image-block .image-block__media > img,
     .image-block .image-block__media .image__placeholder {
       height: var(--image-block-image-height-mobile, var(--image-block-image-height, auto));
     }
+  }
+  /* Fill removes image intrinsic height from the row's sizing: sibling content
+     or a definite parent height owns the frame. Auto remains intrinsic. */
+  @media (min-width: 768px) {
+    .image-block--height-fill { display: flex; height: 100%; min-height: 0; align-self: stretch; }
+    .image-block--height-fill > .image-block__media { flex: 1 1 auto; height: auto; min-height: 0; }
+    .image-block--height-fill .image-block__media > :is(img, picture, .image__placeholder) { position: absolute; inset: 0; height: 100%; }
+  }
+  @media (max-width: 767.98px) {
+    .image-block--height-fill-mobile { display: flex; height: 100%; min-height: 0; align-self: stretch; }
+    .image-block--height-fill-mobile > .image-block__media { flex: 1 1 auto; height: auto; min-height: 0; }
+    .image-block--height-fill-mobile .image-block__media > :is(img, picture, .image__placeholder) { position: absolute; inset: 0; height: 100%; }
   }
 {% endstylesheet %}
 
@@ -278,8 +325,14 @@
       "id": "device",
       "label": "t:labels.device",
       "options": [
-        { "value": "desktop", "label": "t:options.device.desktop" },
-        { "value": "mobile", "label": "t:options.device.mobile" }
+        {
+          "value": "desktop",
+          "label": "t:options.device.desktop"
+        },
+        {
+          "value": "mobile",
+          "label": "t:options.device.mobile"
+        }
       ],
       "default": "desktop"
     },
@@ -288,15 +341,50 @@
       "id": "image_ratio_desktop",
       "label": "t:labels.image_ratio",
       "options": [
-        { "value": "auto", "label": "t:options.image_ratio.auto" },
-        { "value": "square", "label": "t:options.image_ratio.square" },
-        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
-        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
-        { "value": "wide", "label": "t:options.image_ratio.wide" },
-        { "value": "custom", "label": "t:options.image_ratio.custom" }
+        {
+          "value": "auto",
+          "label": "t:options.image_ratio.auto"
+        },
+        {
+          "value": "square",
+          "label": "t:options.image_ratio.square"
+        },
+        {
+          "value": "portrait",
+          "label": "t:options.image_ratio.portrait"
+        },
+        {
+          "value": "landscape",
+          "label": "t:options.image_ratio.landscape"
+        },
+        {
+          "value": "wide",
+          "label": "t:options.image_ratio.wide"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.image_ratio.custom"
+        }
       ],
       "default": "auto",
       "visible_if": "{{ block.settings.device == 'desktop' }}"
+    },
+    {
+      "type": "select",
+      "id": "height_desktop",
+      "label": "t:labels.height",
+      "options": [
+        {
+          "value": "auto",
+          "label": "t:options.image_ratio.auto"
+        },
+        {
+          "value": "fill",
+          "label": "t:options.width.fill"
+        }
+      ],
+      "default": "auto",
+      "visible_if": "{{ block.settings.device == 'desktop' and block.settings.image_ratio_desktop == 'auto' }}"
     },
     {
       "type": "number",
@@ -317,9 +405,18 @@
       "id": "width_desktop",
       "label": "t:labels.width",
       "options": [
-        { "value": "fit", "label": "t:options.width.fit" },
-        { "value": "fill", "label": "t:options.width.fill" },
-        { "value": "custom", "label": "t:options.width.custom" }
+        {
+          "value": "fit",
+          "label": "t:options.width.fit"
+        },
+        {
+          "value": "fill",
+          "label": "t:options.width.fill"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.width.custom"
+        }
       ],
       "default": "fit",
       "visible_if": "{{ block.settings.device == 'desktop' }}"
@@ -358,15 +455,50 @@
       "id": "image_ratio_mobile",
       "label": "t:labels.image_ratio_mobile",
       "options": [
-        { "value": "auto", "label": "t:options.image_ratio.auto" },
-        { "value": "square", "label": "t:options.image_ratio.square" },
-        { "value": "portrait", "label": "t:options.image_ratio.portrait" },
-        { "value": "landscape", "label": "t:options.image_ratio.landscape" },
-        { "value": "wide", "label": "t:options.image_ratio.wide" },
-        { "value": "custom", "label": "t:options.image_ratio.custom" }
+        {
+          "value": "auto",
+          "label": "t:options.image_ratio.auto"
+        },
+        {
+          "value": "square",
+          "label": "t:options.image_ratio.square"
+        },
+        {
+          "value": "portrait",
+          "label": "t:options.image_ratio.portrait"
+        },
+        {
+          "value": "landscape",
+          "label": "t:options.image_ratio.landscape"
+        },
+        {
+          "value": "wide",
+          "label": "t:options.image_ratio.wide"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.image_ratio.custom"
+        }
       ],
       "default": "auto",
       "visible_if": "{{ block.settings.device == 'mobile' }}"
+    },
+    {
+      "type": "select",
+      "id": "height_mobile",
+      "label": "t:labels.height",
+      "options": [
+        {
+          "value": "auto",
+          "label": "t:options.image_ratio.auto"
+        },
+        {
+          "value": "fill",
+          "label": "t:options.width.fill"
+        }
+      ],
+      "default": "auto",
+      "visible_if": "{{ block.settings.device == 'mobile' and block.settings.image_ratio_mobile == 'auto' }}"
     },
     {
       "type": "number",
@@ -387,9 +519,18 @@
       "id": "width_mobile",
       "label": "t:labels.width_mobile",
       "options": [
-        { "value": "fit", "label": "t:options.width.fit" },
-        { "value": "fill", "label": "t:options.width.fill" },
-        { "value": "custom", "label": "t:options.width.custom" }
+        {
+          "value": "fit",
+          "label": "t:options.width.fit"
+        },
+        {
+          "value": "fill",
+          "label": "t:options.width.fill"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.width.custom"
+        }
       ],
       "default": "fit",
       "visible_if": "{{ block.settings.device == 'mobile' }}"
@@ -432,11 +573,26 @@
       "id": "corner_radius",
       "label": "t:labels.corner_radius",
       "options": [
-        { "value": "inherit", "label": "t:options.radius_preset.inherit" },
-        { "value": "square", "label": "t:options.radius_preset.square" },
-        { "value": "rounded", "label": "t:options.radius_preset.rounded" },
-        { "value": "full", "label": "t:options.radius_preset.full" },
-        { "value": "custom", "label": "t:options.radius_preset.custom" }
+        {
+          "value": "inherit",
+          "label": "t:options.radius_preset.inherit"
+        },
+        {
+          "value": "square",
+          "label": "t:options.radius_preset.square"
+        },
+        {
+          "value": "rounded",
+          "label": "t:options.radius_preset.rounded"
+        },
+        {
+          "value": "full",
+          "label": "t:options.radius_preset.full"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.radius_preset.custom"
+        }
       ],
       "default": "square"
     },
@@ -450,6 +606,47 @@
       "unit": "px",
       "default": 0,
       "visible_if": "{{ block.settings.corner_radius == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:general.overlay"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "t:labels.show_overlay",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ block.settings.show_overlay }}"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "t:labels.overlay_color",
+      "alpha": true,
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'gradient' }}"
     },
     {
       "type": "header",

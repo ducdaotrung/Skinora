@@ -1,0 +1,481 @@
+{% capture effective_overlay %}{% render 'overlay-background', overlay_settings: block.settings, color_id: 'overlay_color', enabled_id: 'show_overlay', style_id: 'overlay_style' %}{% endcapture %}
+{% assign effective_overlay = effective_overlay | strip %}
+{% render 'product-list-promo-styles' %}
+{% doc %}
+  Editorial Promo card for Product list. The parent captures the dynamic block
+  stream once and inserts cards by the slot envelope below. Do not use these
+  delimiters in merchant content. Product list owns item geometry and ordering;
+  this block owns media, editorial content, and local presentation.
+{% enddoc %}
+{%- liquid
+  assign promo_scheme = block.settings.color_scheme.id | default: block.settings.color_scheme | default: 'scheme-3'
+  assign promo_alignment = block.settings.content_alignment | default: 'left'
+  assign promo_content_position = block.settings.content_position | default: 'bottom'
+  assign promo_heading_size = block.settings.heading_size | default: 'lg'
+  assign promo_text_size = block.settings.text_size | default: 'md'
+  assign promo_padding_vertical = block.settings.padding_vertical | default: 32
+  assign promo_padding_horizontal = block.settings.padding_horizontal | default: 28
+  assign promo_padding_vertical_mobile = promo_padding_vertical
+  assign promo_padding_horizontal_mobile = promo_padding_horizontal
+  if block.settings.customize_mobile_padding
+    assign promo_padding_vertical_mobile = block.settings.padding_vertical_mobile
+    assign promo_padding_horizontal_mobile = block.settings.padding_horizontal_mobile
+  endif
+  assign promo_icon = blank
+  if block.settings.show_icon
+    assign promo_icon = 'arrow'
+  endif
+  assign promo_label = block.settings.heading | strip_html | default: block.settings.button_label | default: block.settings.image.alt
+  if promo_label == blank
+    assign promo_label = 'collection_tabs.view_all' | t
+  endif
+-%}
+<!--promo-card-slot:{{ block.settings.card_position | default: 1 | at_least: 1 | at_most: 25 }}-->
+<div class="promo-card color-scheme section-color-scope {{ promo_scheme }}" data-promo-card data-promo-mobile-top="{{ block.settings.show_on_top_mobile }}" data-alignment="{{ promo_alignment }}" data-position="{{ promo_content_position }}" style="--promo-content-gap:{{ block.settings.content_gap }}px;--promo-button-spacing:{{ block.settings.button_spacing }}px;--promo-padding-vertical:{{ promo_padding_vertical }}px;--promo-padding-horizontal:{{ promo_padding_horizontal }}px;--promo-padding-vertical-mobile:{{ promo_padding_vertical_mobile }}px;--promo-padding-horizontal-mobile:{{ promo_padding_horizontal_mobile }}px;{% if block.settings.show_overlay %}--promo-overlay:{{ effective_overlay | default: 'transparent' | escape }};{% endif %}" {{ block.shopify_attributes }}>
+  {% render 'media-background', media_type: block.settings.media_type, image: block.settings.image, mobile_image: block.settings.mobile_image, video: block.settings.video, mobile_video: block.settings.mobile_video, alt: block.settings.image.alt, placeholder: 'collection-1', sizes: '(min-width: 1150px) 25vw, (min-width: 768px) 33vw, 100vw' %}
+  {% if block.settings.show_overlay %}<div class="promo-card__overlay" aria-hidden="true"></div>{% endif %}
+  {% if block.settings.card_link != blank %}
+    <a class="promo-card__link" href="{{ block.settings.card_link | escape }}" aria-label="{{ promo_label | escape }}"{% if block.settings.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}></a>
+  {% endif %}
+  <div class="promo-card__content">
+    <div class="promo-card__text">
+      {% if block.settings.subheading != blank %}<div class="eyebrow-text">{{ block.settings.subheading }}</div>{% endif %}
+      {% if block.settings.heading != blank %}<h3 class="heading-text heading-{{ promo_heading_size }}">{{ block.settings.heading }}</h3>{% endif %}
+      {% if block.settings.text != blank %}<div class="body-text body-{{ promo_text_size }} rte">{{ block.settings.text }}</div>{% endif %}
+    </div>
+    {% if block.settings.button_label != blank and block.settings.card_link != blank %}
+      <div class="promo-card__button{% if block.settings.button_full_width %} promo-card__button--full{% endif %}" data-height="{{ block.settings.button_height }}">
+        {% render 'theme-button', label: block.settings.button_label, url: block.settings.card_link, variant: block.settings.button_style, open_in_new_tab: block.settings.open_in_new_tab, icon: promo_icon %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+<!--/promo-card-slot-->
+{% stylesheet %}
+  .promo-card { position: relative; isolation: isolate; display: flex; min-width: 0; min-height: 100%; overflow: hidden; border-radius: var(--product-card-media-radius, var(--radius-16)); background: var(--background-color); }
+  .promo-card__overlay { position: absolute; inset: 0; background: var(--promo-overlay, transparent); pointer-events: none; }
+  .promo-card__link { position: absolute; inset: 0; z-index: 1; }
+  .promo-card__link:focus-visible { outline: 2px solid currentColor; outline-offset: -4px; }
+  .promo-card__content { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; width: 100%; padding: var(--promo-padding-vertical,32px) var(--promo-padding-horizontal,28px); text-align: left; pointer-events: none; }
+  .promo-card[data-position='top'] .promo-card__content { justify-content: flex-start; }
+  .promo-card[data-position='center'] .promo-card__content { justify-content: center; }
+  .promo-card[data-alignment='center'] .promo-card__content { align-items: center; text-align: center; }
+  .promo-card[data-alignment='right'] .promo-card__content { align-items: flex-end; text-align: right; }
+  .promo-card__text { display: flex; flex-direction: column; gap: var(--promo-content-gap,4px); width: 100%; overflow-wrap: anywhere; }
+  .promo-card__text > *, .promo-card__text p { margin: 0; }
+  .promo-card__text a { position: relative; z-index: 2; pointer-events: auto; }
+  .promo-card__button { z-index: 2; max-width: 100%; margin-top: var(--promo-button-spacing,16px); pointer-events: auto; }
+  .promo-card__button--full, .promo-card__button--full .btn { width: 100%; }
+  .promo-card__button[data-height='small'] { --button-height:40px; --button-height-mobile:40px; }
+  .promo-card__button[data-height='medium'] { --button-height:48px; --button-height-mobile:48px; }
+  .promo-card__button[data-height='large'] { --button-height:56px; --button-height-mobile:56px; }
+  @media (max-width:767.98px) { .promo-card__content { padding:var(--promo-padding-vertical-mobile,32px) var(--promo-padding-horizontal-mobile,28px); } }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Promo card",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "card_position",
+      "label": "Card position",
+      "info": "Insert before this product. Positions beyond the product count appear at the end. Cards sharing a position follow their block order.",
+      "min": 1,
+      "max": 25,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "checkbox",
+      "id": "show_on_top_mobile",
+      "label": "Show promo card on top (mobile)",
+      "default": true
+    },
+    {
+      "type": "url",
+      "id": "card_link",
+      "label": "Card link"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "t:labels.open_in_new_tab",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Media type",
+      "options": [
+        {
+          "value": "image",
+          "label": "t:general.image"
+        },
+        {
+          "value": "video",
+          "label": "t:general.video"
+        }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:labels.image",
+      "visible_if": "{{ block.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "t:labels.mobile_image",
+      "visible_if": "{{ block.settings.media_type == 'image' }}"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "t:labels.video",
+      "visible_if": "{{ block.settings.media_type == 'video' }}"
+    },
+    {
+      "type": "video",
+      "id": "mobile_video",
+      "label": "t:labels.mobile_video",
+      "visible_if": "{{ block.settings.media_type == 'video' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "t:labels.show_overlay",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "t:labels.overlay_style",
+      "options": [
+        {
+          "value": "solid",
+          "label": "t:options.overlay_style.solid"
+        },
+        {
+          "value": "gradient",
+          "label": "t:options.overlay_style.gradient"
+        }
+      ],
+      "default": "solid",
+      "visible_if": "{{ block.settings.show_overlay }}"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "t:labels.overlay_color",
+      "alpha": true,
+      "default": "#0000004D",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'solid' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "overlay_gradient",
+      "default": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+      "label": "t:labels.overlay_gradient",
+      "visible_if": "{{ block.settings.show_overlay and block.settings.overlay_style == 'gradient' }}"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "t:general.heading",
+      "default": "Heading"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:general.text",
+      "default": "<p>Add a short paragraph to support the heading</p>"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Content alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.alignment.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.alignment.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.alignment.right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "content_position",
+      "label": "Content position",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        }
+      ],
+      "default": "bottom"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:labels.heading_size",
+      "options": [
+        {
+          "value": "display",
+          "label": "t:options.heading_size.display"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.heading_size.xl"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.heading_size.lg"
+        },
+        {
+          "value": "md",
+          "label": "t:options.heading_size.md"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.heading_size.sm"
+        },
+        {
+          "value": "xs",
+          "label": "t:options.heading_size.xs"
+        }
+      ],
+      "default": "lg"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "t:labels.text_size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "t:options.text_size.xs"
+        },
+        {
+          "value": "sm",
+          "label": "t:options.text_size.sm"
+        },
+        {
+          "value": "md",
+          "label": "t:options.text_size.md"
+        },
+        {
+          "value": "lg",
+          "label": "t:options.text_size.lg"
+        },
+        {
+          "value": "xl",
+          "label": "t:options.text_size.xl"
+        },
+        {
+          "value": "xxl",
+          "label": "t:options.text_size.xxl"
+        }
+      ],
+      "default": "md"
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:labels.button_label",
+      "default": "Shop now"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Button style",
+      "options": [
+        {
+          "value": "primary",
+          "label": "Primary"
+        },
+        {
+          "value": "secondary",
+          "label": "Secondary"
+        },
+        {
+          "value": "tertiary",
+          "label": "Tertiary"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_icon",
+      "label": "t:labels.show_icon",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "button_height",
+      "label": "Button height",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "Inherit"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_full_width",
+      "label": "Full width",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Gap"
+    },
+    {
+      "type": "range",
+      "id": "content_gap",
+      "label": "Content gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "button_spacing",
+      "label": "Button spacing",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-3"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_vertical",
+      "label": "Top and bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_horizontal",
+      "label": "Left and right padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_vertical_mobile",
+      "label": "Mobile top and bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 20,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_horizontal_mobile",
+      "label": "Mobile left and right padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Promo card"
+    }
+  ]
+}
+{% endschema %}

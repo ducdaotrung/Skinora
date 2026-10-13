@@ -1,3 +1,4 @@
+{%- capture theme_size_font_size -%}{%- render 'typography-size-token', size: block.settings.font_size, role: 'body', fallback: 'xl' -%}{%- endcapture -%}
 {% liquid
   assign mega_menu_trigger = block.settings.menu_item | strip | handleize
   assign mega_columns = block.settings.submenu_columns | default: 4
@@ -12,7 +13,7 @@
   unless mega_font == 'body' or mega_font == 'heading' or mega_font == 'accent'
     assign mega_font = 'accent'
   endunless
-  assign mega_font_size = block.settings.font_size | default: 'xl'
+  assign mega_font_size = theme_size_font_size | default: 'xl'
   unless mega_font_size == 'xs' or mega_font_size == 'sm' or mega_font_size == 'md' or mega_font_size == 'lg' or mega_font_size == 'xl' or mega_font_size == 'xxl'
     assign mega_font_size = 'xl'
   endunless
@@ -66,7 +67,8 @@
     {"type":"header","content":"Featured collections"},
     {"type":"collection_list","id":"collections","label":"Collections","limit":6},
     {"type":"select","id":"font","label":"Font","options":[{"value":"body","label":"Body"},{"value":"heading","label":"Heading"},{"value":"accent","label":"Accent"}],"default":"accent"},
-    {"type":"select","id":"font_size","label":"t:labels.font_size","options":[{"value":"xs","label":"t:options.menu_font_size.extra_small"},{"value":"sm","label":"t:options.menu_font_size.small"},{"value":"md","label":"t:options.menu_font_size.medium"},{"value":"lg","label":"t:options.menu_font_size.large"},{"value":"xl","label":"t:options.menu_font_size.extra_large"},{"value":"xxl","label":"t:options.menu_font_size.double_extra_large"}],"default":"xl"},
+    {"type":"select","id":"font_size","label":"t:labels.font_size","options":[
+        { "value": "display", "label": "t:options.heading_size.display" },{"value":"xs","label":"t:options.menu_font_size.extra_small"},{"value":"sm","label":"t:options.menu_font_size.small"},{"value":"md","label":"t:options.menu_font_size.medium"},{"value":"lg","label":"t:options.menu_font_size.large"},{"value":"xl","label":"t:options.menu_font_size.extra_large"},{"value":"xxl","label":"t:options.menu_font_size.double_extra_large"}],"default":"display"},
     {"type":"select","id":"letter_spacing","label":"t:labels.letter_spacing","options":[{"value":"tight","label":"t:options.letter_spacing.tight"},{"value":"normal","label":"t:options.letter_spacing.normal"},{"value":"relaxed","label":"t:options.letter_spacing.relaxed"}],"default":"normal"}
   ],
   "presets":[{"name":"Mega menu: Banners","category":"Header"}]

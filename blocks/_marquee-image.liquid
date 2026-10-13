@@ -1,0 +1,171 @@
+{% liquid
+  assign width = block.settings.width_custom_desktop | default: 300
+  assign mobile_width = block.settings.width_custom_mobile | default: 50
+  capture ratio
+    render 'image-ratio-value', setting: block.settings.image_ratio
+  endcapture
+  assign ratio = ratio | strip
+  assign radius = 'var(--media-radius, 0px)'
+  case block.settings.corner_radius
+    when 'square'
+      assign radius = '0px'
+    when 'rounded'
+      assign radius = 'var(--radius-rounded)'
+    when 'full'
+      assign radius = '999px'
+    when 'custom'
+      assign radius = block.settings.custom_corner_radius | append: 'px'
+  endcase
+  capture sizes
+    echo '(max-width:767px) '
+    echo mobile_width
+    echo 'px, '
+    echo width
+    echo 'px'
+  endcapture
+%}
+<div class="marquee-image-block" style="--mq-image-width:{{ width }}px;--mq-image-width-mobile:{{ mobile_width }}px;--mq-image-ratio:{{ ratio }};--mq-image-radius:{{ radius }};" {{ block.shopify_attributes }}>
+ {% render 'image', image: block.settings.image, url: block.settings.image_link, open_in_new_tab: block.settings.open_in_new_tab, width: 800, widths: '50,100,200,300,400,600,800', sizes: sizes %}
+</div>
+{% stylesheet %}
+.marquee-image-block{flex:0 0 auto;width:var(--mq-image-width);border-radius:var(--mq-image-radius);overflow:hidden;} .marquee-image-block .image{aspect-ratio:var(--mq-image-ratio);} .marquee-image-block .image>img,.marquee-image-block .image>svg{width:100%;height:100%;object-fit:cover;} @media(max-width:767.98px){.marquee-image-block{width:var(--mq-image-width-mobile);}}
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Image",
+  "tag": null,
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "options": [
+        {
+          "value": "original",
+          "label": "Original"
+        },
+        {
+          "value": "ratio_1_1",
+          "label": "Square 1:1"
+        },
+        {
+          "value": "ratio_4_5",
+          "label": "Portrait 4:5"
+        },
+        {
+          "value": "ratio_3_4",
+          "label": "Portrait 3:4"
+        },
+        {
+          "value": "ratio_2_3",
+          "label": "Portrait 2:3"
+        },
+        {
+          "value": "ratio_16_9",
+          "label": "Landscape 16:9"
+        },
+        {
+          "value": "ratio_3_2",
+          "label": "Landscape 3:2"
+        },
+        {
+          "value": "ratio_4_3",
+          "label": "Landscape 4:3"
+        }
+      ],
+      "default": "original"
+    },
+    {
+      "type": "url",
+      "id": "image_link",
+      "label": "Link"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "Open link in new tab",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Width"
+    },
+    {
+      "type": "range",
+      "id": "width_custom_desktop",
+      "label": "Desktop",
+      "min": 50,
+      "max": 400,
+      "step": 5,
+      "default": 300,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "width_custom_mobile",
+      "label": "Mobile",
+      "min": 50,
+      "max": 400,
+      "step": 5,
+      "default": 50,
+      "unit": "px"
+    },
+    {
+      "type": "header",
+      "content": "Border"
+    },
+    {
+      "type": "select",
+      "id": "corner_radius",
+      "label": "Corner radius",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "Inherit"
+        },
+        {
+          "value": "square",
+          "label": "Square"
+        },
+        {
+          "value": "rounded",
+          "label": "Rounded"
+        },
+        {
+          "value": "full",
+          "label": "Full"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "range",
+      "id": "custom_corner_radius",
+      "label": "Custom radius",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "default": 0,
+      "unit": "px",
+      "visible_if": "{{ block.settings.corner_radius == 'custom' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image",
+      "category": "t:general.basic",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

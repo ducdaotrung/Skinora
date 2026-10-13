@@ -100,8 +100,9 @@
 >
   <div class="container {{ collection_tabs_container_width }} collection-tabs__container">
     <div
-      class="collection-tabs__layout"
+      class="collection-tabs__layout section-content-scope"
       data-collection-tabs
+      data-tab-load-error="{{ 'collection_tabs.load_error' | t | escape }}"
       data-collection-tabs-ready="false"
       data-layout-direction="{{ collection_tabs_layout_direction }}"
       data-tab-position="{{ collection_tabs_tab_position }}"
@@ -117,10 +118,11 @@
           {% content_for 'block', type: 'header', id: 'header' %}
           {% content_for 'block', type: 'tab-layout', id: 'tab-layout' %}
         </div>
-        <div class="collection-tabs__actions">
+        <div class="collection-tabs__actions section-content-slot">
           {% content_for 'block', type: 'tabs-view-all-button', id: 'collection-tabs-view-all' %}
         </div>
       </div>
+      <span class="visually-hidden" data-tab-load-status role="status" aria-live="polite"></span>
       <div
         class="collection-tabs__list"
         data-collection-tabs-list
@@ -313,6 +315,20 @@
       padding-bottom: var(--collection-tabs-padding-bottom-mobile, var(--collection-tabs-padding-bottom, 32px));
     }
 
+  }
+  .collection-tabs__controls:not(:has(.block-header:not([data-content-empty]), [data-tab-navigation] > *, .collection-tabs-view-all)) {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .collection-tabs__layout[data-layout-direction='horizontal']:not(:has(.block-header:not([data-content-empty]), [data-tab-navigation] > *, .collection-tabs-view-all)) {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'list';
+    }
+  }
+  /* The tab navigation is populated by JS; :has updates when tabs arrive. */
+  .collection-tabs__controls-group:not(:has(> .block-header:not([data-content-empty]), [data-tab-navigation] > *)),
+  .collection-tabs__layout .tab-layout:not(:has([data-tab-navigation] > *)) {
+    display: none;
   }
 {% endstylesheet %}
 
@@ -746,7 +762,7 @@
               "type": "heading",
               "settings": {
                 "text": "<p>Collection tabs</p>",
-                "heading_size": "lg",
+                "heading_size": "display",
                 "html_tag": "h2"
               }
             }

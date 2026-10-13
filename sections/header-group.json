@@ -14,6 +14,18 @@
     "announcement-bar": {
       "type": "announcement-bar",
       "blocks": {
+        "announcement_text_n76rjG": {
+          "type": "announcement-text",
+          "name": "Text",
+          "settings": {
+            "text": "Free standard shipping on all orders",
+            "show_chevron": false,
+            "text_color": "",
+            "width": "fit",
+            "max_width": 640
+          },
+          "blocks": {}
+        },
         "announcement-text": {
           "type": "announcement-text",
           "settings": {
@@ -27,6 +39,7 @@
         }
       },
       "block_order": [
+        "announcement_text_n76rjG",
         "announcement-text"
       ],
       "settings": {

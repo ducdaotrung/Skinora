@@ -187,12 +187,133 @@
           "block_order": [
             "heading_zWCE8W"
           ]
+        },
+        "collection_thumbnails_XMTXjE": {
+          "type": "collection-thumbnails",
+          "name": "Collection thumbnails",
+          "settings": {
+            "layout": "carousel",
+            "columns_desktop": 7,
+            "columns_mobile": "2",
+            "show_next_slide_desktop": false,
+            "show_next_slide_mobile": true,
+            "gap_desktop": 36,
+            "gap_mobile": 16,
+            "card_layout": "vertical",
+            "card_gap": 20,
+            "image_width_desktop": 171,
+            "image_width_mobile": 136,
+            "image_ratio": "auto",
+            "image_corner_radius": "full",
+            "image_corner_radius_custom": 0,
+            "title_font": "heading",
+            "html_tag": "h4",
+            "heading_size": "sm",
+            "custom_heading_size": 24,
+            "navigation_style": "primary",
+            "navigation_icon": "chevron",
+            "navigation_behavior": "show_on_hover",
+            "show_pagination_on_desktop": false,
+            "pagination_type": "progress_bar",
+            "pagination_limit_width": true,
+            "pagination_max_width": 260
+          },
+          "blocks": {
+            "collection_thumbnail_QTDyzA": {
+              "type": "collection-thumbnail",
+              "name": "Collection",
+              "settings": {
+                "collection": "",
+                "custom_title": "",
+                "custom_link": "",
+                "custom_image_type": "image",
+                "image_color": "#f1f1f1"
+              },
+              "blocks": {}
+            },
+            "collection_thumbnail_H3iFVn": {
+              "type": "collection-thumbnail",
+              "settings": {
+                "collection": "",
+                "custom_title": "",
+                "custom_link": "",
+                "custom_image_type": "image",
+                "image_color": "#f1f1f1"
+              },
+              "blocks": {}
+            },
+            "collection_thumbnail_WWk6yK": {
+              "type": "collection-thumbnail",
+              "settings": {
+                "collection": "",
+                "custom_title": "",
+                "custom_link": "",
+                "custom_image_type": "image",
+                "image_color": "#f1f1f1"
+              },
+              "blocks": {}
+            },
+            "collection_thumbnail_iY7XLM": {
+              "type": "collection-thumbnail",
+              "settings": {
+                "collection": "",
+                "custom_title": "",
+                "custom_link": "",
+                "custom_image_type": "image",
+                "image_color": "#f1f1f1"
+              },
+              "blocks": {}
+            },
+            "collection_thumbnail_ttQDE7": {
+              "type": "collection-thumbnail",
+              "settings": {
+                "collection": "",
+                "custom_title": "",
+                "custom_link": "",
+                "custom_image_type": "image",
+                "image_color": "#f1f1f1"
+              },
+              "blocks": {}
+            },
+            "collection_thumbnail_qdtryi": {
+              "type": "collection-thumbnail",
+              "settings": {
+                "collection": "",
+                "custom_title": "",
+                "custom_link": "",
+                "custom_image_type": "image",
+                "image_color": "#f1f1f1"
+              },
+              "blocks": {}
+            },
+            "collection_thumbnail_RQCdWR": {
+              "type": "collection-thumbnail",
+              "settings": {
+                "collection": "",
+                "custom_title": "",
+                "custom_link": "",
+                "custom_image_type": "image",
+                "image_color": "#f1f1f1"
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "collection_thumbnail_QTDyzA",
+            "collection_thumbnail_H3iFVn",
+            "collection_thumbnail_WWk6yK",
+            "collection_thumbnail_iY7XLM",
+            "collection_thumbnail_ttQDE7",
+            "collection_thumbnail_qdtryi",
+            "collection_thumbnail_RQCdWR"
+          ]
         }
       },
       "block_order": [
-        "header_8GxHGQ"
+        "header_8GxHGQ",
+        "collection_thumbnails_XMTXjE"
       ],
-      "name": "t:general.custom_section",
+      "name": "Collection Thumbnails (custom)",
       "settings": {
         "section_width": "page_width",
         "limit_width": false,
@@ -229,9 +350,9 @@
             "width_mobile": "fit",
             "max_width_mobile": 480,
             "inherit_alignment": false,
-            "alignment": "center",
-            "customize_mobile_alignment": false,
-            "alignment_mobile": "left",
+            "alignment": "left",
+            "customize_mobile_alignment": true,
+            "alignment_mobile": "center",
             "gap_desktop": 12,
             "gap_mobile": 8,
             "padding_top": 0,
@@ -248,7 +369,7 @@
             "heading": {
               "type": "heading",
               "settings": {
-                "text": "<p>Best Sellers</p>",
+                "text": "<p>New Arrivals</p>",
                 "heading_size": "display",
                 "custom_heading_size": 24,
                 "html_tag": "h2",
@@ -277,7 +398,6 @@
         },
         "featured-collection-view-all": {
           "type": "view-all-button",
-          "disabled": true,
           "static": true,
           "settings": {
             "button_label": "View all",
@@ -289,8 +409,8 @@
             "icon_position": "after",
             "icon_size": "inherit",
             "icon_width": 20,
-            "hide_view_all_mobile": false,
-            "button_style_mobile": "outline",
+            "hide_view_all_mobile": true,
+            "button_style_mobile": "text",
             "button_height_mobile": "inherit",
             "full_width_mobile": true,
             "show_icon_mobile": false
@@ -304,11 +424,13 @@
             "use_recommendations": false,
             "recommendation_type": "related",
             "products": [],
-            "collection": "best-sellers-essenza-1",
-            "max_products": 8,
+            "collection": "",
+            "max_products": 4,
             "layout_type": "carousel",
+            "customize_mobile_layout": true,
+            "layout_type_mobile": "grid",
             "columns_desktop": "4",
-            "columns_mobile": "1",
+            "columns_mobile": "2",
             "show_next_slide_preview_on_desktop": false,
             "product_gap_desktop": 28,
             "product_gap_mobile": 12,
@@ -346,8 +468,8 @@
         "section_width": "page_width",
         "desktop_alignment": "center",
         "mobile_alignment": "center",
-        "gap_desktop": 32,
-        "gap_mobile": 24,
+        "gap_desktop": 48,
+        "gap_mobile": 36,
         "color_scheme": "scheme-1",
         "padding_top": 80,
         "padding_bottom": 80,

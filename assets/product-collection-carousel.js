@@ -113,7 +113,7 @@ const isWrapperHovered = (swiper) => swiper.wrapperEl?.matches(':hover') || fals
 
 const startAutoplay = (state) => {
   const autoplay = getAutoplaySettings(state.carousel, state.scope);
-  if (!autoplay.enabled) return;
+  if (!autoplay.enabled || state.interval) return;
 
   state.interval = window.setInterval(() => {
     if (
@@ -134,12 +134,18 @@ const startAutoplay = (state) => {
   }, autoplay.delay);
 };
 
+const stopAutoplay = (state) => {
+  if (!state.interval) return;
+  window.clearInterval(state.interval);
+  state.interval = null;
+};
+
 const observeVisibility = (state) => {
   const panel = state.carousel.closest('[data-collection-tab-panel]');
   if (!panel || typeof MutationObserver === 'undefined') return;
 
   state.visibilityObserver = new MutationObserver(() => {
-    if (!panel.hidden) window.requestAnimationFrame(() => state.swiper.update());
+    if (!panel.hidden) window.requestAnimationFrame(() => state.swiper?.update());
   });
   state.visibilityObserver.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
 };
@@ -169,14 +175,21 @@ const initialize = (carousel) => {
   };
   instances.set(carousel, state);
 
-  if (carousel.dataset.swiperMobileOnly === 'true') {
+  if (carousel.dataset.swiperMobileOnly === 'true' || carousel.dataset.swiperResponsiveLayout === 'true') {
     state.mobileQuery = window.matchMedia(`(max-width: ${desktopBreakpoint - 0.02}px)`);
     state.mobileQueryHandler = () => {
-      if (state.mobileQuery.matches) {
+      const responsiveLayout = carousel.dataset.swiperResponsiveLayout === 'true';
+      const activeLayout = responsiveLayout
+        ? (state.mobileQuery.matches ? carousel.dataset.swiperLayoutMobile : carousel.dataset.swiperLayoutDesktop)
+        : (state.mobileQuery.matches ? 'carousel' : 'grid');
+
+      if (activeLayout === 'carousel') {
         if (!state.swiper) {
           state.swiper = createSwiperCarousel(carousel, buildOptions(carousel, scope));
+          if (state.swiper && responsiveLayout) startAutoplay(state);
         }
       } else if (state.swiper) {
+        stopAutoplay(state);
         destroySwiperCarousel(state.swiper);
         state.swiper = null;
       }
@@ -209,7 +222,7 @@ const destroy = (carousel) => {
   const state = instances.get(carousel);
   if (!state) return;
 
-  if (state.interval) window.clearInterval(state.interval);
+  stopAutoplay(state);
   state.resizeObserver?.disconnect();
   state.visibilityObserver?.disconnect();
   state.mobileQuery?.removeEventListener('change', state.mobileQueryHandler);

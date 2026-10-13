@@ -9,6 +9,7 @@
   @param {product[]} [products] - Explicit native product resources when the source is not a collection
   @param {number} [max_products] - Maximum number of products to render
   @param {string} [layout_type] - Grid or carousel presentation
+  @param {string} [layout_type_mobile] - Optional mobile presentation; when it differs from desktop, Swiper switches by breakpoint
   @param {string} [columns_desktop] - Desktop column setting
   @param {string} [columns_mobile] - Mobile column setting
   @param {boolean} [enable_swipe_mobile] - Whether to enable mobile swipe
@@ -56,6 +57,18 @@
   unless product_collection_grid_layout == 'grid' or product_collection_grid_layout == 'carousel'
     assign product_collection_grid_layout = 'grid'
   endunless
+  assign product_collection_grid_layout_mobile = layout_type_mobile | default: product_collection_grid_layout
+  unless product_collection_grid_layout_mobile == 'grid' or product_collection_grid_layout_mobile == 'carousel'
+    assign product_collection_grid_layout_mobile = product_collection_grid_layout
+  endunless
+  assign product_collection_grid_has_responsive_layout = false
+  if product_collection_grid_layout_mobile != product_collection_grid_layout
+    assign product_collection_grid_has_responsive_layout = true
+  endif
+  assign product_collection_grid_has_carousel = false
+  if product_collection_grid_layout == 'carousel' or product_collection_grid_layout_mobile == 'carousel'
+    assign product_collection_grid_has_carousel = true
+  endif
 
   assign product_collection_grid_mobile_carousel = false
   if mobile_carousel == true or mobile_carousel == 'true'
@@ -174,6 +187,9 @@
   endunless
 
   assign product_collection_grid_class = 'product-collection-grid product-collection-grid--' | append: product_collection_grid_layout
+  if product_collection_grid_has_responsive_layout
+    assign product_collection_grid_class = product_collection_grid_class | append: ' product-collection-grid--responsive-layout'
+  endif
   assign product_collection_grid_scroll_class = blank
   if product_collection_grid_layout == 'carousel'
     assign product_collection_grid_scroll_class = ' scrollbar scrollbar--horizontal'
@@ -200,7 +216,7 @@
 %}
 
 {% capture product_collection_grid_style %}
-  {% if product_collection_grid_layout == 'grid' %}
+  {% if product_collection_grid_layout == 'grid' or product_collection_grid_has_responsive_layout %}
     --product-collection-grid-columns-desktop: {{ product_collection_grid_columns_desktop }};
     --product-collection-grid-columns-mobile: {{ product_collection_grid_columns_mobile }};
     --product-collection-grid-gap-horizontal: {{ product_collection_grid_gap_horizontal }}px;
@@ -227,7 +243,7 @@
           assign product_collection_grid_card_placeholder = true
         endif
       %}
-      <div class="{% if product_collection_grid_layout == 'carousel' %}swiper-slide {% endif %}product-collection-grid__item product-card-layout__item{% if item_class != blank %} {{ item_class }}{% endif %}">
+      <div class="{% if product_collection_grid_has_carousel %}swiper-slide {% endif %}product-collection-grid__item product-card-layout__item{% if item_class != blank %} {{ item_class }}{% endif %}">
         {% render 'product-card',
           product: product_collection_grid_card_product,
           placeholder: product_collection_grid_card_placeholder,
@@ -241,7 +257,51 @@
 {% endif %}
 
 {% if product_collection_grid_content != blank %}
-  {% if product_collection_grid_layout == 'carousel' %}
+  {% if product_collection_grid_has_responsive_layout %}
+    {% capture product_collection_grid_responsive_attributes %}
+      data-product-collection-grid
+      data-layout="carousel"
+      data-product-carousel
+      data-swiper-responsive-layout="true"
+      data-swiper-layout-desktop="{{ product_collection_grid_layout }}"
+      data-swiper-layout-mobile="{{ product_collection_grid_layout_mobile }}"
+      data-swiper-columns-desktop="{{ product_collection_grid_columns_desktop }}"
+      data-swiper-columns-mobile="{{ product_collection_grid_columns_mobile }}"
+      data-swiper-gap-desktop="{{ product_collection_grid_gap_horizontal }}"
+      data-swiper-gap-mobile="{{ product_collection_grid_gap_horizontal_mobile }}"
+      data-swiper-pagination-type="{{ product_collection_grid_pagination_type }}"
+      {% if previous_selector != blank %}data-swiper-previous-selector="{{ previous_selector | escape }}"{% endif %}
+      {% if next_selector != blank %}data-swiper-next-selector="{{ next_selector | escape }}"{% endif %}
+      {% if items_data_attributes != blank %}{{ items_data_attributes }}{% endif %}
+      {% if grid_attributes != blank %}{{ grid_attributes }}{% endif %}
+      {% if product_collection_grid_style != blank %}style="{{ product_collection_grid_style }}"{% endif %}
+    {% endcapture %}
+
+    {% capture product_collection_grid_responsive_pagination %}
+      {% if product_collection_grid_show_pagination %}
+        <div
+          class="swiper-pagination{% if pagination_class != blank %} {{ pagination_class }}{% endif %}"
+          data-product-collection-pagination
+          data-pagination-type="{{ product_collection_grid_pagination_type }}"
+          {% if pagination_style != blank %}style="{{ pagination_style }}"{% endif %}
+        ></div>
+      {% endif %}
+    {% endcapture %}
+
+    {% render 'swiper-carousel',
+      id: carousel_id,
+      content: product_collection_grid_content,
+      root_class: product_collection_grid_class,
+      root_attributes: product_collection_grid_responsive_attributes,
+      aria_label: product_collection_grid_aria_label,
+      pagination: product_collection_grid_responsive_pagination,
+      show_next_slide_preview: next_slide_preview,
+      show_next_slide_preview_on_mobile: next_slide_preview_on_mobile,
+      autoplay: autoplay,
+      pause_on_hover: autoplay_pause_on_hover,
+      autoplay_delay: autoplay_delay
+    %}
+  {% elsif product_collection_grid_layout == 'carousel' %}
     {% capture product_collection_grid_carousel_attributes %}
       data-product-collection-grid
       data-layout="carousel"

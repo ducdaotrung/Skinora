@@ -83,7 +83,6 @@
             "icon_size": "inherit",
             "icon_width": 20,
             "button_style_mobile": "outline",
-            "mobile_alignment": "left",
             "button_height_mobile": "inherit",
             "full_width_mobile": true,
             "show_icon_mobile": false
@@ -103,7 +102,6 @@
             "columns_desktop": "4",
             "columns_mobile": "1",
             "show_next_slide_preview_on_desktop": false,
-            "show_next_slide_preview_on_mobile": true,
             "product_gap_desktop": 28,
             "product_gap_mobile": 12,
             "show_navigation_on_desktop": true,
@@ -850,7 +848,6 @@
             "icon_size": "inherit",
             "icon_width": 20,
             "button_style_mobile": "text",
-            "mobile_alignment": "left",
             "button_height_mobile": "inherit",
             "full_width_mobile": true,
             "show_icon_mobile": false

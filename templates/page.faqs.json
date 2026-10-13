@@ -1,7 +1,41 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "header": {
       "type": "rich-text",
+      "blocks": {
+        "eyebrow": {
+          "type": "eyebrow",
+          "static": true,
+          "settings": {
+            "text": "<p>[ FAQS ]</p>"
+          }
+        },
+        "heading": {
+          "type": "heading",
+          "static": true,
+          "settings": {
+            "text": "<p>Frequently asked questions</p>",
+            "heading_size": "xl",
+            "html_tag": "h1"
+          }
+        },
+        "text": {
+          "type": "text",
+          "static": true,
+          "settings": {
+            "text": ""
+          }
+        }
+      },
       "settings": {
         "section_width": "page_width",
         "alignment": "center",
@@ -11,67 +45,31 @@
         "customize_mobile_padding": true,
         "padding_top_mobile": 70,
         "padding_bottom_mobile": 30
-      },
-      "blocks": {
-        "eyebrow": {
-          "type": "eyebrow",
-          "settings": {
-            "text": "<p>[ FAQS ]</p>"
-          },
-          "static": true
-        },
-        "heading": {
-          "type": "heading",
-          "settings": {
-            "text": "<p>Frequently asked questions</p>",
-            "html_tag": "h1",
-            "heading_size": "xl"
-          },
-          "static": true
-        },
-        "text": {
-          "type": "text",
-          "settings": {
-            "text": ""
-          },
-          "static": true
-        }
-      },
-      "block_order": []
+      }
     },
     "faq": {
       "type": "faq-accordion",
-      "settings": {
-        "section_width": "page_width",
-        "layout": "vertical",
-        "alignment": "center",
-        "gap_desktop": 40,
-        "gap_mobile": 30,
-        "color_scheme": "scheme-1",
-        "padding_top": 0,
-        "padding_bottom": 100
-      },
       "blocks": {
         "category_1": {
           "type": "group",
+          "name": "Jewelry & Materials",
           "settings": {
             "direction": "vertical",
             "alignment": "left",
-            "width": "fill",
             "gap_desktop": 24,
             "gap_mobile": 24,
+            "width": "fill",
             "limit_width": true,
             "max_width": 1100,
             "show_overlay": false
           },
-          "name": "Jewelry & Materials",
           "blocks": {
             "heading": {
               "type": "heading",
               "settings": {
                 "text": "<p>Jewelry & Materials</p>",
-                "html_tag": "h2",
-                "heading_size": "lg"
+                "heading_size": "lg",
+                "html_tag": "h2"
               }
             },
             "accordion": {
@@ -157,24 +155,24 @@
         },
         "category_2": {
           "type": "group",
+          "name": "Ring Sizing",
           "settings": {
             "direction": "vertical",
             "alignment": "left",
-            "width": "fill",
             "gap_desktop": 24,
             "gap_mobile": 24,
+            "width": "fill",
             "limit_width": true,
             "max_width": 1100,
             "show_overlay": false
           },
-          "name": "Ring Sizing",
           "blocks": {
             "heading": {
               "type": "heading",
               "settings": {
                 "text": "<p>Ring Sizing</p>",
-                "html_tag": "h2",
-                "heading_size": "lg"
+                "heading_size": "lg",
+                "html_tag": "h2"
               }
             },
             "accordion": {
@@ -260,24 +258,24 @@
         },
         "category_3": {
           "type": "group",
+          "name": "Orders & Shipping",
           "settings": {
             "direction": "vertical",
             "alignment": "left",
-            "width": "fill",
             "gap_desktop": 24,
             "gap_mobile": 24,
+            "width": "fill",
             "limit_width": true,
             "max_width": 1100,
             "show_overlay": false
           },
-          "name": "Orders & Shipping",
           "blocks": {
             "heading": {
               "type": "heading",
               "settings": {
                 "text": "<p>Orders & Shipping</p>",
-                "html_tag": "h2",
-                "heading_size": "lg"
+                "heading_size": "lg",
+                "html_tag": "h2"
               }
             },
             "accordion": {
@@ -363,24 +361,24 @@
         },
         "category_4": {
           "type": "group",
+          "name": "Returns & Exchanges",
           "settings": {
             "direction": "vertical",
             "alignment": "left",
-            "width": "fill",
             "gap_desktop": 24,
             "gap_mobile": 24,
+            "width": "fill",
             "limit_width": true,
             "max_width": 1100,
             "show_overlay": false
           },
-          "name": "Returns & Exchanges",
           "blocks": {
             "heading": {
               "type": "heading",
               "settings": {
                 "text": "<p>Returns & Exchanges</p>",
-                "html_tag": "h2",
-                "heading_size": "lg"
+                "heading_size": "lg",
+                "html_tag": "h2"
               }
             },
             "accordion": {
@@ -466,24 +464,24 @@
         },
         "category_5": {
           "type": "group",
+          "name": "Jewelry Care",
           "settings": {
             "direction": "vertical",
             "alignment": "left",
-            "width": "fill",
             "gap_desktop": 24,
             "gap_mobile": 24,
+            "width": "fill",
             "limit_width": true,
             "max_width": 1100,
             "show_overlay": false
           },
-          "name": "Jewelry Care",
           "blocks": {
             "heading": {
               "type": "heading",
               "settings": {
                 "text": "<p>Jewelry Care</p>",
-                "html_tag": "h2",
-                "heading_size": "lg"
+                "heading_size": "lg",
+                "html_tag": "h2"
               }
             },
             "accordion": {
@@ -574,45 +572,45 @@
         "category_3",
         "category_4",
         "category_5"
-      ]
+      ],
+      "settings": {
+        "section_width": "page_width",
+        "layout": "vertical",
+        "alignment": "center",
+        "gap_desktop": 40,
+        "gap_mobile": 30,
+        "color_scheme": "scheme-1",
+        "padding_top": 0,
+        "padding_bottom": 100
+      }
     },
     "support": {
       "type": "rich-text",
-      "settings": {
-        "section_width": "page_width",
-        "alignment": "center",
-        "color_scheme": "scheme-2",
-        "padding_top": 70,
-        "padding_bottom": 70,
-        "customize_mobile_padding": true,
-        "padding_top_mobile": 50,
-        "padding_bottom_mobile": 50
-      },
       "blocks": {
         "eyebrow": {
           "type": "eyebrow",
+          "static": true,
           "settings": {
             "text": ""
-          },
-          "static": true
+          }
         },
         "heading": {
           "type": "heading",
+          "static": true,
           "settings": {
             "text": "<p>We're Here to Help</p>",
-            "html_tag": "h2",
-            "heading_size": "lg"
-          },
-          "static": true
+            "heading_size": "lg",
+            "html_tag": "h2"
+          }
         },
         "text": {
           "type": "text",
+          "static": true,
           "settings": {
             "text": "<p>Can't find what you're looking for? Our team is always happy to help with questions about our pieces, sizing, orders, or anything else.</p>",
             "width": "custom",
             "max_width": 640
-          },
-          "static": true
+          }
         },
         "contact": {
           "type": "button",
@@ -627,7 +625,17 @@
       },
       "block_order": [
         "contact"
-      ]
+      ],
+      "settings": {
+        "section_width": "page_width",
+        "alignment": "center",
+        "color_scheme": "scheme-2",
+        "padding_top": 70,
+        "padding_bottom": 70,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 50,
+        "padding_bottom_mobile": 50
+      }
     }
   },
   "order": [

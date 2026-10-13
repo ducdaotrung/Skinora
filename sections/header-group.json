@@ -18,7 +18,7 @@
           "type": "announcement-text",
           "settings": {
             "text": "Valentine’s day sale: Save up to 50% with code VALENTINE",
-            "show_chevron": true,
+            "show_chevron": false,
             "text_color": "",
             "width": "fill",
             "max_width": 640

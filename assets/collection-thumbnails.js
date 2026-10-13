@@ -2,6 +2,7 @@ import { Pagination } from './swiper-loader.js';
 import { createSwiperCarousel, destroySwiperCarousel } from './swiper-carousel.js';
 
 const selector = '[data-collection-thumbnails-carousel][data-layout="carousel"]';
+const customBlockSelector = '[data-collection-thumbnails-block]';
 const states = new WeakMap();
 
 const number = (value, fallback) => {
@@ -9,18 +10,23 @@ const number = (value, fallback) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const visibleSlidesAt = (carousel, desktop) => {
+  const columns = number(
+    desktop ? carousel.dataset.swiperColumnsDesktop : carousel.dataset.swiperColumnsMobile,
+    desktop ? 4 : 1,
+  );
+  const showPreview = carousel.dataset[
+    desktop ? 'swiperNextSlidePreview' : 'swiperNextSlidePreviewMobile'
+  ] === 'true';
+  return columns + (showPreview ? 0.25 : 0);
+};
+
+const visibleSlides = (carousel) => visibleSlidesAt(carousel, window.innerWidth >= 768);
+
 const overflow = (carousel) => {
   const wrapper = carousel.querySelector('.swiper-wrapper');
   if (!wrapper) return false;
-
-  const gap = number(
-    window.innerWidth >= 1150
-      ? carousel.dataset.swiperGapDesktop
-      : carousel.dataset.swiperGapMobile,
-    0,
-  );
-  const itemWidth = [...wrapper.children].reduce((total, item) => total + item.offsetWidth, 0);
-  return itemWidth + Math.max(0, wrapper.children.length - 1) * gap > carousel.clientWidth + 1;
+  return wrapper.children.length > visibleSlides(carousel);
 };
 
 const getPaginationType = (value) => (value === 'progress_bar' ? 'progressbar' : 'bullets');
@@ -30,13 +36,21 @@ const getPagination = (carousel) =>
 
 const buildOptions = (carousel, scope) => {
   const pagination = getPagination(carousel);
+  const mobileColumns = visibleSlidesAt(carousel, false);
+  const desktopColumns = visibleSlidesAt(carousel, true);
+  const mobileGap = number(carousel.dataset.swiperGapMobile, 20);
+  const desktopGap = number(carousel.dataset.swiperGapDesktop, 40);
   const options = {
-    slidesPerView: 'auto',
-    spaceBetween: number(carousel.dataset.swiperGapMobile, 20),
+    slidesPerView: mobileColumns,
+    spaceBetween: mobileGap,
     breakpoints: {
+      768: {
+        slidesPerView: desktopColumns,
+        spaceBetween: mobileGap,
+      },
       1150: {
-        slidesPerView: 'auto',
-        spaceBetween: number(carousel.dataset.swiperGapDesktop, 40),
+        slidesPerView: desktopColumns,
+        spaceBetween: desktopGap,
       },
     },
     controls: {
@@ -81,6 +95,9 @@ const sync = (carousel) => {
 const initialize = (carousel) => {
   if (states.has(carousel)) return;
 
+  const wrapper = carousel.querySelector('.swiper-wrapper');
+  wrapper?.querySelectorAll(':scope > *').forEach((slide) => slide.classList.add('swiper-slide'));
+
   const state = {
     swiper: null,
     scope: carousel.closest('[data-collection-thumbnails]') || carousel.parentElement,
@@ -91,7 +108,30 @@ const initialize = (carousel) => {
   sync(carousel);
 };
 
+const updateCustomBlockHeadingTags = (root = document) => {
+  const blocks = root.matches?.(customBlockSelector)
+    ? [root]
+    : [...(root.querySelectorAll?.(customBlockSelector) || [])];
+
+  blocks.forEach((block) => {
+    const tagName = block.dataset.titleTag;
+    if (!/^(div|h[1-6])$/.test(tagName || '')) return;
+
+    block.querySelectorAll('.collection-thumbnail__title').forEach((heading) => {
+      if (heading.tagName.toLowerCase() === tagName) return;
+
+      const replacement = document.createElement(tagName);
+      [...heading.attributes].forEach((attribute) =>
+        replacement.setAttribute(attribute.name, attribute.value),
+      );
+      while (heading.firstChild) replacement.append(heading.firstChild);
+      heading.replaceWith(replacement);
+    });
+  });
+};
+
 const initializeRoot = (root = document) => {
+  updateCustomBlockHeadingTags(root);
   if (root.matches?.(selector)) initialize(root);
   root.querySelectorAll?.(selector).forEach(initialize);
 };
@@ -112,10 +152,10 @@ const destroy = (root) => {
 
 document.addEventListener('shopify:section:load', (event) => initializeRoot(event.target));
 document.addEventListener('shopify:section:select', (event) => initializeRoot(event.target));
+document.addEventListener('shopify:block:select', (event) => {
+  const block = event.target.closest?.(customBlockSelector);
+  if (block) updateCustomBlockHeadingTags(block);
+});
 document.addEventListener('shopify:section:unload', (event) => destroy(event.target));
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => initializeRoot(), { once: true });
-} else {
-  initializeRoot();
-}
+export { initializeRoot as initializeThemeModule };

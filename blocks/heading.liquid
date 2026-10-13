@@ -27,6 +27,22 @@
     assign heading_tag = 'h2'
   endunless
 
+  assign heading_size_class = heading_size
+  if heading_size == 'display'
+    case heading_tag
+      when 'h2'
+        assign heading_size_class = 'xl'
+      when 'h3'
+        assign heading_size_class = 'lg'
+      when 'h4'
+        assign heading_size_class = 'md'
+      when 'h5'
+        assign heading_size_class = 'sm'
+      when 'h6'
+        assign heading_size_class = 'xs'
+    endcase
+  endif
+
   assign heading_width_mode = block.settings.width | default: 'fit'
   unless heading_width_mode == 'fit' or heading_width_mode == 'fill' or heading_width_mode == 'custom'
     assign heading_width_mode = 'fit'
@@ -84,7 +100,7 @@
   assign padding_left_mobile = padding_left_mobile | plus: 0
   assign padding_right_mobile = block.settings.padding_right_mobile | default: 0
   assign padding_right_mobile = padding_right_mobile | plus: 0
-  assign heading_class = 'heading-block size-style typography-content heading-text heading-' | append: heading_size
+  assign heading_class = 'heading-block size-style typography-content heading-text heading-' | append: heading_size_class
 %}
 
 {% capture heading_style %}
@@ -176,7 +192,7 @@
       "type": "select",
       "id": "heading_size",
       "label": "t:labels.heading_size",
-      "info": "Display uses the desktop, tablet and mobile Display sizes from Theme Settings, independently of the HTML tag.",
+      "info": "Display uses the desktop, tablet and mobile Theme Settings size for the selected HTML heading tag.",
       "options": [
         { "value": "display", "label": "t:options.heading_size.display" },
         { "value": "xl", "label": "t:options.heading_size.xl" },

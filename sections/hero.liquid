@@ -48,11 +48,11 @@
   endif
 
   assign hero_desktop_height = section.settings.desktop_height | default: 'medium'
-  unless hero_desktop_height == 'adapt' or hero_desktop_height == 'extra_small' or hero_desktop_height == 'small' or hero_desktop_height == 'medium' or hero_desktop_height == 'large' or hero_desktop_height == 'extra_large' or hero_desktop_height == 'full_screen'
+  unless hero_desktop_height == 'adapt' or hero_desktop_height == 'extra_small' or hero_desktop_height == 'small' or hero_desktop_height == 'medium' or hero_desktop_height == 'large' or hero_desktop_height == 'extra_large' or hero_desktop_height == 'full_screen' or hero_desktop_height == 'custom'
     assign hero_desktop_height = 'medium'
   endunless
   assign hero_mobile_height = section.settings.mobile_height | default: 'adapt'
-  unless hero_mobile_height == 'adapt' or hero_mobile_height == 'extra_small' or hero_mobile_height == 'small' or hero_mobile_height == 'medium' or hero_mobile_height == 'large' or hero_mobile_height == 'extra_large' or hero_mobile_height == 'full_screen'
+  unless hero_mobile_height == 'adapt' or hero_mobile_height == 'extra_small' or hero_mobile_height == 'small' or hero_mobile_height == 'medium' or hero_mobile_height == 'large' or hero_mobile_height == 'extra_large' or hero_mobile_height == 'full_screen' or hero_mobile_height == 'custom'
     assign hero_mobile_height = 'adapt'
   endunless
 
@@ -78,6 +78,8 @@
 %}
 
 {% capture hero_style %}
+  --hero-custom-height-desktop: {{ section.settings.desktop_custom_height | default: 720 | plus: 0 | at_least: 1 }}px;
+  --hero-custom-height-mobile: {{ section.settings.mobile_custom_height | default: 620 | plus: 0 | at_least: 1 }}px;
   {% if hero_desktop_gap != 12 %}--hero-content-gap: {{ hero_desktop_gap }}px;{% endif %}
   {% if hero_mobile_gap != hero_desktop_gap %}--hero-content-gap-mobile: {{ hero_mobile_gap }}px;{% endif %}
   {% if hero_content_width == 'custom' and hero_content_max_width != 640 %}--hero-content-max-width: {{ hero_content_max_width }}px;{% endif %}
@@ -416,9 +418,20 @@
         {
           "value": "full_screen",
           "label": "t:options.hero_height.full_screen"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
         }
       ],
       "default": "medium"
+    },
+    {
+      "type": "number",
+      "id": "desktop_custom_height",
+      "label": "Custom desktop height (px)",
+      "default": 720,
+      "visible_if": "{{ section.settings.desktop_height == 'custom' }}"
     },
     {
       "type": "select",
@@ -452,9 +465,20 @@
         {
           "value": "full_screen",
           "label": "t:options.hero_height.full_screen"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
         }
       ],
       "default": "adapt"
+    },
+    {
+      "type": "number",
+      "id": "mobile_custom_height",
+      "label": "Custom mobile height (px)",
+      "default": 620,
+      "visible_if": "{{ section.settings.mobile_height == 'custom' }}"
     },
     {
       "type": "header",

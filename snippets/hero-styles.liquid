@@ -19,6 +19,7 @@
     clip-path: inset(0);
   }
 
+  .hero--desktop-custom { --hero-min-height: var(--hero-custom-height-desktop, 720px); }
   .hero--desktop-adapt { --hero-min-height: auto; }
   .hero--desktop-extra_small { --hero-min-height: 42rem; }
   .hero--desktop-small { --hero-min-height: 56rem; }
@@ -189,6 +190,7 @@
   }
 
   @media (max-width: 767.98px) {
+    .hero--mobile-custom { --hero-min-height: var(--hero-custom-height-mobile, 620px); }
     .hero--mobile-adapt { --hero-min-height: auto; }
     .hero--mobile-extra_small { --hero-min-height: 40rem; }
     .hero--mobile-small { --hero-min-height: 48rem; }
@@ -236,6 +238,10 @@
     .hero--stack .hero__surface {
       grid-template-columns: 1fr;
       grid-template-rows: minmax(32rem, var(--hero-min-height, 50svh)) auto;
+    }
+
+    .hero--stack.hero--mobile-custom .hero__surface {
+      grid-template-rows: var(--hero-custom-height-mobile, 620px) auto;
     }
 
     .hero--stack.hero--content-fill .hero__surface,

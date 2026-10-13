@@ -9,6 +9,213 @@
  */
 {
   "sections": {
+    "hero_AcjX9K": {
+      "type": "hero",
+      "blocks": {
+        "heading_eP6HXe": {
+          "type": "heading",
+          "settings": {
+            "text": "<p>Unlock Radiant Skin</p>",
+            "heading_size": "display",
+            "custom_heading_size": 24,
+            "html_tag": "h1",
+            "text_color": "#ffffff",
+            "width": "custom",
+            "max_width": 800,
+            "customize_mobile_size": false,
+            "width_mobile": "fit",
+            "max_width_mobile": 480,
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0,
+            "customize_mobile_padding": false,
+            "padding_top_mobile": 0,
+            "padding_bottom_mobile": 0,
+            "padding_left_mobile": 0,
+            "padding_right_mobile": 0
+          },
+          "blocks": {}
+        },
+        "text_MWRwr4": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Nature's best ingredients for every skin.</p>",
+            "text_size": "lg",
+            "custom_text_size": 16,
+            "height_limit": "none",
+            "text_color": "#ffffffcc",
+            "width": "custom",
+            "max_width": 480,
+            "customize_mobile_size": false,
+            "width_mobile": "fit",
+            "max_width_mobile": 480,
+            "padding_top": 0,
+            "padding_bottom": 28,
+            "padding_left": 0,
+            "padding_right": 0,
+            "customize_mobile_padding": true,
+            "padding_top_mobile": 0,
+            "padding_bottom_mobile": 20,
+            "padding_left_mobile": 0,
+            "padding_right_mobile": 0
+          },
+          "blocks": {}
+        },
+        "button_mABRi4": {
+          "type": "button",
+          "settings": {
+            "button_label": "Shop Now",
+            "button_link": "",
+            "button_open_in_new_tab": false,
+            "button_style": "primary",
+            "show_icon": false,
+            "icon": "arrow_right",
+            "icon_position": "after",
+            "icon_size": "inherit",
+            "icon_width": 20,
+            "width": "fit",
+            "width_mobile": "fit",
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0,
+            "customize_mobile_padding": false,
+            "padding_top_mobile": 0,
+            "padding_bottom_mobile": 0,
+            "padding_left_mobile": 0,
+            "padding_right_mobile": 0
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "heading_eP6HXe",
+        "text_MWRwr4",
+        "button_mABRi4"
+      ],
+      "name": "Hero",
+      "settings": {
+        "width": "full",
+        "layout": "classic",
+        "desktop_content_position": "last",
+        "link": "",
+        "open_in_new_tab": false,
+        "media_type": "image",
+        "show_overlay": true,
+        "overlay_style": "solid",
+        "overlay": "#0000001a",
+        "overlay_gradient": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
+        "parallax_effect": "none",
+        "desktop_height": "custom",
+        "desktop_custom_height": 720,
+        "mobile_height": "custom",
+        "mobile_custom_height": 554,
+        "content_width": "fit",
+        "content_max_width": 640,
+        "enable_sticky": false,
+        "desktop_position": "bottom_left",
+        "mobile_position": "bottom_left",
+        "desktop_gap": 12,
+        "mobile_gap": 12,
+        "page_content_padding": 64,
+        "page_content_padding_mobile": 40,
+        "color_scheme": "scheme-1",
+        "content_color_scheme": "",
+        "padding_top": 80,
+        "padding_bottom": 80,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 48,
+        "padding_bottom_mobile": 48
+      }
+    },
+    "custom_section_49xiR4": {
+      "type": "custom-section",
+      "blocks": {
+        "header_8GxHGQ": {
+          "type": "header",
+          "name": "t:general.header",
+          "settings": {
+            "width": "fill",
+            "max_width": 750,
+            "customize_mobile_size": false,
+            "width_mobile": "fit",
+            "max_width_mobile": 480,
+            "inherit_alignment": false,
+            "alignment": "center",
+            "customize_mobile_alignment": true,
+            "alignment_mobile": "center",
+            "gap_desktop": 12,
+            "gap_mobile": 8,
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0,
+            "customize_mobile_padding": false,
+            "padding_top_mobile": 0,
+            "padding_bottom_mobile": 0,
+            "padding_left_mobile": 0,
+            "padding_right_mobile": 0
+          },
+          "blocks": {
+            "heading_zWCE8W": {
+              "type": "heading",
+              "settings": {
+                "text": "<p>Shop By Skin Concern</p>",
+                "heading_size": "display",
+                "custom_heading_size": 24,
+                "html_tag": "h2",
+                "text_color": "",
+                "width": "fill",
+                "max_width": 640,
+                "customize_mobile_size": false,
+                "width_mobile": "fill",
+                "max_width_mobile": 480,
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "padding_left": 0,
+                "padding_right": 0,
+                "customize_mobile_padding": false,
+                "padding_top_mobile": 0,
+                "padding_bottom_mobile": 0,
+                "padding_left_mobile": 0,
+                "padding_right_mobile": 0
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "heading_zWCE8W"
+          ]
+        }
+      },
+      "block_order": [
+        "header_8GxHGQ"
+      ],
+      "name": "t:general.custom_section",
+      "settings": {
+        "section_width": "page_width",
+        "limit_width": false,
+        "max_width": 1200,
+        "alignment": "left",
+        "customize_mobile_alignment": false,
+        "alignment_mobile": "left",
+        "content_gap": 48,
+        "customize_mobile_gap": true,
+        "content_gap_mobile": 36,
+        "color_scheme": "",
+        "background_color": "",
+        "padding_top": 80,
+        "padding_bottom": 80,
+        "padding_left": 0,
+        "padding_right": 0,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 56,
+        "padding_bottom_mobile": 56,
+        "padding_left_mobile": 0,
+        "padding_right_mobile": 0
+      }
+    },
     "best_sellers": {
       "type": "featured-collection",
       "blocks": {
@@ -82,6 +289,7 @@
             "icon_position": "after",
             "icon_size": "inherit",
             "icon_width": 20,
+            "hide_view_all_mobile": false,
             "button_style_mobile": "outline",
             "button_height_mobile": "inherit",
             "full_width_mobile": true,
@@ -157,6 +365,7 @@
           "settings": {
             "text": "<p>EMPOWER YOUR SKIN CARE</p>",
             "text_size": "display",
+            "custom_text_size": 16,
             "height_limit": "none",
             "text_color": "",
             "width": "fit",
@@ -197,13 +406,11 @@
             "image_link_1": "",
             "image_new_tab_1": false,
             "show_image_2": true,
-            "image_2": "shopify://shop_images/essenza-testimonial-2.png",
             "image_width_2": 90,
             "image_width_mobile_2": 64,
             "image_link_2": "",
             "image_new_tab_2": false,
             "show_image_3": true,
-            "image_3": "shopify://shop_images/essenza-testimonial-3.png",
             "image_width_3": 90,
             "image_width_mobile_3": 64,
             "image_link_3": "",
@@ -296,6 +503,7 @@
               "settings": {
                 "text": "<p>Catch our bestsellers in action</p>",
                 "text_size": "display",
+                "custom_text_size": 16,
                 "height_limit": "none",
                 "text_color": "",
                 "width": "fit",
@@ -393,7 +601,6 @@
                   "type": "video",
                   "settings": {
                     "video_source": "uploaded",
-                    "video": "shopify://files/videos/essenza-video-3.mp4",
                     "external_video_url": "",
                     "autoplay": false,
                     "loop_video": false,
@@ -442,7 +649,6 @@
                   "type": "video",
                   "settings": {
                     "video_source": "uploaded",
-                    "video": "shopify://files/videos/essenza-video-6.mp4",
                     "external_video_url": "",
                     "autoplay": false,
                     "loop_video": false,
@@ -491,7 +697,6 @@
                   "type": "video",
                   "settings": {
                     "video_source": "uploaded",
-                    "video": "shopify://files/videos/essenza-video-2.mp4",
                     "external_video_url": "",
                     "autoplay": false,
                     "loop_video": false,
@@ -540,7 +745,6 @@
                   "type": "video",
                   "settings": {
                     "video_source": "uploaded",
-                    "video": "shopify://files/videos/essenza-video-4.mp4",
                     "external_video_url": "",
                     "autoplay": false,
                     "loop_video": false,
@@ -589,7 +793,6 @@
                   "type": "video",
                   "settings": {
                     "video_source": "uploaded",
-                    "video": "shopify://files/videos/essenza-video-5.mp4",
                     "external_video_url": "",
                     "autoplay": false,
                     "loop_video": false,
@@ -638,7 +841,6 @@
                   "type": "video",
                   "settings": {
                     "video_source": "uploaded",
-                    "video": "shopify://files/videos/essenza-video-5.mp4",
                     "external_video_url": "",
                     "autoplay": false,
                     "loop_video": false,
@@ -687,7 +889,6 @@
                   "type": "video",
                   "settings": {
                     "video_source": "uploaded",
-                    "video": "shopify://files/videos/essenza-video-1.mp4",
                     "external_video_url": "",
                     "autoplay": false,
                     "loop_video": false,
@@ -743,6 +944,7 @@
         "carousel_2"
       ],
       "settings": {
+        "color_scheme": "",
         "background_color": "#fbf8f4",
         "padding_top": 80,
         "padding_bottom": 80,
@@ -809,6 +1011,7 @@
               "settings": {
                 "text": "<p>Discover what’s shaping the world of beauty today and tomorrow.</p>",
                 "text_size": "display",
+                "custom_text_size": 16,
                 "height_limit": "none",
                 "text_color": "",
                 "width": "fit",
@@ -847,6 +1050,7 @@
             "icon_position": "after",
             "icon_size": "inherit",
             "icon_width": 20,
+            "hide_view_all_mobile": false,
             "button_style_mobile": "text",
             "button_height_mobile": "inherit",
             "full_width_mobile": true,
@@ -1040,6 +1244,7 @@
               "settings": {
                 "text": "<p>#Hellobeauty_Evela</p>",
                 "text_size": "display",
+                "custom_text_size": 16,
                 "height_limit": "none",
                 "text_color": "#666666",
                 "width": "fit",
@@ -1130,7 +1335,6 @@
             "slide_1": {
               "type": "social-gallery-slide",
               "settings": {
-                "image": "shopify://shop_images/essenza-social-1.png",
                 "alt_text": "",
                 "social_network": "instagram",
                 "social_url": "",
@@ -1142,7 +1346,6 @@
             "slide_2": {
               "type": "social-gallery-slide",
               "settings": {
-                "image": "shopify://shop_images/essenza-social-2.png",
                 "alt_text": "",
                 "social_network": "instagram",
                 "social_url": "",
@@ -1154,7 +1357,6 @@
             "slide_3": {
               "type": "social-gallery-slide",
               "settings": {
-                "image": "shopify://shop_images/essenza-social-3.png",
                 "alt_text": "",
                 "social_network": "instagram",
                 "social_url": "",
@@ -1166,7 +1368,6 @@
             "slide_4": {
               "type": "social-gallery-slide",
               "settings": {
-                "image": "shopify://shop_images/essenza-social-4.png",
                 "alt_text": "",
                 "social_network": "instagram",
                 "social_url": "",
@@ -1178,7 +1379,6 @@
             "slide_5": {
               "type": "social-gallery-slide",
               "settings": {
-                "image": "shopify://shop_images/essenza-social-5.png",
                 "alt_text": "",
                 "social_network": "instagram",
                 "social_url": "",
@@ -1227,6 +1427,8 @@
     }
   },
   "order": [
+    "hero_AcjX9K",
+    "custom_section_49xiR4",
     "best_sellers",
     "beauty_message",
     "community_video_carousel",

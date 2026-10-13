@@ -79,7 +79,6 @@
                 "icon": "chevron",
                 "dividers": true,
                 "question_font_size": "sm",
-                "answer_font_size": "md",
                 "width": "fill"
               },
               "blocks": {
@@ -182,7 +181,6 @@
                 "icon": "chevron",
                 "dividers": true,
                 "question_font_size": "sm",
-                "answer_font_size": "md",
                 "width": "fill"
               },
               "blocks": {
@@ -285,7 +283,6 @@
                 "icon": "chevron",
                 "dividers": true,
                 "question_font_size": "sm",
-                "answer_font_size": "md",
                 "width": "fill"
               },
               "blocks": {
@@ -388,7 +385,6 @@
                 "icon": "chevron",
                 "dividers": true,
                 "question_font_size": "sm",
-                "answer_font_size": "md",
                 "width": "fill"
               },
               "blocks": {
@@ -491,7 +487,6 @@
                 "icon": "chevron",
                 "dividers": true,
                 "question_font_size": "sm",
-                "answer_font_size": "md",
                 "width": "fill"
               },
               "blocks": {

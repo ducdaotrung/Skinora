@@ -1,7 +1,6 @@
 {% doc %}
   Renders the collection card call-to-action using the shared Button
-  Foundation. The destination is always the current collection, so this block
-  intentionally exposes no editable link setting.
+  Foundation. A custom destination can override the current collection URL.
 
   @example
   {% content_for 'block', type: 'collection-card-button', id: 'button' %}
@@ -9,6 +8,7 @@
 
 {% liquid
   assign collection_card_button_collection = closest.collection
+  assign collection_card_button_url = block.settings.button_link | default: collection_card_button_collection.url
   assign collection_card_button_label = block.settings.button_label | default: 'Shop now'
   assign collection_card_button_open_in_new_tab = block.settings.button_open_in_new_tab
 
@@ -96,7 +96,7 @@
   assign collection_card_button_class = 'collection-card-button size-style collection-card-button--width-' | append: collection_card_button_width
   assign collection_card_button_class = collection_card_button_class | append: ' collection-card-button--width-mobile-' | append: collection_card_button_width_mobile
   assign collection_card_button_should_render = false
-  if collection_card_button_collection.url != blank and collection_card_button_label != blank
+  if collection_card_button_url != blank and collection_card_button_label != blank
     assign collection_card_button_should_render = true
   elsif request.design_mode
     assign collection_card_button_should_render = true
@@ -132,7 +132,7 @@
   >
     {% render 'theme-button',
       label: collection_card_button_label,
-      url: collection_card_button_collection.url,
+      url: collection_card_button_url,
       open_in_new_tab: collection_card_button_open_in_new_tab,
       variant: collection_card_button_style,
       icon: collection_card_button_icon,
@@ -190,6 +190,11 @@
       "id": "button_label",
       "label": "t:labels.button_label",
       "default": "Shop now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:labels.link"
     },
     {
       "type": "checkbox",

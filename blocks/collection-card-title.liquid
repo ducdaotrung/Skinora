@@ -12,6 +12,7 @@
 {% liquid
   assign collection_card_title_collection = closest.collection
   assign collection_card_title = collection_card_title_collection.title
+  assign collection_card_title_url = block.settings.title_link | default: collection_card_title_collection.url
   if collection_card_title == blank
     assign collection_card_title = 'collection_list.default_title' | t
   endif
@@ -48,6 +49,20 @@
   unless collection_card_title_tag == 'div' or collection_card_title_tag == 'h1' or collection_card_title_tag == 'h2' or collection_card_title_tag == 'h3' or collection_card_title_tag == 'h4' or collection_card_title_tag == 'h5' or collection_card_title_tag == 'h6'
     assign collection_card_title_tag = 'h3'
   endunless
+  if collection_card_title_size == 'display'
+    case collection_card_title_tag
+      when 'h2'
+        assign collection_card_title_size = 'xl'
+      when 'h3'
+        assign collection_card_title_size = 'lg'
+      when 'h4'
+        assign collection_card_title_size = 'md'
+      when 'h5'
+        assign collection_card_title_size = 'sm'
+      when 'h6'
+        assign collection_card_title_size = 'xs'
+    endcase
+  endif
 
   assign collection_card_title_count_font = block.settings.product_count_font | default: 'body'
   unless collection_card_title_count_font == 'body' or collection_card_title_count_font == 'heading'
@@ -129,17 +144,19 @@
   {% if collection_card_title_style != blank %}style="{{ collection_card_title_style }}"{% endif %}
   {{ block.shopify_attributes }}
 >
-  <{{ collection_card_title_tag }} class="collection-card-title__heading heading-text heading-{{ collection_card_title_size }}">
-    {{ collection_card_title | escape }}
-    {% if collection_card_title_show_count %}
-      <span
-        class="collection-card-title__count font-{{ collection_card_title_count_font }} body-{{ collection_card_title_count_size }}"
-        aria-label="{{ 'collection_list.products_count' | t: count: collection_card_title_product_count | escape }}"
-      >
-        {{ collection_card_title_product_count }}
-      </span>
-    {% endif %}
-  </{{ collection_card_title_tag }}>
+  {% if collection_card_title_url != blank %}<a class="collection-card-title__link" href="{{ collection_card_title_url | escape }}">{% endif %}
+    <{{ collection_card_title_tag }} class="collection-card-title__heading heading-text heading-{{ collection_card_title_size }}"{% if block.settings.text_color != blank %} style="color: {{ block.settings.text_color | escape }};"{% endif %}>
+      {{ collection_card_title | escape }}
+      {% if collection_card_title_show_count %}
+        <span
+          class="collection-card-title__count font-{{ collection_card_title_count_font }} body-{{ collection_card_title_count_size }}"
+          aria-label="{{ 'collection_list.products_count' | t: count: collection_card_title_product_count | escape }}"
+        >
+          {{ collection_card_title_product_count }}
+        </span>
+      {% endif %}
+    </{{ collection_card_title_tag }}>
+  {% if collection_card_title_url != blank %}</a>{% endif %}
 </div>
 
 {% stylesheet %}
@@ -159,6 +176,12 @@
     margin: 0;
     min-width: 0;
     overflow-wrap: anywhere;
+  }
+
+  .collection-card-title__link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
   }
 
   .collection-card-title__heading.heading-custom { font-size: var(--collection-card-title-custom-size, var(--font-heading-custom)); }
@@ -187,6 +210,11 @@
   "tag": null,
   "settings": [
     {
+      "type": "url",
+      "id": "title_link",
+      "label": "t:labels.link"
+    },
+    {
       "type": "checkbox",
       "id": "show_product_count",
       "label": "Show product count",
@@ -195,6 +223,13 @@
     {
       "type": "header",
       "content": "t:general.typography"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_color",
+      "label": "t:labels.text_color",
+      "info": "t:info.heading_text_color"
     },
     {
       "type": "select",

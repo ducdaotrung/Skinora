@@ -9,6 +9,7 @@
   @param {string} [image_loading] - Parent's eager/lazy media decision
   @param {string} [image_sizes] - Parent's layout-aware image sizes
   @param {number} [placeholder_index] - Collection placeholder variant1–6
+  @param {boolean} [collection_list_custom_card] - Whether this card belongs to Collection list (custom)
 {% enddoc %}
 {% liquid
   assign collection_card_collection = card_collection
@@ -72,10 +73,15 @@
     when 'wide'
       assign collection_card_ratio = '1.7778'
     when 'custom'
-      assign collection_card_ratio = block.settings.ratio_custom | default: 1 | plus: 0
-      if collection_card_ratio < 0.3 or collection_card_ratio > 3
-        assign collection_card_ratio = 1
+      assign collection_card_ratio_custom_width = block.settings.ratio_custom_width | default: 1 | plus: 0
+      assign collection_card_ratio_custom_height = block.settings.ratio_custom_height | default: 1 | plus: 0
+      if collection_card_ratio_custom_width <= 0
+        assign collection_card_ratio_custom_width = 1
       endif
+      if collection_card_ratio_custom_height <= 0
+        assign collection_card_ratio_custom_height = 1
+      endif
+      assign collection_card_ratio = collection_card_ratio_custom_width | times: 1.0 | divided_by: collection_card_ratio_custom_height
   endcase
   assign collection_card_gap_desktop = block.settings.gap_desktop | default: 4 | plus: 0
   assign collection_card_gap_mobile = block.settings.gap_mobile | default: collection_card_gap_desktop | plus: 0
@@ -131,25 +137,41 @@
 
 {% capture collection_card_padding_style %}
   {% if block.settings.media_corner_radius != blank %}--collection-card-media-radius: {{ collection_card_media_radius }};{% endif %}
-  {% if collection_card_gap_desktop != 4 %}--card-content-gap: {{ collection_card_gap_desktop }}px;{% endif %}
-  {% if collection_card_gap_mobile != collection_card_gap_desktop %}--card-content-gap-mobile: {{ collection_card_gap_mobile }}px;{% endif %}
-  {% if collection_card_padding_top != 16 %}--card-padding-top: {{ collection_card_padding_top }}px;{% endif %}
-  {% if collection_card_padding_bottom != 0 %}--card-padding-bottom: {{ collection_card_padding_bottom }}px;{% endif %}
-  {% if collection_card_padding_left != 0 %}--card-padding-left: {{ collection_card_padding_left }}px;{% endif %}
-  {% if collection_card_padding_right != 0 %}--card-padding-right: {{ collection_card_padding_right }}px;{% endif %}
+  {% if collection_list_custom_card %}
+    --card-content-gap: {{ collection_card_gap_desktop }}px;
+    --card-content-gap-mobile: {{ collection_card_gap_mobile }}px;
+    --card-padding-top: {{ collection_card_padding_top }}px;
+    --card-padding-bottom: {{ collection_card_padding_bottom }}px;
+    --card-padding-left: {{ collection_card_padding_left }}px;
+    --card-padding-right: {{ collection_card_padding_right }}px;
+  {% else %}
+    {% if collection_card_gap_desktop != 4 %}--card-content-gap: {{ collection_card_gap_desktop }}px;{% endif %}
+    {% if collection_card_gap_mobile != collection_card_gap_desktop %}--card-content-gap-mobile: {{ collection_card_gap_mobile }}px;{% endif %}
+    {% if collection_card_padding_top != 16 %}--card-padding-top: {{ collection_card_padding_top }}px;{% endif %}
+    {% if collection_card_padding_bottom != 0 %}--card-padding-bottom: {{ collection_card_padding_bottom }}px;{% endif %}
+    {% if collection_card_padding_left != 0 %}--card-padding-left: {{ collection_card_padding_left }}px;{% endif %}
+    {% if collection_card_padding_right != 0 %}--card-padding-right: {{ collection_card_padding_right }}px;{% endif %}
+  {% endif %}
   {% if block.settings.customize_mobile_padding %}
-    {% if collection_card_padding_top_mobile != collection_card_padding_top %}--card-padding-top-mobile: {{ collection_card_padding_top_mobile }}px;{% endif %}
-    {% if collection_card_padding_bottom_mobile != collection_card_padding_bottom %}--card-padding-bottom-mobile: {{ collection_card_padding_bottom_mobile }}px;{% endif %}
-    {% if collection_card_padding_left_mobile != collection_card_padding_left %}--card-padding-left-mobile: {{ collection_card_padding_left_mobile }}px;{% endif %}
-    {% if collection_card_padding_right_mobile != collection_card_padding_right %}--card-padding-right-mobile: {{ collection_card_padding_right_mobile }}px;{% endif %}
+    {% if collection_list_custom_card %}
+      --card-padding-top-mobile: {{ collection_card_padding_top_mobile }}px;
+      --card-padding-bottom-mobile: {{ collection_card_padding_bottom_mobile }}px;
+      --card-padding-left-mobile: {{ collection_card_padding_left_mobile }}px;
+      --card-padding-right-mobile: {{ collection_card_padding_right_mobile }}px;
+    {% else %}
+      {% if collection_card_padding_top_mobile != collection_card_padding_top %}--card-padding-top-mobile: {{ collection_card_padding_top_mobile }}px;{% endif %}
+      {% if collection_card_padding_bottom_mobile != collection_card_padding_bottom %}--card-padding-bottom-mobile: {{ collection_card_padding_bottom_mobile }}px;{% endif %}
+      {% if collection_card_padding_left_mobile != collection_card_padding_left %}--card-padding-left-mobile: {{ collection_card_padding_left_mobile }}px;{% endif %}
+      {% if collection_card_padding_right_mobile != collection_card_padding_right %}--card-padding-right-mobile: {{ collection_card_padding_right_mobile }}px;{% endif %}
+    {% endif %}
   {% endif %}
 {% endcapture %}
 {% assign collection_card_padding_style = collection_card_padding_style | strip %}
 
 <article
-  class="collection-card-kernel collection-card-kernel--{{ collection_card_placement }} collection-card-kernel--{{ collection_card_ratio_setting }}{% if collection_card_is_placeholder %} collection-card-kernel--placeholder{% else %} collection-card-kernel--linked{% endif %}{% if request.design_mode %} collection-card-kernel--design-mode{% endif %}{% if block.settings.color_type == 'color_scheme' %} color-scheme section-color-scope {{ collection_card_scheme }}{% endif %}"
+  class="collection-card-kernel collection-card-kernel--{{ collection_card_placement }} collection-card-kernel--{{ collection_card_ratio_setting }}{% if collection_card_is_placeholder %} collection-card-kernel--placeholder{% else %} collection-card-kernel--linked{% endif %}{% if request.design_mode %} collection-card-kernel--design-mode{% endif %}{% if collection_list_custom_card %} collection-card-kernel--custom-list{% unless block.settings.show_overlay %} collection-card-kernel--custom-overlay-off{% endunless %}{% endif %}{% if block.settings.color_type == 'color_scheme' %} color-scheme section-color-scope {{ collection_card_scheme }}{% endif %}"
   data-collection-card
-  style="--card-border:{{ block.settings.border_thickness | default: 0 }}px;--card-align:{{ block.settings.alignment | default: 'left' }};--collection-card-radius:{{ collection_card_radius }};--collection-card-shadow:{{ collection_card_shadow }};--collection-card-ratio:{{ collection_card_ratio }};{% if collection_card_padding_style != blank %}{{ collection_card_padding_style }}{% endif %}"
+  style="--card-border:{{ block.settings.border_thickness | default: 0 }}px;--card-align:{{ block.settings.alignment | default: 'left' }};--collection-card-radius:{{ collection_card_radius }};--collection-card-shadow:{{ collection_card_shadow }};--collection-card-ratio:{{ collection_card_ratio }};{% if collection_list_custom_card %}--collection-card-overlay-background:{{ block.settings.overlay_background | default: 'linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.4772) 100%)' | escape }};{% endif %}{% if collection_card_padding_style != blank %}{{ collection_card_padding_style }}{% endif %}"
   {{ block.shopify_attributes }}
 >
   <div class="collection-card-kernel__media{% if collection_card_image == blank %} placeholder-image{% endif %}">

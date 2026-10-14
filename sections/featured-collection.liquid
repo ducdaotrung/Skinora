@@ -29,24 +29,6 @@
     assign featured_collection_gap_mobile = 24
   endif
 
-  assign featured_collection_product_list_block = section.blocks | where: 'type', 'product-list' | first
-  assign featured_collection_collection = blank
-  if featured_collection_product_list_block != blank
-    assign featured_collection_collection = featured_collection_product_list_block.settings.collection
-  endif
-
-  assign featured_collection_display_limit = featured_collection_product_list_block.settings.max_products | default: 6 | plus: 0
-  if featured_collection_display_limit < 1 or featured_collection_display_limit > 24
-    assign featured_collection_display_limit = 6
-  endif
-  assign featured_collection_show_view_all = false
-  if featured_collection_product_list_block != blank and featured_collection_collection != blank and featured_collection_collection.products_count > featured_collection_display_limit
-    assign featured_collection_show_view_all = true
-  endif
-  if featured_collection_product_list_block.settings.use_recommendations and featured_collection_product_list_block.settings.products != blank
-    assign featured_collection_show_view_all = false
-  endif
-
   assign featured_collection_padding_top = section.settings.padding_top | default: 0 | plus: 0
   assign featured_collection_padding_bottom = section.settings.padding_bottom | default: 0 | plus: 0
   assign featured_collection_padding_top_mobile = section.settings.padding_top_mobile | default: 0 | plus: 0
@@ -78,11 +60,9 @@
     <div class="featured-collection__header">
       {% content_for 'block', type: 'header', id: 'header' %}
     </div>
-    {% if featured_collection_show_view_all %}
-      <div class="featured-collection__actions" data-featured-collection-actions>
-        {% content_for 'block', type: 'view-all-button', id: 'featured-collection-view-all', closest.collection: featured_collection_collection %}
-      </div>
-    {% endif %}
+    <div class="featured-collection__actions" data-featured-collection-actions>
+      {% content_for 'block', type: 'view-all-button', id: 'featured-collection-view-all', use_product_list_collection: true %}
+    </div>
     <div class="featured-collection__products">
       {% content_for 'block', type: 'product-list', id: 'product-list' %}
     </div>
@@ -104,7 +84,7 @@
   }
 
   .featured-collection .product-card--standard .product-card__media {
-    border-radius: 20px;
+    border-radius: 16px;
     background: transparent;
   }
 
@@ -151,6 +131,10 @@
     align-items: center;
   }
 
+  .featured-collection__actions:has(.collection-list-view-all) {
+    justify-content: flex-end;
+  }
+
   .featured-collection__products > .product-list > .product-list__navigation--top {
     margin-block-end: var(--featured-collection-gap-desktop, 32px);
   }
@@ -165,21 +149,21 @@
     .featured-collection__container[data-desktop-alignment='left'],
     .featured-collection__container[data-desktop-alignment='right'] {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       grid-template-areas:
-        'header actions navigation'
-        'products products products'
-        'additional-blocks additional-blocks additional-blocks';
+        'header actions'
+        'products products'
+        'additional-blocks additional-blocks';
       column-gap: var(--featured-collection-gap-desktop, 32px);
       row-gap: var(--featured-collection-gap-desktop, 32px);
     }
 
     .featured-collection__container[data-desktop-alignment='right'] {
-      grid-template-columns: auto auto minmax(0, 1fr);
+      grid-template-columns: auto minmax(0, 1fr);
       grid-template-areas:
-        'navigation actions header'
-        'products products products'
-        'additional-blocks additional-blocks additional-blocks';
+        'actions header'
+        'products products'
+        'additional-blocks additional-blocks';
     }
 
     .featured-collection__container[data-desktop-alignment='center'] {
@@ -224,6 +208,14 @@
       margin-block-end: 0;
     }
 
+    .featured-collection__container:has(.product-list__navigation--top):not(:has(> .featured-collection__additional-blocks > .image-card--featured-collection-banner)) {
+      grid-template-areas:
+        'header actions'
+        'navigation navigation'
+        'products products'
+        'additional-blocks additional-blocks';
+    }
+
     .featured-collection__container[data-desktop-alignment='left'] .featured-collection__header {
       justify-content: flex-start;
     }
@@ -254,6 +246,7 @@
 
     .featured-collection__container[data-desktop-alignment='left'] .featured-collection__actions,
     .featured-collection__container[data-desktop-alignment='right'] .featured-collection__actions {
+      justify-self: end;
       align-self: end;
     }
 
@@ -341,10 +334,6 @@
       order: 3;
     }
 
-    .featured-collection__container:has(> .featured-collection__additional-blocks > .image-card--featured-collection-banner) .featured-collection__actions {
-      display: none;
-    }
-
     .featured-collection__header {
       order: 1;
     }
@@ -355,11 +344,6 @@
 
     .featured-collection__actions {
       order: 3;
-      width: 100%;
-    }
-
-    .featured-collection__actions .collection-list-view-all,
-    .featured-collection__actions .collection-list-view-all__button--mobile {
       width: 100%;
     }
 

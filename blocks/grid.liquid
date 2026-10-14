@@ -25,6 +25,21 @@
     assign grid_columns_mobile = 1
   endif
 
+  assign grid_direction_desktop = 'ltr'
+  if block.settings.reverse_order_desktop
+    assign grid_direction_desktop = 'rtl'
+  endif
+  assign grid_direction_mobile = grid_direction_desktop
+  if block.settings.reverse_order_mobile
+    assign grid_direction_mobile = 'rtl'
+  else
+    assign grid_direction_mobile = 'ltr'
+  endif
+  assign grid_mobile_reverse_single_column = false
+  if block.settings.reverse_order_mobile and grid_columns_mobile == 1
+    assign grid_mobile_reverse_single_column = true
+  endif
+
   assign grid_gap = block.settings.gap | default: 24 | plus: 0
   if grid_gap < 0 or grid_gap > 100
     assign grid_gap = 24
@@ -94,6 +109,9 @@
   {% if grid_columns_desktop != 3 %}--grid-columns-desktop: {{ grid_columns_desktop }};{% endif %}
   {% if grid_columns_tablet != 2 %}--grid-columns-tablet: {{ grid_columns_tablet }};{% endif %}
   {% if grid_columns_mobile != 1 %}--grid-columns-mobile: {{ grid_columns_mobile }};{% endif %}
+  --grid-direction-desktop: {{ grid_direction_desktop }};
+  --grid-direction-mobile: {{ grid_direction_mobile }};
+  {% if grid_mobile_reverse_single_column %}--grid-display-mobile: flex; --grid-flex-direction-mobile: column-reverse;{% endif %}
   {% if grid_gap != 24 %}--grid-gap: {{ grid_gap }}px;{% endif %}
   --grid-gap-mobile: {{ grid_gap_mobile }}px;
   {% if grid_alignment != 'flex-start' %}--grid-align-items: {{ grid_alignment }};{% endif %}
@@ -125,6 +143,7 @@
     grid-template-columns: repeat(var(--grid-columns-desktop, 3), minmax(0, 1fr));
     gap: var(--grid-gap, var(--layout-grid-gap, 24px));
     align-items: var(--grid-align-items, flex-start);
+    direction: var(--grid-direction-desktop, ltr);
     width: 100%;
     min-width: 0;
     padding-top: var(--grid-padding-top, 0px);
@@ -135,6 +154,7 @@
 
   .block-grid > * {
     min-width: 0;
+    direction: ltr;
   }
 
   @media (min-width: 768px) and (max-width: 1149.98px) {
@@ -145,9 +165,12 @@
 
   @media (max-width: 767.98px) {
     .block-grid {
+      display: var(--grid-display-mobile, grid);
       grid-template-columns: repeat(var(--grid-columns-mobile, 1), minmax(0, 1fr));
       gap: var(--grid-gap-mobile, var(--layout-grid-gap, 16px));
       align-items: var(--grid-align-items-mobile, var(--grid-align-items, flex-start));
+      direction: var(--grid-direction-mobile, var(--grid-direction-desktop, ltr));
+      flex-direction: var(--grid-flex-direction-mobile, row);
       padding-top: var(--grid-padding-top-mobile, var(--grid-padding-top, 0px));
       padding-right: var(--grid-padding-right-mobile, var(--grid-padding-right, 0px));
       padding-bottom: var(--grid-padding-bottom-mobile, var(--grid-padding-bottom, 0px));
@@ -210,6 +233,18 @@
       "max": 6,
       "step": 1,
       "default": 1
+    },
+    {
+      "type": "checkbox",
+      "id": "reverse_order_desktop",
+      "label": "t:labels.reverse_order_desktop",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "reverse_order_mobile",
+      "label": "t:labels.reverse_order_mobile",
+      "default": false
     },
     {
       "type": "select",
@@ -367,6 +402,8 @@
         "columns_desktop": 3,
         "columns_tablet": 2,
         "columns_mobile": 1,
+        "reverse_order_desktop": false,
+        "reverse_order_mobile": false,
         "gap": 24,
         "gap_mobile": 16,
         "alignment": "top",

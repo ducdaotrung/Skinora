@@ -170,10 +170,36 @@ const initialize = (carousel) => {
     interval: null,
     resizeObserver: null,
     visibilityObserver: null,
+    layoutObserver: null,
     mobileQuery: null,
     mobileQueryHandler: null,
   };
   instances.set(carousel, state);
+
+  if (typeof MutationObserver === 'function') {
+    state.layoutObserver = new MutationObserver(() => {
+      if (!carousel.isConnected) {
+        destroy(carousel);
+        return;
+      }
+      destroy(carousel);
+      initialize(carousel);
+    });
+    state.layoutObserver.observe(carousel, {
+      attributes: true,
+      attributeFilter: [
+        'data-layout',
+        'data-swiper-responsive-layout',
+        'data-swiper-layout-desktop',
+        'data-swiper-layout-mobile',
+        'data-swiper-mobile-only',
+        'data-swiper-columns-desktop',
+        'data-swiper-columns-mobile',
+        'data-swiper-gap-desktop',
+        'data-swiper-gap-mobile',
+      ],
+    });
+  }
 
   if (carousel.dataset.swiperMobileOnly === 'true' || carousel.dataset.swiperResponsiveLayout === 'true') {
     state.mobileQuery = window.matchMedia(`(max-width: ${desktopBreakpoint - 0.02}px)`);
@@ -225,6 +251,7 @@ const destroy = (carousel) => {
   stopAutoplay(state);
   state.resizeObserver?.disconnect();
   state.visibilityObserver?.disconnect();
+  state.layoutObserver?.disconnect();
   state.mobileQuery?.removeEventListener('change', state.mobileQueryHandler);
   if (state.swiper) destroySwiperCarousel(state.swiper);
   instances.delete(carousel);

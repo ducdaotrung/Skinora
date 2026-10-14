@@ -9,6 +9,11 @@
   presentation are configured independently while both controls retain the
   same accessible link target.
 
+  Featured collection always renders this action and synchronizes its destination
+  from the Product list block when use_product_list_collection is enabled.
+
+  @param {boolean} [use_product_list_collection] - Always render a collection link whose URL is supplied by the owning Product list
+
   @example
   {% content_for 'block', type: 'view-all-button', id: 'view-all' %}
 {% enddoc %}
@@ -25,13 +30,20 @@
       assign collection_list_view_all_is_dynamic = true
     endif
   endif
+  if use_product_list_collection
+    assign collection_list_view_all_url = blank
+    assign collection_list_view_all_is_dynamic = true
+  endif
   assign collection_list_view_all_attributes = 'data-view-all-button'
   if collection_list_view_all_is_dynamic
     assign collection_list_view_all_attributes = collection_list_view_all_attributes | append: ' data-view-all-button-dynamic'
+    if collection_list_view_all_url == blank
+      assign collection_list_view_all_attributes = collection_list_view_all_attributes | append: ' aria-disabled="true" tabindex="-1"'
+    endif
   endif
 
   assign collection_list_view_all_can_render = false
-  if collection_list_view_all_url != blank
+  if collection_list_view_all_url != blank or use_product_list_collection
     assign collection_list_view_all_can_render = true
   endif
 
@@ -65,6 +77,7 @@
       label: block.settings.button_label,
       fallback_label: collection_list_view_all_fallback_label,
       url: collection_list_view_all_url,
+      force_link: collection_list_view_all_is_dynamic,
       open_in_new_tab: block.settings.button_open_in_new_tab,
       variant: block.settings.button_style,
       fallback_variant: 'text',
@@ -80,6 +93,7 @@
       label: block.settings.button_label,
       fallback_label: collection_list_view_all_fallback_label,
       url: collection_list_view_all_url,
+      force_link: collection_list_view_all_is_dynamic,
       open_in_new_tab: block.settings.button_open_in_new_tab,
       variant: block.settings.button_style_mobile,
       fallback_variant: block.settings.button_style,

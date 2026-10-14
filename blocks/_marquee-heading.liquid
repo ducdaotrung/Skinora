@@ -1,7 +1,15 @@
 {% liquid
-  assign size = block.settings.heading_size | default: 'xl'
+  assign heading_size = block.settings.heading_size | default: 'xl'
+  assign heading_tag = block.settings.html_tag | default: 'div'
+  unless heading_tag == 'div' or heading_tag == 'h1' or heading_tag == 'h2' or heading_tag == 'h3' or heading_tag == 'h4' or heading_tag == 'h5' or heading_tag == 'h6'
+    assign heading_tag = 'div'
+  endunless
+  capture resolved_heading_size
+    render 'typography-size-token', size: heading_size, role: 'heading', tag: heading_tag, fallback: 'xl'
+  endcapture
+  assign resolved_heading_size = resolved_heading_size | strip
   assign role = block.settings.color_role | default: 'heading'
-  assign font_role = block.settings.font | default: 'body'
+  assign font_role = block.settings.font | default: 'heading'
   assign font_size = block.settings.custom_heading_size | default: 14
   assign mobile_size = font_size
   if block.settings.custom_mobile
@@ -10,8 +18,16 @@
   assign opacity = block.settings.opacity | default: 50 | divided_by: 100.0
   assign text_case = block.settings.text_case | default: 'none'
   assign plain_text = block.settings.text | strip_html | strip
+  assign text_color = block.settings.text_color
+  if text_color == blank
+    assign role_color_token = 'body'
+    if role == 'heading'
+      assign role_color_token = 'heading'
+    endif
+    assign text_color = 'var(--' | append: role_color_token | append: '-color)'
+  endif
 %}
-<div class="marquee-heading-block heading-text heading-{{ size }}{% if block.settings.outline %} marquee-heading-block--outline{% endif %}" style="--mq-color:var(--{% if role == 'heading' %}heading{% else %}body{% endif %}-color);--mq-opacity:{{ opacity }};{% if size == 'custom' %}--mq-font:var(--font-{{ font_role }}-family);--mq-font-style:var(--font-{{ font_role }}-style);--mq-font-weight:var(--font-{{ font_role }}-weight);--mq-size:{{ font_size }}px;--mq-size-mobile:{{ mobile_size }}px;--mq-case:{{ text_case }};{% render 'marquee-letter-spacing', value: block.settings.letter_spacing %}{% endif %}" {% if plain_text == blank %}data-content-empty{% endif %} {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+<{{ heading_tag }} class="marquee-heading-block heading-text heading-{{ resolved_heading_size }}{% if block.settings.outline %} marquee-heading-block--outline{% endif %}" style="color:{{ text_color | escape }};--mq-color:{{ text_color | escape }};--mq-opacity:{{ opacity }};{% if heading_size == 'custom' %}--mq-font:var(--font-{{ font_role }}-family);--mq-font-style:var(--font-{{ font_role }}-style);--mq-font-weight:var(--font-{{ font_role }}-weight);--mq-size:{{ font_size }}px;--mq-size-mobile:{{ mobile_size }}px;--mq-case:{{ text_case }};{% render 'marquee-letter-spacing', value: block.settings.letter_spacing %}{% endif %}" {% if plain_text == blank %}data-content-empty{% endif %} {{ block.shopify_attributes }}>{{ block.settings.text }}</{{ heading_tag }}>
 {% stylesheet %}
 .marquee-heading-block{flex:0 0 auto;width:max-content;max-width:none;margin:0;overflow-wrap:normal;color:var(--mq-color);opacity:var(--mq-opacity,1);} .marquee-heading-block.heading-custom{font-family:var(--mq-font);font-style:var(--mq-font-style);font-weight:var(--mq-font-weight);font-size:var(--mq-size);line-height:1.2;letter-spacing:var(--mq-tracking,0em);text-transform:var(--mq-case);} .marquee-heading-block--outline{-webkit-text-stroke:1px var(--mq-color);color:transparent;} .marquee-heading-block a{color:inherit;} @media(max-width:767.98px){.marquee-heading-block.heading-custom{font-size:var(--mq-size-mobile);}}
 {% endstylesheet %}
@@ -40,31 +56,31 @@
     {
       "type": "select",
       "id": "heading_size",
-      "label": "Size",
+      "label": "Heading size",
       "options": [
         {
           "value": "display",
-          "label": "XXL"
+          "label": "t:options.heading_size.display"
         },
         {
           "value": "xl",
-          "label": "XL"
+          "label": "t:options.heading_size.xl"
         },
         {
           "value": "lg",
-          "label": "L"
+          "label": "t:options.heading_size.lg"
         },
         {
           "value": "md",
-          "label": "M"
+          "label": "t:options.heading_size.md"
         },
         {
           "value": "sm",
-          "label": "S"
+          "label": "t:options.heading_size.sm"
         },
         {
           "value": "xs",
-          "label": "XS"
+          "label": "t:options.heading_size.xs"
         },
         {
           "value": "custom",
@@ -72,6 +88,27 @@
         }
       ],
       "default": "xl"
+    },
+    {
+      "type": "select",
+      "id": "html_tag",
+      "label": "HTML tag",
+      "options": [
+        { "value": "div", "label": "Paragraph" },
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" },
+        { "value": "h4", "label": "H4" },
+        { "value": "h5", "label": "H5" },
+        { "value": "h6", "label": "H6" }
+      ],
+      "default": "div"
+    },
+    {
+      "type": "color",
+      "alpha": true,
+      "id": "text_color",
+      "label": "Text color"
     },
     {
       "type": "select",
@@ -91,7 +128,7 @@
           "label": "Accent"
         }
       ],
-      "default": "body",
+      "default": "heading",
       "visible_if": "{{ block.settings.heading_size == 'custom' }}"
     },
     {
@@ -190,13 +227,9 @@
       "visible_if": "{{ block.settings.heading_size == 'custom' and block.settings.custom_mobile }}"
     },
     {
-      "type": "header",
-      "content": "Color"
-    },
-    {
       "type": "select",
       "id": "color_role",
-      "label": "Text color",
+      "label": "Inherit color from",
       "options": [
         {
           "value": "heading",

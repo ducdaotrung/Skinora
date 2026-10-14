@@ -633,9 +633,7 @@
                   "type": "collection-card-title",
                   "static": true,
                   "settings": {
-                    "title_link": "",
                     "show_product_count": false,
-                    "text_color": "#ffffff",
                     "heading_size": "display",
                     "custom_heading_size": 26,
                     "html_tag": "h3",

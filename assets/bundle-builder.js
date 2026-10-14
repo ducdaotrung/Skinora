@@ -319,20 +319,21 @@ function initialize(root) {
   if (!(root instanceof HTMLElement) || instances.has(root)) return;
 
   const summary = root.querySelector('[data-bundle-summary]');
-  if (!summary) return;
+  const routineButtons = root.querySelectorAll('[data-bundle-submit]');
+  if (!summary && !routineButtons.length) return;
 
-  const mobileSummaryToggle = summary.querySelector('[data-bundle-summary-toggle]');
-  const mobileSummarySurface = summary.querySelector('.bundle-summary__surface');
-  const mobileSummaryInner = summary.querySelector('.bundle-summary__inner');
-  const mobileSummaryHeading = summary.querySelector('.bundle-summary__heading');
-  const mobileSummaryProgress = summary.querySelector('[data-bundle-progress]');
-  const mobileSummaryItems = summary.querySelector('.bundle-summary__items');
-  const mobileSummaryFooter = summary.querySelector('.bundle-summary__footer');
+  const mobileSummaryToggle = summary?.querySelector('[data-bundle-summary-toggle]');
+  const mobileSummarySurface = summary?.querySelector('.bundle-summary__surface');
+  const mobileSummaryInner = summary?.querySelector('.bundle-summary__inner');
+  const mobileSummaryHeading = summary?.querySelector('.bundle-summary__heading');
+  const mobileSummaryProgress = summary?.querySelector('[data-bundle-progress]');
+  const mobileSummaryItems = summary?.querySelector('.bundle-summary__items');
+  const mobileSummaryFooter = summary?.querySelector('.bundle-summary__footer');
   const mobileViewport = window.matchMedia('(max-width: 767.98px)');
   const productCardImageRatio = getComputedStyle(root).getPropertyValue('--product-card-image-ratio').trim();
   const abortController = new AbortController();
   const { signal } = abortController;
-  const parsedGoals = parseJson(summary.dataset.goals || '[]', []);
+  const parsedGoals = parseJson(summary?.dataset.goals || '[]', []);
   const productList = root.querySelector('.bundle-product-list');
   const sourceSignature = JSON.stringify([
     productList?.dataset.bundleSourceCollection || '',
@@ -353,7 +354,7 @@ function initialize(root) {
     isSubmitting: false,
     selected,
     goals: Array.isArray(parsedGoals) ? parsedGoals.filter((goal) => goal?.enabled) : [],
-    placeholderCount: Math.max(0, Number.parseInt(summary.dataset.placeholderCount || '3', 10) || 0),
+    placeholderCount: Math.max(0, Number.parseInt(summary?.dataset.placeholderCount || '3', 10) || 0),
     summary,
   };
   instances.set(root, state);
@@ -373,7 +374,7 @@ function initialize(root) {
       .reduce((height, property) => height + (Number.parseFloat(surfaceStyle[property]) || 0), 0);
     const contentHeight = mobileSummaryHeading.getBoundingClientRect().height
       + mobileSummaryFooter.getBoundingClientRect().height + innerGap;
-    summary.style.setProperty('--bundle-summary-collapsed-height', `${Math.ceil(chromeHeight + contentHeight)}px`);
+    summary?.style.setProperty('--bundle-summary-collapsed-height', `${Math.ceil(chromeHeight + contentHeight)}px`);
   };
 
   const measureExpandedSummaryHeight = () => {
@@ -386,13 +387,13 @@ function initialize(root) {
     const headerHeight = mobileSummaryHeading.getBoundingClientRect().height + (progressHeight ? 14 + progressHeight : 0);
     const productsHeight = mobileSummaryItems.scrollHeight;
     const contentHeight = headerHeight + productsHeight + mobileSummaryFooter.getBoundingClientRect().height + innerGap * 2;
-    summary.style.setProperty('--bundle-summary-expanded-height', `${Math.ceil(chromeHeight + contentHeight)}px`);
+    summary?.style.setProperty('--bundle-summary-expanded-height', `${Math.ceil(chromeHeight + contentHeight)}px`);
   };
 
   const setMobileSummaryExpanded = (expanded) => {
     if (!expanded) measureCollapsedSummaryHeight();
     else measureExpandedSummaryHeight();
-    summary.dataset.mobileExpanded = String(expanded);
+    if (summary) summary.dataset.mobileExpanded = String(expanded);
     mobileSummaryToggle?.setAttribute('aria-expanded', String(expanded));
     const detailsInert = mobileViewport.matches && !expanded;
     if (mobileSummaryProgress) mobileSummaryProgress.inert = detailsInert;
@@ -405,8 +406,8 @@ function initialize(root) {
     if (mobileSummaryToggle) mobileSummaryToggle.disabled = !mobileViewport.matches;
     if (!mobileViewport.matches) {
       setMobileSummaryExpanded(false);
-      summary.style.removeProperty('--bundle-summary-collapsed-height');
-      summary.style.removeProperty('--bundle-summary-expanded-height');
+      summary?.style.removeProperty('--bundle-summary-collapsed-height');
+      summary?.style.removeProperty('--bundle-summary-expanded-height');
     } else {
       measureCollapsedSummaryHeight();
       measureExpandedSummaryHeight();
@@ -414,7 +415,7 @@ function initialize(root) {
     }
   };
 
-  summary.dataset.mobileSticky = 'true';
+  if (summary) summary.dataset.mobileSticky = 'true';
   mobileSummaryToggle?.addEventListener('click', () => {
     if (!mobileViewport.matches) return;
     setMobileSummaryExpanded(!isMobileSummaryExpanded());
@@ -426,8 +427,10 @@ function initialize(root) {
   }, { signal });
   mobileViewport.addEventListener('change', updateMobileSummaryMode, { signal });
   window.addEventListener('resize', () => {
-    measureCollapsedSummaryHeight();
-    measureExpandedSummaryHeight();
+    if (summary) {
+      measureCollapsedSummaryHeight();
+      measureExpandedSummaryHeight();
+    }
   }, { signal });
   updateMobileSummaryMode();
 
@@ -458,18 +461,19 @@ function initialize(root) {
   };
 
   const render = () => {
-    const list = summary.querySelector('[data-bundle-items]');
-    const template = summary.querySelector('[data-bundle-item-template]');
-    const placeholderTemplate = summary.querySelector('[data-bundle-placeholder-template]');
-    const totalPrice = summary.querySelector('[data-bundle-total-price]');
-    const subtotalOutput = summary.querySelector('[data-bundle-subtotal]');
-    const discountedTotal = summary.querySelector('[data-bundle-discounted-total]');
-    const discountedTotalOutput = summary.querySelector('[data-bundle-discounted-total-value]');
-    const originalTotal = summary.querySelector('[data-bundle-original-total]');
-    const originalTotalOutput = summary.querySelector('[data-bundle-original-total-value]');
-    const saving = summary.querySelector('[data-bundle-saving]');
-    const savingAmount = summary.querySelector('[data-bundle-saving-amount]');
-    const submitButton = summary.querySelector('[data-bundle-submit]');
+    const list = summary?.querySelector('[data-bundle-items]');
+    const template = summary?.querySelector('[data-bundle-item-template]');
+    const placeholderTemplate = summary?.querySelector('[data-bundle-placeholder-template]');
+    const totalPrice = summary?.querySelector('[data-bundle-total-price]');
+    const subtotalOutput = summary?.querySelector('[data-bundle-subtotal]');
+    const discountedTotal = summary?.querySelector('[data-bundle-discounted-total]');
+    const discountedTotalOutput = summary?.querySelector('[data-bundle-discounted-total-value]');
+    const originalTotal = summary?.querySelector('[data-bundle-original-total]');
+    const originalTotalOutput = summary?.querySelector('[data-bundle-original-total-value]');
+    const saving = summary?.querySelector('[data-bundle-saving]');
+    const savingAmount = summary?.querySelector('[data-bundle-saving-amount]');
+    const submitButton = summary?.querySelector('[data-bundle-submit]');
+    const routineButtons = root.querySelectorAll('[data-bundle-submit]');
     const fragment = document.createDocumentFragment();
     let subtotal = 0;
     let itemCount = 0;
@@ -549,7 +553,7 @@ function initialize(root) {
         if (decreaseButton) decreaseButton.disabled = state.isSubmitting || quantity <= rule.min;
         if (increaseButton) increaseButton.disabled = state.isSubmitting || (rule.max != null && quantity >= rule.max);
       }
-      if (state.summary.dataset.showQuantity === 'true') {
+      if (state.summary?.dataset.showQuantity === 'true') {
         if (staticQuantity) staticQuantity.hidden = true;
       } else {
         if (quantityControls) quantityControls.hidden = true;
@@ -620,7 +624,9 @@ function initialize(root) {
       savingAmount.textContent = estimatedSavings > 0 ? formatMoney(estimatedSavings, root) : '';
     }
     const firstGoal = goalStatus[0];
-    state.canSubmitBundle = state.selected.size > 0 && (!firstGoal || firstGoal.complete);
+    const allCards = Array.from(root.querySelectorAll('[data-bundle-product]'));
+    const allAvailable = allCards.length > 0 && allCards.every((card) => getCurrent(card));
+    state.canSubmitBundle = root.dataset.bundleAddAll === 'true' ? allAvailable : state.selected.size > 0 && (!firstGoal || firstGoal.complete);
 
     list?.replaceChildren(fragment);
     if (submitButton) {
@@ -629,6 +635,11 @@ function initialize(root) {
         buttonStateKey: 'bundleLoading',
       });
     }
+    routineButtons.forEach((button) => {
+      if (button === submitButton) return;
+      button.disabled = !state.canSubmitBundle || state.isSubmitting;
+      setButtonLoadingState(button, state.isSubmitting, { buttonStateKey: 'bundleLoading' });
+    });
     if (productList) {
       productList.inert = state.isSubmitting;
       if (state.isSubmitting) productList.setAttribute('aria-busy', 'true');
@@ -637,14 +648,14 @@ function initialize(root) {
     if (mobileSummaryItems) mobileSummaryItems.inert = state.isSubmitting;
     root.querySelectorAll('[data-bundle-product]').forEach(renderProductButton);
 
-    const progress = summary.querySelector('[data-bundle-progress]');
-    const progressMessage = summary.querySelector('[data-bundle-progress-message]');
-    const progressBar = summary.querySelector('[data-bundle-progress-bar]');
-    const progressFill = summary.querySelector('[data-bundle-progress-fill]');
-    const progressMilestones = summary.querySelector('[data-bundle-progress-milestones]');
-    const progressMilestoneLabels = summary.querySelector('[data-bundle-progress-milestone-labels]');
-    const milestoneTemplate = summary.querySelector('[data-bundle-progress-milestone-template]');
-    const milestoneLabelTemplate = summary.querySelector('[data-bundle-progress-milestone-label-template]');
+    const progress = summary?.querySelector('[data-bundle-progress]');
+    const progressMessage = summary?.querySelector('[data-bundle-progress-message]');
+    const progressBar = summary?.querySelector('[data-bundle-progress-bar]');
+    const progressFill = summary?.querySelector('[data-bundle-progress-fill]');
+    const progressMilestones = summary?.querySelector('[data-bundle-progress-milestones]');
+    const progressMilestoneLabels = summary?.querySelector('[data-bundle-progress-milestone-labels]');
+    const milestoneTemplate = summary?.querySelector('[data-bundle-progress-milestone-template]');
+    const milestoneLabelTemplate = summary?.querySelector('[data-bundle-progress-milestone-label-template]');
 
     if (progress && goalStatus.length > 0) {
       progress.hidden = false;
@@ -666,13 +677,13 @@ function initialize(root) {
       progress.dataset.tiered = String(goalStatus.length >= 2);
       progress.dataset.complete = String(nextGoalIndex === -1);
 
-      if (nextGoal) {
+      if (nextGoal && summary) {
         const remaining = nextGoal.isAmount ? formatMoney(nextGoal.remaining, root) : String(Math.ceil(nextGoal.remaining));
         const message = (summary.dataset.initialMessage || '')
           .replaceAll('[x]', remaining)
           .replaceAll('[label]', getGoalLabel(nextGoal.goal));
         if (progressMessage) progressMessage.textContent = message;
-      } else if (progressMessage) {
+      } else if (progressMessage && summary) {
         progressMessage.textContent = summary.dataset.unlockedMessage || '';
       }
 
@@ -714,8 +725,10 @@ function initialize(root) {
     } else if (progress) {
       progress.hidden = true;
     }
-    measureCollapsedSummaryHeight();
-    measureExpandedSummaryHeight();
+    if (summary) {
+      measureCollapsedSummaryHeight();
+      measureExpandedSummaryHeight();
+    }
     saveSelection();
   };
 
@@ -855,7 +868,13 @@ function initialize(root) {
   const addBundle = async (submit) => {
     if (!state.canSubmitBundle || state.isSubmitting) return;
 
-    const items = Array.from(state.selected.values()).map((item) => ({
+    const lines = root.dataset.bundleAddAll === 'true'
+      ? Array.from(root.querySelectorAll('[data-bundle-product]')).map((card) => {
+        const current = getCurrent(card);
+        return { variantId: current.variantId, quantity: quantityRule(current.variant).min };
+      })
+      : Array.from(state.selected.values());
+    const items = lines.map((item) => ({
       id: Number(item.variantId),
       quantity: Number(item.quantity),
     }));
@@ -913,16 +932,18 @@ function destroy(scope) {
     const state = instances.get(root);
     if (!state) return;
     state.abortController.abort();
-    delete state.summary.dataset.mobileSticky;
-    state.summary.dataset.mobileExpanded = 'false';
-    state.summary.style.removeProperty('--bundle-summary-collapsed-height');
-    const toggle = state.summary.querySelector('[data-bundle-summary-toggle]');
+    if (state.summary) {
+      delete state.summary.dataset.mobileSticky;
+      state.summary.dataset.mobileExpanded = 'false';
+      state.summary.style.removeProperty('--bundle-summary-collapsed-height');
+    }
+    const toggle = state.summary?.querySelector('[data-bundle-summary-toggle]');
     if (toggle) {
       toggle.disabled = true;
       toggle.setAttribute('aria-expanded', 'false');
     }
-    const progress = state.summary.querySelector('[data-bundle-progress]');
-    const items = state.summary.querySelector('.bundle-summary__items');
+    const progress = state.summary?.querySelector('[data-bundle-progress]');
+    const items = state.summary?.querySelector('.bundle-summary__items');
     if (progress) progress.inert = false;
     if (items) items.inert = false;
     state.selected.clear();

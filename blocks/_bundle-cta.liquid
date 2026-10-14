@@ -1,0 +1,37 @@
+{% liquid
+  assign bundle_cta_label = block.settings.label | default: 'Add Full Routine'
+  assign bundle_cta_alignment = block.settings.alignment | default: 'center'
+  assign bundle_cta_variant = block.settings.button_style | default: 'primary'
+%}
+
+<div class="bundle-routine-cta bundle-routine-cta--{{ bundle_cta_alignment }}" {{ block.shopify_attributes }}>
+  {% render 'theme-button',
+    label: bundle_cta_label,
+    variant: bundle_cta_variant,
+    class: 'bundle-routine-cta__button',
+    disabled: true,
+    loading_dots: true,
+    attributes: 'data-bundle-submit'
+  %}
+</div>
+
+{% stylesheet %}
+  .bundle-routine-cta { display: flex; width: 100%; }
+  .bundle-routine-cta--left { justify-content: flex-start; }
+  .bundle-routine-cta--center { justify-content: center; }
+  .bundle-routine-cta--right { justify-content: flex-end; }
+  .bundle-routine-cta__button { min-width: min(100%, 220px); }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Routine button",
+  "tag": null,
+  "settings": [
+    { "type": "text", "id": "label", "label": "Label", "default": "Add Full Routine" },
+    { "type": "select", "id": "button_style", "label": "Style", "options": [{ "value": "primary", "label": "Primary" }, { "value": "secondary", "label": "Secondary" }, { "value": "tertiary", "label": "Tertiary" }], "default": "primary" },
+    { "type": "select", "id": "alignment", "label": "Alignment", "options": [{ "value": "left", "label": "Left" }, { "value": "center", "label": "Center" }, { "value": "right", "label": "Right" }], "default": "center" }
+  ],
+  "presets": [{ "name": "Routine button", "category": "t:labels.products" }]
+}
+{% endschema %}

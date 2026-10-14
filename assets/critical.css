@@ -2726,6 +2726,8 @@ legend {
 
 .product-card .product-badge {
   border-radius: 999px;
+  padding: 4px 12px;
+  text-transform: uppercase;
 }
 
 .product-badge--sale {

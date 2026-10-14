@@ -30,6 +30,23 @@
     assign tab_layout_gap_mobile = 16
   endif
 
+  assign tab_layout_padding_top = block.settings.padding_top | default: 0 | plus: 0
+  if tab_layout_padding_top < 0 or tab_layout_padding_top > 100
+    assign tab_layout_padding_top = 0
+  endif
+  assign tab_layout_padding_bottom = block.settings.padding_bottom | default: 0 | plus: 0
+  if tab_layout_padding_bottom < 0 or tab_layout_padding_bottom > 100
+    assign tab_layout_padding_bottom = 0
+  endif
+  assign tab_layout_padding_top_mobile = block.settings.padding_top_mobile | default: tab_layout_padding_top | plus: 0
+  if tab_layout_padding_top_mobile < 0 or tab_layout_padding_top_mobile > 100
+    assign tab_layout_padding_top_mobile = tab_layout_padding_top
+  endif
+  assign tab_layout_padding_bottom_mobile = block.settings.padding_bottom_mobile | default: tab_layout_padding_bottom | plus: 0
+  if tab_layout_padding_bottom_mobile < 0 or tab_layout_padding_bottom_mobile > 100
+    assign tab_layout_padding_bottom_mobile = tab_layout_padding_bottom
+  endif
+
   assign tab_layout_font = block.settings.font | default: 'body'
   unless tab_layout_font == 'body' or tab_layout_font == 'heading' or tab_layout_font == 'accent'
     assign tab_layout_font = 'body'
@@ -153,6 +170,12 @@
 {% capture tab_layout_style_attribute %}
   --tab-layout-gap-desktop: {{ tab_layout_gap_desktop }}px;
   --tab-layout-gap-mobile: {{ tab_layout_gap_mobile }}px;
+  --tab-layout-padding-top: {{ tab_layout_padding_top }}px;
+  --tab-layout-padding-bottom: {{ tab_layout_padding_bottom }}px;
+  {% if block.settings.customize_mobile_padding %}
+    --tab-layout-padding-top-mobile: {{ tab_layout_padding_top_mobile }}px;
+    --tab-layout-padding-bottom-mobile: {{ tab_layout_padding_bottom_mobile }}px;
+  {% endif %}
   --tab-layout-font-family: {{ tab_layout_font_family }};
   --tab-layout-font-style: {{ tab_layout_font_style }};
   --tab-layout-font-weight: {{ tab_layout_font_weight }};
@@ -300,12 +323,11 @@
     if (!viewAll.length) return;
 
     const url = trigger?.dataset.collectionUrl?.trim() || '';
-    const available = Boolean(url) && trigger?.dataset.viewAllAvailable === 'true';
     viewAll.forEach((button) => {
       const wrapper = button.closest('[data-collection-tabs-view-all-wrapper]');
-      if (wrapper) wrapper.hidden = !available;
+      if (wrapper) wrapper.hidden = false;
     });
-    if (available) {
+    if (url) {
       viewAll.forEach((button) => {
         button.setAttribute('href', url);
         button.removeAttribute('aria-disabled');
@@ -754,6 +776,58 @@
     },
     {
       "type": "header",
+      "content": "t:general.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:labels.top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:labels.bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "customize_mobile_padding",
+      "label": "t:labels.customize_mobile_padding",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "t:labels.mobile_top_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "t:labels.mobile_bottom_padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ block.settings.customize_mobile_padding }}"
+    },
+    {
+      "type": "header",
       "content": "t:general.typography"
     },
     {
@@ -804,6 +878,9 @@
         "active_style": "primary",
         "gap_desktop": 16,
         "gap_mobile": 16,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "customize_mobile_padding": false,
         "font": "body",
         "heading_size": "lg"
       }

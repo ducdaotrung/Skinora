@@ -27,7 +27,23 @@
 .community-video-carousel .video__play { width:48px; height:48px; inset:50% auto auto 50%; transform:translate(-50%,-50%); }
 .community-video-carousel .video__play-icon svg path { fill:currentColor; stroke:none; }
 .community-video-carousel .video__placeholder { background-color:#eeece9; }
-.community-video-carousel .carousel-block__pagination--bullets { --swiper-pagination-bullet-active-width:8px; --swiper-pagination-bullet-active-height:8px; --swiper-pagination-bullet-active-hit-width:24px; }
+.community-video-carousel .carousel-block__pagination--bullets {
+  --swiper-pagination-bullet-width: 8px;
+  --swiper-pagination-bullet-height: 8px;
+  --swiper-pagination-bullet-active-width: 8px;
+  --swiper-pagination-bullet-active-height: 8px;
+  --swiper-pagination-bullet-hit-width: 24px;
+  --swiper-pagination-bullet-hit-size: 24px;
+  --swiper-pagination-bullet-active-hit-width: 24px;
+  --swiper-pagination-bullet-gap: 0px;
+}
+[data-community-videos].community-video-carousel .swiper .swiper-pagination.carousel-block__pagination--bullets .swiper-pagination-bullet-active::before {
+  background: #000;
+}
+[data-community-videos].community-video-carousel .swiper .swiper-pagination.carousel-block__pagination--bullets .swiper-pagination-bullet-active::after {
+  display: none;
+  animation: none;
+}
 @media(max-width:767.98px) { .community-video-carousel { padding-top:var(--community-padding-top-mobile,56px); padding-bottom:var(--community-padding-bottom-mobile,56px); } .community-video-carousel__content { gap:53px; } }
 {% endstylesheet %}
 {% schema %}

@@ -30,6 +30,8 @@ const getMobileSlidesPerView = (carousel) => {
 
   // The preview is intended for a one-column mobile layout. Keep an explicit
   // two-column choice intact instead of silently replacing it with 1.2.
+  if (carousel.dataset.bundleCarousel === 'true' && carousel.dataset.swiperNextSlidePreviewMobile === 'true') return columns + 0.2;
+
   if (columns === 1 && carousel.dataset.swiperNextSlidePreviewMobile === 'true') {
     return 1.2;
   }
@@ -70,7 +72,7 @@ const buildOptions = (carousel, scope) => {
     spaceBetween: toNumber(carousel.dataset.swiperGapMobile, 0),
     breakpoints: {
       [desktopBreakpoint]: {
-        slidesPerView: getSlidesPerView(carousel.dataset.swiperColumnsDesktop),
+        slidesPerView: getSlidesPerView(carousel.dataset.swiperColumnsDesktop) + (carousel.dataset.bundleCarousel === 'true' && carousel.dataset.swiperNextSlidePreview === 'true' ? 0.2 : 0),
         spaceBetween: toNumber(carousel.dataset.swiperGapDesktop, 0),
       },
     },

@@ -231,7 +231,6 @@
     data-collection-tab-trigger
     data-underline="active"
     data-tab-id="{{ collection_tab_id | escape }}"
-    data-view-all-available="{% if collection_tab_collection != blank and collection_tab_collection.products_count > collection_tab_max_products %}true{% else %}false{% endif %}"
     {% if collection_tab_collection != blank %}data-collection-url="{{ collection_tab_collection.url | escape }}"{% endif %}
   >
     {{ collection_tab_label | escape }}

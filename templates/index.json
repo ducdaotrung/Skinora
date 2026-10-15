@@ -1119,7 +1119,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
-                "image": "shopify://shop_images/skinora-scroll-5.png",
+                "image": "shopify://shop_images/skinora-scroll-1.png",
                 "image_ratio": "original",
                 "image_link": "",
                 "open_in_new_tab": false,
@@ -3046,9 +3046,7 @@
                 "blog_card_tag_KM7WGW": {
                   "type": "blog-card-tag",
                   "settings": {
-                    "max_tag": 3,
                     "style": "text",
-                    "text_case": "uppercase",
                     "font": "accent",
                     "font_size": "display",
                     "letter_spacing": "normal",

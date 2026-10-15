@@ -1,6 +1,6 @@
 {%- capture theme_size_font_size -%}{%- render 'typography-size-token', size: block.settings.font_size, role: 'body', fallback: 'sm' -%}{%- endcapture -%}
 {% doc %}
-  Renders article tags inside Blog Card.
+  Renders article tags and the author inside Blog Card.
 
   The parent Blog Card supplies the current article through `closest.article`.
   The closest blog is optional and is used to link the tag to the blog's
@@ -10,6 +10,14 @@
 {% liquid
   assign blog_card_tag_article = closest.article | default: article
   assign blog_card_tag_blog = closest.blog | default: blog
+  assign blog_card_tag_author = blog_card_tag_article.author
+  if blog_card_tag_article == blank
+    assign blog_card_tag_author = 'Author'
+  endif
+  assign blog_card_tag_has_tags = false
+  if blog_card_tag_article.tags != blank or request.design_mode or blog_card_tag_article == blank
+    assign blog_card_tag_has_tags = true
+  endif
   assign blog_card_tag_max = block.settings.max_tag | default: 3 | plus: 0
   if blog_card_tag_max < 1 or blog_card_tag_max > 6
     assign blog_card_tag_max = 3
@@ -87,7 +95,7 @@
 {% endcapture %}
 {% assign blog_card_tag_style = blog_card_tag_style | strip %}
 
-{% if blog_card_tag_article.tags != blank or request.design_mode or blog_card_tag_article == blank %}
+{% if blog_card_tag_has_tags or blog_card_tag_author != blank %}
   <div
     class="{{ blog_card_tag_class }}"
     {% if blog_card_tag_style != blank %}style="{{ blog_card_tag_style }}"{% endif %}
@@ -106,6 +114,12 @@
       {% endfor %}
     {% elsif request.design_mode or blog_card_tag_article == blank %}
       <span class="blog-card-tag__label">Tags</span>
+    {% endif %}
+    {% if blog_card_tag_author != blank %}
+      <span class="blog-card-tag__author">
+        {% if blog_card_tag_has_tags %}<span class="blog-card-tag__separator" aria-hidden="true"></span>{% endif %}
+        <span>{{ blog_card_tag_author | escape }}</span>
+      </span>
     {% endif %}
   </div>
 {% endif %}
@@ -132,6 +146,22 @@
   }
 
   .blog-card-tag__label { display: inline-block; }
+
+  .blog-card-tag__author {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    text-transform: none;
+  }
+
+  .blog-card-tag__separator {
+    flex: 0 0 4px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #808080;
+  }
 
   .blog-card-tag--style-outline .blog-card-tag__label {
     padding: 4px 12px;

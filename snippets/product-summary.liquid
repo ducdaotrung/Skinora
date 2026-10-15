@@ -23,6 +23,7 @@
           <select name="id" data-look-variant aria-label="{{ product.title | escape }} variant">
             {% for variant in product.variants %}<option value="{{ variant.id }}"{% unless variant.available %} disabled{% endunless %}{% if variant.id == summary_variant.id %} selected{% endif %}>{{ variant.title | escape }}{% unless variant.available %} - {{ 'products.sold_out' | t }}{% endunless %}</option>{% endfor %}
           </select>
+          <span class="shop-the-look-variant-select__icon" aria-hidden="true">{% render 'icon', icon: 'chevron-down', bare: true %}</span>
         </span>
       {% endif %}
     {% endif %}

@@ -66,7 +66,7 @@
       {% content_for 'block', type: 'view-all-button', id: 'blog-posts-view-all', closest.blog: blog_posts_source, use_blog_posts_source: true %}
     </div>
     <div class="blog-posts__list">
-      {% content_for 'block', type: 'blog-list', id: 'blog-list', closest.blog: blog_posts_source %}
+      {% content_for 'block', type: 'blog-list', id: 'blog-list', closest.blog: blog_posts_source, use_section_blog: true %}
     </div>
   </div>
 </div>

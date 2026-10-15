@@ -3,21 +3,101 @@
   if section.settings.color_scheme.id != blank
     assign community_scheme = section.settings.color_scheme.id
   endif
+
+  assign community_container_width = 'page-width'
+  if section.settings.section_width == 'full_width' or section.settings.section_width == 'full_width_no_padding'
+    assign community_container_width = 'full-width'
+  endif
+  assign community_direction = section.settings.direction | default: 'vertical'
+  unless community_direction == 'horizontal' or community_direction == 'vertical'
+    assign community_direction = 'vertical'
+  endunless
+  assign community_position = section.settings.position_horizontal | default: 'center'
+  unless community_position == 'top' or community_position == 'center' or community_position == 'bottom'
+    assign community_position = 'center'
+  endunless
+  assign community_alignment = 'start'
+  case section.settings.alignment
+    when 'center'
+      assign community_alignment = 'center'
+    when 'right'
+      assign community_alignment = 'end'
+  endcase
+  assign community_horizontal_alignment = 'flex-start'
+  case section.settings.horizontal_alignment
+    when 'center'
+      assign community_horizontal_alignment = 'center'
+    when 'right'
+      assign community_horizontal_alignment = 'flex-end'
+    when 'space-between'
+      assign community_horizontal_alignment = 'space-between'
+  endcase
+  if community_direction == 'horizontal'
+    assign community_alignment = 'start'
+    case community_horizontal_alignment
+      when 'center'
+        assign community_alignment = 'center'
+      when 'flex-end'
+        assign community_alignment = 'end'
+    endcase
+  endif
+  assign community_alignment_mobile = community_alignment
+  if section.settings.customize_mobile_alignment
+    assign community_alignment_mobile = 'start'
+    case section.settings.alignment_mobile
+      when 'center'
+        assign community_alignment_mobile = 'center'
+      when 'right'
+        assign community_alignment_mobile = 'end'
+    endcase
+  endif
+  assign community_gap = section.settings.content_gap | default: 67 | plus: 0 | at_least: 0 | at_most: 100
+  assign community_gap_mobile = community_gap
+  unless section.settings.customize_mobile_gap == false
+    assign community_gap_mobile = section.settings.content_gap_mobile | default: 53 | plus: 0 | at_least: 0 | at_most: 100
+  endunless
+  assign community_mobile_vertical = true
+  if section.settings.vertical_on_mobile == false
+    assign community_mobile_vertical = false
+  endif
 %}
+{% capture community_layout_style %}
+  {% render 'layout-flow-group-style',
+    direction: community_direction,
+    position: community_position,
+    alignment: community_alignment,
+    horizontal_alignment: community_horizontal_alignment,
+    mobile_vertical: community_mobile_vertical,
+    mobile_alignment: community_alignment_mobile,
+    gap: community_gap,
+    gap_mobile: community_gap_mobile
+  %}
+  {% if community_direction == 'horizontal' and community_mobile_vertical == false and section.settings.customize_mobile_alignment %}
+    --layout-flow-justify-content-mobile: {% case community_alignment_mobile %}{% when 'center' %}center{% when 'end' %}flex-end{% else %}flex-start{% endcase %};
+  {% endif %}
+{% endcapture %}
 <section class="community-video-carousel section-color-scope {{ community_scheme | handleize }}" data-community-videos style="--community-background:{{ section.settings.background_color | default: 'var(--background-color)' }}; --community-padding-top:{{ section.settings.padding_top }}px; --community-padding-bottom:{{ section.settings.padding_bottom }}px; --community-padding-top-mobile:{{ section.settings.padding_top_mobile }}px; --community-padding-bottom-mobile:{{ section.settings.padding_bottom_mobile }}px;">
-<div class="container page-width community-video-carousel__content">
+<div class="container {{ community_container_width }} community-video-carousel__container{% if section.settings.section_width == 'full_width_no_padding' %} community-video-carousel__container--no-padding{% endif %}">
+<div class="community-video-carousel__content community-video-carousel__content--{{ community_direction }}{% if community_mobile_vertical %} community-video-carousel__content--mobile-vertical{% endif %} layout-flow layout-flow--responsive" style="{{ community_layout_style | strip }}">
 {% content_for 'blocks' %}
-</div></section>
+</div></div></section>
 {% stylesheet %}
-.community-video-carousel { padding-top:var(--community-padding-top,80px); padding-bottom:var(--community-padding-bottom,80px); overflow:hidden; background-color:var(--community-background,#fbf8f4); }
-.community-video-carousel__content { display:flex; flex-direction:column; gap:67px; }
+.community-video-carousel { --community-video-height:410px; --community-video-active-height:490px; padding-top:var(--community-padding-top,80px); padding-bottom:var(--community-padding-bottom,80px); overflow:hidden; background-color:var(--community-background,#fbf8f4); }
+.community-video-carousel__content { width:100%; min-width:0; }
+.community-video-carousel .container.community-video-carousel__container--no-padding { padding-inline:0; }
+.community-video-carousel__content--horizontal > .block-header,
+.community-video-carousel__content--horizontal > .carousel-block { flex-shrink:1; min-width:0; }
 .community-video-carousel [data-carousel-block] { --carousel-preview-size: 15%; }
 .community-video-carousel .carousel-block__viewport[data-swiper-next-slide-preview='true'] { overflow:visible; clip-path:inset(0 -15% 0 -15%); }
-.community-video-carousel .carousel-block__viewport > .swiper-wrapper { align-items:center; }
-.community-video-carousel .community-video-card { height:auto; }
-.community-video-carousel .community-video-card { container-type:inline-size; }
-.community-video-carousel .community-video-card.swiper-slide-active > .community-video-card__media { overflow:visible; }
-.community-video-carousel .community-video-card.swiper-slide-active .video-block__media { height:calc(133.333cqw + 50px); aspect-ratio:auto; }
+.community-video-carousel .carousel-block__viewport > .swiper-wrapper { align-items:center; height:var(--community-video-active-height); }
+.community-video-carousel .carousel-block__viewport > .swiper-wrapper > .community-video-card { height:var(--community-video-height); transition:height 600ms var(--motion-ease-standard,ease); }
+.community-video-carousel .carousel-block__viewport > .swiper-wrapper > .community-video-card.swiper-slide-active,
+.community-video-carousel .carousel-block__viewport:not(.swiper-initialized) > .swiper-wrapper > .community-video-card:first-child { height:var(--community-video-active-height); }
+.community-video-carousel .carousel-block__viewport > .swiper-wrapper > .community-video-card.carousel-slide--loop-reset { transition:none; }
+.community-video-carousel .community-video-card__media { display:grid; grid-auto-rows:minmax(0,1fr); height:100%; }
+.community-video-carousel .community-video-card__media > .video-block { min-height:0; height:100%; }
+.community-video-carousel .community-video-card .video-block__media { height:100%; aspect-ratio:auto; }
+.community-video-carousel .community-video-card .video-block__media > :is(video,iframe,.video__placeholder) { width:100%; height:100%; object-fit:cover; }
 .community-video-carousel .community-video-card__media,
 .community-video-carousel .video-block__media { border-radius:16px; }
 .community-video-carousel .video__play { width:auto; height:auto; border-radius:0; color:#fff; background:transparent; }
@@ -44,7 +124,8 @@
   display: none;
   animation: none;
 }
-@media(max-width:767.98px) { .community-video-carousel { padding-top:var(--community-padding-top-mobile,56px); padding-bottom:var(--community-padding-bottom-mobile,56px); } .community-video-carousel__content { gap:53px; } }
+@media(max-width:767.98px) { .community-video-carousel { --community-video-height:290px; --community-video-active-height:384px; padding-top:var(--community-padding-top-mobile,56px); padding-bottom:var(--community-padding-bottom-mobile,56px); } .community-video-carousel__content--horizontal.community-video-carousel__content--mobile-vertical > :is(.block-header,.carousel-block) { flex-shrink:0; } }
+@media(prefers-reduced-motion:reduce) { .community-video-carousel .carousel-block__viewport > .swiper-wrapper > .community-video-card { transition:none; } }
 {% endstylesheet %}
 {% schema %}
 {
@@ -59,6 +140,61 @@
     }
   ],
   "settings": [
+    { "type": "header", "content": "t:general.layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:labels.section_width",
+      "options": [
+        { "value": "page_width", "label": "t:options.section_width.page_width" },
+        { "value": "full_width", "label": "t:options.section_width.full_width" },
+        { "value": "full_width_no_padding", "label": "t:options.section_width.full_width_no_padding" }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "t:labels.direction",
+      "options": [
+        { "value": "vertical", "label": "t:options.direction.vertical" },
+        { "value": "horizontal", "label": "t:options.direction.horizontal" }
+      ],
+      "default": "vertical"
+    },
+    {
+      "type": "select",
+      "id": "position_horizontal",
+      "label": "t:labels.position",
+      "options": [
+        { "value": "top", "label": "t:options.position.top" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "bottom", "label": "t:options.position.bottom" }
+      ],
+      "default": "center",
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    {
+      "type": "select",
+      "id": "horizontal_alignment",
+      "label": "t:labels.alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment.left" },
+        { "value": "center", "label": "t:options.alignment.center" },
+        { "value": "right", "label": "t:options.alignment.right" },
+        { "value": "space-between", "label": "t:options.alignment.space_between" }
+      ],
+      "default": "left",
+      "visible_if": "{{ section.settings.direction == 'horizontal' }}"
+    },
+    { "type": "text_alignment", "id": "alignment", "label": "t:labels.alignment", "default": "left", "visible_if": "{{ section.settings.direction == 'vertical' }}" },
+    { "type": "checkbox", "id": "vertical_on_mobile", "label": "t:labels.vertical_on_mobile", "default": true, "visible_if": "{{ section.settings.direction == 'horizontal' }}" },
+    { "type": "checkbox", "id": "customize_mobile_alignment", "label": "t:labels.customize_mobile_alignment", "default": false },
+    { "type": "text_alignment", "id": "alignment_mobile", "label": "t:labels.mobile_alignment", "default": "left", "visible_if": "{{ section.settings.customize_mobile_alignment }}" },
+    { "type": "range", "id": "content_gap", "label": "t:labels.content_gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 67 },
+    { "type": "checkbox", "id": "customize_mobile_gap", "label": "t:labels.customize_mobile_layout", "default": true },
+    { "type": "range", "id": "content_gap_mobile", "label": "t:labels.mobile_gap", "min": 0, "max": 100, "step": 1, "unit": "px", "default": 53, "visible_if": "{{ section.settings.customize_mobile_gap }}" },
+    { "type": "header", "content": "t:general.appearance" },
     {
       "type": "color_scheme",
       "id": "color_scheme",
@@ -71,6 +207,7 @@
       "label": "t:labels.background_color",
       "default": "#fbf8f4"
     },
+    { "type": "header", "content": "t:general.padding" },
     {
       "type": "range",
       "id": "padding_top",

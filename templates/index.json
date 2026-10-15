@@ -3376,7 +3376,7 @@
       "blocks": {
         "carousel_CrYfYD": {
           "type": "carousel",
-          "name": "Policy carousel",
+          "name": "Carousel",
           "settings": {
             "center_active_slide": false,
             "transition_style": "slide",

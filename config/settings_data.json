@@ -120,7 +120,7 @@
     "product_card_content_gap_mobile": 12,
     "product_card_info_gap_mobile": 4,
     "product_card_quick_add_enabled": true,
-    "product_card_quick_add_mobile": true,
+    "product_card_quick_add_mobile": false,
     "product_card_quick_add_color_scheme": "scheme-3",
     "product_card_quick_add_style": "text",
     "product_card_quick_add_full_width": true,
@@ -211,7 +211,7 @@
       },
       "scheme-2": {
         "settings": {
-          "background": "#FBF8F4",
+          "background": "#fbf8f4",
           "heading": "#111111",
           "heading_highlight": "#a67c52",
           "text": "#404040",

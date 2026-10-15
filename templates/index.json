@@ -224,7 +224,7 @@
               "type": "collection-thumbnail",
               "name": "Collection",
               "settings": {
-                "collection": "",
+                "collection": "acne-prone",
                 "custom_title": "",
                 "custom_link": "",
                 "custom_image_type": "image",
@@ -235,7 +235,7 @@
             "collection_thumbnail_H3iFVn": {
               "type": "collection-thumbnail",
               "settings": {
-                "collection": "",
+                "collection": "dehydration",
                 "custom_title": "",
                 "custom_link": "",
                 "custom_image_type": "image",
@@ -246,7 +246,7 @@
             "collection_thumbnail_WWk6yK": {
               "type": "collection-thumbnail",
               "settings": {
-                "collection": "",
+                "collection": "sun-damage",
                 "custom_title": "",
                 "custom_link": "",
                 "custom_image_type": "image",
@@ -257,7 +257,7 @@
             "collection_thumbnail_iY7XLM": {
               "type": "collection-thumbnail",
               "settings": {
-                "collection": "",
+                "collection": "redness",
                 "custom_title": "",
                 "custom_link": "",
                 "custom_image_type": "image",
@@ -268,7 +268,7 @@
             "collection_thumbnail_ttQDE7": {
               "type": "collection-thumbnail",
               "settings": {
-                "collection": "",
+                "collection": "dark-spots",
                 "custom_title": "",
                 "custom_link": "",
                 "custom_image_type": "image",
@@ -279,7 +279,7 @@
             "collection_thumbnail_qdtryi": {
               "type": "collection-thumbnail",
               "settings": {
-                "collection": "",
+                "collection": "oily-skin",
                 "custom_title": "",
                 "custom_link": "",
                 "custom_image_type": "image",
@@ -290,7 +290,7 @@
             "collection_thumbnail_RQCdWR": {
               "type": "collection-thumbnail",
               "settings": {
-                "collection": "",
+                "collection": "sensitive",
                 "custom_title": "",
                 "custom_link": "",
                 "custom_image_type": "image",

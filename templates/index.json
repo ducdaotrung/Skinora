@@ -3341,8 +3341,40 @@
             "slide_4",
             "slide_5"
           ]
-        },
-        "carousel_YRYTmH": {
+        }
+      },
+      "block_order": [
+        "header",
+        "carousel"
+      ],
+      "name": "Social carousel",
+      "settings": {
+        "section_width": "full_width",
+        "limit_width": true,
+        "max_width": 1760,
+        "alignment": "center",
+        "customize_mobile_alignment": false,
+        "alignment_mobile": "left",
+        "content_gap": 40,
+        "customize_mobile_gap": true,
+        "content_gap_mobile": 32,
+        "color_scheme": "scheme-2",
+        "background_color": "",
+        "padding_top": 80,
+        "padding_bottom": 80,
+        "padding_left": 0,
+        "padding_right": 0,
+        "customize_mobile_padding": true,
+        "padding_top_mobile": 56,
+        "padding_bottom_mobile": 56,
+        "padding_left_mobile": 0,
+        "padding_right_mobile": 0
+      }
+    },
+    "custom_section_EWndkL": {
+      "type": "custom-section",
+      "blocks": {
+        "carousel_CrYfYD": {
           "type": "carousel",
           "name": "Policy carousel",
           "settings": {
@@ -3405,7 +3437,7 @@
             "padding_bottom_mobile": 0
           },
           "blocks": {
-            "slide_3XBXhX": {
+            "slide_EKn7nU": {
               "type": "slide",
               "settings": {
                 "direction": "vertical",
@@ -3436,7 +3468,7 @@
                 "padding_right_mobile": 0
               },
               "blocks": {
-                "image_8DVpXp": {
+                "image_7tdHtN": {
                   "type": "image",
                   "settings": {
                     "image": "shopify://shop_images/skinora-policy-1.png",
@@ -3483,7 +3515,7 @@
                   },
                   "blocks": {}
                 },
-                "heading_eFRQjY": {
+                "heading_EaFVmm": {
                   "type": "heading",
                   "settings": {
                     "text": "<p>Natural & Vegan</p>",
@@ -3508,7 +3540,7 @@
                   },
                   "blocks": {}
                 },
-                "text_9XCKeb": {
+                "text_icCmzz": {
                   "type": "text",
                   "settings": {
                     "text": "<p>Plant-based ingredients, our products are 100% natural & vegan products.</p>",
@@ -3535,12 +3567,12 @@
                 }
               },
               "block_order": [
-                "image_8DVpXp",
-                "heading_eFRQjY",
-                "text_9XCKeb"
+                "image_7tdHtN",
+                "heading_EaFVmm",
+                "text_icCmzz"
               ]
             },
-            "slide_wLbVax": {
+            "slide_L3kRW7": {
               "type": "slide",
               "settings": {
                 "direction": "vertical",
@@ -3571,7 +3603,7 @@
                 "padding_right_mobile": 0
               },
               "blocks": {
-                "image_V6biYR": {
+                "image_8x8icw": {
                   "type": "image",
                   "settings": {
                     "image": "shopify://shop_images/skinora-policy-2.png",
@@ -3618,7 +3650,7 @@
                   },
                   "blocks": {}
                 },
-                "heading_M7bjKL": {
+                "heading_anPpGt": {
                   "type": "heading",
                   "settings": {
                     "text": "<p>Cruelty Free</p>",
@@ -3643,7 +3675,7 @@
                   },
                   "blocks": {}
                 },
-                "text_RQHqDj": {
+                "text_F6QY9G": {
                   "type": "text",
                   "settings": {
                     "text": "<p>Ethically made and never tested on, products are 100% cruelty-free.</p>",
@@ -3670,12 +3702,12 @@
                 }
               },
               "block_order": [
-                "image_V6biYR",
-                "heading_M7bjKL",
-                "text_RQHqDj"
+                "image_8x8icw",
+                "heading_anPpGt",
+                "text_F6QY9G"
               ]
             },
-            "slide_gmzGU3": {
+            "slide_UtypWr": {
               "type": "slide",
               "settings": {
                 "direction": "vertical",
@@ -3706,7 +3738,7 @@
                 "padding_right_mobile": 0
               },
               "blocks": {
-                "image_NmUBdz": {
+                "image_P3mRTj": {
                   "type": "image",
                   "settings": {
                     "image": "shopify://shop_images/skinora-policy-3.png",
@@ -3753,7 +3785,7 @@
                   },
                   "blocks": {}
                 },
-                "heading_gHxVtT": {
+                "heading_dx8M97": {
                   "type": "heading",
                   "settings": {
                     "text": "<p>For All Skin Types</p>",
@@ -3778,7 +3810,7 @@
                   },
                   "blocks": {}
                 },
-                "text_jR6aje": {
+                "text_mET7Rq": {
                   "type": "text",
                   "settings": {
                     "text": "<p>Our formula is carefully crafted to be gentle, effective suitable for skin.</p>",
@@ -3805,12 +3837,12 @@
                 }
               },
               "block_order": [
-                "image_NmUBdz",
-                "heading_gHxVtT",
-                "text_jR6aje"
+                "image_P3mRTj",
+                "heading_dx8M97",
+                "text_mET7Rq"
               ]
             },
-            "slide_gGiFBR": {
+            "slide_ey9YY7": {
               "type": "slide",
               "settings": {
                 "direction": "vertical",
@@ -3841,7 +3873,7 @@
                 "padding_right_mobile": 0
               },
               "blocks": {
-                "image_RPVFdN": {
+                "image_aLR4Pt": {
                   "type": "image",
                   "settings": {
                     "image": "shopify://shop_images/skinora-policy-4.png",
@@ -3888,7 +3920,7 @@
                   },
                   "blocks": {}
                 },
-                "heading_MXbtgC": {
+                "heading_MjegmK": {
                   "type": "heading",
                   "settings": {
                     "text": "<p>Formulation Guarantee</p>",
@@ -3913,7 +3945,7 @@
                   },
                   "blocks": {}
                 },
-                "text_wptyYr": {
+                "text_YFxFd7": {
                   "type": "text",
                   "settings": {
                     "text": "<p>Formulations that do not take care of your wellness needs refunded.</p>",
@@ -3940,44 +3972,42 @@
                 }
               },
               "block_order": [
-                "image_RPVFdN",
-                "heading_MXbtgC",
-                "text_wptyYr"
+                "image_aLR4Pt",
+                "heading_MjegmK",
+                "text_YFxFd7"
               ]
             }
           },
           "block_order": [
-            "slide_3XBXhX",
-            "slide_wLbVax",
-            "slide_gmzGU3",
-            "slide_gGiFBR"
+            "slide_EKn7nU",
+            "slide_L3kRW7",
+            "slide_UtypWr",
+            "slide_ey9YY7"
           ]
         }
       },
       "block_order": [
-        "header",
-        "carousel",
-        "carousel_YRYTmH"
+        "carousel_CrYfYD"
       ],
-      "name": "Social carousel",
+      "name": "Policy carousel",
       "settings": {
-        "section_width": "full_width",
-        "limit_width": true,
-        "max_width": 1760,
-        "alignment": "center",
+        "section_width": "page_width",
+        "limit_width": false,
+        "max_width": 1200,
+        "alignment": "left",
         "customize_mobile_alignment": false,
         "alignment_mobile": "left",
-        "content_gap": 40,
-        "customize_mobile_gap": true,
-        "content_gap_mobile": 32,
+        "content_gap": 16,
+        "customize_mobile_gap": false,
+        "content_gap_mobile": 12,
         "color_scheme": "scheme-2",
         "background_color": "",
-        "padding_top": 80,
+        "padding_top": 0,
         "padding_bottom": 80,
         "padding_left": 0,
         "padding_right": 0,
         "customize_mobile_padding": true,
-        "padding_top_mobile": 56,
+        "padding_top_mobile": 0,
         "padding_bottom_mobile": 56,
         "padding_left_mobile": 0,
         "padding_right_mobile": 0
@@ -4000,6 +4030,7 @@
     "text_marquee_custom_YaXFaW",
     "community_video_carousel",
     "blog_posts_tm4AUq",
-    "social_gallery"
+    "social_gallery",
+    "custom_section_EWndkL"
   ]
 }

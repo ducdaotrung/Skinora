@@ -425,7 +425,7 @@
             "use_recommendations": false,
             "recommendation_type": "related",
             "products": [],
-            "collection": "",
+            "collection": "new-arrivals-skinora",
             "max_products": 4,
             "layout_type": "carousel",
             "customize_mobile_layout": true,

@@ -1465,8 +1465,8 @@
         "collection_tab_yigQhj": {
           "type": "collection-tab",
           "settings": {
-            "label": "Tab 1",
-            "collection": ""
+            "label": "Skincare",
+            "collection": "skincare"
           },
           "blocks": {
             "product-card": {
@@ -1484,8 +1484,8 @@
         "collection_tab_yN3JLT": {
           "type": "collection-tab",
           "settings": {
-            "label": "Tab 2",
-            "collection": ""
+            "label": "",
+            "collection": "makeup"
           },
           "blocks": {
             "product-card": {
@@ -1503,8 +1503,27 @@
         "collection_tab_8QYzQY": {
           "type": "collection-tab",
           "settings": {
-            "label": "Tab 3",
-            "collection": ""
+            "label": "Body",
+            "collection": "body-care-2"
+          },
+          "blocks": {
+            "product-card": {
+              "type": "product-card",
+              "static": true,
+              "settings": {
+                "color_type": "inherit",
+                "color_scheme": "scheme-1"
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": []
+        },
+        "collection_tab_WHQyVp": {
+          "type": "collection-tab",
+          "settings": {
+            "label": "Hair",
+            "collection": "hair-care"
           },
           "blocks": {
             "product-card": {
@@ -1625,7 +1644,8 @@
       "block_order": [
         "collection_tab_yigQhj",
         "collection_tab_yN3JLT",
-        "collection_tab_8QYzQY"
+        "collection_tab_8QYzQY",
+        "collection_tab_WHQyVp"
       ],
       "name": "t:general.collection_tabs",
       "settings": {

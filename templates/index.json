@@ -945,7 +945,7 @@
             "show_blurred_edges": false,
             "enable_parallax": false,
             "alignment": "center",
-            "animation_speed": 0.1,
+            "animation_speed": 1,
             "animation_direction": "backward",
             "gap_desktop": 20,
             "gap_mobile": 16,

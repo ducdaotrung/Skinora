@@ -577,7 +577,12 @@
           "type": "collection-list-items",
           "static": true,
           "settings": {
-            "collections": [],
+            "collections": [
+              "essential-oils",
+              "skincare",
+              "body-care-2",
+              "hair-care-1"
+            ],
             "layout": "carousel",
             "columns_desktop": "4",
             "columns_mobile": "1",

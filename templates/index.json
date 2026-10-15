@@ -2450,8 +2450,8 @@
             "loop": true,
             "show_next_slide_preview_on_desktop": false,
             "show_next_slide_preview_on_mobile": true,
-            "gap_desktop": 28,
-            "gap_mobile": 12,
+            "gap_desktop": 32,
+            "gap_mobile": 20,
             "border_type": "solid",
             "border_thickness": 1,
             "border_color": "",
@@ -2855,7 +2855,7 @@
         "carousel_2"
       ],
       "settings": {
-        "section_width": "page_width",
+        "section_width": "full_width_no_padding",
         "direction": "vertical",
         "position_horizontal": "center",
         "horizontal_alignment": "left",

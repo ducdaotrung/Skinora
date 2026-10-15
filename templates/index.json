@@ -2448,7 +2448,7 @@
             "columns_desktop": "5",
             "columns_mobile": "1",
             "loop": true,
-            "show_next_slide_preview_on_desktop": true,
+            "show_next_slide_preview_on_desktop": false,
             "show_next_slide_preview_on_mobile": true,
             "gap_desktop": 28,
             "gap_mobile": 12,

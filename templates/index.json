@@ -1865,7 +1865,7 @@
       },
       "name": "t:general.shop_the_look",
       "settings": {
-        "section_width": "full_width",
+        "section_width": "page_width",
         "media_position": "left",
         "mobile_media_position": "first",
         "gap_desktop": 40,

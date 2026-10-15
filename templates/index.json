@@ -2806,7 +2806,7 @@
                   "type": "video",
                   "settings": {
                     "video_source": "uploaded",
-                    "video": "shopify://files/videos/essenza-video-4.mp4",
+                    "video": "shopify://files/videos/essenza-video-5.mp4",
                     "external_video_url": "",
                     "autoplay": false,
                     "loop_video": false,

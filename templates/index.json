@@ -2117,8 +2117,12 @@
           "static": true,
           "settings": {
             "collection": "",
-            "products": [],
-            "max_products": 5,
+            "products": [
+              "centella-light-cleansing-oil",
+              "the-ordinary-niacinamide-14",
+              "clinique-cream-cleansing-balm-2"
+            ],
+            "max_products": 3,
             "layout_type": "carousel",
             "customize_mobile_layout": false,
             "layout_type_mobile": "carousel",

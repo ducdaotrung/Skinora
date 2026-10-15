@@ -1649,7 +1649,7 @@
       ],
       "name": "t:general.collection_tabs",
       "settings": {
-        "section_width": "full_width",
+        "section_width": "page_width",
         "layout_direction": "vertical",
         "tab_position": "center",
         "mobile_alignment": "center",
@@ -2855,6 +2855,17 @@
         "carousel_2"
       ],
       "settings": {
+        "section_width": "page_width",
+        "direction": "vertical",
+        "position_horizontal": "center",
+        "horizontal_alignment": "left",
+        "alignment": "left",
+        "vertical_on_mobile": true,
+        "customize_mobile_alignment": false,
+        "alignment_mobile": "left",
+        "content_gap": 67,
+        "customize_mobile_gap": true,
+        "content_gap_mobile": 53,
         "color_scheme": "",
         "background_color": "#fbf8f4",
         "padding_top": 80,

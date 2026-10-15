@@ -3435,6 +3435,7 @@
                 "image_8DVpXp": {
                   "type": "image",
                   "settings": {
+                    "image": "shopify://shop_images/skinora-policy-1.png",
                     "show_image_first_mobile": false,
                     "image_link": "",
                     "open_in_new_tab": false,
@@ -3481,7 +3482,7 @@
                 "heading_eFRQjY": {
                   "type": "heading",
                   "settings": {
-                    "text": "<p>Main Heading</p>",
+                    "text": "<p>Natural & Vegan</p>",
                     "heading_size": "display",
                     "custom_heading_size": 24,
                     "html_tag": "h4",
@@ -3506,11 +3507,11 @@
                 "text_9XCKeb": {
                   "type": "text",
                   "settings": {
-                    "text": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, nisi quis viverra ornare.</p>",
-                    "text_size": "xs",
+                    "text": "<p>Plant-based ingredients, our products are 100% natural & vegan products.</p>",
+                    "text_size": "display",
                     "custom_text_size": 16,
                     "height_limit": "none",
-                    "text_color": "",
+                    "text_color": "#666666",
                     "width": "fill",
                     "max_width": 640,
                     "customize_mobile_size": false,
@@ -3569,6 +3570,7 @@
                 "image_V6biYR": {
                   "type": "image",
                   "settings": {
+                    "image": "shopify://shop_images/skinora-policy-2.png",
                     "show_image_first_mobile": false,
                     "image_link": "",
                     "open_in_new_tab": false,
@@ -3615,7 +3617,7 @@
                 "heading_M7bjKL": {
                   "type": "heading",
                   "settings": {
-                    "text": "<p>Main Heading</p>",
+                    "text": "<p>Cruelty Free</p>",
                     "heading_size": "display",
                     "custom_heading_size": 24,
                     "html_tag": "h4",
@@ -3640,11 +3642,11 @@
                 "text_RQHqDj": {
                   "type": "text",
                   "settings": {
-                    "text": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, nisi quis viverra ornare.</p>",
-                    "text_size": "xs",
+                    "text": "<p>Ethically made and never tested on, products are 100% cruelty-free.</p>",
+                    "text_size": "display",
                     "custom_text_size": 16,
                     "height_limit": "none",
-                    "text_color": "",
+                    "text_color": "#666666",
                     "width": "fill",
                     "max_width": 640,
                     "customize_mobile_size": false,
@@ -3703,6 +3705,7 @@
                 "image_NmUBdz": {
                   "type": "image",
                   "settings": {
+                    "image": "shopify://shop_images/skinora-policy-3.png",
                     "show_image_first_mobile": false,
                     "image_link": "",
                     "open_in_new_tab": false,
@@ -3749,7 +3752,7 @@
                 "heading_gHxVtT": {
                   "type": "heading",
                   "settings": {
-                    "text": "<p>Main Heading</p>",
+                    "text": "<p>For All Skin Types</p>",
                     "heading_size": "display",
                     "custom_heading_size": 24,
                     "html_tag": "h4",
@@ -3774,11 +3777,11 @@
                 "text_jR6aje": {
                   "type": "text",
                   "settings": {
-                    "text": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, nisi quis viverra ornare.</p>",
-                    "text_size": "xs",
+                    "text": "<p>Our formula is carefully crafted to be gentle, effective suitable for skin.</p>",
+                    "text_size": "display",
                     "custom_text_size": 16,
                     "height_limit": "none",
-                    "text_color": "",
+                    "text_color": "#666666",
                     "width": "fill",
                     "max_width": 640,
                     "customize_mobile_size": false,
@@ -3837,6 +3840,7 @@
                 "image_RPVFdN": {
                   "type": "image",
                   "settings": {
+                    "image": "shopify://shop_images/skinora-policy-4.png",
                     "show_image_first_mobile": false,
                     "image_link": "",
                     "open_in_new_tab": false,
@@ -3883,7 +3887,7 @@
                 "heading_MXbtgC": {
                   "type": "heading",
                   "settings": {
-                    "text": "<p>Main Heading</p>",
+                    "text": "<p>Formulation Guarantee</p>",
                     "heading_size": "display",
                     "custom_heading_size": 24,
                     "html_tag": "h4",
@@ -3908,11 +3912,11 @@
                 "text_wptyYr": {
                   "type": "text",
                   "settings": {
-                    "text": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, nisi quis viverra ornare.</p>",
-                    "text_size": "xs",
+                    "text": "<p>Formulations that do not take care of your wellness needs refunded.</p>",
+                    "text_size": "display",
                     "custom_text_size": 16,
                     "height_limit": "none",
-                    "text_color": "",
+                    "text_color": "#666666",
                     "width": "fill",
                     "max_width": 640,
                     "customize_mobile_size": false,

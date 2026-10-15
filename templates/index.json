@@ -945,7 +945,7 @@
             "show_blurred_edges": false,
             "enable_parallax": false,
             "alignment": "center",
-            "animation_speed": 1,
+            "animation_speed": 0.1,
             "animation_direction": "backward",
             "gap_desktop": 20,
             "gap_mobile": 16,
@@ -983,6 +983,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-scroll-1.png",
                 "image_ratio": "original",
                 "image_link": "",
                 "open_in_new_tab": false,
@@ -1016,6 +1017,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-scroll-2.png",
                 "image_ratio": "original",
                 "image_link": "",
                 "open_in_new_tab": false,
@@ -1049,6 +1051,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-scroll-3.png",
                 "image_ratio": "original",
                 "image_link": "",
                 "open_in_new_tab": false,
@@ -1082,6 +1085,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-scroll-4.png",
                 "image_ratio": "original",
                 "image_link": "",
                 "open_in_new_tab": false,
@@ -1115,6 +1119,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-scroll-5.png",
                 "image_ratio": "original",
                 "image_link": "",
                 "open_in_new_tab": false,

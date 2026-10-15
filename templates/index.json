@@ -1848,8 +1848,8 @@
               "settings": {
                 "product": "glow-serum-propolis",
                 "show_hotspot": true,
-                "hotspot_horizontal": 54,
-                "hotspot_vertical": 82,
+                "hotspot_horizontal": 56,
+                "hotspot_vertical": 64,
                 "customize_mobile_position": false,
                 "hotspot_horizontal_mobile": 50,
                 "hotspot_vertical_mobile": 50

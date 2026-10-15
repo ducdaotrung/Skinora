@@ -775,11 +775,12 @@
             "link": "",
             "open_in_new_tab": false,
             "background_type": "image",
+            "image": "shopify://shop_images/skinora-banner.png",
             "show_overlay": false,
             "overlay_style": "gradient",
             "overlay_color": "#00000033",
             "overlay_gradient": "linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52))",
-            "device": "mobile",
+            "device": "desktop",
             "image_ratio_desktop": "custom",
             "image_ratio_custom_width_desktop": 7,
             "image_ratio_custom_height_desktop": 10,
@@ -891,7 +892,7 @@
         "product_list_banner_XKFFGn": {
           "type": "product-list-banner",
           "settings": {
-            "collection": "",
+            "collection": "body-care-2",
             "max_products": 4,
             "columns_mobile": "2",
             "enable_swipe_mobile": false,

@@ -2236,6 +2236,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-brand-1.png",
                 "image_ratio": "ratio_3_2",
                 "image_link": "",
                 "open_in_new_tab": false,
@@ -2250,6 +2251,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-brand-2.png",
                 "image_ratio": "ratio_3_2",
                 "image_link": "",
                 "open_in_new_tab": false,
@@ -2264,6 +2266,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-brand-3.png",
                 "image_ratio": "ratio_3_2",
                 "image_link": "",
                 "open_in_new_tab": false,
@@ -2278,6 +2281,7 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-brand-4.png",
                 "image_ratio": "ratio_3_2",
                 "image_link": "",
                 "open_in_new_tab": false,
@@ -2292,11 +2296,27 @@
               "type": "_marquee-image",
               "name": "Image",
               "settings": {
+                "image": "shopify://shop_images/skinora-brand-5.png",
                 "image_ratio": "ratio_3_2",
                 "image_link": "",
                 "open_in_new_tab": false,
                 "width_custom_desktop": 160,
                 "width_custom_mobile": 100,
+                "corner_radius": "inherit",
+                "custom_corner_radius": 0
+              },
+              "blocks": {}
+            },
+            "marquee_image_anQ6hd": {
+              "type": "_marquee-image",
+              "name": "Image",
+              "settings": {
+                "image": "shopify://shop_images/skinora-brand-6.png",
+                "image_ratio": "original",
+                "image_link": "",
+                "open_in_new_tab": false,
+                "width_custom_desktop": 300,
+                "width_custom_mobile": 50,
                 "corner_radius": "inherit",
                 "custom_corner_radius": 0
               },
@@ -2308,7 +2328,8 @@
             "marquee_image_nKmQWG",
             "marquee_image_HfdNkN",
             "marquee_image_keB6L8",
-            "marquee_image_WzD8YG"
+            "marquee_image_WzD8YG",
+            "marquee_image_anQ6hd"
           ]
         }
       },

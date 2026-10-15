@@ -1691,6 +1691,7 @@
           "type": "image",
           "static": true,
           "settings": {
+            "image": "shopify://shop_images/skinora-shop-the-look.png",
             "show_image_first_mobile": false,
             "image_link": "",
             "open_in_new_tab": false,
@@ -1829,23 +1830,10 @@
             "autoplay_speed": 4
           },
           "blocks": {
-            "shop_the_look_product_YkCLAV": {
-              "type": "shop-the-look-product",
-              "settings": {
-                "product": "",
-                "show_hotspot": true,
-                "hotspot_horizontal": 72,
-                "hotspot_vertical": 48,
-                "customize_mobile_position": false,
-                "hotspot_horizontal_mobile": 50,
-                "hotspot_vertical_mobile": 50
-              },
-              "blocks": {}
-            },
             "shop_the_look_product_BaNjAe": {
               "type": "shop-the-look-product",
               "settings": {
-                "product": "",
+                "product": "fresh-vitamin-nectar-glow",
                 "show_hotspot": true,
                 "hotspot_horizontal": 32,
                 "hotspot_vertical": 62,
@@ -1858,7 +1846,7 @@
             "shop_the_look_product_ahn4VM": {
               "type": "shop-the-look-product",
               "settings": {
-                "product": "",
+                "product": "glow-serum-propolis",
                 "show_hotspot": true,
                 "hotspot_horizontal": 54,
                 "hotspot_vertical": 82,
@@ -1870,7 +1858,6 @@
             }
           },
           "block_order": [
-            "shop_the_look_product_YkCLAV",
             "shop_the_look_product_BaNjAe",
             "shop_the_look_product_ahn4VM"
           ]

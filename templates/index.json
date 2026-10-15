@@ -2315,8 +2315,8 @@
                 "image_ratio": "original",
                 "image_link": "",
                 "open_in_new_tab": false,
-                "width_custom_desktop": 300,
-                "width_custom_mobile": 50,
+                "width_custom_desktop": 160,
+                "width_custom_mobile": 100,
                 "corner_radius": "inherit",
                 "custom_corner_radius": 0
               },

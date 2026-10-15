@@ -1246,6 +1246,7 @@
                   "type": "image",
                   "name": "t:general.image",
                   "settings": {
+                    "image": "shopify://shop_images/Image_98ed9ecb-a968-4fb8-9863-6c3662b6cc23.jpg",
                     "show_image_first_mobile": false,
                     "image_link": "",
                     "open_in_new_tab": false,
@@ -1259,8 +1260,8 @@
                     "width_custom_unit_px_desktop": false,
                     "width_custom_desktop": 100,
                     "width_custom_desktop_px": 320,
-                    "limit_width_desktop": false,
-                    "max_width_desktop": 1600,
+                    "limit_width_desktop": true,
+                    "max_width_desktop": 304,
                     "image_ratio_mobile": "auto",
                     "height_mobile": "auto",
                     "image_ratio_custom_width_mobile": 16,
@@ -1380,6 +1381,7 @@
               "type": "image",
               "name": "t:general.image",
               "settings": {
+                "image": "shopify://shop_images/skinora-banner-2.png",
                 "show_image_first_mobile": false,
                 "image_link": "",
                 "open_in_new_tab": false,

@@ -3108,7 +3108,7 @@
       },
       "name": "Blog posts",
       "settings": {
-        "blog": "",
+        "blog": "blogs-essenza-1",
         "section_width": "page_width",
         "desktop_alignment": "left",
         "mobile_alignment": "left",

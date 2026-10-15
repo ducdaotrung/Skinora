@@ -725,6 +725,9 @@
     --variant-radius: 0px;
     height: 21px;
     min-height: 21px;
+    field-sizing: content;
+    width: auto;
+    max-width: 100%;
     padding: 0 21px 0 0;
     border: 0;
     border-radius: 0;
@@ -761,9 +764,14 @@
     display: none;
   }
 
-  .bundle-card__control,
-  .bundle-card__control .form__control-wrap--select {
+  .bundle-card__control {
     width: 100%;
+    min-width: 0;
+  }
+
+  .bundle-card__control .form__control-wrap--select {
+    width: fit-content;
+    max-width: 100%;
     min-width: 0;
   }
 

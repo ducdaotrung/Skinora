@@ -8,11 +8,11 @@
       {% assign card_form_id = 'CommunityProduct-' | append: section.id | append: '-' | append: block.id %}
       {% form 'product', selected_product, id: card_form_id %}
         {% render 'product-summary', product: selected_product, shop_look: true, price_in_content: true %}
-        {% render 'theme-button', label: 'Add to cart', aria_label: 'Add to cart', type: 'submit', icon: 'cart', icon_only: true, disabled: product_unavailable, class: 'community-video-card__add-to-cart' %}
+        {% render 'theme-button', label: 'Add to cart', aria_label: 'Add to cart', type: 'submit', icon: 'shopping-cart-outline', icon_only: true, disabled: product_unavailable, class: 'community-video-card__add-to-cart' %}
       {% endform %}
     {% else %}
       {% render 'product-summary', placeholder_title: 'Select a product', price_in_content: true %}
-      {% render 'theme-button', label: 'Add to cart', aria_label: 'Add to cart', icon: 'cart', icon_only: true, disabled: true, class: 'community-video-card__add-to-cart' %}
+      {% render 'theme-button', label: 'Add to cart', aria_label: 'Add to cart', icon: 'shopping-cart-outline', icon_only: true, disabled: true, class: 'community-video-card__add-to-cart' %}
     {% endif %}
   </div>
 </article>

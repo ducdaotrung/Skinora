@@ -57,11 +57,19 @@
   if image_width_desktop_setting == 'fill'
     assign image_width_desktop = '100%'
   elsif image_width_desktop_setting == 'custom'
-    assign image_width_desktop_value = block.settings.width_custom_desktop | default: 100 | plus: 0
-    if image_width_desktop_value < 10 or image_width_desktop_value > 100
-      assign image_width_desktop_value = 100
+    if block.settings.width_custom_unit_px_desktop
+      assign image_width_desktop_value = block.settings.width_custom_desktop_px | default: 320 | plus: 0
+      if image_width_desktop_value < 1 or image_width_desktop_value > 2400
+        assign image_width_desktop_value = 320
+      endif
+      assign image_width_desktop = image_width_desktop_value | append: 'px'
+    else
+      assign image_width_desktop_value = block.settings.width_custom_desktop | default: 100 | plus: 0
+      if image_width_desktop_value < 10 or image_width_desktop_value > 100
+        assign image_width_desktop_value = 100
+      endif
+      assign image_width_desktop = image_width_desktop_value | append: '%'
     endif
-    assign image_width_desktop = image_width_desktop_value | append: '%'
     assign image_size_desktop = image_width_desktop
   endif
 
@@ -74,11 +82,19 @@
   if image_width_mobile_setting == 'fill'
     assign image_width_mobile = '100%'
   elsif image_width_mobile_setting == 'custom'
-    assign image_width_mobile_value = block.settings.width_custom_mobile | default: 100 | plus: 0
-    if image_width_mobile_value < 10 or image_width_mobile_value > 100
-      assign image_width_mobile_value = 100
+    if block.settings.width_custom_unit_px_mobile
+      assign image_width_mobile_value = block.settings.width_custom_mobile_px | default: 140 | plus: 0
+      if image_width_mobile_value < 1 or image_width_mobile_value > 2400
+        assign image_width_mobile_value = 140
+      endif
+      assign image_width_mobile = image_width_mobile_value | append: 'px'
+    else
+      assign image_width_mobile_value = block.settings.width_custom_mobile | default: 100 | plus: 0
+      if image_width_mobile_value < 10 or image_width_mobile_value > 100
+        assign image_width_mobile_value = 100
+      endif
+      assign image_width_mobile = image_width_mobile_value | append: '%'
     endif
-    assign image_width_mobile = image_width_mobile_value | append: '%'
     assign image_size_mobile = image_width_mobile
   endif
 
@@ -422,6 +438,13 @@
       "visible_if": "{{ block.settings.device == 'desktop' }}"
     },
     {
+      "type": "checkbox",
+      "id": "width_custom_unit_px_desktop",
+      "label": "Use pixels for custom width",
+      "default": false,
+      "visible_if": "{{ block.settings.device == 'desktop' and block.settings.width_desktop == 'custom' }}"
+    },
+    {
       "type": "range",
       "id": "width_custom_desktop",
       "label": "t:labels.custom_width",
@@ -430,7 +453,14 @@
       "step": 1,
       "unit": "%",
       "default": 100,
-      "visible_if": "{{ block.settings.device == 'desktop' and block.settings.width_desktop == 'custom' }}"
+      "visible_if": "{{ block.settings.device == 'desktop' and block.settings.width_desktop == 'custom' and block.settings.width_custom_unit_px_desktop == false }}"
+    },
+    {
+      "type": "number",
+      "id": "width_custom_desktop_px",
+      "label": "Custom width (px)",
+      "default": 320,
+      "visible_if": "{{ block.settings.device == 'desktop' and block.settings.width_desktop == 'custom' and block.settings.width_custom_unit_px_desktop }}"
     },
     {
       "type": "checkbox",
@@ -536,6 +566,13 @@
       "visible_if": "{{ block.settings.device == 'mobile' }}"
     },
     {
+      "type": "checkbox",
+      "id": "width_custom_unit_px_mobile",
+      "label": "Use pixels for custom width",
+      "default": false,
+      "visible_if": "{{ block.settings.device == 'mobile' and block.settings.width_mobile == 'custom' }}"
+    },
+    {
       "type": "range",
       "id": "width_custom_mobile",
       "label": "t:labels.custom_width_mobile",
@@ -544,7 +581,14 @@
       "step": 1,
       "unit": "%",
       "default": 100,
-      "visible_if": "{{ block.settings.device == 'mobile' and block.settings.width_mobile == 'custom' }}"
+      "visible_if": "{{ block.settings.device == 'mobile' and block.settings.width_mobile == 'custom' and block.settings.width_custom_unit_px_mobile == false }}"
+    },
+    {
+      "type": "number",
+      "id": "width_custom_mobile_px",
+      "label": "Custom width (px)",
+      "default": 140,
+      "visible_if": "{{ block.settings.device == 'mobile' and block.settings.width_mobile == 'custom' and block.settings.width_custom_unit_px_mobile }}"
     },
     {
       "type": "checkbox",

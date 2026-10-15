@@ -379,3 +379,46 @@
     transform: none;
   }
 }
+
+/* Policy carousel uses static, 8px pagination dots. */
+[id$='__carousel_YRYTmH'] {
+  --swiper-pagination-bullet-gap: 16px;
+  --swiper-pagination-bullet-hit-width: 8px;
+  --swiper-pagination-bullet-hit-size: 8px;
+  --swiper-pagination-bullet-size: 8px;
+  --swiper-pagination-bullet-width: 8px;
+  --swiper-pagination-bullet-height: 8px;
+  --swiper-pagination-bullet-active-hit-width: 8px;
+  --swiper-pagination-bullet-active-width: 8px;
+  --swiper-pagination-bullet-active-height: 8px;
+  --swiper-pagination-color: #000;
+  --swiper-pagination-bullet-inactive-color: #888;
+}
+
+[id$='__carousel_YRYTmH'] > .swiper-pagination:is([data-pagination-type='bullets'], .swiper-pagination-bullets) .swiper-pagination-bullet {
+  flex: 0 0 8px !important;
+  width: 8px !important;
+  min-width: 8px !important;
+  height: 8px !important;
+  min-height: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: #888 !important;
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+[id$='__carousel_YRYTmH'] > .swiper-pagination:is([data-pagination-type='bullets'], .swiper-pagination-bullets) .swiper-pagination-bullet-active {
+  background: #000 !important;
+}
+
+[id$='__carousel_YRYTmH'] > .swiper-pagination:is([data-pagination-type='bullets'], .swiper-pagination-bullets) .swiper-pagination-bullet::before,
+[id$='__carousel_YRYTmH'] > .swiper-pagination:is([data-pagination-type='bullets'], .swiper-pagination-bullets) .swiper-pagination-bullet::after {
+  display: none !important;
+  content: none !important;
+  transition: none !important;
+  animation: none !important;
+}

@@ -244,15 +244,15 @@
   .image-compare__label {
     position: absolute;
     z-index: 3;
-    bottom: 1.6rem;
+    top: 2.4rem;
     max-width: calc(50% - 2rem);
-    padding: 0.55rem 1.1rem;
+    padding: 12px 24px;
     border-radius: var(--radius-pill);
     color: var(--image-compare-label-color, #fff);
     font-family: var(--image-compare-label-font-family, var(--font-body-family));
     font-size: var(--image-compare-label-font-size, var(--font-body-md));
     font-style: var(--image-compare-label-font-style, var(--font-body-style));
-    font-weight: var(--image-compare-label-font-weight, var(--font-body-weight));
+    font-weight: 600;
     letter-spacing: var(--image-compare-label-letter-spacing, 0em);
     line-height: var(--font-body-line-height);
     overflow-wrap: anywhere;
@@ -272,11 +272,11 @@
   }
 
   .image-compare__label--before {
-    left: 1.6rem;
+    left: 2.4rem;
   }
 
   .image-compare__label--after {
-    right: 1.6rem;
+    right: 2.4rem;
     text-align: right;
   }
 
@@ -411,16 +411,16 @@
   }
 
   .image-compare-shell--direction-vertical .image-compare__label--before {
-    top: 1.6rem;
+    top: 2.4rem;
     bottom: auto;
   }
 
   .image-compare-shell--direction-vertical .image-compare__label--after {
-    top: auto;
-    right: auto;
-    bottom: 1.6rem;
-    left: 1.6rem;
-    text-align: left;
+    top: 2.4rem;
+    right: 2.4rem;
+    bottom: auto;
+    left: auto;
+    text-align: right;
   }
 
   .image-compare-shell--variant-side-by-side .image-compare__viewport {
@@ -478,31 +478,31 @@
     }
 
     .image-compare__label {
-      bottom: 1.2rem;
+      top: 0.8rem;
       max-width: calc(50% - 1.6rem);
-      padding: 0.45rem 0.9rem;
+      padding: 6px 12px;
     }
 
     .image-compare__label--before {
-      left: 1.2rem;
+      left: 0.8rem;
     }
 
     .image-compare__label--after {
-      right: 1.2rem;
+      right: 0.8rem;
       text-align: right;
     }
 
     .image-compare-shell--direction-vertical .image-compare__label--before {
-      top: 1.2rem;
+      top: 0.8rem;
       bottom: auto;
     }
 
     .image-compare-shell--direction-vertical .image-compare__label--after {
-      top: auto;
-      right: auto;
-      bottom: 1.2rem;
-      left: 1.2rem;
-      text-align: left;
+      top: 0.8rem;
+      right: 0.8rem;
+      bottom: auto;
+      left: auto;
+      text-align: right;
     }
 
     .image-compare-shell--variant-side-by-side .image-compare__viewport {

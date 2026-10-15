@@ -3,16 +3,18 @@
 
   This action accepts an explicit destination and falls back to the closest
   typed blog or collection resource URL when a compatible section supplies one.
-  Owning resource sections render this slot only when their selected source
-  has more items than the displayed limit. An explicit merchant URL overrides
-  the destination, while retaining that visibility condition. Desktop and mobile
+  Owning resource sections can conditionally render this slot when their
+  selected source has more items than the displayed limit. Blog posts always
+  render it and follow the section Blog setting. Desktop and mobile
   presentation are configured independently while both controls retain the
   same accessible link target.
 
-  Featured collection always renders this action and synchronizes its destination
-  from the Product list block when use_product_list_collection is enabled.
+  Blog posts always render this action and synchronize its destination from
+  the section Blog setting when use_blog_posts_source is enabled. Featured
+  collection also synchronizes its destination from the Product list block.
 
   @param {boolean} [use_product_list_collection] - Always render a collection link whose URL is supplied by the owning Product list
+  @param {boolean} [use_blog_posts_source] - Always render a blog link whose URL is supplied by the owning section Blog setting
 
   @example
   {% content_for 'block', type: 'view-all-button', id: 'view-all' %}
@@ -34,6 +36,10 @@
     assign collection_list_view_all_url = blank
     assign collection_list_view_all_is_dynamic = true
   endif
+  if use_blog_posts_source
+    assign collection_list_view_all_url = closest.blog.url
+    assign collection_list_view_all_is_dynamic = true
+  endif
   assign collection_list_view_all_attributes = 'data-view-all-button'
   if collection_list_view_all_is_dynamic
     assign collection_list_view_all_attributes = collection_list_view_all_attributes | append: ' data-view-all-button-dynamic'
@@ -43,7 +49,7 @@
   endif
 
   assign collection_list_view_all_can_render = false
-  if collection_list_view_all_url != blank or use_product_list_collection
+  if collection_list_view_all_url != blank or use_product_list_collection or use_blog_posts_source
     assign collection_list_view_all_can_render = true
   endif
 

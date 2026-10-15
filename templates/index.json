@@ -1235,11 +1235,11 @@
                 "padding_bottom": 48,
                 "padding_left": 16,
                 "padding_right": 16,
-                "customize_mobile_padding": false,
-                "padding_top_mobile": 0,
-                "padding_bottom_mobile": 0,
-                "padding_left_mobile": 0,
-                "padding_right_mobile": 0
+                "customize_mobile_padding": true,
+                "padding_top_mobile": 48,
+                "padding_bottom_mobile": 48,
+                "padding_left_mobile": 16,
+                "padding_right_mobile": 16
               },
               "blocks": {
                 "image_m3x6GA": {

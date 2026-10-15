@@ -333,9 +333,9 @@
   }
 
   .product-media-gallery__main > .product-media-gallery__pagination.swiper-pagination-bullets {
-    --swiper-pagination-bullet-hit-size: 24px;
-    --swiper-pagination-bullet-gap: 2px;
-    gap: var(--swiper-pagination-bullet-gap, 8px);
+    --swiper-pagination-bullet-hit-size: 8px;
+    --swiper-pagination-bullet-gap: 16px;
+    gap: var(--swiper-pagination-bullet-gap, 16px);
   }
 
   .product-media-gallery--overlay .product-media-gallery__main .product-media {

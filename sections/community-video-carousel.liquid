@@ -8,6 +8,7 @@
   if section.settings.section_width == 'full_width' or section.settings.section_width == 'full_width_no_padding'
     assign community_container_width = 'full-width'
   endif
+  assign community_max_width = section.settings.max_width | default: 1200 | plus: 0 | at_least: 320 | at_most: 1920
   assign community_direction = section.settings.direction | default: 'vertical'
   unless community_direction == 'horizontal' or community_direction == 'vertical'
     assign community_direction = 'vertical'
@@ -77,7 +78,7 @@
   {% endif %}
 {% endcapture %}
 <section class="community-video-carousel section-color-scope {{ community_scheme | handleize }}" data-community-videos style="--community-background:{{ section.settings.background_color | default: 'var(--background-color)' }}; --community-padding-top:{{ section.settings.padding_top }}px; --community-padding-bottom:{{ section.settings.padding_bottom }}px; --community-padding-top-mobile:{{ section.settings.padding_top_mobile }}px; --community-padding-bottom-mobile:{{ section.settings.padding_bottom_mobile }}px;">
-<div class="container {{ community_container_width }} community-video-carousel__container{% if section.settings.section_width == 'full_width_no_padding' %} community-video-carousel__container--no-padding{% endif %}">
+<div class="container {{ community_container_width }} community-video-carousel__container{% if section.settings.section_width == 'full_width_no_padding' %} community-video-carousel__container--no-padding{% endif %}"{% if section.settings.limit_width %} style="max-width: {{ community_max_width }}px;"{% endif %}>
 <div class="community-video-carousel__content community-video-carousel__content--{{ community_direction }}{% if community_mobile_vertical %} community-video-carousel__content--mobile-vertical{% endif %} layout-flow layout-flow--responsive" style="{{ community_layout_style | strip }}">
 {% content_for 'blocks' %}
 </div></div></section>
@@ -107,22 +108,8 @@
 .community-video-carousel .video__play { width:48px; height:48px; inset:50% auto auto 50%; transform:translate(-50%,-50%); }
 .community-video-carousel .video__play-icon svg path { fill:currentColor; stroke:none; }
 .community-video-carousel .video__placeholder { background-color:#eeece9; }
-.community-video-carousel .carousel-block__pagination--bullets {
-  --swiper-pagination-bullet-width: 8px;
-  --swiper-pagination-bullet-height: 8px;
-  --swiper-pagination-bullet-active-width: 8px;
-  --swiper-pagination-bullet-active-height: 8px;
-  --swiper-pagination-bullet-hit-width: 24px;
-  --swiper-pagination-bullet-hit-size: 24px;
-  --swiper-pagination-bullet-active-hit-width: 24px;
-  --swiper-pagination-bullet-gap: 0px;
-}
 [data-community-videos].community-video-carousel .swiper .swiper-pagination.carousel-block__pagination--bullets .swiper-pagination-bullet-active::before {
   background: #000;
-}
-[data-community-videos].community-video-carousel .swiper .swiper-pagination.carousel-block__pagination--bullets .swiper-pagination-bullet-active::after {
-  display: none;
-  animation: none;
 }
 @media(max-width:767.98px) { .community-video-carousel { --community-video-height:290px; --community-video-active-height:384px; padding-top:var(--community-padding-top-mobile,56px); padding-bottom:var(--community-padding-bottom-mobile,56px); } .community-video-carousel__content--horizontal.community-video-carousel__content--mobile-vertical > :is(.block-header,.carousel-block) { flex-shrink:0; } }
 @media(prefers-reduced-motion:reduce) { .community-video-carousel .carousel-block__viewport > .swiper-wrapper > .community-video-card { transition:none; } }
@@ -152,6 +139,8 @@
       ],
       "default": "page_width"
     },
+    { "type": "checkbox", "id": "limit_width", "label": "t:labels.limit_width", "default": false },
+    { "type": "range", "id": "max_width", "label": "t:labels.max_width", "min": 320, "max": 1920, "step": 20, "unit": "px", "default": 1200, "visible_if": "{{ section.settings.limit_width }}" },
     {
       "type": "select",
       "id": "direction",

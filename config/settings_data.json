@@ -55,7 +55,7 @@
     "type_eyebrow_size": 14,
     "type_eyebrow_size_mobile": 14,
     "type_eyebrow_line_height": "normal",
-    "type_eyebrow_letter_spacing": "extra_loose",
+    "type_eyebrow_letter_spacing": "loose",
     "type_eyebrow_case": "original",
     "motion_image_zoom": true,
     "motion_block_animations": true,

@@ -482,6 +482,78 @@
     "beauty_message": {
       "type": "inline-image-text",
       "blocks": {
+        "eyebrow_xJHkyQ": {
+          "type": "eyebrow",
+          "name": "t:general.eyebrow",
+          "settings": {
+            "text": "<p>EMPOWER YOUR SKIN CARE</p>",
+            "eyebrow_size": "display",
+            "custom_eyebrow_size": 12,
+            "color": "",
+            "show_background": false,
+            "show_icon": false,
+            "icon": "circle",
+            "border_thickness": 0,
+            "corner_radius": "square",
+            "color_scheme": "scheme-1",
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0,
+            "customize_mobile_padding": false,
+            "padding_top_mobile": 0,
+            "padding_bottom_mobile": 0,
+            "padding_left_mobile": 0,
+            "padding_right_mobile": 0
+          },
+          "blocks": {}
+        },
+        "inline_image_heading_zFneYc": {
+          "type": "inline-image-heading",
+          "name": "Inline image heading",
+          "settings": {
+            "text": "<p>True Beauty [img1] Whispers Elegance, [img2] Confidence [img3] Your Life.</p>",
+            "html_tag": "h1",
+            "size": "display",
+            "font_size": 40,
+            "text_color": "",
+            "width": "custom",
+            "max_width": 900,
+            "customize_mobile_size": false,
+            "width_mobile": "fit",
+            "max_width_mobile": 480,
+            "show_image_1": true,
+            "image_1": "shopify://shop_images/skinora-img-1.png",
+            "image_width_1": 160,
+            "image_width_mobile_1": 92,
+            "image_link_1": "",
+            "image_new_tab_1": false,
+            "show_image_2": true,
+            "image_2": "shopify://shop_images/skinora-img-2.png",
+            "image_width_2": 160,
+            "image_width_mobile_2": 92,
+            "image_link_2": "",
+            "image_new_tab_2": false,
+            "show_image_3": true,
+            "image_3": "shopify://shop_images/skinora-img-3.png",
+            "image_width_3": 160,
+            "image_width_mobile_3": 92,
+            "image_link_3": "",
+            "image_new_tab_3": false,
+            "corner_radius": "inherit",
+            "custom_corner_radius": 0,
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0,
+            "customize_mobile_padding": false,
+            "padding_top_mobile": 0,
+            "padding_bottom_mobile": 0,
+            "padding_left_mobile": 0,
+            "padding_right_mobile": 0
+          },
+          "blocks": {}
+        },
         "text": {
           "type": "text",
           "static": true,
@@ -555,6 +627,10 @@
           "blocks": {}
         }
       },
+      "block_order": [
+        "eyebrow_xJHkyQ",
+        "inline_image_heading_zFneYc"
+      ],
       "name": "Inline image text",
       "settings": {
         "section_width": "page_width",
